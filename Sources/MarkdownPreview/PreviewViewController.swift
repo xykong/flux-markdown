@@ -344,6 +344,10 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         webView.magnification = currentZoomLevel
         os_log("🔵 Enabled WKWebView magnification, initial level: %.2f", log: logger, type: .default, currentZoomLevel)
         
+        if #available(macOS 15.0, *) {
+            webView.writingToolsBehavior = .none
+        }
+        
         DispatchQueue.main.async {
             self.view.window?.makeFirstResponder(self.webView)
         }
