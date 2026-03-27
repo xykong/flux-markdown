@@ -54,6 +54,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         UpdateRestorationManager.shared.saveLastOpenedFile(url: fileURL)
         return false
     }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        // Flush any debounced preference writes before exit
+        AppearancePreference.shared.flushSharedPreferences()
+    }
 }
 
 @main

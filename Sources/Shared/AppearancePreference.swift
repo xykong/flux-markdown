@@ -40,6 +40,7 @@ public class AppearancePreference: ObservableObject {
     // Replaces App Group UserDefaults which fails on macOS 26 (Tahoe) for ad-hoc signed apps.
     // See: https://github.com/xykong/flux-markdown/issues/13
     private let sharedStore: SharedPreferenceStore
+    private var pendingSyncWorkItem: DispatchWorkItem?
 
     public var currentMode: AppearanceMode {
         get {
@@ -49,7 +50,7 @@ public class AppearancePreference: ObservableObject {
         set {
             objectWillChange.send()
             sharedStore.set(newValue.rawValue, forKey: key)
-            sharedStore.synchronize()
+            scheduleSyncToSharedStore()
         }
     }
     
@@ -120,7 +121,7 @@ public class AppearancePreference: ObservableObject {
         set {
             objectWillChange.send()
             sharedStore.set(newValue, forKey: baseFontSizeKey)
-            sharedStore.synchronize()
+            scheduleSyncToSharedStore()
         }
     }
 
@@ -129,7 +130,7 @@ public class AppearancePreference: ObservableObject {
         set {
             objectWillChange.send()
             sharedStore.set(newValue, forKey: codeHighlightThemeKey)
-            sharedStore.synchronize()
+            scheduleSyncToSharedStore()
         }
     }
 
@@ -141,7 +142,7 @@ public class AppearancePreference: ObservableObject {
         set {
             objectWillChange.send()
             sharedStore.set(newValue, forKey: enableMermaidKey)
-            sharedStore.synchronize()
+            scheduleSyncToSharedStore()
         }
     }
 
@@ -153,7 +154,7 @@ public class AppearancePreference: ObservableObject {
         set {
             objectWillChange.send()
             sharedStore.set(newValue, forKey: enableKatexKey)
-            sharedStore.synchronize()
+            scheduleSyncToSharedStore()
         }
     }
 
@@ -165,7 +166,7 @@ public class AppearancePreference: ObservableObject {
         set {
             objectWillChange.send()
             sharedStore.set(newValue, forKey: enableEmojiKey)
-            sharedStore.synchronize()
+            scheduleSyncToSharedStore()
         }
     }
 
@@ -174,7 +175,7 @@ public class AppearancePreference: ObservableObject {
         set {
             objectWillChange.send()
             sharedStore.set(newValue, forKey: uiLanguageKey)
-            sharedStore.synchronize()
+            scheduleSyncToSharedStore()
         }
     }
 
@@ -183,8 +184,35 @@ public class AppearancePreference: ObservableObject {
     private let localStore: UserDefaults
 
     public init() {
-        self.sharedStore = SharedPreferenceStore()
+        // Detect if running inside the QuickLook extension by checking bundle identifier.
+        // Extension: alwaysReload=true (short-lived, needs latest settings from main app).
+        // Main app: alwaysReload=false (long-lived, writes settings itself, uses mod-date caching).
+        let isExtension = Bundle.main.bundleIdentifier?.hasSuffix(".QuickLook") == true
+        self.sharedStore = SharedPreferenceStore(alwaysReload: isExtension)
         self.localStore = UserDefaults.standard
+
+        // Migrate preferences from pre-Tahoe App Group UserDefaults on first launch.
+        // Safe to call from extension too (no-op since canWrite is false).
+        sharedStore.migrateFromAppGroupIfNeeded()
+    }
+
+    /// Coalesces rapid preference changes into a single disk write.
+    /// Writes after a 0.3s debounce, preventing 5+ writes when changing multiple settings.
+    private func scheduleSyncToSharedStore() {
+        pendingSyncWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.sharedStore.synchronize()
+        }
+        pendingSyncWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: workItem)
+    }
+
+    /// Force-flush any pending shared preference writes to disk immediately.
+    /// Called from applicationWillTerminate to ensure nothing is lost.
+    public func flushSharedPreferences() {
+        pendingSyncWorkItem?.cancel()
+        pendingSyncWorkItem = nil
+        sharedStore.synchronize()
     }
     
     private let maxScrollPositions = 100
