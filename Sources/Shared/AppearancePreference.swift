@@ -36,26 +36,26 @@ public class AppearancePreference: ObservableObject {
     private let zoomLevelKey = "markdownZoomLevel"
     private let scrollPositionsKey = "markdownScrollPositions"
     
-    // The App Group Identifier
-    // IMPORTANT: You must enable "App Groups" in Xcode Signing & Capabilities for BOTH targets
-    // and add "group.com.xykong.Markdown" (or your own ID) to the list.
-    public static let appGroupIdentifier = "group.com.xykong.Markdown"
-    
-    // Use UserDefaults directly instead of @AppStorage to support conditional App Group
+    // File-based store for settings shared between main app and QuickLook extension.
+    // Replaces App Group UserDefaults which fails on macOS 26 (Tahoe) for ad-hoc signed apps.
+    // See: https://github.com/xykong/flux-markdown/issues/13
+    private let sharedStore: SharedPreferenceStore
+
     public var currentMode: AppearanceMode {
         get {
-            let raw = store.string(forKey: key) ?? AppearanceMode.light.rawValue
+            let raw = sharedStore.string(forKey: key) ?? AppearanceMode.light.rawValue
             return AppearanceMode(rawValue: raw) ?? .light
         }
         set {
             objectWillChange.send()
-            store.set(newValue.rawValue, forKey: key)
+            sharedStore.set(newValue.rawValue, forKey: key)
+            sharedStore.synchronize()
         }
     }
     
     public var hostWindowFrame: CGRect? {
         get {
-            guard let dict = store.dictionary(forKey: hostWindowFrameKey) else { return nil }
+            guard let dict = localStore.dictionary(forKey: hostWindowFrameKey) else { return nil }
             let x = dict["x"] as? Double ?? 0
             let y = dict["y"] as? Double ?? 0
             let w = dict["w"] as? Double ?? 0
@@ -64,21 +64,21 @@ public class AppearancePreference: ObservableObject {
         }
         set {
             if let v = newValue {
-                store.set(["x": v.origin.x, "y": v.origin.y, "w": v.width, "h": v.height], forKey: hostWindowFrameKey)
+                localStore.set(["x": v.origin.x, "y": v.origin.y, "w": v.width, "h": v.height], forKey: hostWindowFrameKey)
             } else {
-                store.removeObject(forKey: hostWindowFrameKey)
+                localStore.removeObject(forKey: hostWindowFrameKey)
             }
-            store.synchronize()
+            localStore.synchronize()
         }
     }
-    
+
     public var quickLookSize: CGSize? {
         get {
-            guard let dict = store.dictionary(forKey: quickLookSizeKey) else { return nil }
-            
+            guard let dict = localStore.dictionary(forKey: quickLookSizeKey) else { return nil }
+
             let w = dict["w"] as? Double ?? 0
             let h = dict["h"] as? Double ?? 0
-            
+
             if w > 0 && h > 0 {
                 return CGSize(width: w, height: h)
             }
@@ -86,23 +86,22 @@ public class AppearancePreference: ObservableObject {
         }
         set {
             if let v = newValue {
-                store.set(["w": Double(v.width), "h": Double(v.height)], forKey: quickLookSizeKey)
+                localStore.set(["w": Double(v.width), "h": Double(v.height)], forKey: quickLookSizeKey)
             } else {
-                store.removeObject(forKey: quickLookSizeKey)
+                localStore.removeObject(forKey: quickLookSizeKey)
             }
-            // Force sync to disk immediately to ensure persistence across process restarts
-            store.synchronize()
+            localStore.synchronize()
         }
     }
-    
+
     public var zoomLevel: Double {
         get {
-            let level = store.double(forKey: zoomLevelKey)
+            let level = localStore.double(forKey: zoomLevelKey)
             return level == 0 ? 1.0 : level
         }
         set {
-            store.set(newValue, forKey: zoomLevelKey)
-            store.synchronize()
+            localStore.set(newValue, forKey: zoomLevelKey)
+            localStore.synchronize()
         }
     }
     
@@ -115,73 +114,77 @@ public class AppearancePreference: ObservableObject {
 
     public var baseFontSize: Double {
         get {
-            let v = store.double(forKey: baseFontSizeKey)
+            let v = sharedStore.double(forKey: baseFontSizeKey)
             return v == 0 ? 16 : v
         }
         set {
             objectWillChange.send()
-            store.set(newValue, forKey: baseFontSizeKey)
+            sharedStore.set(newValue, forKey: baseFontSizeKey)
+            sharedStore.synchronize()
         }
     }
 
     public var codeHighlightTheme: String {
-        get { store.string(forKey: codeHighlightThemeKey) ?? "default" }
+        get { sharedStore.string(forKey: codeHighlightThemeKey) ?? "default" }
         set {
             objectWillChange.send()
-            store.set(newValue, forKey: codeHighlightThemeKey)
+            sharedStore.set(newValue, forKey: codeHighlightThemeKey)
+            sharedStore.synchronize()
         }
     }
 
     public var enableMermaid: Bool {
         get {
-            guard store.object(forKey: enableMermaidKey) != nil else { return true }
-            return store.bool(forKey: enableMermaidKey)
+            guard sharedStore.object(forKey: enableMermaidKey) != nil else { return true }
+            return sharedStore.bool(forKey: enableMermaidKey)
         }
         set {
             objectWillChange.send()
-            store.set(newValue, forKey: enableMermaidKey)
+            sharedStore.set(newValue, forKey: enableMermaidKey)
+            sharedStore.synchronize()
         }
     }
 
     public var enableKatex: Bool {
         get {
-            guard store.object(forKey: enableKatexKey) != nil else { return true }
-            return store.bool(forKey: enableKatexKey)
+            guard sharedStore.object(forKey: enableKatexKey) != nil else { return true }
+            return sharedStore.bool(forKey: enableKatexKey)
         }
         set {
             objectWillChange.send()
-            store.set(newValue, forKey: enableKatexKey)
+            sharedStore.set(newValue, forKey: enableKatexKey)
+            sharedStore.synchronize()
         }
     }
 
     public var enableEmoji: Bool {
         get {
-            guard store.object(forKey: enableEmojiKey) != nil else { return true }
-            return store.bool(forKey: enableEmojiKey)
+            guard sharedStore.object(forKey: enableEmojiKey) != nil else { return true }
+            return sharedStore.bool(forKey: enableEmojiKey)
         }
         set {
             objectWillChange.send()
-            store.set(newValue, forKey: enableEmojiKey)
+            sharedStore.set(newValue, forKey: enableEmojiKey)
+            sharedStore.synchronize()
         }
     }
 
     public var uiLanguage: String {
-        get { store.string(forKey: uiLanguageKey) ?? "system" }
+        get { sharedStore.string(forKey: uiLanguageKey) ?? "system" }
         set {
             objectWillChange.send()
-            store.set(newValue, forKey: uiLanguageKey)
+            sharedStore.set(newValue, forKey: uiLanguageKey)
+            sharedStore.synchronize()
         }
     }
 
-    private let store: UserDefaults
-    
+    // Per-process store for settings that don't need cross-process sharing
+    // (zoom level, scroll positions, window sizes)
+    private let localStore: UserDefaults
+
     public init() {
-        // Try to load from App Group, fallback to standard
-        if let sharedStore = UserDefaults(suiteName: AppearancePreference.appGroupIdentifier) {
-            self.store = sharedStore
-        } else {
-            self.store = UserDefaults.standard
-        }
+        self.sharedStore = SharedPreferenceStore()
+        self.localStore = UserDefaults.standard
     }
     
     private let maxScrollPositions = 100
@@ -211,15 +214,15 @@ public class AppearancePreference: ObservableObject {
     
     private var scrollPositions: [ScrollPosition] {
         get {
-            guard let array = store.array(forKey: scrollPositionsKey) as? [[String: Any]] else {
+            guard let array = localStore.array(forKey: scrollPositionsKey) as? [[String: Any]] else {
                 return []
             }
             return array.compactMap { ScrollPosition(dict: $0) }
         }
         set {
             let array = newValue.map { $0.toDictionary() }
-            store.set(array, forKey: scrollPositionsKey)
-            store.synchronize()
+            localStore.set(array, forKey: scrollPositionsKey)
+            localStore.synchronize()
         }
     }
     
@@ -241,8 +244,8 @@ public class AppearancePreference: ObservableObject {
     }
     
     public func clearScrollPositions() {
-        store.removeObject(forKey: scrollPositionsKey)
-        store.synchronize()
+        localStore.removeObject(forKey: scrollPositionsKey)
+        localStore.synchronize()
     }
     
     // Helper to apply appearance to a view

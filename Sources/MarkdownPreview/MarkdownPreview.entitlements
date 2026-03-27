@@ -40,11 +40,9 @@
     <key>com.apple.security.files.downloads.read-only</key>
     <true/>
 
-    <!-- App Groups for sharing settings with Main App -->
-    <key>com.apple.security.application-groups</key>
-    <array>
-        <string>group.com.xykong.Markdown</string>
-    </array>
+    <!-- App Groups removed: macOS 26 (Tahoe) rejects App Group containers for ad-hoc signed apps.
+         Settings from the main app are read via a plist file in ~/Library/Application Support/FluxMarkdown/.
+         See: https://github.com/xykong/flux-markdown/issues/13 -->
 </dict>
 </plist>
 

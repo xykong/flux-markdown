@@ -11,12 +11,8 @@ public class UpdateRestorationManager {
     private let store: UserDefaults
     
     private init() {
-        // Use App Group for shared storage between host app and extension
-        if let sharedStore = UserDefaults(suiteName: AppearancePreference.appGroupIdentifier) {
-            self.store = sharedStore
-        } else {
-            self.store = UserDefaults.standard
-        }
+        // Main-app-only storage — no need for cross-process sharing
+        self.store = UserDefaults.standard
     }
     
     /// Save the path of the currently open file
