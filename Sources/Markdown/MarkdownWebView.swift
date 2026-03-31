@@ -706,6 +706,22 @@ class ResizableWKWebView: WKWebView {
         NotificationCenter.default.post(name: .toggleSearch, object: nil)
     }
     
+    override func scrollWheel(with event: NSEvent) {
+        if event.modifierFlags.contains(.command) {
+            let delta = event.scrollingDeltaY
+            guard abs(delta) > 0.1 else { return }
+
+            currentZoomLevel += delta * 0.01
+            currentZoomLevel = max(0.5, min(3.0, currentZoomLevel))
+
+            self.magnification = currentZoomLevel
+            AppearancePreference.shared.zoomLevel = currentZoomLevel
+            os_log("🔵 Cmd+scroll zoom: %.2f (delta: %.2f)", log: logger, type: .debug, currentZoomLevel, delta)
+            return
+        }
+        super.scrollWheel(with: event)
+    }
+
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
         

@@ -38,7 +38,12 @@
 - **Troubleshooting 文档优化**: 在 `docs/user/TROUBLESHOOTING.md` 顶部添加提示，引导普通用户先看 HELP.md
 
 ## [Unreleased]
-_无待发布的变更_
+
+### Fixed
+- **主应用 Cmd+scroll 缩放支持**: 在主应用中按住 Cmd 键滚动鼠标现在可以缩放内容，与 macOS 预览.app 行为一致
+  - 在 `ResizableWKWebView` 中添加 `scrollWheel(with:)` 方法拦截 Cmd+scroll 事件
+  - 缩放范围限制在 0.5x–3.0x，与 QuickLook 扩展保持一致
+  - 缩放级别自动持久化到用户偏好设置
 
 ## [1.19.256] - 2026-03-26
 
