@@ -26,6 +26,7 @@ public enum AppearanceMode: String, CaseIterable, Identifiable {
     }
 }
 
+@MainActor
 public class AppearancePreference: ObservableObject {
     public static let shared = AppearancePreference()
     
