@@ -1,27 +1,47 @@
 /**
- * Pre-processes Mermaid diagram source code to convert literal `\n` escape
- * sequences inside quoted node labels into `<br/>` HTML line breaks.
+ * Pre-processes Mermaid diagram source code before handing it to mermaid.render().
  *
- * AI-generated Mermaid diagrams commonly use `\n` inside double-quoted labels
- * (e.g. `A["line1\nline2"]`) expecting a line break, but Mermaid's parser
- * treats `\n` as a literal two-character sequence. This function normalises
- * that before handing the source to `mermaid.render()`.
+ * Mermaid v11 does NOT convert `\n` to `<br>` for unquoted node labels —
+ * the `\n` passes through `marked` as literal text and is never line-broken.
+ * Only double-quoted STR labels (`A["text\nline2"]`) get a `<br>` because they
+ * go through a different internal path. Everything else needs pre-processing.
  *
- * Only content inside double-quoted strings is affected; the rest of the
- * diagram syntax is left untouched.
+ * Cases handled here:
+ *   1. `participant/actor X as "label"` — quotes are preserved verbatim by
+ *      Mermaid's parser; we strip them and convert any \n inside.
+ *   2. Double-quoted labels `A["...\n..."]` — STR path; we convert \n.
+ *   3. Unquoted bracket labels `A[...\n...]`, `A{...\n...}`, `A(...\n...)` —
+ *      Mermaid passes \n as literal text; we convert to <br/>.
+ *
+ * The bracket passes use a character-class exclusion pattern so they never
+ * touch content that starts with `"` (already handled by pass 2) and never
+ * cross bracket boundaries.
  */
 export function preprocessMermaidNewlines(code: string): string {
-    // Mermaid's parser does not strip quotes from `participant X as "label"`,
-    // so `"用户（飞书）"` renders with visible quotes. Strip the quotes and
-    // convert any \n inside the alias at the same time.
+    // 1. Strip quotes from `participant/actor X as "label"` and convert \n.
     let result = code.replace(
         /((?:participant|actor)\s+\S+\s+as\s+)"((?:[^"\\]|\\.)*)"/g,
         (_match, prefix: string, inner: string) => prefix + inner.replace(/\\n/g, '<br/>')
     );
 
-    // Convert literal \n inside double-quoted node labels to <br/>.
+    // 2. Convert \n inside double-quoted node labels.
     result = result.replace(/"((?:[^"\\]|\\.)*)"/g, (_match, inner: string) => {
         return '"' + inner.replace(/\\n/g, '<br/>') + '"';
+    });
+
+    // 3a. Unquoted square-bracket labels: A[text\ntext]
+    result = result.replace(/\[([^\]"]*?\\n[^\]"]*?)\]/g, (_match, inner: string) => {
+        return '[' + inner.replace(/\\n/g, '<br/>') + ']';
+    });
+
+    // 3b. Unquoted round-bracket labels: A(text\ntext)
+    result = result.replace(/\(([^)"]*?\\n[^)"]*?)\)/g, (_match, inner: string) => {
+        return '(' + inner.replace(/\\n/g, '<br/>') + ')';
+    });
+
+    // 3c. Unquoted curly-bracket labels (diamond/hexagon nodes): A{text\ntext}
+    result = result.replace(/\{([^}"]*?\\n[^}"]*?)\}/g, (_match, inner: string) => {
+        return '{' + inner.replace(/\\n/g, '<br/>') + '}';
     });
 
     return result;

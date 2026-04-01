@@ -40,6 +40,11 @@
 ## [Unreleased]
 
 ### Fixed
+- **Mermaid 无引号节点标签 `\n` 换行支持**: 修复 `\n` 在无引号节点标签（如 `A[text\nline2]`、`G{decision\nmore}`）中不换行的问题
+  - Mermaid v11 只对双引号标签 `A["text\nline2"]` 转换 `\n` → `<br>`，无引号标签的 `\n` 会原样显示
+  - 扩展 `preprocessMermaidNewlines` 函数，增加对 `[...]`、`{...}`、`(...)` 三种无引号括号的预处理
+  - 使用字符类排除模式避免重复处理已由双引号 pass 处理的内容
+  - 更新 JSDoc 文档记录 Mermaid 内部行为差异，避免后人重走弯路
 - **主应用 Cmd+scroll 缩放支持**: 在主应用中按住 Cmd 键滚动鼠标现在可以缩放内容，与 macOS 预览.app 行为一致
   - 在 `ResizableWKWebView` 中添加 `scrollWheel(with:)` 方法拦截 Cmd+scroll 事件
   - 缩放范围限制在 0.5x–3.0x，与 QuickLook 扩展保持一致

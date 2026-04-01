@@ -82,3 +82,6 @@ release_notes_tmp.md
 # Generated HTML files (except web-renderer)
 /*.html
 !web-renderer/
+
+# Playwright MCP (temporary)
+.playwright-mcp/
