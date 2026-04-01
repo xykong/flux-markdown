@@ -869,7 +869,13 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                 } else {
                     content = try String(contentsOf: url, encoding: .utf8)
                 }
-                
+
+                let fileExtension = url.pathExtension.lowercased()
+                if fileExtension == "mmd" {
+                    content = "```mermaid\n\(content)\n```"
+                    os_log("🔵 Wrapped .mmd content in mermaid fenced block", log: self.logger, type: .debug)
+                }
+
                 self.pendingMarkdown = content
                 self.lastKnownFileSize = fileSize
                 self.lastKnownFileModificationDate = fileMtime
@@ -919,11 +925,13 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         if let url = capturedURL {
             localSchemeHandler?.baseDirectory = url.deletingLastPathComponent()
         }
-        
+
+        let capturedUILanguage = AppearancePreference.shared.uiLanguage
+
         Task.detached(priority: .userInitiated) { [weak self] in
             guard let self = self else { return }
             
-            var options: [String: Any] = ["theme": theme, "context": "quicklook", "uiLanguage": AppearancePreference.shared.uiLanguage]
+            var options: [String: Any] = ["theme": theme, "context": "quicklook", "uiLanguage": capturedUILanguage]
             if let url = capturedURL {
                 options["baseUrl"] = url.deletingLastPathComponent().path
             }
@@ -1455,7 +1463,11 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
             } else {
                 content = try String(contentsOf: url, encoding: .utf8)
             }
-            
+
+            if url.pathExtension.lowercased() == "mmd" {
+                content = "```mermaid\n\(content)\n```"
+            }
+
             self.pendingMarkdown = content
             self.lastKnownFileSize = fileSize
             self.lastKnownFileModificationDate = fileMtime

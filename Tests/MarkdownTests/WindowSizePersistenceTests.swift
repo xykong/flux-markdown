@@ -1,5 +1,6 @@
 import XCTest
 
+@MainActor
 final class WindowSizePersistenceTests: XCTestCase {
 
     // MARK: - Size Validation Tests

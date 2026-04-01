@@ -32,6 +32,14 @@
 				<string>com.fluxmarkdown.rmd</string>
 				<string>com.fluxmarkdown.qmd</string>
 				<string>com.fluxmarkdown.mdoc</string>
+				<string>com.fluxmarkdown.mmd</string>
+				<string>com.fluxmarkdown.livemd</string>
+				<string>com.fluxmarkdown.markdown</string>
+				<string>com.fluxmarkdown.mdown</string>
+				<string>com.fluxmarkdown.mkd</string>
+				<string>com.fluxmarkdown.mkdn</string>
+				<string>com.fluxmarkdown.mkdown</string>
+				<string>com.fluxmarkdown.mdwn</string>
 			</array>
 			<key>QLSupportsSearchableItems</key>
 			<false/>

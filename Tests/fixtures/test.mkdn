@@ -1,0 +1,11 @@
+# MKDN Extension (.mkdn)
+
+This file uses the `.mkdn` extension.
+
+## Content
+
+> Markdown with the `.mkdn` extension should render as standard Markdown.
+
+- Item A
+- Item B
+- Item C

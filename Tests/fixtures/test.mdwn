@@ -1,0 +1,23 @@
+# WikiText Markdown (.mdwn)
+
+This file uses the `.mdwn` extension, common in **Ikiwiki** and some MediaWiki setups.
+
+## Features
+
+- Standard Markdown syntax
+- Used in wiki systems
+- Should render identically to `.md`
+
+## Code Example
+
+```python
+def hello():
+    print("Hello from .mdwn!")
+```
+
+## Table
+
+| Column A | Column B |
+|----------|----------|
+| Value 1  | Value 2  |
+| Value 3  | Value 4  |

@@ -1,3 +1,31 @@
+## [Unreleased]
+
+### Added
+- **Mermaid 文件支持**: 新增 `.mmd` 扩展名支持，直接预览 Mermaid 图表文件
+  - 自动将 `.mmd` 文件内容包装为 Mermaid 代码块进行渲染
+  - 支持所有 Mermaid 图表类型：flowchart、sequence、gantt、classDiagram 等
+- **更多 Markdown 变种扩展名**: 支持以下新扩展名
+  - `.livemd` — Livebook 笔记本（Elixir 生态）
+  - `.markdown` `.mdown` `.mkd` `.mkdn` `.mkdown` `.mdwn` — Markdown 变种
+- **QuickLook Extension 注册增强**: 改进 macOS Ventura+ 上的 extension 注册
+  - 使用 `pluginkit -e use` 显式启用 extension
+  - 自动设置 extension 优先级，避免被已卸载的旧 extension 抢占
+  - 使用 `UTExportedTypeDeclarations` 导出 UTI，解决 macOS 26 上 `.markdown` 等扩展名不被识别的问题
+
+### Fixed
+- **Swift 6 严格并发检查**: 修复编译警告
+  - `PreviewViewController.swift`: 在 `Task.detached` 外捕获 `uiLanguage`
+  - `WindowAccessor.swift`: 使用 `MainActor.assumeIsolated` 处理通知回调
+  - `SharedPreferenceStore.swift`: 显式丢弃 `removeValue` 返回值
+  - 测试文件添加 `@MainActor` 修饰
+
+### Tests
+- **FileExtensionTests**: 新增 37 个测试用例
+  - Fixture 文件存在性验证
+  - `.mmd` 包装逻辑测试
+  - UTI 声明完整性验证
+  - 所有新扩展名的渲染验证
+
 ## [1.16.204] - 2026-02-27
 
 ### Added

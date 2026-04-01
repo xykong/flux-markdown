@@ -1,0 +1,14 @@
+# Markdown Down Extension (.mdown)
+
+This file uses the `.mdown` extension.
+
+## Content
+
+Standard Markdown content that should render correctly.
+
+| Feature       | Supported |
+|---------------|-----------|
+| Headers       | ✅        |
+| Tables        | ✅        |
+| Code blocks   | ✅        |
+| Math (KaTeX)  | ✅        |

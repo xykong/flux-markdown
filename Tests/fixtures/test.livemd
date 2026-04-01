@@ -1,0 +1,37 @@
+# Livebook Notebook (.livemd)
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.12.0"}
+])
+```
+
+## Introduction
+
+This is a **Livebook** notebook (`.livemd`), used in the Elixir ecosystem for interactive notebooks.
+
+## Section
+
+Livebook notebooks are Markdown files with embedded Elixir code cells.
+
+```elixir
+IO.puts("Hello from Livebook!")
+```
+
+## Math
+
+Inline math: $E = mc^2$
+
+Block math:
+
+$$
+\sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}
+$$
+
+## Diagram
+
+```mermaid
+graph LR
+    A[Elixir] --> B[Livebook]
+    B --> C[Interactive Notebook]
+```

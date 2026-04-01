@@ -1,5 +1,6 @@
 import XCTest
 
+@MainActor
 final class ScrollPositionTests: XCTestCase {
     
     var preference: AppearancePreference!

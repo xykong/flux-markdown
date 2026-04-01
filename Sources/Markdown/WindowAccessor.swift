@@ -44,17 +44,16 @@ struct WindowAccessor: NSViewRepresentable {
             
             let center = NotificationCenter.default
             
-            // Observe resize
             observers.append(center.addObserver(forName: NSWindow.didResizeNotification, object: window, queue: .main) { [weak self] _ in
-                self?.saveFrame()
+                MainActor.assumeIsolated { self?.saveFrame() }
             })
-            
-            // Observe move
+
             observers.append(center.addObserver(forName: NSWindow.didMoveNotification, object: window, queue: .main) { [weak self] _ in
-                self?.saveFrame()
+                MainActor.assumeIsolated { self?.saveFrame() }
             })
         }
         
+        @MainActor
         private func saveFrame() {
             guard let window = window else { return }
             AppearancePreference.shared.hostWindowFrame = window.frame

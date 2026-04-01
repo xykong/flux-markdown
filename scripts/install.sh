@@ -60,6 +60,24 @@ echo "🔧 Registering with system..."
 echo "🔄 Resetting QuickLook cache..."
 qlmanage -r
 
+# 5a. Enable QuickLook extension (required on macOS Ventura+)
+echo "🔌 Enabling QuickLook extension..."
+pluginkit -e use -i com.xykong.Markdown.QuickLook
+
+# 5b. Ensure FluxMarkdown is first in the QuickLook extension display order.
+# macOS stores a user-ordered list in this plist; if a previously-installed
+# Markdown previewer (e.g. QLMarkdown) is still in the list but now missing,
+# it silently wins priority over FluxMarkdown, causing fallback to plain-text.
+echo "📋 Setting QuickLook extension priority..."
+CURRENT_ORDER=$(defaults read com.apple.preferences.extensions.QuickLook displayOrder 2>/dev/null | tr -d '(),"' | tr -s ' \n' ' ' | xargs)
+if echo "$CURRENT_ORDER" | grep -qv "com.xykong.Markdown.QuickLook"; then
+    defaults write com.apple.preferences.extensions.QuickLook displayOrder -array \
+        "com.xykong.Markdown.QuickLook" \
+        $(defaults read com.apple.preferences.extensions.QuickLook displayOrder 2>/dev/null | grep -v "com.xykong.Markdown.QuickLook" | grep '"' | sed 's/.*"\(.*\)".*/\1/' | xargs -I{} echo '"{}"' | tr '\n' ' ')
+    defaults write com.apple.preferences.extensions.QuickLook userHasOrdered -bool true
+fi
+qlmanage -r cache
+
 # 6. Launch app once to complete system registration
 echo "🚀 Launching application to complete registration..."
 open -g "/Applications/FluxMarkdown.app" --args --register-only
@@ -125,6 +143,7 @@ echo "📋 What was done:"
 echo "   ✓ Application installed to /Applications"
 echo "   ✓ Quarantine attribute removed (xattr -cr)"
 echo "   ✓ Registered with system LaunchServices"
+echo "   ✓ QuickLook extension enabled (pluginkit)"
 echo "   ✓ QuickLook cache reset"
 echo "   ✓ Launched once to complete registration"
 echo "   ✓ Set as default handler for .md files"

@@ -38,6 +38,14 @@
 				<string>com.fluxmarkdown.rmd</string>
 				<string>com.fluxmarkdown.qmd</string>
 				<string>com.fluxmarkdown.mdoc</string>
+				<string>com.fluxmarkdown.mmd</string>
+				<string>com.fluxmarkdown.livemd</string>
+				<string>com.fluxmarkdown.markdown</string>
+				<string>com.fluxmarkdown.mdown</string>
+				<string>com.fluxmarkdown.mkd</string>
+				<string>com.fluxmarkdown.mkdn</string>
+				<string>com.fluxmarkdown.mkdown</string>
+				<string>com.fluxmarkdown.mdwn</string>
 			</array>
 		</dict>
 	</array>
@@ -57,6 +65,111 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>net.daringfireball.markdown</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Markdown Document (markdown)</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.fluxmarkdown.markdown</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>markdown</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>net.daringfireball.markdown</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Markdown Document (mdown)</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.fluxmarkdown.mdown</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>mdown</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>net.daringfireball.markdown</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Markdown Document (mkd)</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.fluxmarkdown.mkd</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>mkd</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>net.daringfireball.markdown</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Markdown Document (mkdn)</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.fluxmarkdown.mkdn</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>mkdn</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>net.daringfireball.markdown</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Markdown Document (mkdown)</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.fluxmarkdown.mkdown</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>mkdown</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>net.daringfireball.markdown</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Markdown Document (mdwn)</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.fluxmarkdown.mdwn</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>mdwn</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
 		<dict>
@@ -74,10 +187,6 @@
 				<array>
 					<string>md</string>
 					<string>markdown</string>
-					<string>mdown</string>
-					<string>mkd</string>
-					<string>mkdn</string>
-					<string>mkdown</string>
 				</array>
 			</dict>
 		</dict>
@@ -146,6 +255,40 @@
 				<key>public.filename-extension</key>
 				<array>
 					<string>mdoc</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.plain-text</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Mermaid Diagram</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.fluxmarkdown.mmd</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>mmd</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.plain-text</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Livebook Notebook</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.fluxmarkdown.livemd</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>livemd</string>
 				</array>
 			</dict>
 		</dict>

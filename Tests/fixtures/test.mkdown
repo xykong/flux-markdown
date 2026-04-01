@@ -1,0 +1,14 @@
+# MKDOWN Extension (.mkdown)
+
+This file uses the `.mkdown` extension — the longest Markdown extension variant.
+
+## Content
+
+Standard Markdown, rendered normally.
+
+```json
+{
+  "extension": ".mkdown",
+  "status": "supported"
+}
+```

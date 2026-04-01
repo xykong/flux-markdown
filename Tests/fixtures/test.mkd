@@ -1,0 +1,13 @@
+# MKD Extension (.mkd)
+
+This file uses the `.mkd` extension, common in older tooling.
+
+## Sample Content
+
+1. First item
+2. Second item
+3. Third item
+
+```bash
+echo "Hello from .mkd file"
+```

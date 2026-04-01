@@ -74,7 +74,7 @@ brew install --cask xykong/tap/flux-markdown
 | 🔍 **Zoom & Pan** | Cmd +/-/0, Cmd+scroll, pinch gestures |
 | 💾 **Position Memory** | Remembers scroll position and last-viewed file |
 | 🌓 **Themes** | Light, Dark, and System-synchronized modes |
-| 📂 **File Formats** | Supports .md, .mdx, .rmd, .qmd, .mdoc, .mkd, .mkdn, .mkdown |
+| 📂 **File Formats** | Supports .md, .mdx, .rmd, .qmd, .mdoc, .mmd, .livemd, .mkd, .mkdn, .mkdown, .mdwn, .mdown, .markdown |
 
 ---
 
