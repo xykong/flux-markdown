@@ -1,4 +1,7 @@
 ## [Unreleased]
+_无待发布的变更_
+
+## [1.20.261] - 2026-04-01
 
 ### Added
 - **Mermaid 文件支持**: 新增 `.mmd` 扩展名支持，直接预览 Mermaid 图表文件
@@ -66,6 +69,9 @@
 - **Troubleshooting 文档优化**: 在 `docs/user/TROUBLESHOOTING.md` 顶部添加提示，引导普通用户先看 HELP.md
 
 ## [Unreleased]
+_无待发布的变更_
+
+## [1.20.261] - 2026-04-01
 
 ### Fixed
 - **Mermaid 无引号节点标签 `\n` 换行支持**: 修复 `\n` 在无引号节点标签（如 `A[text\nline2]`、`G{decision\nmore}`）中不换行的问题
