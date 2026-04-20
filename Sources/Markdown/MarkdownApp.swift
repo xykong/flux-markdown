@@ -64,8 +64,6 @@ struct MarkdownApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @ObservedObject var preference = AppearancePreference.shared
 
-    @State private var viewMode: ViewMode = .preview
-
     var body: some Scene {
         WindowGroup {
             WelcomeView()
@@ -73,126 +71,24 @@ struct MarkdownApp: App {
         .windowStyle(.titleBar)
 
         DocumentGroup(newDocument: MarkdownDocument()) { file in
-            ZStack(alignment: .topTrailing) {
-                MarkdownWebView(
-                    content: file.document.text,
-                    fileURL: file.fileURL,
-                    appearanceMode: preference.currentMode,
-                    viewMode: viewMode,
-                    baseFontSize: preference.baseFontSize,
-                    enableMermaid: preference.enableMermaid,
-                    enableKatex: preference.enableKatex,
-                    enableEmoji: preference.enableEmoji,
-                    codeHighlightTheme: preference.codeHighlightTheme,
-                    collapseBlockquotesByDefault: preference.collapseBlockquotesByDefault
-                )
-
-                if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
-                    Text("v\(version)")
-                        .font(.system(size: 10, weight: .regular, design: .monospaced))
-                        .foregroundColor(Color.secondary.opacity(0.5))
-                        .padding(.top, 48)
-                        .padding(.trailing, 72)
-                }
-
-                HStack(spacing: 8) {
-                    Button(action: {
-                        NotificationCenter.default.post(name: .reloadFile, object: nil)
-                    }) {
-                        Image(systemName: "arrow.clockwise")
-                            .foregroundColor(Color(NSColor.labelColor))
-                            .frame(width: 30, height: 30)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .background(Color(NSColor.windowBackgroundColor).opacity(0.85))
-                    .clipShape(Circle())
-                    .help("Reload File (⌘R)")
-
-                    Button(action: {
-                        NotificationCenter.default.post(name: .zoomOut, object: nil)
-                    }) {
-                        Image(systemName: "textformat.size.smaller")
-                            .foregroundColor(Color(NSColor.labelColor))
-                            .frame(width: 30, height: 30)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .background(Color(NSColor.windowBackgroundColor).opacity(0.85))
-                    .clipShape(Circle())
-                    .help("Zoom Out")
-
-                    Button(action: {
-                        NotificationCenter.default.post(name: .resetZoom, object: nil)
-                    }) {
-                        Image(systemName: "arrow.uturn.backward")
-                            .foregroundColor(Color(NSColor.labelColor))
-                            .frame(width: 30, height: 30)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .background(Color(NSColor.windowBackgroundColor).opacity(0.85))
-                    .clipShape(Circle())
-                    .help("Reset Zoom (⌘0)")
-
-                    Button(action: {
-                        NotificationCenter.default.post(name: .zoomIn, object: nil)
-                    }) {
-                        Image(systemName: "textformat.size.larger")
-                            .foregroundColor(Color(NSColor.labelColor))
-                            .frame(width: 30, height: 30)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .background(Color(NSColor.windowBackgroundColor).opacity(0.85))
-                    .clipShape(Circle())
-                    .help("Zoom In")
-
-                    Button(action: {
-                        NotificationCenter.default.post(name: .toggleHelp, object: nil)
-                    }) {
-                        Image(systemName: "questionmark.circle")
-                            .foregroundColor(Color(NSColor.labelColor))
-                            .frame(width: 30, height: 30)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .background(Color(NSColor.windowBackgroundColor).opacity(0.85))
-                    .clipShape(Circle())
-                    .help("Show Help")
-
-                    Button(action: {
-                        viewMode = (viewMode == .preview) ? .source : .preview
-                    }) {
-                        Image(systemName: viewMode == .source ? "eye.fill" : "doc.text.fill")
-                            .foregroundColor(viewMode == .source ? .blue : Color(NSColor.labelColor))
-                            .frame(width: 30, height: 30)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .background(Color(NSColor.windowBackgroundColor).opacity(0.85))
-                    .clipShape(Circle())
-                    .help(viewMode == .source ? "Show Preview" : "Show Source")
-
-                    Button(action: {
-                        switch preference.currentMode {
-                        case .system: preference.currentMode = .light
-                        case .light:  preference.currentMode = .dark
-                        case .dark:   preference.currentMode = .system
-                        }
-                    }) {
-                        Image(systemName: preference.currentMode == .light ? "sun.max.fill" : preference.currentMode == .dark ? "moon.fill" : "circle.lefthalf.filled")
-                            .foregroundColor(preference.currentMode == .light ? .yellow : Color(NSColor.labelColor))
-                            .frame(width: 30, height: 30)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .background(Color(NSColor.windowBackgroundColor).opacity(0.85))
-                    .clipShape(Circle())
-                    .help("Toggle Theme (System / Light / Dark)")
-                }
-                .padding([.top, .trailing], 10)
-            }
+            MarkdownEditorSplitView(
+                text: file.$document.text,
+                fileURL: file.fileURL,
+                appearanceMode: preference.currentMode,
+                baseFontSize: preference.baseFontSize,
+                enableMermaid: preference.enableMermaid,
+                enableKatex: preference.enableKatex,
+                enableEmoji: preference.enableEmoji,
+                codeHighlightTheme: preference.codeHighlightTheme,
+                collapseBlockquotesByDefault: preference.collapseBlockquotesByDefault
+            )
             .onAppear {
                 if let fileURL = file.fileURL {
                     UpdateRestorationManager.shared.saveLastOpenedFile(url: fileURL)
                 }
             }
-            .frame(minWidth: 320, idealWidth: 1000, maxWidth: .infinity,
-                   minHeight: 200, idealHeight: 800, maxHeight: .infinity)
+            .frame(minWidth: 640, idealWidth: 1200, maxWidth: .infinity,
+                   minHeight: 400, idealHeight: 800, maxHeight: .infinity)
             .environmentObject(preference)
             .background(WindowAccessor())
         }
@@ -266,9 +162,9 @@ struct MarkdownApp: App {
             }
             CommandGroup(after: .toolbar) {
                 Button(action: {
-                    viewMode = (viewMode == .preview) ? .source : .preview
+                    NotificationCenter.default.post(name: .toggleEditorLayout, object: nil)
                 }) {
-                    Text(viewMode == .source ? "Show Preview" : "Show Source")
+                    Text(NSLocalizedString("Toggle Editor Layout", comment: "Toggle editor layout menu item"))
                 }
                 .keyboardShortcut("m", modifiers: [.command, .shift])
 

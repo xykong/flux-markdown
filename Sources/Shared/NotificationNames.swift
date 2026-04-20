@@ -8,5 +8,6 @@ extension Notification.Name {
     static let zoomIn       = Notification.Name("zoomIn")
     static let zoomOut      = Notification.Name("zoomOut")
     static let resetZoom    = Notification.Name("resetZoom")
-    static let reloadFile   = Notification.Name("reloadFile")
+    static let reloadFile         = Notification.Name("reloadFile")
+    static let toggleEditorLayout = Notification.Name("toggleEditorLayout")
 }
