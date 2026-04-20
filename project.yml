@@ -62,6 +62,9 @@ targets:
       - Tests/MarkdownTests
       - Sources/Markdown/ResourceLoader.swift
       - Sources/Markdown/EditorViewMode.swift
+      - Sources/Markdown/MarkdownEditorTextModel.swift
+      - Sources/Markdown/EditorLayoutConfig.swift
+      - Sources/Markdown/LivePreviewCoordinator.swift
       - Sources/MarkdownPreview
       - Sources/Shared
       - benchmark/swift-bench/RenderBenchmarkTests.swift
