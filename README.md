@@ -21,6 +21,8 @@
 </p>
 
 <p align="center">
+  <a href="README.md">English</a> •
+  <a href="README_ES.md">Español</a> •
   <a href="README_ZH.md">中文文档</a> •
   <a href="#-quick-install-30-seconds">Install</a> •
   <a href="#-troubleshooting">Troubleshooting</a>

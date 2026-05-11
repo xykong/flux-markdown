@@ -1,51 +1,53 @@
 # FluxMarkdown
 
 <p align="center">
-  <em>Beautiful Markdown previews in macOS Finder QuickLook</em><br>
-  Mermaid • KaTeX • GFM • TOC • Charts • Export
+  <em>Hermosas previsualizaciones de Markdown en QuickLook de macOS Finder</em><br>
+  Mermaid • KaTeX • GFM • TOC • Gráficos • Exportar
 </p>
 
 <p align="center">
   <a href="https://github.com/xykong/flux-markdown/stargazers">
-    <img src="https://img.shields.io/github/stars/xykong/flux-markdown?style=social" alt="GitHub stars">
+    <img src="https://img.shields.io/github/stars/xykong/flux-markdown?style=social" alt="Estrellas en GitHub">
   </a>
   <a href="https://github.com/xykong/flux-markdown/releases">
-    <img src="https://img.shields.io/github/v/release/xykong/flux-markdown?style=flat-square" alt="Latest release">
+    <img src="https://img.shields.io/github/v/release/xykong/flux-markdown?style=flat-square" alt="Última versión">
   </a>
   <a href="https://github.com/xykong/flux-markdown/releases">
-    <img src="https://img.shields.io/github/downloads/xykong/flux-markdown/total?style=flat-square" alt="Downloads">
+    <img src="https://img.shields.io/github/downloads/xykong/flux-markdown/total?style=flat-square" alt="Descargas">
   </a>
   <a href="LICENSE">
-    <img src="https://img.shields.io/github/license/xykong/flux-markdown?style=flat-square" alt="License">
+    <img src="https://img.shields.io/github/license/xykong/flux-markdown?style=flat-square" alt="Licencia">
   </a>
 </p>
 
 <p align="center">
+  <a href="README.md">English</a> •
+  <a href="README_ES.md">Español</a> •
   <a href="README_ZH.md">中文文档</a> •
-  <a href="#-quick-install-30-seconds">Install</a> •
-  <a href="#-troubleshooting">Troubleshooting</a>
+  <a href="#-instalación-rápida-30-segundos">Instalación</a> •
+  <a href="#-solución-de-problemas">Solución de problemas</a>
 </p>
 
 ---
 
 ## ✨ Demo
 
-![FluxMarkdown Demo](docs/assets/demo.gif)
+![Demo de FluxMarkdown](docs/assets/demo.gif)
 
 <p align="center">
-  <strong>Press <code>Space</code> in Finder → Instant preview with diagrams, math, and more.</strong>
+  <strong>Presiona <code>Space</code> (Espacio) en Finder → Previsualización instantánea con diagramas, matemáticas y más.</strong>
 </p>
 
 <p align="center">
-  <em>👋 If FluxMarkdown helps you, consider giving it a</em>
-  <a href="https://github.com/xykong/flux-markdown/stargazers">⭐ star on GitHub</a>!
+  <em>👋 Si FluxMarkdown te ayuda, ¡considera darle una</em>
+  <a href="https://github.com/xykong/flux-markdown/stargazers">⭐ estrella en GitHub</a>!
 </p>
 
 ---
 
-## 🚀 Quick Install (30 seconds)
+## 🚀 Instalación rápida (30 segundos)
 
-### Homebrew (Recommended)
+### Homebrew (Recomendado)
 
 ```bash
 brew install --cask xykong/tap/flux-markdown
@@ -53,110 +55,110 @@ brew install --cask xykong/tap/flux-markdown
 
 ### Manual (DMG)
 
-1. Download the latest `FluxMarkdown.dmg` from [Releases](https://github.com/xykong/flux-markdown/releases)
-2. Open the DMG
-3. Drag **FluxMarkdown.app** to **Applications**
+1. Descarga el archivo `FluxMarkdown.dmg` más reciente desde [Releases](https://github.com/xykong/flux-markdown/releases)
+2. Abre el DMG
+3. Arrastra **FluxMarkdown.app** a **Aplicaciones**
 
 ---
 
-## 💡 Why FluxMarkdown?
+## 💡 ¿Por qué FluxMarkdown?
 
-| Feature | Description |
+| Característica | Descripción |
 |---------|-------------|
-| 📊 **Mermaid Diagrams** | Architecture diagrams, flowcharts, sequence diagrams |
-| 🧮 **KaTeX Math** | Inline and block mathematical expressions |
-| 📝 **GFM Support** | Tables, task lists, strikethrough, and GitHub Alerts |
-| 🎨 **Code Highlighting** | Syntax highlighting for 40+ languages |
-| 📊 **Charts & Graphs** | Vega, Vega-Lite, and Graphviz (DOT) support |
-| 📑 **TOC Panel** | Interactive table of contents with section tracking |
-| 📄 **YAML Metadata** | Auto-parses frontmatter into a clean table |
-| 📤 **Export** | PDF (Cmd+Shift+P) / HTML (Cmd+Shift+E) — V2EX 用户求的功能！ |
-| 🔍 **Zoom & Pan** | Cmd +/-/0, Cmd+scroll, pinch gestures |
-| 💾 **Position Memory** | Remembers scroll position and last-viewed file |
-| 🌓 **Themes** | Light, Dark, and System-synchronized modes |
-| 📂 **File Formats** | Supports .md, .mdx, .rmd, .qmd, .mdoc, .mmd, .livemd, .mkd, .mkdn, .mkdown, .mdwn, .mdown, .markdown |
+| 📊 **Diagramas Mermaid** | Diagramas de arquitectura, diagramas de flujo, diagramas de secuencia |
+| 🧮 **Matemáticas KaTeX** | Expresiones matemáticas en línea y en bloque |
+| 📝 **Soporte GFM** | Tablas, listas de tareas, tachado y alertas de GitHub |
+| 🎨 **Resaltado de código** | Resaltado de sintaxis para más de 40 lenguajes |
+| 📊 **Gráficos y tablas** | Soporte para Vega, Vega-Lite y Graphviz (DOT) |
+| 📑 **Panel TOC** | Tabla de contenidos interactiva con seguimiento de secciones |
+| 📄 **Metadatos YAML** | Analiza automáticamente el frontmatter en una tabla limpia |
+| 📤 **Exportar** | PDF (Cmd+Shift+P) / HTML (Cmd+Shift+E) — ¡Funcionalidad solicitada por usuarios de V2EX! |
+| 🔍 **Zoom y paneo** | Cmd +/-/0, Cmd+scroll, gestos de pellizco |
+| 💾 **Memoria de posición** | Recuerda la posición de desplazamiento y el último archivo visto |
+| 🌓 **Temas** | Modos claro, oscuro y sincronizado con el sistema |
+| 📂 **Formatos de archivo** | Soporta .md, .mdx, .rmd, .qmd, .mdoc, .mmd, .livemd, .mkd, .mkdn, .mkdown, .mdwn, .mdown, .markdown |
 
 ---
 
-## ⚙️ Settings (Cmd+,)
+## ⚙️ Configuración (Cmd+,)
 
-FluxMarkdown includes a dedicated Settings window to customize your experience:
+FluxMarkdown incluye una ventana de Configuración dedicada para personalizar tu experiencia:
 
-- **Appearance**: Switch between Light, Dark, or System themes.
-- **Rendering**: Toggle Mermaid, KaTeX, or Emoji support.
-- **Editor**: Adjust base font size and choose code highlighting themes (GitHub, Monokai, Atom One Dark, etc.).
+- **Apariencia**: Cambia entre los temas Claro, Oscuro o del Sistema.
+- **Renderizado**: Alterna el soporte para Mermaid, KaTeX o Emojis.
+- **Editor**: Ajusta el tamaño de fuente base y elige temas de resaltado de código (GitHub, Monokai, Atom One Dark, etc.).
 
 ---
 
-## ⌨️ Keyboard Shortcuts
+## ⌨️ Atajos de teclado
 
-| Shortcut | Action |
+| Atajo | Acción |
 |----------|--------|
-| `Space` | Open QuickLook preview (Finder) |
+| `Space` | Abrir previsualización QuickLook (Finder) |
 | `Cmd` + `+` / `-` / `0` | Zoom in / out / reset |
-| `Cmd` + `Shift` + `E` | Export as HTML |
-| `Cmd` + `Shift` + `P` | Export as PDF |
-| `Cmd` + `,` | Open Settings |
+| `Cmd` + `Shift` + `E` | Exportar como HTML |
+| `Cmd` + `Shift` + `P` | Exportar como PDF |
+| `Cmd` + `,` | Abrir Configuración |
 
 ---
 
-## 🛠️ Troubleshooting
+## 🛠️ Solución de problemas
 
 <details>
-<summary><strong>"App is damaged" / "Unidentified developer"</strong></summary>
+<summary><strong>"La aplicación está dañada" / "Desarrollador no identificado"</strong></summary>
 
-Run this in Terminal:
+Ejecuta esto en la Terminal:
 ```bash
 xattr -cr "/Applications/FluxMarkdown.app"
 ```
 </details>
 
 <details>
-<summary><strong>QuickLook not showing updates</strong></summary>
+<summary><strong>QuickLook no muestra actualizaciones</strong></summary>
 
-Reset QuickLook cache:
+Reinicia la caché de QuickLook:
 ```bash
 qlmanage -r
 ```
 </details>
 
 <details>
-<summary><strong>Preview not working at all</strong></summary>
+<summary><strong>La previsualización no funciona en absoluto</strong></summary>
 
-1. Check if the app is in `/Applications/`
-2. Try restarting Finder: `killall Finder`
-3. Check `pluginkit -m -v` for active QuickLook extensions
+1. Verifica si la aplicación está en `/Applications/`
+2. Intenta reiniciar Finder: `killall Finder`
+3. Comprueba `pluginkit -m -v` para extensiones de QuickLook activas
 </details>
 
-**📚 More help:** See [`docs/user/TROUBLESHOOTING.md`](docs/user/TROUBLESHOOTING.md) and [`docs/user/AUTO_UPDATE.md`](docs/user/AUTO_UPDATE.md)
+**📚 Más ayuda:** Consulta [`docs/user/TROUBLESHOOTING.md`](docs/user/TROUBLESHOOTING.md) y [`docs/user/AUTO_UPDATE.md`](docs/user/AUTO_UPDATE.md)
 
-**📖 Documentation index:** [`docs/README.md`](docs/README.md)
+**📖 Índice de documentación:** [`docs/README.md`](docs/README.md)
 
 ---
 
-## Comparison (QuickLook Markdown plugins)
+## Comparación (Plugins de Markdown para QuickLook)
 
-| Feature | FluxMarkdown | [QLMarkdown](https://github.com/sbarex/QLMarkdown) | [qlmarkdown](https://github.com/whomwah/qlmarkdown) | [PreviewMarkdown](https://github.com/smittytone/PreviewMarkdown) |
+| Característica | FluxMarkdown | [QLMarkdown](https://github.com/sbarex/QLMarkdown) | [qlmarkdown](https://github.com/whomwah/qlmarkdown) | [PreviewMarkdown](https://github.com/smittytone/PreviewMarkdown) |
 | --- | --- | --- | --- | --- |
-| Install | brew cask / DMG | brew cask / DMG | manual | App Store / DMG |
-| Mermaid | Yes | Yes ([ref](https://github.com/sbarex/QLMarkdown/blob/main/README.md#mermaid-diagrams)) | Not mentioned | Not mentioned |
-| KaTeX / Math | Yes | Yes ([ref](https://github.com/sbarex/QLMarkdown/blob/main/README.md#mathematical-expressions)) | Not mentioned | Not mentioned |
-| GFM / Alerts | Yes | Yes (cmark-gfm; [ref](https://github.com/sbarex/QLMarkdown/releases/tag/1.0.18)) | Partial (Discount; [ref](https://github.com/whomwah/qlmarkdown#introduction)) | Not mentioned |
-| TOC panel | Yes | Not mentioned | No | Not mentioned |
-| Charts (Vega/DOT) | Yes | Not mentioned | No | No |
-| Export (PDF/HTML) | Yes | No | No | No |
-| YAML Frontmatter | Yes | Yes | No | No |
-| Themes | Light/Dark/System | CSS-based ([ref](https://github.com/sbarex/QLMarkdown/blob/main/README.md#extensions)) | Not mentioned | Basic controls ([ref](https://github.com/smittytone/PreviewMarkdown#adjusting-the-preview)) |
-| Zoom | Yes | Not mentioned | No | Not mentioned |
-| Scroll restore | Yes | Not mentioned | No | Not mentioned |
+| Instalación | brew cask / DMG | brew cask / DMG | manual | App Store / DMG |
+| Mermaid | Sí | Sí ([ref](https://github.com/sbarex/QLMarkdown/blob/main/README.md#mermaid-diagrams)) | No mencionado | No mencionado |
+| KaTeX / Math | Sí | Sí ([ref](https://github.com/sbarex/QLMarkdown/blob/main/README.md#mathematical-expressions)) | No mencionado | No mencionado |
+| GFM / Alertas | Sí | Sí (cmark-gfm; [ref](https://github.com/sbarex/QLMarkdown/releases/tag/1.0.18)) | Parcial (Discount; [ref](https://github.com/whomwah/qlmarkdown#introduction)) | No mencionado |
+| Panel TOC | Sí | No mencionado | No | No mencionado |
+| Gráficos (Vega/DOT) | Sí | No mencionado | No | No |
+| Exportar (PDF/HTML) | Sí | No | No | No |
+| YAML Frontmatter | Sí | Sí | No | No |
+| Temas | Claro/Oscuro/Sistema | Basado en CSS ([ref](https://github.com/sbarex/QLMarkdown/blob/main/README.md#extensions)) | No mencionado | Controles básicos ([ref](https://github.com/smittytone/PreviewMarkdown#adjusting-the-preview)) |
+| Zoom | Sí | No mencionado | No | No mencionado |
+| Restaurar scroll | Sí | No mencionado | No | No mencionado |
 
-> Notes:
-> - Entries are based on public README/release notes at the cited links.
-> - If a feature isn't mentioned in sources, we mark it as "Not mentioned".
+> Notas:
+> - Las entradas se basan en los README/notas de lanzamiento públicos en los enlaces citados.
+> - Si una característica no se menciona en las fuentes, la marcamos como "No mencionado".
 
 ---
 
-## Build from source
+## Construir desde el código fuente
 
 ```bash
 git clone https://github.com/xykong/flux-markdown.git
@@ -164,25 +166,25 @@ cd flux-markdown
 make install
 ```
 
-## 📄 License
+## 📄 Licencia
 
-**FluxMarkdown is dual-licensed:**
+**FluxMarkdown tiene licencia dual:**
 
-### Open Source License: GPL-3.0
-- ✅ **Free** for personal, educational, and open-source use
-- ✅ Any modifications must also be open-sourced under GPL-3.0
-- 📜 See [`LICENSE`](LICENSE) for full terms
+### Licencia de código abierto: GPL-3.0
+- ✅ **Gratis** para uso personal, educativo y de código abierto
+- ✅ Cualquier modificación también debe ser de código abierto bajo GPL-3.0
+- 📜 Ver [`LICENSE`](LICENSE) para los términos completos
 
-### Commercial License
-- 💼 Required for **closed-source** or proprietary products
-- 💼 Allows distribution without open-sourcing your modifications
-- 📧 Contact: **xy.kong@gmail.com** for licensing inquiries
-- 📜 See [`LICENSE.COMMERCIAL`](LICENSE.COMMERCIAL) for details
+### Licencia comercial
+- 💼 Requerida para productos **propietarios** o de código cerrado
+- 💼 Permite la distribución sin necesidad de liberar el código fuente de tus modificaciones
+- 📧 Contacto: **xy.kong@gmail.com** para consultas de licenciamiento
+- 📜 Ver [`LICENSE.COMMERCIAL`](LICENSE.COMMERCIAL) para detalles
 
-**Why dual licensing?** This ensures FluxMarkdown remains free and open for the community while allowing commercial use without GPL obligations for those who need it.
+**¿Por qué licencia dual?** Esto asegura que FluxMarkdown permanezca libre y abierto para la comunidad, mientras permite el uso comercial sin obligaciones GPL para quienes lo necesiten.
 
 ---
 
 <p align="center">
-  <sub>Inspired by and partially based on <a href="https://github.com/shd101wyy/markdown-preview-enhanced">markdown-preview-enhanced</a></sub>
+  <sub>Inspirado y parcialmente basado en <a href="https://github.com/shd101wyy/markdown-preview-enhanced">markdown-preview-enhanced</a></sub>
 </p>
