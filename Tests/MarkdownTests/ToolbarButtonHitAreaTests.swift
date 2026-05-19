@@ -70,22 +70,51 @@ final class ToolbarButtonHitAreaTests: XCTestCase {
         )
         XCTAssertTrue(
             webViewSource.contains("NotificationCenter.default.post(name: .reloadFileSucceeded")
-                && webViewSource.contains("NotificationCenter.default.post(name: .reloadFileFailed"),
-            "Manual reload must publish success or failure for the native toast."
+                && webViewSource.contains("NotificationCenter.default.post(name: .reloadFileFailed")
+                && webViewSource.contains("object: window"),
+            "Manual reload must publish success or failure scoped to the originating document window for the native toast."
+        )
+        XCTAssertTrue(
+            webViewSource.contains("window.isKeyWindow || window.windowController?.document === NSDocumentController.shared.currentDocument"),
+            "Manual reload must only be handled by the active/current document window so one reload cannot affect every open document."
         )
         XCTAssertTrue(
             source.contains("ReloadToast")
                 && source.contains("@State private var reloadToastMessage")
-                && source.contains(".onReceive(NotificationCenter.default.publisher(for: .reloadFileSucceeded))")
-                && source.contains(".onReceive(NotificationCenter.default.publisher(for: .reloadFileFailed))")
+                && source.contains("ReloadToastObserver")
+                && source.contains("ReloadToastNotificationRouter")
                 && source.contains("NSLog(\"✅ Reload toast requested: %@\", message)"),
-            "Document view should show and log a native toast after manual reload success or failure."
+            "Document view should show and log a native toast only for reload results from its own window."
+        )
+
+        let routerSourcePath = try projectRoot().appendingPathComponent("Sources/Shared/ReloadToastNotificationRouter.swift").path
+        let routerSource = try String(contentsOfFile: routerSourcePath, encoding: .utf8)
+        XCTAssertTrue(
+            routerSource.contains("center.addObserver(forName: .reloadFileSucceeded, object: window")
+                && routerSource.contains("center.addObserver(forName: .reloadFileFailed, object: window"),
+            "Reload toast notification routing should listen only to notifications posted by its own document window."
         )
         XCTAssertTrue(
             source.contains("已重新载入文档")
                 && source.contains("重新载入失败"),
             "Reload toast should include clear Chinese success/failure messages."
         )
+    }
+
+    func testReloadToastNotificationRouterOnlyHandlesItsOwnWindow() {
+        let owningWindow = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 320, height: 200), styleMask: [], backing: .buffered, defer: false)
+        let otherWindow = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 320, height: 200), styleMask: [], backing: .buffered, defer: false)
+        var results: [ReloadToastResult] = []
+        let router = ReloadToastNotificationRouter { results.append($0) }
+
+        router.monitor(window: owningWindow)
+        NotificationCenter.default.post(name: .reloadFileSucceeded, object: otherWindow)
+        NotificationCenter.default.post(name: .reloadFileFailed, object: otherWindow)
+        XCTAssertTrue(results.isEmpty, "Reload toast routing should ignore other document windows.")
+
+        NotificationCenter.default.post(name: .reloadFileSucceeded, object: owningWindow)
+        NotificationCenter.default.post(name: .reloadFileFailed, object: owningWindow)
+        XCTAssertEqual(results, [.success, .failure])
     }
 
     private func projectRoot() throws -> URL {

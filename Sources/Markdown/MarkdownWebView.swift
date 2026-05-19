@@ -243,13 +243,16 @@ struct MarkdownWebView: NSViewRepresentable {
         }
 
         @objc func handleReloadFile() {
-            guard let url = currentFileURL else { return }
+            guard let webView = currentWebView,
+                  let window = webView.window,
+                  window.isKeyWindow || window.windowController?.document === NSDocumentController.shared.currentDocument,
+                  let url = currentFileURL else { return }
             os_log("🔄 Manual reload triggered: %{public}@", log: logger, type: .default, url.lastPathComponent)
-            currentWebView?.evaluateJavaScript("window.clearDiffMarks && window.clearDiffMarks();", completionHandler: nil)
+            webView.evaluateJavaScript("window.clearDiffMarks && window.clearDiffMarks();", completionHandler: nil)
             if reloadFromDisk(url: url) {
-                NotificationCenter.default.post(name: .reloadFileSucceeded, object: nil)
+                NotificationCenter.default.post(name: .reloadFileSucceeded, object: window)
             } else {
-                NotificationCenter.default.post(name: .reloadFileFailed, object: nil)
+                NotificationCenter.default.post(name: .reloadFileFailed, object: window)
             }
         }
 

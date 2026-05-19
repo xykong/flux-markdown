@@ -179,12 +179,14 @@ struct MarkdownApp: App {
                    minHeight: 200, idealHeight: 800, maxHeight: .infinity)
             .environmentObject(preference)
             .background(WindowAccessor())
-            .onReceive(NotificationCenter.default.publisher(for: .reloadFileSucceeded)) { _ in
-                showReloadToast(NSLocalizedString("已重新载入文档", comment: "Reload success toast"))
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .reloadFileFailed)) { _ in
-                showReloadToast(NSLocalizedString("重新载入失败", comment: "Reload failure toast"))
-            }
+            .background(ReloadToastObserver { result in
+                switch result {
+                case .success:
+                    showReloadToast(NSLocalizedString("已重新载入文档", comment: "Reload success toast"))
+                case .failure:
+                    showReloadToast(NSLocalizedString("重新载入失败", comment: "Reload failure toast"))
+                }
+            })
         }
         .commands {
             CommandGroup(after: .saveItem) {
@@ -336,6 +338,46 @@ private struct ReloadToast: View {
             )
             .transition(.move(edge: .top).combined(with: .opacity))
             .accessibilityLabel(message)
+    }
+}
+
+private struct ReloadToastObserver: NSViewRepresentable {
+    let onResult: (ReloadToastResult) -> Void
+
+    func makeNSView(context: Context) -> WindowObservingReloadToastView {
+        let view = WindowObservingReloadToastView()
+        view.onWindowAttach = { window in
+            context.coordinator.router.monitor(window: window)
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: WindowObservingReloadToastView, context: Context) {
+        context.coordinator.router.onResult = onResult
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onResult: onResult)
+    }
+
+    final class Coordinator: NSObject {
+        let router: ReloadToastNotificationRouter
+
+        init(onResult: @escaping (ReloadToastResult) -> Void) {
+            router = ReloadToastNotificationRouter(onResult: onResult)
+        }
+    }
+}
+
+private final class WindowObservingReloadToastView: NSView {
+    var onWindowAttach: ((NSWindow) -> Void)?
+    private weak var attachedWindow: NSWindow?
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        guard let window, attachedWindow !== window else { return }
+        attachedWindow = window
+        onWindowAttach?(window)
     }
 }
 
