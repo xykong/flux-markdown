@@ -79,6 +79,44 @@ final class WindowSizePersistenceTests: XCTestCase {
         )
     }
 
+    func testHostFrameApplication_ReappliesDefaultWhenLaterWindowSizingOverwritesInitialFrame() {
+        let visibleFrame = CGRect(x: 1_512, y: -98, width: 1_920, height: 1_080)
+        let initialSwiftUIFrame = CGRect(x: 1_944, y: 397, width: 900, height: 450)
+        let expectedDefaultFrame = WindowAccessor.defaultDocumentFrame(
+            currentFrame: initialSwiftUIFrame,
+            visibleFrame: visibleFrame
+        )
+
+        let actions = WindowAccessor.defaultFrameApplications(
+            currentFrame: initialSwiftUIFrame,
+            targetFrame: expectedDefaultFrame,
+            visibleFrame: visibleFrame
+        )
+
+        XCTAssertEqual(actions.count, 3, "SwiftUI can overwrite early document frame passes; schedule bounded reapplies")
+        XCTAssertEqual(actions[0].delay, 0)
+        XCTAssertEqual(actions[0].frame, expectedDefaultFrame)
+        XCTAssertEqual(actions[1].delay, 0.20)
+        XCTAssertEqual(actions[1].frame, expectedDefaultFrame)
+        XCTAssertEqual(actions[2].delay, 0.80)
+        XCTAssertEqual(actions[2].frame, expectedDefaultFrame)
+    }
+
+    func testHostFrameApplication_DoesNotLoopWhenWindowAlreadyMatchesTarget() {
+        let visibleFrame = CGRect(x: 0, y: 0, width: 1_512, height: 949)
+        let targetFrame = CGRect(x: 306, y: 47.45, width: 900, height: 759.2)
+
+        let actions = WindowAccessor.defaultFrameApplications(
+            currentFrame: targetFrame,
+            targetFrame: targetFrame,
+            visibleFrame: visibleFrame
+        )
+
+        XCTAssertEqual(actions.count, 1)
+        XCTAssertEqual(actions[0].delay, 0)
+        XCTAssertEqual(actions[0].frame, targetFrame)
+    }
+
     // MARK: - Size Validation Tests
 
     func testSizeValidation_RejectsTinySizes() {
