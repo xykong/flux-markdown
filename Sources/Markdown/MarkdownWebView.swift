@@ -925,34 +925,9 @@ class ResizableWKWebView: WKWebView {
 
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
-        
-        guard let window = self.window, !hasSetInitialSize else { return }
-        
-        if let screen = window.screen {
-            let screenFrame = screen.visibleFrame
-            
-            let targetHeight = screenFrame.height * 0.85
-            
-            let idealWidth = min(screenFrame.width * 0.55, 1200)
-            let targetWidth = max(idealWidth, 800)
-            
-            let finalWidth = min(targetWidth, screenFrame.width)
-            let finalHeight = min(targetHeight, screenFrame.height)
-            
-            let x = screenFrame.origin.x + (screenFrame.width - finalWidth) / 2
-            
-            let y = screenFrame.origin.y + (screenFrame.height * 0.05)
-            
-            let currentFrame = window.frame
-            
-            if currentFrame.width < finalWidth * 0.9 || currentFrame.height < finalHeight * 0.9 {
-                let newFrame = NSRect(x: x, y: y, width: finalWidth, height: finalHeight)
-                window.setFrame(newFrame, display: true, animate: true)
-                window.minSize = NSSize(width: 320, height: 200)
-            } else {
-                 window.minSize = NSSize(width: 320, height: 200)
-            }
-        }
+
+        guard !hasSetInitialSize else { return }
+        self.window?.minSize = WindowAccessor.minimumRestorableWindowSize
         hasSetInitialSize = true
 
         self.allowsMagnification = false  // Pinch zoom goes via JS ctrlKey+wheel → pinchZoom bridge → setMagnification
