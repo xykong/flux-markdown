@@ -96,10 +96,38 @@ final class WindowSizePersistenceTests: XCTestCase {
         XCTAssertEqual(actions.count, 3, "SwiftUI can overwrite early document frame passes; schedule bounded reapplies")
         XCTAssertEqual(actions[0].delay, 0)
         XCTAssertEqual(actions[0].frame, expectedDefaultFrame)
+        XCTAssertNil(actions[0].expectedFrameBeforeApplication)
         XCTAssertEqual(actions[1].delay, 0.20)
         XCTAssertEqual(actions[1].frame, expectedDefaultFrame)
+        XCTAssertEqual(actions[1].expectedFrameBeforeApplication, initialSwiftUIFrame)
         XCTAssertEqual(actions[2].delay, 0.80)
         XCTAssertEqual(actions[2].frame, expectedDefaultFrame)
+        XCTAssertEqual(actions[2].expectedFrameBeforeApplication, initialSwiftUIFrame)
+    }
+
+    func testHostFrameApplication_DelayedReapplyOnlyTargetsOriginalSystemFrame() {
+        let visibleFrame = CGRect(x: 0, y: 0, width: 1_512, height: 949)
+        let initialSwiftUIFrame = CGRect(x: 306, y: 298, width: 900, height: 450)
+        let expectedDefaultFrame = WindowAccessor.defaultDocumentFrame(
+            currentFrame: initialSwiftUIFrame,
+            visibleFrame: visibleFrame
+        )
+
+        let actions = WindowAccessor.defaultFrameApplications(
+            currentFrame: initialSwiftUIFrame,
+            targetFrame: expectedDefaultFrame,
+            visibleFrame: visibleFrame
+        )
+
+        let delayedActions = actions.dropFirst()
+        XCTAssertFalse(delayedActions.isEmpty)
+        for action in delayedActions {
+            XCTAssertEqual(
+                action.expectedFrameBeforeApplication,
+                initialSwiftUIFrame,
+                "Delayed startup reapplies should only run if SwiftUI leaves the original startup frame intact"
+            )
+        }
     }
 
     func testHostFrameApplication_DoesNotLoopWhenWindowAlreadyMatchesTarget() {

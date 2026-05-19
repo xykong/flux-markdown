@@ -8,6 +8,7 @@ struct WindowAccessor: NSViewRepresentable {
     struct FrameApplication: Equatable {
         let delay: TimeInterval
         let frame: CGRect
+        let expectedFrameBeforeApplication: CGRect?
     }
 
     static func isFrameValidForRestore(_ frame: CGRect) -> Bool {
@@ -51,14 +52,16 @@ struct WindowAccessor: NSViewRepresentable {
     private static func frameApplications(currentFrame: CGRect, targetFrame: CGRect, visibleFrames: [CGRect]) -> [FrameApplication] {
         guard isFrameRestorable(targetFrame, visibleFrames: visibleFrames) else { return [] }
 
-        let immediateApplication = FrameApplication(delay: 0, frame: targetFrame)
+        let immediateApplication = FrameApplication(delay: 0, frame: targetFrame, expectedFrameBeforeApplication: nil)
         guard !framesApproximatelyEqual(currentFrame, targetFrame) else {
             return [immediateApplication]
         }
 
         return [
             immediateApplication
-        ] + initialFrameReapplyDelays.map { FrameApplication(delay: $0, frame: targetFrame) }
+        ] + initialFrameReapplyDelays.map {
+            FrameApplication(delay: $0, frame: targetFrame, expectedFrameBeforeApplication: currentFrame)
+        }
     }
 
     func makeNSView(context: Context) -> WindowObservingView {
@@ -114,6 +117,9 @@ struct WindowAccessor: NSViewRepresentable {
                 DispatchQueue.main.asyncAfter(deadline: .now() + application.delay) { [weak window] in
                     guard let window else { return }
                     guard !window.inLiveResize else { return }
+                    if let expectedFrame = application.expectedFrameBeforeApplication {
+                        guard framesApproximatelyEqual(window.frame, expectedFrame) else { return }
+                    }
                     applyFrame(application.frame, to: window)
                 }
             }
