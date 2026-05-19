@@ -3,6 +3,82 @@ import XCTest
 @MainActor
 final class WindowSizePersistenceTests: XCTestCase {
 
+    // MARK: - Host App Window Frame Tests
+
+    func testHostDefaultFrame_UsesCurrentWidthAndEightyPercentVisibleHeight() {
+        let visibleFrame = CGRect(x: 100, y: 50, width: 1440, height: 900)
+        let currentFrame = CGRect(x: 0, y: 0, width: 1000, height: 480)
+
+        let defaultFrame = WindowAccessor.defaultDocumentFrame(
+            currentFrame: currentFrame,
+            visibleFrame: visibleFrame
+        )
+
+        XCTAssertEqual(defaultFrame.width, 1000, "Default width should preserve current SwiftUI/window width")
+        XCTAssertEqual(defaultFrame.height, 720, "Default height should leave 15% top and 5% bottom margins")
+        XCTAssertEqual(defaultFrame.minY, 95, "Default y should leave a 5% bottom margin")
+        XCTAssertEqual(defaultFrame.maxY, 815, "Default maxY should leave a 15% top margin")
+        XCTAssertEqual(defaultFrame.midX, visibleFrame.midX, "Default frame should stay horizontally centered")
+    }
+
+    func testHostDefaultFrame_ClampsCurrentWidthToVisibleFrameWithoutChangingPolicy() {
+        let visibleFrame = CGRect(x: -1200, y: 0, width: 900, height: 1000)
+        let currentFrame = CGRect(x: 0, y: 0, width: 1200, height: 500)
+
+        let defaultFrame = WindowAccessor.defaultDocumentFrame(
+            currentFrame: currentFrame,
+            visibleFrame: visibleFrame
+        )
+
+        XCTAssertEqual(defaultFrame.width, 900, "Default frame should not exceed the target screen width")
+        XCTAssertEqual(defaultFrame.height, 800)
+        XCTAssertEqual(defaultFrame.minX, visibleFrame.minX)
+        XCTAssertEqual(defaultFrame.minY, 50)
+    }
+
+    func testHostFrameValidation_RejectsTinyAndNonFiniteFrames() {
+        let invalidFrames = [
+            CGRect(x: 0, y: 0, width: 203, height: 269),
+            CGRect(x: 0, y: 0, width: 1000, height: 199),
+            CGRect(x: 0, y: 0, width: 319, height: 800),
+            CGRect(x: 0, y: 0, width: CGFloat.nan, height: 800),
+            CGRect.null
+        ]
+
+        for frame in invalidFrames {
+            XCTAssertFalse(
+                WindowAccessor.isFrameValidForRestore(frame),
+                "Frame \(frame) should be rejected for host window restore"
+            )
+        }
+    }
+
+    func testHostFrameValidation_AcceptsReasonableFrames() {
+        let validFrame = CGRect(x: 120, y: 80, width: 1000, height: 720)
+
+        XCTAssertTrue(WindowAccessor.isFrameValidForRestore(validFrame))
+    }
+
+    func testHostFrameRestorable_RejectsFramesOutsideCurrentScreens() {
+        let savedFrame = CGRect(x: 2_000, y: 2_000, width: 1_000, height: 720)
+        let currentScreens = [CGRect(x: 0, y: 0, width: 1440, height: 900)]
+
+        XCTAssertFalse(
+            WindowAccessor.isFrameRestorable(savedFrame, visibleFrames: currentScreens),
+            "Saved frames from a disconnected monitor should be ignored and replaced with a default frame"
+        )
+    }
+
+    func testHostFrameRestorable_AcceptsFramesWithUsableVisibleIntersection() {
+        let savedFrame = CGRect(x: 1_100, y: 100, width: 1_000, height: 720)
+        let currentScreens = [CGRect(x: 0, y: 0, width: 1_512, height: 949)]
+
+        XCTAssertTrue(
+            WindowAccessor.isFrameRestorable(savedFrame, visibleFrames: currentScreens),
+            "A saved frame should restore when at least the minimum usable area is visible"
+        )
+    }
+
     // MARK: - Size Validation Tests
 
     func testSizeValidation_RejectsTinySizes() {

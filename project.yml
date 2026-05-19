@@ -60,6 +60,7 @@ targets:
     platform: macOS
     sources:
       - Tests/MarkdownTests
+      - Sources/Markdown/WindowAccessor.swift
       - Sources/Markdown/ResourceLoader.swift
       - Sources/MarkdownPreview
       - Sources/Shared
