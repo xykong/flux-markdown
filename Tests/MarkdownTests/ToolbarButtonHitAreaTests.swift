@@ -43,6 +43,16 @@ final class ToolbarButtonHitAreaTests: XCTestCase {
                 && helperSource.contains("NSBezierPath(ovalIn: bounds).fill()"),
             "The helper must keep the same 30x30 circular visual while moving real hit testing to AppKit bounds."
         )
+        XCTAssertTrue(
+            helperSource.contains("override var isHighlighted: Bool")
+                && helperSource.contains("needsDisplay = true")
+                && helperSource.contains("isHighlighted ?")
+                && helperSource.contains("NSColor.controlAccentColor")
+                && helperSource.contains("imageRect(forBounds:")
+                && helperSource.contains("image.draw(in: imageRect(forBounds: bounds))"),
+            "Floating toolbar buttons should redraw their circular background and icon in a visible pressed-state highlight."
+        )
+
         let notificationSourcePath = try projectRoot().appendingPathComponent("Sources/Shared/NotificationNames.swift").path
         let notificationSource = try String(contentsOfFile: notificationSourcePath, encoding: .utf8)
         XCTAssertTrue(

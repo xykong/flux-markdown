@@ -407,15 +407,36 @@ private final class ToolbarIconNSButton: NSButton {
         NSSize(width: 30, height: 30)
     }
 
+    override var isHighlighted: Bool {
+        didSet {
+            needsDisplay = true
+        }
+    }
 
     override func hitTest(_ point: NSPoint) -> NSView? {
         bounds.contains(point) ? self : nil
     }
 
     override func draw(_ dirtyRect: NSRect) {
-        NSColor.windowBackgroundColor.withAlphaComponent(0.85).setFill()
+        let fillColor = isHighlighted ?
+            NSColor.controlAccentColor.withAlphaComponent(0.28) :
+            NSColor.windowBackgroundColor.withAlphaComponent(0.85)
+        fillColor.setFill()
         NSBezierPath(ovalIn: bounds).fill()
-        super.draw(dirtyRect)
+
+        if let image {
+            image.draw(in: imageRect(forBounds: bounds))
+        }
+    }
+
+    private func imageRect(forBounds bounds: NSRect) -> NSRect {
+        let imageSize = NSSize(width: 16, height: 16)
+        return NSRect(
+            x: bounds.midX - imageSize.width / 2,
+            y: bounds.midY - imageSize.height / 2,
+            width: imageSize.width,
+            height: imageSize.height
+        )
     }
 }
 
