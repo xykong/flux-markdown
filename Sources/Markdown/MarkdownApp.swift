@@ -65,6 +65,7 @@ struct MarkdownApp: App {
     @ObservedObject var preference = AppearancePreference.shared
 
     @State private var viewMode: ViewMode = .preview
+    @State private var reloadToastMessage: String?
 
     var body: some Scene {
         WindowGroup {
@@ -95,6 +96,13 @@ struct MarkdownApp: App {
                         .foregroundColor(Color.secondary.opacity(0.5))
                         .padding(.top, 48)
                         .padding(.trailing, 72)
+                }
+
+                if let reloadToastMessage {
+                    ReloadToast(message: reloadToastMessage)
+                        .padding(.top, 52)
+                        .padding(.trailing, 10)
+                        .zIndex(2)
                 }
 
                 HStack(spacing: 8) {
@@ -171,6 +179,12 @@ struct MarkdownApp: App {
                    minHeight: 200, idealHeight: 800, maxHeight: .infinity)
             .environmentObject(preference)
             .background(WindowAccessor())
+            .onReceive(NotificationCenter.default.publisher(for: .reloadFileSucceeded)) { _ in
+                showReloadToast(NSLocalizedString("已重新载入文档", comment: "Reload success toast"))
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .reloadFileFailed)) { _ in
+                showReloadToast(NSLocalizedString("重新载入失败", comment: "Reload failure toast"))
+            }
         }
         .commands {
             CommandGroup(after: .saveItem) {
@@ -284,6 +298,45 @@ struct MarkdownApp: App {
             SettingsView()
         }
     }
+
+    private func showReloadToast(_ message: String) {
+        NSLog("✅ Reload toast requested: %@", message)
+
+        withAnimation(.easeOut(duration: 0.16)) {
+            reloadToastMessage = message
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
+            withAnimation(.easeIn(duration: 0.18)) {
+                if reloadToastMessage == message {
+                    reloadToastMessage = nil
+                }
+            }
+        }
+    }
+}
+
+private struct ReloadToast: View {
+    let message: String
+
+    var body: some View {
+        Text(message)
+            .font(.system(size: 13, weight: .medium))
+            .foregroundColor(Color(NSColor.labelColor))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color(NSColor.windowBackgroundColor).opacity(0.94))
+                    .shadow(color: Color.black.opacity(0.18), radius: 10, x: 0, y: 4)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Color(NSColor.separatorColor).opacity(0.45), lineWidth: 1)
+            )
+            .transition(.move(edge: .top).combined(with: .opacity))
+            .accessibilityLabel(message)
+    }
 }
 
 private struct ToolbarIconButton: View {
@@ -353,6 +406,7 @@ private final class ToolbarIconNSButton: NSButton {
     override var intrinsicContentSize: NSSize {
         NSSize(width: 30, height: 30)
     }
+
 
     override func hitTest(_ point: NSPoint) -> NSView? {
         bounds.contains(point) ? self : nil

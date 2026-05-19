@@ -43,6 +43,39 @@ final class ToolbarButtonHitAreaTests: XCTestCase {
                 && helperSource.contains("NSBezierPath(ovalIn: bounds).fill()"),
             "The helper must keep the same 30x30 circular visual while moving real hit testing to AppKit bounds."
         )
+        let notificationSourcePath = try projectRoot().appendingPathComponent("Sources/Shared/NotificationNames.swift").path
+        let notificationSource = try String(contentsOfFile: notificationSourcePath, encoding: .utf8)
+        XCTAssertTrue(
+            notificationSource.contains("static let reloadFileSucceeded")
+                && notificationSource.contains("static let reloadFileFailed"),
+            "Manual reload should publish success/failure notifications so native UI can show a visible tip."
+        )
+
+        let webViewSourcePath = try projectRoot().appendingPathComponent("Sources/Markdown/MarkdownWebView.swift").path
+        let webViewSource = try String(contentsOfFile: webViewSourcePath, encoding: .utf8)
+        XCTAssertTrue(
+            webViewSource.contains("@discardableResult")
+                && webViewSource.contains("private func reloadFromDisk(url: URL) -> Bool"),
+            "Reload should return a success flag so manual reload can show accurate feedback."
+        )
+        XCTAssertTrue(
+            webViewSource.contains("NotificationCenter.default.post(name: .reloadFileSucceeded")
+                && webViewSource.contains("NotificationCenter.default.post(name: .reloadFileFailed"),
+            "Manual reload must publish success or failure for the native toast."
+        )
+        XCTAssertTrue(
+            source.contains("ReloadToast")
+                && source.contains("@State private var reloadToastMessage")
+                && source.contains(".onReceive(NotificationCenter.default.publisher(for: .reloadFileSucceeded))")
+                && source.contains(".onReceive(NotificationCenter.default.publisher(for: .reloadFileFailed))")
+                && source.contains("NSLog(\"✅ Reload toast requested: %@\", message)"),
+            "Document view should show and log a native toast after manual reload success or failure."
+        )
+        XCTAssertTrue(
+            source.contains("已重新载入文档")
+                && source.contains("重新载入失败"),
+            "Reload toast should include clear Chinese success/failure messages."
+        )
     }
 
     private func projectRoot() throws -> URL {

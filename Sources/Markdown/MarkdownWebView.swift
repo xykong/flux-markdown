@@ -246,7 +246,11 @@ struct MarkdownWebView: NSViewRepresentable {
             guard let url = currentFileURL else { return }
             os_log("🔄 Manual reload triggered: %{public}@", log: logger, type: .default, url.lastPathComponent)
             currentWebView?.evaluateJavaScript("window.clearDiffMarks && window.clearDiffMarks();", completionHandler: nil)
-            reloadFromDisk(url: url)
+            if reloadFromDisk(url: url) {
+                NotificationCenter.default.post(name: .reloadFileSucceeded, object: nil)
+            } else {
+                NotificationCenter.default.post(name: .reloadFileFailed, object: nil)
+            }
         }
 
         @objc func handleOpenInExternalEditor() {
@@ -752,19 +756,16 @@ struct MarkdownWebView: NSViewRepresentable {
             reloadFromDisk(url: url)
         }
 
-        private func reloadFromDisk(url: URL) {
+        @discardableResult
+        private func reloadFromDisk(url: URL) -> Bool {
             do {
                 let attrs = try FileManager.default.attributesOfItem(atPath: url.path)
                 let newSize = attrs[.size] as? UInt64 ?? 0
                 let newMtime = attrs[.modificationDate] as? Date
-                guard FileMonitorHelpers.shouldReload(
-                    newSize: newSize, newMtime: newMtime,
-                    knownSize: lastKnownFileSize, knownMtime: lastKnownFileModificationDate
-                ) else { return }
                 let newContent = try String(contentsOf: url, encoding: .utf8)
                 lastKnownFileSize = newSize
                 lastKnownFileModificationDate = newMtime
-                guard let webView = currentWebView else { return }
+                guard let webView = currentWebView else { return false }
                 executeRender(
                     webView: webView,
                     content: newContent,
@@ -781,8 +782,10 @@ struct MarkdownWebView: NSViewRepresentable {
                     showLineNumbers: lastShowLineNumbers
                 )
                 os_log("🟢 Reloaded from disk: %{public}@", log: logger, type: .default, url.lastPathComponent)
+                return true
             } catch {
                 os_log("🔴 reloadFromDisk failed: %{public}@", log: logger, type: .error, error.localizedDescription)
+                return false
             }
         }
 
