@@ -67,6 +67,9 @@ struct MarkdownApp: App {
     @State private var viewMode: ViewMode = .preview
     @State private var reloadToastMessage: String?
 
+    private let reloadSuccessToastMessage = NSLocalizedString("已重新载入文档", comment: "Reload success toast")
+    private let reloadFailureToastMessage = NSLocalizedString("重新载入失败", comment: "Reload failure toast")
+
     var body: some Scene {
         WindowGroup {
             WelcomeView()
@@ -111,6 +114,7 @@ struct MarkdownApp: App {
                         foregroundColor: Color(NSColor.labelColor),
                         helpText: NSLocalizedString("Reload File (⌘R)", comment: "Reload file tooltip")
                     ) {
+                        showReloadToast(reloadSuccessToastMessage)
                         NotificationCenter.default.post(name: .reloadFile, object: nil)
                     }
 
@@ -182,9 +186,9 @@ struct MarkdownApp: App {
             .background(ReloadToastObserver { result in
                 switch result {
                 case .success:
-                    showReloadToast(NSLocalizedString("已重新载入文档", comment: "Reload success toast"))
+                    showReloadToast(reloadSuccessToastMessage)
                 case .failure:
-                    showReloadToast(NSLocalizedString("重新载入失败", comment: "Reload failure toast"))
+                    showReloadToast(reloadFailureToastMessage)
                 }
             })
         }
@@ -445,6 +449,12 @@ private struct ToolbarIconButtonRepresentable: NSViewRepresentable {
 }
 
 private final class ToolbarIconNSButton: NSButton {
+    private var isPressFeedbackVisible = false {
+        didSet {
+            needsDisplay = true
+        }
+    }
+
     override var intrinsicContentSize: NSSize {
         NSSize(width: 30, height: 30)
     }
@@ -459,9 +469,18 @@ private final class ToolbarIconNSButton: NSButton {
         bounds.contains(point) ? self : nil
     }
 
+    override func mouseDown(with event: NSEvent) {
+        isPressFeedbackVisible = true
+        super.mouseDown(with: event)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) { [weak self] in
+            self?.isPressFeedbackVisible = false
+        }
+    }
+
     override func draw(_ dirtyRect: NSRect) {
-        let fillColor = isHighlighted ?
-            NSColor.controlAccentColor.withAlphaComponent(0.28) :
+        let isPressed = isHighlighted || isPressFeedbackVisible
+        let fillColor = isPressed ?
+            NSColor.controlAccentColor.withAlphaComponent(0.34) :
             NSColor.windowBackgroundColor.withAlphaComponent(0.85)
         fillColor.setFill()
         NSBezierPath(ovalIn: bounds).fill()
