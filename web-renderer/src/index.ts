@@ -325,7 +325,7 @@ function renderFrontMatterHtml(yamlStr: string): string {
 function buildMd(): MarkdownIt {
     const instance = new MarkdownIt({
         html: true,
-        breaks: true,
+        breaks: false,
         linkify: false,
         typographer: true,
         highlight: function (str: string, lang: string): string {
