@@ -7,6 +7,23 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 1.33.436</title>
+            <link>https://github.com/xykong/flux-markdown/releases/tag/v1.33.436</link>
+            <sparkle:version>436</sparkle:version>
+            <sparkle:shortVersionString>1.33.436</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+            <pubDate>Mon, 01 Jun 2026 16:16:35 +0000</pubDate>
+            <enclosure
+                url="https://github.com/xykong/flux-markdown/releases/download/v1.33.436/FluxMarkdown.dmg"
+                sparkle:edSignature="JzwOT9V76c8CBXdMbAv/WVsKfBjtmOab1Y+xUwxjNVuby2tDKM5sKwsK6PXSaqJpx/1HHw81uAU9waZC74kSDQ=="
+                length="10987149"
+                type="application/octet-stream" />
+            <description><![CDATA[
+                <h2>更新内容</h2><h3>Fixed</h3><ul><li><strong>Toolbar button feedback and QuickLook clicks</strong>: Unified the standalone app and QuickLook toolbar controls on shared native circular AppKit buttons, restored reload/reset zoom feedback tips, and fixed QuickLook toolbar clicks that could pass through to the preview web view.</li><li>&nbsp;&nbsp;&nbsp;&nbsp;Standalone app reload/reset tips now appear in the historical upper-center position with a light rounded card.</li><li>&nbsp;&nbsp;&nbsp;&nbsp;QuickLook reload/reset actions now reuse the native toast feedback path.</li><li>&nbsp;&nbsp;&nbsp;&nbsp;Offset QuickLook toolbar buttons now convert hit-test coordinates correctly before dispatching actions.</li><li><strong>Development install QuickLook registration</strong>: Fixed local <code>make install</code> / <code>make install-debug</code> re-signing stripping the QuickLook extension sandbox entitlement, which caused PluginKit to reject <code>MarkdownPreview.appex</code> with "plug-ins must be sandboxed". Development installs now sign nested code explicitly with the correct entitlements and release DMGs verify the QuickLook sandbox entitlement after packaging.</li><li><strong>App window restore stability</strong>: Improved standalone app window size restoration by validating restored frames against visible screens, ignoring transient accessory windows during startup, and using saved document dimensions before SwiftUI applies fallback sizing.</li></ul><h3>Added</h3><ul><li><strong>Development display version marker</strong>: Local development installs now show an <code>-dev-<timestamp></code> display version in both the standalone app and QuickLook preview, making it easier to distinguish installed development builds from released builds.</li></ul><p><a href="https://github.com/xykong/flux-markdown/releases/tag/v1.33.436">查看完整更新日志</a></p>
+            ]]></description>
+        </item>
+        
+        <item>
             <title>Version 1.32.427</title>
             <link>https://github.com/xykong/flux-markdown/releases/tag/v1.32.427</link>
             <sparkle:version>427</sparkle:version>
