@@ -236,17 +236,26 @@ struct MarkdownWebView: NSViewRepresentable {
 
         @objc func handleResetZoom() {
             guard let webView = currentWebView,
-                  webView.window?.isKeyWindow == true else { return }
+                  let window = webView.window,
+                  window.isKeyWindow || window.windowController?.document === NSDocumentController.shared.currentDocument else { return }
             webView.pageZoom = 1.0
             AppearancePreference.shared.zoomLevel = 1.0
+            NotificationCenter.default.post(name: .resetZoomCompleted, object: window)
             os_log("🔵 pageZoom reset to 1.0", log: logger, type: .debug)
         }
 
         @objc func handleReloadFile() {
-            guard let url = currentFileURL else { return }
+            guard let webView = currentWebView,
+                  let window = webView.window,
+                  window.isKeyWindow || window.windowController?.document === NSDocumentController.shared.currentDocument,
+                  let url = currentFileURL else { return }
             os_log("🔄 Manual reload triggered: %{public}@", log: logger, type: .default, url.lastPathComponent)
-            currentWebView?.evaluateJavaScript("window.clearDiffMarks && window.clearDiffMarks();", completionHandler: nil)
-            reloadFromDisk(url: url)
+            webView.evaluateJavaScript("window.clearDiffMarks && window.clearDiffMarks();", completionHandler: nil)
+            if reloadFromDisk(url: url, force: true) {
+                NotificationCenter.default.post(name: .reloadFileSucceeded, object: window)
+            } else {
+                NotificationCenter.default.post(name: .reloadFileFailed, object: window)
+            }
         }
 
         @objc func handleOpenInExternalEditor() {
@@ -752,19 +761,22 @@ struct MarkdownWebView: NSViewRepresentable {
             reloadFromDisk(url: url)
         }
 
-        private func reloadFromDisk(url: URL) {
+        @discardableResult
+        private func reloadFromDisk(url: URL, force: Bool = false) -> Bool {
             do {
                 let attrs = try FileManager.default.attributesOfItem(atPath: url.path)
                 let newSize = attrs[.size] as? UInt64 ?? 0
                 let newMtime = attrs[.modificationDate] as? Date
-                guard FileMonitorHelpers.shouldReload(
-                    newSize: newSize, newMtime: newMtime,
-                    knownSize: lastKnownFileSize, knownMtime: lastKnownFileModificationDate
-                ) else { return }
+                if !force {
+                    guard FileMonitorHelpers.shouldReload(
+                        newSize: newSize, newMtime: newMtime,
+                        knownSize: lastKnownFileSize, knownMtime: lastKnownFileModificationDate
+                    ) else { return true }
+                }
                 let newContent = try String(contentsOf: url, encoding: .utf8)
                 lastKnownFileSize = newSize
                 lastKnownFileModificationDate = newMtime
-                guard let webView = currentWebView else { return }
+                guard let webView = currentWebView else { return false }
                 executeRender(
                     webView: webView,
                     content: newContent,
@@ -781,8 +793,10 @@ struct MarkdownWebView: NSViewRepresentable {
                     showLineNumbers: lastShowLineNumbers
                 )
                 os_log("🟢 Reloaded from disk: %{public}@", log: logger, type: .default, url.lastPathComponent)
+                return true
             } catch {
                 os_log("🔴 reloadFromDisk failed: %{public}@", log: logger, type: .error, error.localizedDescription)
+                return false
             }
         }
 

@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 import Sparkle
 
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -193,8 +194,12 @@ private struct DocumentPreviewScene: View {
     let file: FileDocumentConfiguration<MarkdownDocument>
     @ObservedObject var preference: AppearancePreference
     @Binding var viewMode: ViewMode
+    @State private var toolbarToast: ToolbarToastState?
 
     private let initialContentSize: CGSize
+    private let reloadSuccessToastMessage = NSLocalizedString("已重新载入文档", comment: "Reload success toast")
+    private let reloadFailureToastMessage = NSLocalizedString("重新载入失败", comment: "Reload failure toast")
+    private let resetZoomToastMessage = NSLocalizedString("已重置缩放", comment: "Reset zoom toast")
 
     init(file: FileDocumentConfiguration<MarkdownDocument>, preference: AppearancePreference, viewMode: Binding<ViewMode>) {
         self.file = file
@@ -230,15 +235,16 @@ private struct DocumentPreviewScene: View {
             }
 
             HStack(spacing: 8) {
-                ToolbarIconButton(
+                CircularToolbarIconButton(
                     systemName: "arrow.clockwise",
                     foregroundColor: Color(NSColor.labelColor),
                     helpText: NSLocalizedString("Reload File (⌘R)", comment: "Reload file tooltip")
                 ) {
+                    showToolbarToast(reloadSuccessToastMessage)
                     NotificationCenter.default.post(name: .reloadFile, object: nil)
                 }
 
-                ToolbarIconButton(
+                CircularToolbarIconButton(
                     systemName: "textformat.size.smaller",
                     foregroundColor: Color(NSColor.labelColor),
                     helpText: NSLocalizedString("Zoom Out", comment: "Zoom out tooltip")
@@ -246,15 +252,16 @@ private struct DocumentPreviewScene: View {
                     NotificationCenter.default.post(name: .zoomOut, object: nil)
                 }
 
-                ToolbarIconButton(
+                CircularToolbarIconButton(
                     systemName: "arrow.uturn.backward",
                     foregroundColor: Color(NSColor.labelColor),
                     helpText: NSLocalizedString("Reset Zoom (⌘0)", comment: "Reset zoom tooltip")
                 ) {
+                    showToolbarToast(resetZoomToastMessage)
                     NotificationCenter.default.post(name: .resetZoom, object: nil)
                 }
 
-                ToolbarIconButton(
+                CircularToolbarIconButton(
                     systemName: "textformat.size.larger",
                     foregroundColor: Color(NSColor.labelColor),
                     helpText: NSLocalizedString("Zoom In", comment: "Zoom in tooltip")
@@ -262,7 +269,7 @@ private struct DocumentPreviewScene: View {
                     NotificationCenter.default.post(name: .zoomIn, object: nil)
                 }
 
-                ToolbarIconButton(
+                CircularToolbarIconButton(
                     systemName: "questionmark.circle",
                     foregroundColor: Color(NSColor.labelColor),
                     helpText: NSLocalizedString("Show Help", comment: "Show help tooltip")
@@ -270,7 +277,7 @@ private struct DocumentPreviewScene: View {
                     NotificationCenter.default.post(name: .toggleHelp, object: nil)
                 }
 
-                ToolbarIconButton(
+                CircularToolbarIconButton(
                     systemName: viewMode == .source ? "eye.fill" : "doc.text.fill",
                     foregroundColor: viewMode == .source ? .blue : Color(NSColor.labelColor),
                     helpText: viewMode == .source
@@ -280,7 +287,7 @@ private struct DocumentPreviewScene: View {
                     viewMode = (viewMode == .preview) ? .source : .preview
                 }
 
-                ToolbarIconButton(
+                CircularToolbarIconButton(
                     systemName: preference.currentMode == .light ? "sun.max.fill" : preference.currentMode == .dark ? "moon.fill" : "circle.lefthalf.filled",
                     foregroundColor: preference.currentMode == .light ? .yellow : Color(NSColor.labelColor),
                     helpText: NSLocalizedString("Toggle Theme (System / Light / Dark)", comment: "Theme toggle tooltip")
@@ -293,6 +300,10 @@ private struct DocumentPreviewScene: View {
                 }
             }
             .padding([.top, .trailing], 10)
+
+            ToolbarFeedbackToastHost(toast: toolbarToast)
+                .allowsHitTesting(false)
+                .zIndex(3)
         }
         .onAppear {
             if let fileURL = file.fileURL {
@@ -309,85 +320,229 @@ private struct DocumentPreviewScene: View {
         )
         .environmentObject(preference)
         .background(WindowAccessor())
+        .background(ToolbarFeedbackObserver { result in
+            switch result {
+            case .reloadSuccess:
+                showToolbarToast(reloadSuccessToastMessage)
+            case .reloadFailure:
+                showToolbarToast(reloadFailureToastMessage)
+            case .resetZoom:
+                showToolbarToast(resetZoomToastMessage)
+            }
+        })
+    }
+
+    private func showToolbarToast(_ message: String) {
+        NSLog("✅ Toolbar feedback toast requested: %@", message)
+        let id = UUID()
+        let toast = ToolbarToastState(id: id, message: message)
+
+        withAnimation(.easeOut(duration: 0.16)) {
+            toolbarToast = toast
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
+            withAnimation(.easeIn(duration: 0.18)) {
+                if toolbarToast?.id == id {
+                    toolbarToast = nil
+                }
+            }
+        }
     }
 }
 
-private struct ToolbarIconButton: View {
-    let systemName: String
-    let foregroundColor: Color
-    let helpText: String
-    let action: () -> Void
+private struct ToolbarToastState: Equatable {
+    let id: UUID
+    let message: String
+}
+
+private struct ToolbarFeedbackToastHost: NSViewRepresentable {
+    let toast: ToolbarToastState?
+
+    func makeNSView(context: Context) -> ToolbarFeedbackToastHostView {
+        ToolbarFeedbackToastHostView()
+    }
+
+    func updateNSView(_ nsView: ToolbarFeedbackToastHostView, context: Context) {
+        nsView.update(toast: toast)
+    }
+}
+
+private final class ToolbarFeedbackToastHostView: NSView {
+    private var currentToastID: UUID?
+    private weak var toastView: NSView?
+
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+
+    func update(toast: ToolbarToastState?) {
+        guard let toast else {
+            removeToast()
+            return
+        }
+
+        guard currentToastID != toast.id else { return }
+        currentToastID = toast.id
+        showToast(message: toast.message)
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        if window == nil {
+            removeToast()
+        }
+    }
+
+    private func showToast(message: String) {
+        removeToast()
+
+        let toastContainer = ToolbarToastContainerView()
+        toastContainer.setAccessibilityElement(true)
+        toastContainer.setAccessibilityLabel(message)
+
+        let messageLabel = NSTextField(labelWithString: message)
+        messageLabel.font = .systemFont(ofSize: 13, weight: .medium)
+        messageLabel.textColor = .labelColor
+        messageLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        toastContainer.addSubview(messageLabel)
+        addSubview(toastContainer)
+
+        NSLayoutConstraint.activate([
+            toastContainer.topAnchor.constraint(equalTo: topAnchor, constant: 52),
+            toastContainer.centerXAnchor.constraint(equalTo: centerXAnchor),
+            messageLabel.topAnchor.constraint(equalTo: toastContainer.topAnchor, constant: 8),
+            messageLabel.bottomAnchor.constraint(equalTo: toastContainer.bottomAnchor, constant: -8),
+            messageLabel.leadingAnchor.constraint(equalTo: toastContainer.leadingAnchor, constant: 14),
+            messageLabel.trailingAnchor.constraint(equalTo: toastContainer.trailingAnchor, constant: -14)
+        ])
+
+        toastContainer.alphaValue = 0
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.16
+            toastContainer.animator().alphaValue = 1
+        }
+
+        toastView = toastContainer
+    }
+
+    private func removeToast() {
+        toastView?.removeFromSuperview()
+        toastView = nil
+        currentToastID = nil
+    }
+
+    private final class ToolbarToastContainerView: NSView {
+        override init(frame frameRect: NSRect) {
+            super.init(frame: frameRect)
+            configure()
+        }
+
+        required init?(coder: NSCoder) {
+            super.init(coder: coder)
+            configure()
+        }
+
+        private func configure() {
+            wantsLayer = true
+            translatesAutoresizingMaskIntoConstraints = false
+            layerContentsRedrawPolicy = .onSetNeedsDisplay
+        }
+
+        override func layout() {
+            super.layout()
+            applyToastStyle()
+        }
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            applyToastStyle()
+        }
+
+        private func applyToastStyle() {
+            guard let layer else { return }
+
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+
+            let scale = window?.backingScaleFactor ?? NSScreen.main?.backingScaleFactor ?? 2
+
+            layer.masksToBounds = false
+            layer.backgroundColor = NSColor.controlBackgroundColor.withAlphaComponent(0.97).cgColor
+            layer.cornerRadius = 12
+            layer.borderColor = NSColor.separatorColor.withAlphaComponent(0.35).cgColor
+            layer.borderWidth = 1 / scale
+            layer.shadowColor = NSColor.black.withAlphaComponent(0.18).cgColor
+            layer.shadowOpacity = 1
+            layer.shadowRadius = 10
+            layer.shadowOffset = NSSize(width: 0, height: -4)
+            layer.shadowPath = CGPath(roundedRect: bounds, cornerWidth: 12, cornerHeight: 12, transform: nil)
+
+            CATransaction.commit()
+        }
+    }
+
+}
+
+private struct ToolbarFeedbackToast: View {
+    let message: String
 
     var body: some View {
-        ToolbarIconButtonRepresentable(
-            systemName: systemName,
-            foregroundColor: foregroundColor,
-            helpText: helpText,
-            action: action
-        )
-        .frame(width: 30, height: 30)
+        Text(message)
+            .font(.system(size: 13, weight: .medium))
+            .foregroundColor(Color(NSColor.labelColor))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color(NSColor.windowBackgroundColor).opacity(0.94))
+                    .shadow(color: Color.black.opacity(0.18), radius: 10, x: 0, y: 4)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Color(NSColor.separatorColor).opacity(0.45), lineWidth: 1)
+            )
+            .transition(.move(edge: .top).combined(with: .opacity))
+            .accessibilityLabel(message)
     }
 }
 
-private struct ToolbarIconButtonRepresentable: NSViewRepresentable {
-    let systemName: String
-    let foregroundColor: Color
-    let helpText: String
-    let action: () -> Void
+private struct ToolbarFeedbackObserver: NSViewRepresentable {
+    let onResult: (ToolbarFeedbackResult) -> Void
+
+    func makeNSView(context: Context) -> WindowObservingToolbarFeedbackView {
+        let view = WindowObservingToolbarFeedbackView()
+        view.onWindowAttach = { window in
+            context.coordinator.router.monitor(window: window)
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: WindowObservingToolbarFeedbackView, context: Context) {
+        context.coordinator.router.onResult = onResult
+    }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(action: action)
-    }
-
-    func makeNSView(context: Context) -> ToolbarIconNSButton {
-        let button = ToolbarIconNSButton(frame: NSRect(x: 0, y: 0, width: 30, height: 30))
-        button.target = context.coordinator
-        button.action = #selector(Coordinator.performAction)
-        button.setButtonType(.momentaryChange)
-        button.isBordered = false
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.imagePosition = .imageOnly
-        button.bezelStyle = .regularSquare
-        button.toolTip = helpText
-        button.setAccessibilityLabel(helpText)
-        return button
-    }
-
-    func updateNSView(_ button: ToolbarIconNSButton, context: Context) {
-        context.coordinator.action = action
-        button.toolTip = helpText
-        button.setAccessibilityLabel(helpText)
-        button.image = NSImage(systemSymbolName: systemName, accessibilityDescription: helpText)
-        button.contentTintColor = NSColor(foregroundColor)
-        button.needsDisplay = true
+        Coordinator(onResult: onResult)
     }
 
     final class Coordinator: NSObject {
-        var action: () -> Void
+        let router: ToolbarFeedbackNotificationRouter
 
-        init(action: @escaping () -> Void) {
-            self.action = action
-        }
-
-        @objc func performAction() {
-            action()
+        init(onResult: @escaping (ToolbarFeedbackResult) -> Void) {
+            router = ToolbarFeedbackNotificationRouter(onResult: onResult)
         }
     }
 }
 
-private final class ToolbarIconNSButton: NSButton {
-    override var intrinsicContentSize: NSSize {
-        NSSize(width: 30, height: 30)
-    }
+private final class WindowObservingToolbarFeedbackView: NSView {
+    var onWindowAttach: ((NSWindow) -> Void)?
+    private weak var attachedWindow: NSWindow?
 
-    override func hitTest(_ point: NSPoint) -> NSView? {
-        bounds.contains(point) ? self : nil
-    }
-
-    override func draw(_ dirtyRect: NSRect) {
-        NSColor.windowBackgroundColor.withAlphaComponent(0.85).setFill()
-        NSBezierPath(ovalIn: bounds).fill()
-        super.draw(dirtyRect)
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        guard let window, attachedWindow !== window else { return }
+        attachedWindow = window
+        onWindowAttach?(window)
     }
 }
 

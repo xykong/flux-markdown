@@ -255,13 +255,13 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         LocalizationManager.bootstrap(initialPreference: AppearancePreference.shared.uiLanguage)
     }
     
-    private var themeButton: NSButton!
-    private var sourceButton: NSButton!
-    private var helpButton: NSButton!
-    private var zoomInButton: NSButton!
-    private var zoomOutButton: NSButton!
-    private var resetZoomButton: NSButton!
-    private var reloadButton: NSButton!
+    private var themeButton: CircularToolbarButton!
+    private var sourceButton: CircularToolbarButton!
+    private var helpButton: CircularToolbarButton!
+    private var zoomInButton: CircularToolbarButton!
+    private var zoomOutButton: CircularToolbarButton!
+    private var resetZoomButton: CircularToolbarButton!
+    private var reloadButton: CircularToolbarButton!
     private var versionLabel: NSTextField!
     
     public override func loadView() {
@@ -585,15 +585,14 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
 
     
     private func setupThemeButton() {
-        let button = NSButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.bezelStyle = .circular
-        button.isBordered = false
-        button.wantsLayer = true
-        button.layer?.backgroundColor = NSColor.windowBackgroundColor.withAlphaComponent(0.5).cgColor
-        button.layer?.cornerRadius = 15
-        button.target = self
-        button.action = #selector(toggleTheme)
+        let button = CircularToolbarButton.make(
+            systemName: "circle.lefthalf.filled",
+            accessibilityDescription: "Toggle Theme",
+            tintColor: NSColor.labelColor,
+            target: self,
+            action: #selector(toggleTheme),
+            toolTip: "Toggle Theme"
+        )
         
         self.view.addSubview(button)
         self.themeButton = button
@@ -641,22 +640,23 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
             iconName = "moon.fill"
             iconColor = NSColor.labelColor
         }
-        if let image = NSImage(systemSymbolName: iconName, accessibilityDescription: "Toggle Theme") {
-            themeButton.image = image
-            themeButton.contentTintColor = iconColor
-        }
+        themeButton.configure(
+            systemName: iconName,
+            accessibilityDescription: "Toggle Theme",
+            tintColor: iconColor,
+            toolTip: "Toggle Theme"
+        )
     }
     
     private func setupSourceButton() {
-        let button = NSButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.bezelStyle = .circular
-        button.isBordered = false
-        button.wantsLayer = true
-        button.layer?.backgroundColor = NSColor.windowBackgroundColor.withAlphaComponent(0.5).cgColor
-        button.layer?.cornerRadius = 15
-        button.target = self
-        button.action = #selector(toggleViewMode)
+        let button = CircularToolbarButton.make(
+            systemName: "doc.text.fill",
+            accessibilityDescription: "Toggle Source View",
+            tintColor: NSColor.labelColor,
+            target: self,
+            action: #selector(toggleViewMode),
+            toolTip: "Toggle Source View"
+        )
         
         self.view.addSubview(button)
         self.sourceButton = button
@@ -710,27 +710,23 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         let iconName = (currentViewMode == .source) ? "eye.fill" : "doc.text.fill"
         let iconColor = (currentViewMode == .source) ? NSColor.systemBlue : NSColor.darkGray
         
-        if let image = NSImage(systemSymbolName: iconName, accessibilityDescription: "Toggle Source View") {
-            sourceButton.image = image
-            sourceButton.contentTintColor = iconColor
-        }
+        sourceButton.configure(
+            systemName: iconName,
+            accessibilityDescription: "Toggle Source View",
+            tintColor: iconColor,
+            toolTip: "Toggle Source View"
+        )
     }
 
     private func setupHelpButton() {
-        let button = NSButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.bezelStyle = .circular
-        button.isBordered = false
-        button.wantsLayer = true
-        button.layer?.backgroundColor = NSColor.windowBackgroundColor.withAlphaComponent(0.5).cgColor
-        button.layer?.cornerRadius = 15
-        button.target = self
-        button.action = #selector(toggleHelp)
-
-        if let image = NSImage(systemSymbolName: "questionmark.circle", accessibilityDescription: "Show Help") {
-            button.image = image
-            button.contentTintColor = NSColor.darkGray
-        }
+        let button = CircularToolbarButton.make(
+            systemName: "questionmark.circle",
+            accessibilityDescription: "Show Help",
+            tintColor: NSColor.labelColor,
+            target: self,
+            action: #selector(toggleHelp),
+            toolTip: "Show Help"
+        )
 
         self.view.addSubview(button)
         self.helpButton = button
@@ -748,20 +744,14 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     }
 
     private func setupZoomInButton() {
-        let button = NSButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.bezelStyle = .circular
-        button.isBordered = false
-        button.wantsLayer = true
-        button.layer?.backgroundColor = NSColor.windowBackgroundColor.withAlphaComponent(0.5).cgColor
-        button.layer?.cornerRadius = 15
-        button.target = self
-        button.action = #selector(zoomIn)
-
-        if let image = NSImage(systemSymbolName: "textformat.size.larger", accessibilityDescription: "Zoom In") {
-            button.image = image
-            button.contentTintColor = NSColor.darkGray
-        }
+        let button = CircularToolbarButton.make(
+            systemName: "textformat.size.larger",
+            accessibilityDescription: "Zoom In",
+            tintColor: NSColor.labelColor,
+            target: self,
+            action: #selector(zoomIn),
+            toolTip: "Zoom In"
+        )
 
         self.view.addSubview(button)
         self.zoomInButton = button
@@ -775,20 +765,14 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     }
 
     private func setupZoomOutButton() {
-        let button = NSButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.bezelStyle = .circular
-        button.isBordered = false
-        button.wantsLayer = true
-        button.layer?.backgroundColor = NSColor.windowBackgroundColor.withAlphaComponent(0.5).cgColor
-        button.layer?.cornerRadius = 15
-        button.target = self
-        button.action = #selector(zoomOut)
-
-        if let image = NSImage(systemSymbolName: "textformat.size.smaller", accessibilityDescription: "Zoom Out") {
-            button.image = image
-            button.contentTintColor = NSColor.darkGray
-        }
+        let button = CircularToolbarButton.make(
+            systemName: "textformat.size.smaller",
+            accessibilityDescription: "Zoom Out",
+            tintColor: NSColor.labelColor,
+            target: self,
+            action: #selector(zoomOut),
+            toolTip: "Zoom Out"
+        )
 
         self.view.addSubview(button)
         self.zoomOutButton = button
@@ -802,20 +786,14 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     }
 
     private func setupResetZoomButton() {
-        let button = NSButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.bezelStyle = .circular
-        button.isBordered = false
-        button.wantsLayer = true
-        button.layer?.backgroundColor = NSColor.windowBackgroundColor.withAlphaComponent(0.5).cgColor
-        button.layer?.cornerRadius = 15
-        button.target = self
-        button.action = #selector(resetZoom)
-
-        if let image = NSImage(systemSymbolName: "arrow.uturn.backward", accessibilityDescription: "Reset Zoom") {
-            button.image = image
-            button.contentTintColor = NSColor.labelColor
-        }
+        let button = CircularToolbarButton.make(
+            systemName: "arrow.uturn.backward",
+            accessibilityDescription: "Reset Zoom",
+            tintColor: NSColor.labelColor,
+            target: self,
+            action: #selector(resetZoom),
+            toolTip: "Reset Zoom (⌘0)"
+        )
 
         self.view.addSubview(button)
         self.resetZoomButton = button
@@ -829,21 +807,14 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     }
 
     private func setupReloadButton() {
-        let button = NSButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.bezelStyle = .circular
-        button.isBordered = false
-        button.wantsLayer = true
-        button.layer?.backgroundColor = NSColor.windowBackgroundColor.withAlphaComponent(0.5).cgColor
-        button.layer?.cornerRadius = 15
-        button.target = self
-        button.action = #selector(reloadFileManually)
-        button.toolTip = "Reload File (⌘R)"
-
-        if let image = NSImage(systemSymbolName: "arrow.clockwise", accessibilityDescription: "Reload File") {
-            button.image = image
-            button.contentTintColor = NSColor.darkGray
-        }
+        let button = CircularToolbarButton.make(
+            systemName: "arrow.clockwise",
+            accessibilityDescription: "Reload File",
+            tintColor: NSColor.labelColor,
+            target: self,
+            action: #selector(reloadFileManually),
+            toolTip: "Reload File (⌘R)"
+        )
 
         self.view.addSubview(button)
         self.reloadButton = button
@@ -989,15 +960,17 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     @objc private func resetZoom() {
         webView.pageZoom = 1.0
         AppearancePreference.shared.zoomLevel = 1.0
+        showToolbarFeedbackToast(NSLocalizedString("已重置缩放", comment: "Reset zoom toast"))
         os_log("🔵 pageZoom reset", log: logger, type: .debug)
     }
 
     @objc private func reloadFileManually() {
         os_log("🔄 Manual reload triggered by button/shortcut", log: logger, type: .default)
-        // Clear cached metadata to force reload regardless of mtime
-        lastKnownFileSize = nil
-        lastKnownFileModificationDate = nil
-        reloadFromDisk()
+        if reloadFromDisk(force: true) {
+            showToolbarFeedbackToast(NSLocalizedString("已重新载入文档", comment: "Reload success toast"))
+        } else {
+            showToolbarFeedbackToast(NSLocalizedString("重新载入失败", comment: "Reload failure toast"))
+        }
     }
     
     private func handleKeyDownEvent(_ event: NSEvent) -> NSEvent? {
@@ -1416,14 +1389,28 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     }
     
     private var toastView: NSView?
+    private var toastDismissWorkItem: DispatchWorkItem?
     
     private func showLinkUnsupportedToast() {
+        showToast(
+            message: NSLocalizedString("QuickLook preview does not support link navigation", comment: "Toast message when link clicked in QuickLook"),
+            hint: NSLocalizedString("Double-click .md file to open in main app for full functionality", comment: "Toast hint message"),
+            iconName: "info.circle.fill"
+        )
+    }
+
+    private func showToolbarFeedbackToast(_ message: String) {
+        showToast(message: message, hint: nil, iconName: "checkmark.circle.fill")
+    }
+
+    private func showToast(message: String, hint: String?, iconName: String) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            
-            if self.toastView != nil {
-                return
-            }
+
+            self.toastDismissWorkItem?.cancel()
+            self.toastDismissWorkItem = nil
+            self.toastView?.removeFromSuperview()
+            self.toastView = nil
             
             let toastContainer = NSView()
             toastContainer.wantsLayer = true
@@ -1432,26 +1419,31 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
             toastContainer.translatesAutoresizingMaskIntoConstraints = false
             
             let iconImageView = NSImageView()
-            iconImageView.image = NSImage(systemSymbolName: "info.circle.fill", accessibilityDescription: nil)
+            iconImageView.image = NSImage(systemSymbolName: iconName, accessibilityDescription: nil)
             iconImageView.contentTintColor = .white
             iconImageView.translatesAutoresizingMaskIntoConstraints = false
             
-            let messageLabel = NSTextField(labelWithString: NSLocalizedString("QuickLook preview does not support link navigation", comment: "Toast message when link clicked in QuickLook"))
+            let messageLabel = NSTextField(labelWithString: message)
             messageLabel.textColor = .white
             messageLabel.font = .systemFont(ofSize: 13, weight: .medium)
             messageLabel.translatesAutoresizingMaskIntoConstraints = false
             
-            let hintLabel = NSTextField(labelWithString: NSLocalizedString("Double-click .md file to open in main app for full functionality", comment: "Toast hint message"))
-            hintLabel.textColor = NSColor.white.withAlphaComponent(0.9)
-            hintLabel.font = .systemFont(ofSize: 11)
-            hintLabel.translatesAutoresizingMaskIntoConstraints = false
+            let hintLabel = hint.map { text -> NSTextField in
+                let label = NSTextField(labelWithString: text)
+                label.textColor = NSColor.white.withAlphaComponent(0.9)
+                label.font = .systemFont(ofSize: 11)
+                label.translatesAutoresizingMaskIntoConstraints = false
+                return label
+            }
             
             toastContainer.addSubview(iconImageView)
             toastContainer.addSubview(messageLabel)
-            toastContainer.addSubview(hintLabel)
+            if let hintLabel {
+                toastContainer.addSubview(hintLabel)
+            }
             self.view.addSubview(toastContainer)
-            
-            NSLayoutConstraint.activate([
+
+            var constraints = [
                 toastContainer.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 16),
                 toastContainer.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
                 toastContainer.widthAnchor.constraint(lessThanOrEqualToConstant: 500),
@@ -1463,13 +1455,21 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                 
                 messageLabel.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 8),
                 messageLabel.trailingAnchor.constraint(equalTo: toastContainer.trailingAnchor, constant: -12),
-                messageLabel.topAnchor.constraint(equalTo: toastContainer.topAnchor, constant: 10),
-                
-                hintLabel.leadingAnchor.constraint(equalTo: messageLabel.leadingAnchor),
-                hintLabel.trailingAnchor.constraint(equalTo: messageLabel.trailingAnchor),
-                hintLabel.topAnchor.constraint(equalTo: messageLabel.bottomAnchor, constant: 2),
-                hintLabel.bottomAnchor.constraint(equalTo: toastContainer.bottomAnchor, constant: -10)
-            ])
+                messageLabel.topAnchor.constraint(equalTo: toastContainer.topAnchor, constant: 10)
+            ]
+
+            if let hintLabel {
+                constraints += [
+                    hintLabel.leadingAnchor.constraint(equalTo: messageLabel.leadingAnchor),
+                    hintLabel.trailingAnchor.constraint(equalTo: messageLabel.trailingAnchor),
+                    hintLabel.topAnchor.constraint(equalTo: messageLabel.bottomAnchor, constant: 2),
+                    hintLabel.bottomAnchor.constraint(equalTo: toastContainer.bottomAnchor, constant: -10)
+                ]
+            } else {
+                constraints.append(messageLabel.bottomAnchor.constraint(equalTo: toastContainer.bottomAnchor, constant: -10))
+            }
+
+            NSLayoutConstraint.activate(constraints)
             
             self.toastView = toastContainer
             
@@ -1479,7 +1479,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                 toastContainer.animator().alphaValue = 1
             })
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+            let dismissWorkItem = DispatchWorkItem { [weak self] in
                 guard let self = self, let toast = self.toastView else { return }
                 
                 NSAnimationContext.runAnimationGroup({ context in
@@ -1488,8 +1488,11 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                 }, completionHandler: {
                     toast.removeFromSuperview()
                     self.toastView = nil
+                    self.toastDismissWorkItem = nil
                 })
             }
+            self.toastDismissWorkItem = dismissWorkItem
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0, execute: dismissWorkItem)
         }
     }
     
@@ -1786,17 +1789,20 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         reloadFromDisk()
     }
 
-    private func reloadFromDisk() {
-        guard let url = currentURL else { return }
+    @discardableResult
+    private func reloadFromDisk(force: Bool = false) -> Bool {
+        guard let url = currentURL else { return false }
         do {
             let attrs = try FileManager.default.attributesOfItem(atPath: url.path)
             let newSize = attrs[.size] as? UInt64 ?? 0
             let newMtime = attrs[.modificationDate] as? Date
-            guard FileMonitorHelpers.shouldReload(
-                newSize: newSize, newMtime: newMtime,
-                knownSize: lastKnownFileSize ?? 0,
-                knownMtime: lastKnownFileModificationDate
-            ) else { return }
+            if !force {
+                guard FileMonitorHelpers.shouldReload(
+                    newSize: newSize, newMtime: newMtime,
+                    knownSize: lastKnownFileSize ?? 0,
+                    knownMtime: lastKnownFileModificationDate
+                ) else { return true }
+            }
 
             var content: String
             if newSize > maxPreviewSizeBytes {
@@ -1826,8 +1832,10 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
             lastKnownFileModificationDate = newMtime
             if isWebViewLoaded { renderCurrentMode() }
             os_log("🟢 Reloaded from disk: %{public}@", log: logger, type: .default, url.lastPathComponent)
+            return true
         } catch {
             os_log("🔴 reloadFromDisk failed: %{public}@", log: logger, type: .error, error.localizedDescription)
+            return false
         }
     }
 

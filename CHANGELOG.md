@@ -1,6 +1,10 @@
 ## [Unreleased]
 
 ### Fixed
+- **Toolbar button feedback and QuickLook clicks**: Unified the standalone app and QuickLook toolbar controls on shared native circular AppKit buttons, restored reload/reset zoom feedback tips, and fixed QuickLook toolbar clicks that could pass through to the preview web view.
+  - Standalone app reload/reset tips now appear in the historical upper-center position with a light rounded card.
+  - QuickLook reload/reset actions now reuse the native toast feedback path.
+  - Offset QuickLook toolbar buttons now convert hit-test coordinates correctly before dispatching actions.
 - **Development install QuickLook registration**: Fixed local `make install` / `make install-debug` re-signing stripping the QuickLook extension sandbox entitlement, which caused PluginKit to reject `MarkdownPreview.appex` with “plug-ins must be sandboxed”. Development installs now sign nested code explicitly with the correct entitlements and release DMGs verify the QuickLook sandbox entitlement after packaging.
 - **App window restore stability**: Improved standalone app window size restoration by validating restored frames against visible screens, ignoring transient accessory windows during startup, and using saved document dimensions before SwiftUI applies fallback sizing.
 

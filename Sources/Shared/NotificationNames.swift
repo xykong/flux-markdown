@@ -9,5 +9,8 @@ extension Notification.Name {
     static let zoomOut      = Notification.Name("zoomOut")
     static let resetZoom    = Notification.Name("resetZoom")
     static let reloadFile   = Notification.Name("reloadFile")
+    static let reloadFileSucceeded = Notification.Name("reloadFileSucceeded")
+    static let reloadFileFailed    = Notification.Name("reloadFileFailed")
+    static let resetZoomCompleted  = Notification.Name("resetZoomCompleted")
     static let openInExternalEditor = Notification.Name("openInExternalEditor")
 }
