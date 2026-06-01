@@ -79,6 +79,10 @@ create-dmg \
   --icon ".background" 120 120 \
   "$OUTPUT_DIR/$DMG_NAME" \
   "$TMP_DIR/"
+
+echo "🔐 Verifying release entitlements..."
+./scripts/verify-release-entitlements.sh "$OUTPUT_DIR/$DMG_NAME"
+
 # 6. Cleanup
 rm -rf "$TMP_DIR"
 

@@ -1,5 +1,11 @@
 ## [Unreleased]
-_无待发布的变更_
+
+### Fixed
+- **Development install QuickLook registration**: Fixed local `make install` / `make install-debug` re-signing stripping the QuickLook extension sandbox entitlement, which caused PluginKit to reject `MarkdownPreview.appex` with “plug-ins must be sandboxed”. Development installs now sign nested code explicitly with the correct entitlements and release DMGs verify the QuickLook sandbox entitlement after packaging.
+- **App window restore stability**: Improved standalone app window size restoration by validating restored frames against visible screens, ignoring transient accessory windows during startup, and using saved document dimensions before SwiftUI applies fallback sizing.
+
+### Added
+- **Development display version marker**: Local development installs now show an `-dev-<timestamp>` display version in both the standalone app and QuickLook preview, making it easier to distinguish installed development builds from released builds.
 
 ## [1.32.427] - 2026-05-13
 

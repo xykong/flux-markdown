@@ -8,7 +8,6 @@ struct WindowAccessor: NSViewRepresentable {
     struct FrameApplication: Equatable {
         let delay: TimeInterval
         let frame: CGRect
-        let expectedFrameBeforeApplication: CGRect?
     }
 
     static func isFrameValidForRestore(_ frame: CGRect) -> Bool {
@@ -27,8 +26,11 @@ struct WindowAccessor: NSViewRepresentable {
         guard !visibleFrames.isEmpty else { return true }
 
         return visibleFrames.contains { visibleFrame in
-            frame.intersection(visibleFrame).width >= minimumRestorableWindowSize.width &&
-                frame.intersection(visibleFrame).height >= minimumRestorableWindowSize.height
+            let intersection = frame.intersection(visibleFrame)
+            guard !intersection.isNull else { return false }
+
+            return intersection.width >= minimumRestorableWindowSize.width &&
+                intersection.height >= minimumRestorableWindowSize.height
         }
     }
 
@@ -49,10 +51,27 @@ struct WindowAccessor: NSViewRepresentable {
         )
     }
 
+    static func initialDocumentContentSize(savedFrame: CGRect?, visibleFrames: [CGRect] = currentVisibleFrames()) -> CGSize {
+        guard let savedFrame, isFrameRestorable(savedFrame, visibleFrames: visibleFrames) else {
+            return CGSize(width: 1_000, height: 800)
+        }
+
+        return contentSize(forWindowFrame: savedFrame)
+    }
+
+    static func contentSize(forWindowFrame frame: CGRect) -> CGSize {
+        let contentRect = NSWindow.contentRect(
+            forFrameRect: frame,
+            styleMask: [.titled, .closable, .miniaturizable, .resizable]
+        )
+
+        return contentRect.size
+    }
+
     private static func frameApplications(currentFrame: CGRect, targetFrame: CGRect, visibleFrames: [CGRect]) -> [FrameApplication] {
         guard isFrameRestorable(targetFrame, visibleFrames: visibleFrames) else { return [] }
 
-        let immediateApplication = FrameApplication(delay: 0, frame: targetFrame, expectedFrameBeforeApplication: nil)
+        let immediateApplication = FrameApplication(delay: 0, frame: targetFrame)
         guard !framesApproximatelyEqual(currentFrame, targetFrame) else {
             return [immediateApplication]
         }
@@ -60,7 +79,7 @@ struct WindowAccessor: NSViewRepresentable {
         return [
             immediateApplication
         ] + initialFrameReapplyDelays.map {
-            FrameApplication(delay: $0, frame: targetFrame, expectedFrameBeforeApplication: currentFrame)
+            FrameApplication(delay: $0, frame: targetFrame)
         }
     }
 
@@ -69,19 +88,23 @@ struct WindowAccessor: NSViewRepresentable {
         view.onWindowAttach = { window in
             window.minSize = Self.minimumRestorableWindowSize
 
+            let startupPhase: Coordinator.StartupPhase
             if let savedFrame = AppearancePreference.shared.hostWindowFrame {
                 let visibleFrames = Self.currentVisibleFrames()
                 if Self.isFrameRestorable(savedFrame, visibleFrames: visibleFrames) {
+                    startupPhase = .restoring(targetFrame: savedFrame)
                     Self.applyFrameApplications(to: window, targetFrame: savedFrame, visibleFrames: visibleFrames)
                 } else {
                     AppearancePreference.shared.hostWindowFrame = nil
+                    startupPhase = .applyingDefault
                     Self.applyDefaultFrame(to: window)
                 }
             } else {
+                startupPhase = .applyingDefault
                 Self.applyDefaultFrame(to: window)
             }
             // Start observing changes
-            context.coordinator.monitor(window: window)
+            context.coordinator.monitor(window: window, startupPhase: startupPhase)
         }
         return view
     }
@@ -117,9 +140,7 @@ struct WindowAccessor: NSViewRepresentable {
                 DispatchQueue.main.asyncAfter(deadline: .now() + application.delay) { [weak window] in
                     guard let window else { return }
                     guard !window.inLiveResize else { return }
-                    if let expectedFrame = application.expectedFrameBeforeApplication {
-                        guard framesApproximatelyEqual(window.frame, expectedFrame) else { return }
-                    }
+                    guard !framesApproximatelyEqual(window.frame, application.frame) else { return }
                     applyFrame(application.frame, to: window)
                 }
             }
@@ -129,6 +150,10 @@ struct WindowAccessor: NSViewRepresentable {
     private static func applyFrame(_ frame: CGRect, to window: NSWindow) {
         guard !framesApproximatelyEqual(window.frame, frame) else { return }
         window.setFrame(frame, display: true)
+    }
+
+    static func shouldSaveFrame(for window: NSWindow) -> Bool {
+        window.title.hasSuffix(".md") || window.representedURL != nil
     }
 
     private static func framesApproximatelyEqual(_ lhs: CGRect, _ rhs: CGRect) -> Bool {
@@ -156,15 +181,23 @@ struct WindowAccessor: NSViewRepresentable {
     }
     
     class Coordinator: NSObject {
+        enum StartupPhase {
+            case restoring(targetFrame: CGRect)
+            case applyingDefault
+            case settled
+        }
+
         var window: NSWindow?
         var observers: [NSObjectProtocol] = []
+        private var startupPhase: StartupPhase = .settled
         
         deinit {
             observers.forEach { NotificationCenter.default.removeObserver($0) }
         }
         
-        func monitor(window: NSWindow) {
+        func monitor(window: NSWindow, startupPhase: StartupPhase) {
             self.window = window
+            self.startupPhase = startupPhase
             
             // Clean up old observers
             observers.forEach { NotificationCenter.default.removeObserver($0) }
@@ -179,13 +212,34 @@ struct WindowAccessor: NSViewRepresentable {
             observers.append(center.addObserver(forName: NSWindow.didMoveNotification, object: window, queue: .main) { [weak self] _ in
                 MainActor.assumeIsolated { self?.saveFrame() }
             })
+
+            settleStartupPersistenceGate(after: 1.0)
+        }
+
+        private func settleStartupPersistenceGate(after delay: TimeInterval) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                MainActor.assumeIsolated { self?.startupPhase = .settled }
+            }
         }
         
         @MainActor
         private func saveFrame() {
             guard let window = window else { return }
+            guard WindowAccessor.shouldSaveFrame(for: window) else { return }
             guard WindowAccessor.isFrameValidForRestore(window.frame) else { return }
+            guard shouldPersistCurrentFrame(window.frame) else { return }
             AppearancePreference.shared.hostWindowFrame = window.frame
+        }
+
+        private func shouldPersistCurrentFrame(_ frame: CGRect) -> Bool {
+            switch startupPhase {
+            case .settled:
+                return true
+            case .applyingDefault:
+                return false
+            case .restoring(let targetFrame):
+                return WindowAccessor.framesApproximatelyEqual(frame, targetFrame)
+            }
         }
     }
 }

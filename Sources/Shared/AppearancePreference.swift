@@ -58,11 +58,7 @@ public class AppearancePreference: ObservableObject {
     public var hostWindowFrame: CGRect? {
         get {
             guard let dict = localStore.dictionary(forKey: hostWindowFrameKey) else { return nil }
-            let x = dict["x"] as? Double ?? 0
-            let y = dict["y"] as? Double ?? 0
-            let w = dict["w"] as? Double ?? 0
-            let h = dict["h"] as? Double ?? 0
-            return CGRect(x: x, y: y, width: w, height: h)
+            return Self.hostWindowFrame(from: dict)
         }
         set {
             if let v = newValue {
@@ -72,6 +68,35 @@ public class AppearancePreference: ObservableObject {
             }
             localStore.synchronize()
         }
+    }
+
+    static func hostWindowFrame(from dict: [String: Any]) -> CGRect {
+        CGRect(
+            x: numericValue(for: "x", in: dict),
+            y: numericValue(for: "y", in: dict),
+            width: numericValue(for: "w", in: dict),
+            height: numericValue(for: "h", in: dict)
+        )
+    }
+
+    private static func numericValue(for key: String, in dict: [String: Any]) -> Double {
+        if let value = dict[key] as? NSNumber {
+            return value.doubleValue
+        }
+
+        if let value = dict[key] as? Int {
+            return Double(value)
+        }
+
+        if let value = dict[key] as? CGFloat {
+            return Double(value)
+        }
+
+        if let value = dict[key] as? String, let number = Double(value) {
+            return number
+        }
+
+        return dict[key] as? Double ?? 0
     }
 
     public var quickLookSize: CGSize? {

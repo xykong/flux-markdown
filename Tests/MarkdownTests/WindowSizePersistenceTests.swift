@@ -5,6 +5,18 @@ final class WindowSizePersistenceTests: XCTestCase {
 
     // MARK: - Host App Window Frame Tests
 
+    func testHostWindowFrameParsing_AcceptsIntegerValuesFromDefaultsCli() {
+        let frame = AppearancePreference.hostWindowFrame(from: ["x": 180, "y": 162, "w": 1_040, "h": 680])
+
+        XCTAssertEqual(frame, CGRect(x: 180, y: 162, width: 1_040, height: 680))
+    }
+
+    func testHostWindowFrameParsing_AcceptsStringValuesFromDefaultsCli() {
+        let frame = AppearancePreference.hostWindowFrame(from: ["x": "180.0", "y": "162.0", "w": "1040.0", "h": "680.0"])
+
+        XCTAssertEqual(frame, CGRect(x: 180, y: 162, width: 1_040, height: 680))
+    }
+
     func testHostDefaultFrame_UsesCurrentWidthAndEightyPercentVisibleHeight() {
         let visibleFrame = CGRect(x: 100, y: 50, width: 1440, height: 900)
         let currentFrame = CGRect(x: 0, y: 0, width: 1000, height: 480)
@@ -69,6 +81,16 @@ final class WindowSizePersistenceTests: XCTestCase {
         )
     }
 
+    func testHostFrameRestorable_RejectsNonIntersectingFramesInsteadOfTreatingNullIntersectionAsUsable() {
+        let savedFrame = CGRect(x: 180, y: 162, width: 1_040, height: 680)
+        let visibleFrames = [CGRect(x: 0, y: 0, width: 1_512, height: 130)]
+
+        XCTAssertFalse(
+            WindowAccessor.isFrameRestorable(savedFrame, visibleFrames: visibleFrames),
+            "Null intersections report infinite dimensions on CGRect; they must not make a disconnected frame look restorable"
+        )
+    }
+
     func testHostFrameRestorable_AcceptsFramesWithUsableVisibleIntersection() {
         let savedFrame = CGRect(x: 1_100, y: 100, width: 1_000, height: 720)
         let currentScreens = [CGRect(x: 0, y: 0, width: 1_512, height: 949)]
@@ -77,6 +99,31 @@ final class WindowSizePersistenceTests: XCTestCase {
             WindowAccessor.isFrameRestorable(savedFrame, visibleFrames: currentScreens),
             "A saved frame should restore when at least the minimum usable area is visible"
         )
+    }
+
+    func testInitialDocumentContentSize_UsesSavedRestorableFrameBeforeWindowAttach() {
+        let savedFrame = CGRect(x: 180, y: 162, width: 1_040, height: 680)
+        let visibleFrames = [CGRect(x: 0, y: 0, width: 1_512, height: 949)]
+
+        let initialSize = WindowAccessor.initialDocumentContentSize(
+            savedFrame: savedFrame,
+            visibleFrames: visibleFrames
+        )
+
+        XCTAssertEqual(initialSize, WindowAccessor.contentSize(forWindowFrame: savedFrame))
+        XCTAssertLessThan(initialSize.height, savedFrame.height)
+    }
+
+    func testInitialDocumentContentSize_FallsBackWhenSavedFrameIsOffscreen() {
+        let savedFrame = CGRect(x: 3_000, y: 3_000, width: 1_040, height: 680)
+        let visibleFrames = [CGRect(x: 0, y: 0, width: 1_512, height: 949)]
+
+        let initialSize = WindowAccessor.initialDocumentContentSize(
+            savedFrame: savedFrame,
+            visibleFrames: visibleFrames
+        )
+
+        XCTAssertEqual(initialSize, CGSize(width: 1_000, height: 800))
     }
 
     func testHostFrameApplication_ReappliesDefaultWhenLaterWindowSizingOverwritesInitialFrame() {
@@ -96,16 +143,13 @@ final class WindowSizePersistenceTests: XCTestCase {
         XCTAssertEqual(actions.count, 3, "SwiftUI can overwrite early document frame passes; schedule bounded reapplies")
         XCTAssertEqual(actions[0].delay, 0)
         XCTAssertEqual(actions[0].frame, expectedDefaultFrame)
-        XCTAssertNil(actions[0].expectedFrameBeforeApplication)
         XCTAssertEqual(actions[1].delay, 0.20)
         XCTAssertEqual(actions[1].frame, expectedDefaultFrame)
-        XCTAssertEqual(actions[1].expectedFrameBeforeApplication, initialSwiftUIFrame)
         XCTAssertEqual(actions[2].delay, 0.80)
         XCTAssertEqual(actions[2].frame, expectedDefaultFrame)
-        XCTAssertEqual(actions[2].expectedFrameBeforeApplication, initialSwiftUIFrame)
     }
 
-    func testHostFrameApplication_DelayedReapplyOnlyTargetsOriginalSystemFrame() {
+    func testHostFrameApplication_DelayedReapplyKeepsTargetWhenStartupFrameDrifts() {
         let visibleFrame = CGRect(x: 0, y: 0, width: 1_512, height: 949)
         let initialSwiftUIFrame = CGRect(x: 306, y: 298, width: 900, height: 450)
         let expectedDefaultFrame = WindowAccessor.defaultDocumentFrame(
@@ -123,9 +167,9 @@ final class WindowSizePersistenceTests: XCTestCase {
         XCTAssertFalse(delayedActions.isEmpty)
         for action in delayedActions {
             XCTAssertEqual(
-                action.expectedFrameBeforeApplication,
-                initialSwiftUIFrame,
-                "Delayed startup reapplies should only run if SwiftUI leaves the original startup frame intact"
+                action.frame,
+                expectedDefaultFrame,
+                "Delayed startup reapplies should keep targeting the chosen startup frame even if SwiftUI applies another transient size"
             )
         }
     }
@@ -143,6 +187,22 @@ final class WindowSizePersistenceTests: XCTestCase {
         XCTAssertEqual(actions.count, 1)
         XCTAssertEqual(actions[0].delay, 0)
         XCTAssertEqual(actions[0].frame, targetFrame)
+    }
+
+    func testHostWindowFrameSave_IgnoresUntitledAccessoryWindows() {
+        let window = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 900, height: 450), styleMask: [], backing: .buffered, defer: false)
+
+        XCTAssertFalse(
+            WindowAccessor.shouldSaveFrame(for: window),
+            "Hidden accessory windows created during document launch should not overwrite the persisted document frame"
+        )
+    }
+
+    func testHostWindowFrameSave_AcceptsDocumentWindows() {
+        let window = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 900, height: 450), styleMask: [], backing: .buffered, defer: false)
+        window.representedURL = URL(fileURLWithPath: "/tmp/README.md")
+
+        XCTAssertTrue(WindowAccessor.shouldSaveFrame(for: window))
     }
 
     // MARK: - Size Validation Tests

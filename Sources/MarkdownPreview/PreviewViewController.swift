@@ -857,8 +857,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     }
     
     private func setupVersionLabel() {
-        let bundleInfo = Bundle(for: type(of: self)).infoDictionary
-        let version = bundleInfo?["CFBundleShortVersionString"] as? String ?? ""
+        let version = DisplayVersion.text(in: Bundle(for: type(of: self))) ?? ""
         guard !version.isEmpty else { return }
 
         let label = NSTextField(labelWithString: "v\(version)")
@@ -1068,7 +1067,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     #if DEBUG
     private func setupDebugLabel() {
         let debugInfo = Bundle(for: type(of: self)).infoDictionary
-        let version = debugInfo?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        let version = DisplayVersion.text(from: debugInfo) ?? "Unknown"
         let build = debugInfo?["CFBundleVersion"] as? String ?? "Unknown"
         
         let dateFormatter = DateFormatter()

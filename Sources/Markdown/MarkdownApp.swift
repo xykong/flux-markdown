@@ -73,104 +73,7 @@ struct MarkdownApp: App {
         .windowStyle(.titleBar)
 
         DocumentGroup(newDocument: MarkdownDocument()) { file in
-            ZStack(alignment: .topTrailing) {
-                MarkdownWebView(
-                    content: file.document.text,
-                    fileURL: file.fileURL,
-                    appearanceMode: preference.currentMode,
-                    viewMode: viewMode,
-                    baseFontSize: preference.baseFontSize,
-                    enableMermaid: preference.enableMermaid,
-                    enableKatex: preference.enableKatex,
-                    enableEmoji: preference.enableEmoji,
-                    enableTypst: preference.enableTypst,
-                    codeHighlightTheme: preference.codeHighlightTheme,
-                    collapseBlockquotesByDefault: preference.collapseBlockquotesByDefault,
-                    showLineNumbers: preference.showLineNumbers
-                )
-
-                if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
-                    Text("v\(version)")
-                        .font(.system(size: 10, weight: .regular, design: .monospaced))
-                        .foregroundColor(Color.secondary.opacity(0.5))
-                        .padding(.top, 48)
-                        .padding(.trailing, 72)
-                }
-
-                HStack(spacing: 8) {
-                    ToolbarIconButton(
-                        systemName: "arrow.clockwise",
-                        foregroundColor: Color(NSColor.labelColor),
-                        helpText: NSLocalizedString("Reload File (⌘R)", comment: "Reload file tooltip")
-                    ) {
-                        NotificationCenter.default.post(name: .reloadFile, object: nil)
-                    }
-
-                    ToolbarIconButton(
-                        systemName: "textformat.size.smaller",
-                        foregroundColor: Color(NSColor.labelColor),
-                        helpText: NSLocalizedString("Zoom Out", comment: "Zoom out tooltip")
-                    ) {
-                        NotificationCenter.default.post(name: .zoomOut, object: nil)
-                    }
-
-                    ToolbarIconButton(
-                        systemName: "arrow.uturn.backward",
-                        foregroundColor: Color(NSColor.labelColor),
-                        helpText: NSLocalizedString("Reset Zoom (⌘0)", comment: "Reset zoom tooltip")
-                    ) {
-                        NotificationCenter.default.post(name: .resetZoom, object: nil)
-                    }
-
-                    ToolbarIconButton(
-                        systemName: "textformat.size.larger",
-                        foregroundColor: Color(NSColor.labelColor),
-                        helpText: NSLocalizedString("Zoom In", comment: "Zoom in tooltip")
-                    ) {
-                        NotificationCenter.default.post(name: .zoomIn, object: nil)
-                    }
-
-                    ToolbarIconButton(
-                        systemName: "questionmark.circle",
-                        foregroundColor: Color(NSColor.labelColor),
-                        helpText: NSLocalizedString("Show Help", comment: "Show help tooltip")
-                    ) {
-                        NotificationCenter.default.post(name: .toggleHelp, object: nil)
-                    }
-
-                    ToolbarIconButton(
-                        systemName: viewMode == .source ? "eye.fill" : "doc.text.fill",
-                        foregroundColor: viewMode == .source ? .blue : Color(NSColor.labelColor),
-                        helpText: viewMode == .source
-                            ? NSLocalizedString("Show Preview", comment: "Show preview tooltip")
-                            : NSLocalizedString("Show Source", comment: "Show source tooltip")
-                    ) {
-                        viewMode = (viewMode == .preview) ? .source : .preview
-                    }
-
-                    ToolbarIconButton(
-                        systemName: preference.currentMode == .light ? "sun.max.fill" : preference.currentMode == .dark ? "moon.fill" : "circle.lefthalf.filled",
-                        foregroundColor: preference.currentMode == .light ? .yellow : Color(NSColor.labelColor),
-                        helpText: NSLocalizedString("Toggle Theme (System / Light / Dark)", comment: "Theme toggle tooltip")
-                    ) {
-                        switch preference.currentMode {
-                        case .system: preference.currentMode = .light
-                        case .light:  preference.currentMode = .dark
-                        case .dark:   preference.currentMode = .system
-                        }
-                    }
-                }
-                .padding([.top, .trailing], 10)
-            }
-            .onAppear {
-                if let fileURL = file.fileURL {
-                    UpdateRestorationManager.shared.saveLastOpenedFile(url: fileURL)
-                }
-            }
-            .frame(minWidth: 320, idealWidth: 1000, maxWidth: .infinity,
-                   minHeight: 200, idealHeight: 800, maxHeight: .infinity)
-            .environmentObject(preference)
-            .background(WindowAccessor())
+            DocumentPreviewScene(file: file, preference: preference, viewMode: $viewMode)
         }
         .commands {
             CommandGroup(after: .saveItem) {
@@ -283,6 +186,129 @@ struct MarkdownApp: App {
         Settings {
             SettingsView()
         }
+    }
+}
+
+private struct DocumentPreviewScene: View {
+    let file: FileDocumentConfiguration<MarkdownDocument>
+    @ObservedObject var preference: AppearancePreference
+    @Binding var viewMode: ViewMode
+
+    private let initialContentSize: CGSize
+
+    init(file: FileDocumentConfiguration<MarkdownDocument>, preference: AppearancePreference, viewMode: Binding<ViewMode>) {
+        self.file = file
+        self.preference = preference
+        self._viewMode = viewMode
+        let savedFrame = AppearancePreference.shared.hostWindowFrame
+        self.initialContentSize = WindowAccessor.initialDocumentContentSize(savedFrame: savedFrame)
+    }
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            MarkdownWebView(
+                content: file.document.text,
+                fileURL: file.fileURL,
+                appearanceMode: preference.currentMode,
+                viewMode: viewMode,
+                baseFontSize: preference.baseFontSize,
+                enableMermaid: preference.enableMermaid,
+                enableKatex: preference.enableKatex,
+                enableEmoji: preference.enableEmoji,
+                enableTypst: preference.enableTypst,
+                codeHighlightTheme: preference.codeHighlightTheme,
+                collapseBlockquotesByDefault: preference.collapseBlockquotesByDefault,
+                showLineNumbers: preference.showLineNumbers
+            )
+
+            if let version = DisplayVersion.text(in: .main) {
+                Text("v\(version)")
+                    .font(.system(size: 10, weight: .regular, design: .monospaced))
+                    .foregroundColor(Color.secondary.opacity(0.5))
+                    .padding(.top, 48)
+                    .padding(.trailing, 72)
+            }
+
+            HStack(spacing: 8) {
+                ToolbarIconButton(
+                    systemName: "arrow.clockwise",
+                    foregroundColor: Color(NSColor.labelColor),
+                    helpText: NSLocalizedString("Reload File (⌘R)", comment: "Reload file tooltip")
+                ) {
+                    NotificationCenter.default.post(name: .reloadFile, object: nil)
+                }
+
+                ToolbarIconButton(
+                    systemName: "textformat.size.smaller",
+                    foregroundColor: Color(NSColor.labelColor),
+                    helpText: NSLocalizedString("Zoom Out", comment: "Zoom out tooltip")
+                ) {
+                    NotificationCenter.default.post(name: .zoomOut, object: nil)
+                }
+
+                ToolbarIconButton(
+                    systemName: "arrow.uturn.backward",
+                    foregroundColor: Color(NSColor.labelColor),
+                    helpText: NSLocalizedString("Reset Zoom (⌘0)", comment: "Reset zoom tooltip")
+                ) {
+                    NotificationCenter.default.post(name: .resetZoom, object: nil)
+                }
+
+                ToolbarIconButton(
+                    systemName: "textformat.size.larger",
+                    foregroundColor: Color(NSColor.labelColor),
+                    helpText: NSLocalizedString("Zoom In", comment: "Zoom in tooltip")
+                ) {
+                    NotificationCenter.default.post(name: .zoomIn, object: nil)
+                }
+
+                ToolbarIconButton(
+                    systemName: "questionmark.circle",
+                    foregroundColor: Color(NSColor.labelColor),
+                    helpText: NSLocalizedString("Show Help", comment: "Show help tooltip")
+                ) {
+                    NotificationCenter.default.post(name: .toggleHelp, object: nil)
+                }
+
+                ToolbarIconButton(
+                    systemName: viewMode == .source ? "eye.fill" : "doc.text.fill",
+                    foregroundColor: viewMode == .source ? .blue : Color(NSColor.labelColor),
+                    helpText: viewMode == .source
+                        ? NSLocalizedString("Show Preview", comment: "Show preview tooltip")
+                        : NSLocalizedString("Show Source", comment: "Show source tooltip")
+                ) {
+                    viewMode = (viewMode == .preview) ? .source : .preview
+                }
+
+                ToolbarIconButton(
+                    systemName: preference.currentMode == .light ? "sun.max.fill" : preference.currentMode == .dark ? "moon.fill" : "circle.lefthalf.filled",
+                    foregroundColor: preference.currentMode == .light ? .yellow : Color(NSColor.labelColor),
+                    helpText: NSLocalizedString("Toggle Theme (System / Light / Dark)", comment: "Theme toggle tooltip")
+                ) {
+                    switch preference.currentMode {
+                    case .system: preference.currentMode = .light
+                    case .light:  preference.currentMode = .dark
+                    case .dark:   preference.currentMode = .system
+                    }
+                }
+            }
+            .padding([.top, .trailing], 10)
+        }
+        .onAppear {
+            if let fileURL = file.fileURL {
+                UpdateRestorationManager.shared.saveLastOpenedFile(url: fileURL)
+            }
+        }
+        .frame(
+            minWidth: WindowAccessor.minimumRestorableWindowSize.width,
+            idealWidth: initialContentSize.width,
+            maxWidth: .infinity,
+            minHeight: WindowAccessor.minimumRestorableWindowSize.height,
+            idealHeight: initialContentSize.height,
+            maxHeight: .infinity
+        )
+        .environmentObject(preference)
+        .background(WindowAccessor())
     }
 }
 

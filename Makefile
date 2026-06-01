@@ -1,4 +1,4 @@
-.PHONY: all build_renderer generate app install dmg release delete-release
+.PHONY: all build_renderer generate app install install-debug dmg release delete-release
 
 all: app
 
@@ -26,13 +26,14 @@ app: generate
 	@echo "✅ Build completed: $(or $(CONFIGURATION),Release) configuration"
 
 install:
-	@config="Release"; \
-	if echo "$(MAKECMDGOALS)" | grep -q "debug"; then \
-		config="Debug"; \
-	fi; \
-	echo "🚀 Building and installing $$config configuration..."; \
-	$(MAKE) app CONFIGURATION=$$config && \
-	./scripts/install.sh $$config true
+	@echo "🚀 Building and installing Release configuration..."; \
+	make app CONFIGURATION=Release && \
+	./scripts/install.sh Release true development
+
+install-debug:
+	@echo "🚀 Building and installing Debug configuration..."; \
+	make app CONFIGURATION=Debug && \
+	./scripts/install.sh Debug true development
 
 dmg:
 	./scripts/create_dmg.sh

@@ -9,6 +9,7 @@ cd "$PROJECT_ROOT"
 
 CONFIGURATION=${1:-Release}
 SKIP_BUILD=${2:-false}
+INSTALL_MODE=${3:-development}
 
 echo "════════════════════════════════════════════════════════════════"
 echo "  🚀 Installing Markdown QuickLook - $CONFIGURATION Configuration"
@@ -47,6 +48,32 @@ echo "📋 Configuration: $CONFIGURATION"
 echo "📋 Installing to /Applications..."
 rm -rf "/Applications/FluxMarkdown.app"
 cp -R "$APP_PATH" /Applications/
+
+if [ "$INSTALL_MODE" = "development" ]; then
+    INSTALLED_APP_PATH="/Applications/FluxMarkdown.app"
+    APP_ENTITLEMENTS="$PROJECT_ROOT/Sources/Markdown/Markdown.entitlements"
+    QUICKLOOK_EXTENSION_PATH="$INSTALLED_APP_PATH/Contents/PlugIns/MarkdownPreview.appex"
+    QUICKLOOK_ENTITLEMENTS="$PROJECT_ROOT/Sources/MarkdownPreview/MarkdownPreview.entitlements"
+
+    BASE_VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$INSTALLED_APP_PATH/Contents/Info.plist")
+    DISPLAY_VERSION="${BASE_VERSION}-dev-$(date '+%Y%m%d-%H%M%S')"
+    echo "📋 Development display version: $DISPLAY_VERSION"
+    /usr/libexec/PlistBuddy -c "Set :FMDisplayVersion $DISPLAY_VERSION" "$INSTALLED_APP_PATH/Contents/Info.plist" 2>/dev/null || \
+        /usr/libexec/PlistBuddy -c "Add :FMDisplayVersion string $DISPLAY_VERSION" "$INSTALLED_APP_PATH/Contents/Info.plist"
+
+    EXTENSION_INFO_PLIST="$INSTALLED_APP_PATH/Contents/PlugIns/MarkdownPreview.appex/Contents/Info.plist"
+    if [ -f "$EXTENSION_INFO_PLIST" ]; then
+        /usr/libexec/PlistBuddy -c "Set :FMDisplayVersion $DISPLAY_VERSION" "$EXTENSION_INFO_PLIST" 2>/dev/null || \
+            /usr/libexec/PlistBuddy -c "Add :FMDisplayVersion string $DISPLAY_VERSION" "$EXTENSION_INFO_PLIST"
+    fi
+
+    echo "🔏 Re-signing development install..."
+    if [ -d "$QUICKLOOK_EXTENSION_PATH" ]; then
+        /usr/bin/codesign --force --sign - --entitlements "$QUICKLOOK_ENTITLEMENTS" "$QUICKLOOK_EXTENSION_PATH"
+    fi
+    /usr/bin/codesign --force --sign - --entitlements "$APP_ENTITLEMENTS" "$INSTALLED_APP_PATH"
+    /usr/bin/codesign --verify --strict --deep --verbose=2 "$INSTALLED_APP_PATH"
+fi
 
 # 3. Remove quarantine attribute
 echo "🔓 Removing quarantine attribute..."
