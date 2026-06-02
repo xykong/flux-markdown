@@ -32,6 +32,7 @@
 				<string>com.fluxmarkdown.rmd</string>
 				<string>com.fluxmarkdown.qmd</string>
 				<string>com.fluxmarkdown.mdoc</string>
+				<string>com.fluxmarkdown.mdc</string>
 				<string>com.fluxmarkdown.mmd</string>
 				<string>com.fluxmarkdown.livemd</string>
 				<string>com.fluxmarkdown.markdown</string>

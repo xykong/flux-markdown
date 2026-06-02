@@ -38,6 +38,7 @@
 				<string>com.fluxmarkdown.rmd</string>
 				<string>com.fluxmarkdown.qmd</string>
 				<string>com.fluxmarkdown.mdoc</string>
+				<string>com.fluxmarkdown.mdc</string>
 				<string>com.fluxmarkdown.mmd</string>
 				<string>com.fluxmarkdown.livemd</string>
 				<string>com.fluxmarkdown.markdown</string>
@@ -255,6 +256,23 @@
 				<key>public.filename-extension</key>
 				<array>
 					<string>mdoc</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.plain-text</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>MDC Document</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.fluxmarkdown.mdc</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>mdc</string>
 				</array>
 			</dict>
 		</dict>

@@ -52,6 +52,12 @@ final class FileExtensionTests: XCTestCase {
                       "test.livemd fixture must exist")
     }
 
+    func testFixtureExists_mdc() {
+        let url = fixturesURL.appendingPathComponent("test.mdc")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: url.path),
+                      "test.mdc fixture must exist")
+    }
+
     func testFixtureExists_markdown() {
         let url = fixturesURL.appendingPathComponent("test.markdown")
         XCTAssertTrue(FileManager.default.fileExists(atPath: url.path),
@@ -117,6 +123,15 @@ final class FileExtensionTests: XCTestCase {
         let content = try String(contentsOf: url, encoding: .utf8)
         XCTAssertTrue(content.hasPrefix("#"),
                       ".mdwn fixture must start with a Markdown heading")
+    }
+
+    func testFixtureContent_mdc_isValidMarkdownRulesFile() throws {
+        let url = fixturesURL.appendingPathComponent("test.mdc")
+        let content = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertFalse(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                       ".mdc fixture must not be empty")
+        XCTAssertTrue(content.contains("rules"),
+                      ".mdc fixture must contain valid Markdown rules content")
     }
 
     // MARK: - .mmd Content Wrapping Logic Tests
@@ -206,6 +221,12 @@ final class FileExtensionTests: XCTestCase {
         XCTAssertEqual(processed, raw, ".mdx content must not be wrapped")
     }
 
+    func testNoWrapping_mdcExtension() {
+        let raw = "# Rules\n\nCursor rules"
+        let processed = applyContentPreprocessing(content: raw, fileExtension: "mdc")
+        XCTAssertEqual(processed, raw, ".mdc content must not be wrapped")
+    }
+
     func testNoWrapping_qmdExtension() {
         let raw = "---\ntitle: Quarto\n---\n\n# Hello"
         let processed = applyContentPreprocessing(content: raw, fileExtension: "qmd")
@@ -260,6 +281,19 @@ final class FileExtensionTests: XCTestCase {
                       "App Info.plist must map .livemd extension to UTI")
     }
 
+    func testUTIDeclarations_appPlistContainsMdcUTI() throws {
+        let plistURL = URL(fileURLWithPath: #file)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Sources/Markdown/Info.plist")
+        let plistContent = try String(contentsOf: plistURL, encoding: .utf8)
+        XCTAssertTrue(plistContent.contains("com.fluxmarkdown.mdc"),
+                      "App Info.plist must declare com.fluxmarkdown.mdc UTI")
+        XCTAssertTrue(plistContent.contains("<string>mdc</string>"),
+                      "App Info.plist must map .mdc extension to UTI")
+    }
+
     func testUTIDeclarations_appPlistContainsMdwnExtension() throws {
         let plistURL = URL(fileURLWithPath: #file)
             .deletingLastPathComponent()
@@ -309,6 +343,17 @@ final class FileExtensionTests: XCTestCase {
                       "Extension Info.plist QLSupportedContentTypes must include com.fluxmarkdown.livemd")
     }
 
+    func testUTIDeclarations_extensionPlistContainsMdcUTI() throws {
+        let plistURL = URL(fileURLWithPath: #file)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Sources/MarkdownPreview/Info.plist")
+        let plistContent = try String(contentsOf: plistURL, encoding: .utf8)
+        XCTAssertTrue(plistContent.contains("com.fluxmarkdown.mdc"),
+                      "Extension Info.plist QLSupportedContentTypes must include com.fluxmarkdown.mdc")
+    }
+
     func testUTIDeclarations_bothPlistsDeclareSameUTIs() throws {
         let root = URL(fileURLWithPath: #file)
             .deletingLastPathComponent()
@@ -326,6 +371,7 @@ final class FileExtensionTests: XCTestCase {
             "com.fluxmarkdown.mdoc",
             "com.fluxmarkdown.mmd",
             "com.fluxmarkdown.livemd",
+            "com.fluxmarkdown.mdc",
             "com.fluxmarkdown.markdown",
             "com.fluxmarkdown.mdown",
             "com.fluxmarkdown.mkd",
@@ -347,6 +393,7 @@ final class FileExtensionTests: XCTestCase {
         let supportedExtensions: [(filename: String, ext: String)] = [
             ("test-mermaid.mmd",          "mmd"),
             ("test.livemd",               "livemd"),
+            ("test.mdc",                  "mdc"),
             ("test.mdwn",                 "mdwn"),
             ("test.markdown",             "markdown"),
             ("test.mdown",                "mdown"),
