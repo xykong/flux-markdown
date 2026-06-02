@@ -76,7 +76,7 @@ brew install --cask xykong/tap/flux-markdown
 | 🔍 **缩放与平移** | Cmd +/-/0、Cmd+滚轮、触控板捏合 |
 | 💾 **位置记忆** | 记忆每个文件的滚动位置及最后查看的文件 |
 | 🌓 **主题** | 亮色、暗色、跟随系统 |
-| 📂 **文件格式** | 支持 .md, .mdx, .rmd, .qmd, .mdoc, .mkd, .mkdn, .mkdown |
+| 📂 **文件格式** | 支持 .md, .mdx, .rmd, .qmd, .mdoc, .mdc, .mmd, .livemd, .mkd, .mkdn, .mkdown, .mdwn, .mdown, .markdown |
 
 ---
 
