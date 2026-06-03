@@ -1,6 +1,21 @@
 ## [Unreleased]
 _无待发布的变更_
 
+## [1.34.445] - 2026-06-03
+
+### Added
+- **MDC QuickLook support** (#41, thanks [@marko-cancar](https://github.com/marko-cancar)): Added `.mdc` to the supported Markdown-family file types so Finder QuickLook, the standalone app, and the documentation all recognize AI instruction/rules files.
+
+### Fixed
+- **QuickLook local images**: Fixed relative local images failing inside QuickLook previews under the app sandbox.
+  - QuickLook now safely inlines supported sibling image assets for Markdown rendering.
+  - The renderer applies inline image data only to Markdown image tokens, avoiding accidental replacements in code, text, or links.
+  - `local-md://` fallback reads now enforce base-directory containment for traversal, encoded traversal, and symlink escape paths.
+- **Development QuickLook installs**: Fixed development install signing so QuickLook entitlement paths expand the current home directory before re-signing nested extension code.
+
+### Tests
+- **Finder pane preference isolation**: Isolated Finder pane preview tests from the real user preference store so automated runs no longer inherit local settings.
+
 ## [1.33.436] - 2026-06-02
 
 ### Fixed
