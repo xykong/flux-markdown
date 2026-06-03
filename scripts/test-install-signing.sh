@@ -31,8 +31,14 @@ require_text 'QUICKLOOK_ENTITLEMENTS="$PROJECT_ROOT/Sources/MarkdownPreview/Mark
 require_text 'QUICKLOOK_EXTENSION_PATH="$INSTALLED_APP_PATH/Contents/PlugIns/MarkdownPreview.appex"' \
     "install.sh must sign the embedded QuickLook extension explicitly"
 
-require_text '/usr/bin/codesign --force --sign - --entitlements "$QUICKLOOK_ENTITLEMENTS" "$QUICKLOOK_EXTENSION_PATH"' \
-    "install.sh must sign MarkdownPreview.appex with MarkdownPreview.entitlements"
+require_text 'TEMP_QUICKLOOK_ENTITLEMENTS=$(mktemp)' \
+    "install.sh must create a temporary entitlements file for expanded QuickLook paths"
+
+require_text '/usr/bin/sed "s|\$HOME|$HOME|g" "$QUICKLOOK_ENTITLEMENTS" > "$TEMP_QUICKLOOK_ENTITLEMENTS"' \
+    "install.sh must expand $HOME before manual codesign; raw $HOME is not expanded by codesign"
+
+require_text '/usr/bin/codesign --force --sign - --entitlements "$TEMP_QUICKLOOK_ENTITLEMENTS" "$QUICKLOOK_EXTENSION_PATH"' \
+    "install.sh must sign MarkdownPreview.appex with expanded MarkdownPreview.entitlements"
 
 require_text '/usr/bin/codesign --force --sign - --entitlements "$APP_ENTITLEMENTS" "$INSTALLED_APP_PATH"' \
     "install.sh must sign FluxMarkdown.app with Markdown.entitlements after nested code"

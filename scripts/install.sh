@@ -68,8 +68,11 @@ if [ "$INSTALL_MODE" = "development" ]; then
     fi
 
     echo "🔏 Re-signing development install..."
+    TEMP_QUICKLOOK_ENTITLEMENTS=$(mktemp)
+    trap 'rm -f "$TEMP_QUICKLOOK_ENTITLEMENTS"' EXIT
+    /usr/bin/sed "s|\$HOME|$HOME|g" "$QUICKLOOK_ENTITLEMENTS" > "$TEMP_QUICKLOOK_ENTITLEMENTS"
     if [ -d "$QUICKLOOK_EXTENSION_PATH" ]; then
-        /usr/bin/codesign --force --sign - --entitlements "$QUICKLOOK_ENTITLEMENTS" "$QUICKLOOK_EXTENSION_PATH"
+        /usr/bin/codesign --force --sign - --entitlements "$TEMP_QUICKLOOK_ENTITLEMENTS" "$QUICKLOOK_EXTENSION_PATH"
     fi
     /usr/bin/codesign --force --sign - --entitlements "$APP_ENTITLEMENTS" "$INSTALLED_APP_PATH"
     /usr/bin/codesign --verify --strict --deep --verbose=2 "$INSTALLED_APP_PATH"
