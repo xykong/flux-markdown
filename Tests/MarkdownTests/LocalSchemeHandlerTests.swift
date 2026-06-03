@@ -23,6 +23,75 @@ final class LocalSchemeHandlerTests: XCTestCase {
         XCTAssertEqual(resolved, "/Users/me/docs/image.png")
     }
 
+    func testResolveContainedFileURLAllowsFilesInsideBaseDirectory() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let assets = root.appendingPathComponent("assets", isDirectory: true)
+        try FileManager.default.createDirectory(at: assets, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let imageURL = assets.appendingPathComponent("image.png")
+        try Data([0x89, 0x50]).write(to: imageURL)
+
+        let handler = LocalSchemeHandler()
+        handler.baseDirectory = root
+
+        let url = URL(string: "local-md://\(imageURL.path)")!
+        let resolved = try XCTUnwrap(handler.resolveContainedFileURL(from: url))
+        XCTAssertEqual(resolved.standardizedFileURL.path, imageURL.standardizedFileURL.path)
+    }
+
+    func testResolveContainedFileURLRejectsParentDirectoryTraversal() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let notes = root.appendingPathComponent("notes", isDirectory: true)
+        try FileManager.default.createDirectory(at: notes, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let handler = LocalSchemeHandler()
+        handler.baseDirectory = notes
+
+        let url = URL(string: "local-md://\(notes.path)/../secret.png")!
+        XCTAssertNil(handler.resolveContainedFileURL(from: url))
+    }
+
+    func testResolveContainedFileURLRejectsEncodedParentDirectoryTraversal() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let notes = root.appendingPathComponent("notes", isDirectory: true)
+        try FileManager.default.createDirectory(at: notes, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let handler = LocalSchemeHandler()
+        handler.baseDirectory = notes
+
+        let url = URL(string: "local-md://\(notes.path)/%2e%2e/secret.png")!
+        XCTAssertNil(handler.resolveContainedFileURL(from: url))
+    }
+
+    func testResolveContainedFileURLRejectsSymlinkEscape() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let notes = root.appendingPathComponent("notes", isDirectory: true)
+        let outside = root.appendingPathComponent("outside", isDirectory: true)
+        try FileManager.default.createDirectory(at: notes, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: outside, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let outsideImage = outside.appendingPathComponent("secret.png")
+        try Data([0x89, 0x50]).write(to: outsideImage)
+        try FileManager.default.createSymbolicLink(
+            at: notes.appendingPathComponent("linked.png"),
+            withDestinationURL: outsideImage
+        )
+
+        let handler = LocalSchemeHandler()
+        handler.baseDirectory = notes
+
+        let url = URL(string: "local-md://\(notes.path)/linked.png")!
+        XCTAssertNil(handler.resolveContainedFileURL(from: url))
+    }
+
     func testBuildResponseIncludesCacheControlHeader() {
         let handler = LocalSchemeHandler()
         let url = URL(string: "local-md:///Users/me/docs/image.png?v=42")!

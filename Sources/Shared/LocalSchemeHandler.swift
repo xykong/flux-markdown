@@ -8,15 +8,19 @@ class LocalSchemeHandler: NSObject, WKURLSchemeHandler {
     func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
         guard let url = urlSchemeTask.request.url else { return }
         
-        let filePath = resolveFilePath(from: url)
-        
-        os_log("🔵 Start loading resource: %{public}@", log: logger, type: .debug, filePath)
-
-        let fileUrl = URL(fileURLWithPath: filePath)
-        
         guard let baseDir = baseDirectory else {
             os_log("🔴 Base directory not set", log: logger, type: .error)
             urlSchemeTask.didFailWithError(NSError(domain: "LocalSchemeHandler", code: -1, userInfo: [NSLocalizedDescriptionKey: "Base directory not set"]))
+            return
+        }
+
+        let filePath = resolveFilePath(from: url)
+
+        os_log("🔵 Start loading resource: %{public}@", log: logger, type: .debug, filePath)
+
+        guard let fileUrl = resolveContainedFileURL(from: url) else {
+            os_log("🔴 Rejected resource outside base directory: %{public}@", log: logger, type: .error, filePath)
+            urlSchemeTask.didFailWithError(NSError(domain: "LocalSchemeHandler", code: -3, userInfo: [NSLocalizedDescriptionKey: "Resource outside base directory"]))
             return
         }
         
@@ -73,6 +77,13 @@ class LocalSchemeHandler: NSObject, WKURLSchemeHandler {
         return cleanURL.path
     }
 
+    func resolveContainedFileURL(from url: URL) -> URL? {
+        guard let baseDirectory else { return nil }
+
+        let fileURL = URL(fileURLWithPath: resolveFilePath(from: url))
+        return isContained(fileURL, in: baseDirectory) ? fileURL : nil
+    }
+
     func buildResponse(for url: URL, data: Data) -> URLResponse {
         let mime = mimeType(for: url)
         let headers: [String: String] = [
@@ -106,5 +117,12 @@ class LocalSchemeHandler: NSObject, WKURLSchemeHandler {
         case "js": return "application/javascript"
         default: return "application/octet-stream"
         }
+    }
+
+    private func isContained(_ url: URL, in baseDirectory: URL) -> Bool {
+        let basePath = baseDirectory.resolvingSymlinksInPath().standardizedFileURL.path
+        let filePath = url.resolvingSymlinksInPath().standardizedFileURL.path
+        if filePath == basePath { return true }
+        return filePath.hasPrefix(basePath.hasSuffix("/") ? basePath : "\(basePath)/")
     }
 }
