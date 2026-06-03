@@ -335,13 +335,21 @@ function buildMd(): MarkdownIt {
         const srcIndex = token.attrIndex('src');
         if (srcIndex >= 0) {
             const originalSrc = token.attrs[srcIndex][1];
+            const cleanOriginalSrc = originalSrc.startsWith('./') ? originalSrc.slice(2) : originalSrc;
+            const imageData = env?.imageData as Record<string, string> | undefined;
+            const inlinedSrc = imageData?.[originalSrc] || imageData?.[cleanOriginalSrc] || imageData?.[`./${cleanOriginalSrc}`];
+            if (inlinedSrc) {
+                token.attrs[srcIndex][1] = inlinedSrc;
+                return defaultImageRender(tokens, idx, options, env, self);
+            }
+
             const isNetworkUrl = /^(http:\/\/|https:\/\/)/.test(originalSrc);
             const isEmbeddedBase64Image = originalSrc.startsWith('data:');
             const isLocalFile = !isNetworkUrl && !isEmbeddedBase64Image && !originalSrc.startsWith('local-md://');
 
             if (isLocalFile && env?.baseUrl) {
                 const basePath = env.baseUrl.replace(/\/$/, '');
-                const cleanSrc = originalSrc.startsWith('./') ? originalSrc.slice(2) : originalSrc;
+                const cleanSrc = cleanOriginalSrc;
                 const absolutePath = cleanSrc.startsWith('/')
                     ? cleanSrc
                     : `${basePath}/${cleanSrc}`;
@@ -777,14 +785,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         const outline = extractOutline(md, renderBody);
         if (toc) toc.render(outline);
 
-        let html = md.render(renderBody, { baseUrl: options.baseUrl, renderVersion: options.renderVersion });
-
-        if (options.imageData) {
-            for (const [originalPath, dataUrl] of Object.entries(options.imageData)) {
-                html = html.split(escapeHtml(originalPath)).join(dataUrl);
-                html = html.split(originalPath).join(dataUrl);
-            }
-        }
+        let html = md.render(renderBody, { baseUrl: options.baseUrl, imageData: options.imageData, renderVersion: options.renderVersion });
 
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = frontMatterHtml + html;

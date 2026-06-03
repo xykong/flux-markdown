@@ -65,6 +65,53 @@ invalid syntax here
     expect(img?.getAttribute('src')).toBe('local-md:///Users/me/docs/pic.png');
   });
 
+  test('should prefer provided imageData data URLs over local-md URLs for relative images', async () => {
+    const dataUrl = 'data:image/svg+xml;base64,PHN2Zy8+';
+    const markdown = '![img](assets/pic.svg)';
+
+    await window.renderMarkdown(markdown, {
+      baseUrl: '/Users/me/docs',
+      imageData: { 'assets/pic.svg': dataUrl },
+      renderVersion: 42,
+    });
+
+    const preview = document.getElementById('markdown-preview');
+    const img = preview?.querySelector('img');
+    expect(img).toBeTruthy();
+    expect(img?.getAttribute('src')).toBe(dataUrl);
+  });
+
+  test('should match dot-slash image references against normalized imageData keys', async () => {
+    const dataUrl = 'data:image/png;base64,AAAA';
+    const markdown = '![img](./assets/pic.png)';
+
+    await window.renderMarkdown(markdown, {
+      baseUrl: '/Users/me/docs',
+      imageData: { 'assets/pic.png': dataUrl },
+      renderVersion: 44,
+    });
+
+    const preview = document.getElementById('markdown-preview');
+    const img = preview?.querySelector('img');
+    expect(img?.getAttribute('src')).toBe(dataUrl);
+  });
+
+  test('should only replace image src from imageData and leave matching text unchanged', async () => {
+    const dataUrl = 'data:image/png;base64,AAAA';
+    const markdown = '![img](assets/pic.png)\n\n`assets/pic.png` stays visible';
+
+    await window.renderMarkdown(markdown, {
+      baseUrl: '/Users/me/docs',
+      imageData: { 'assets/pic.png': dataUrl },
+      renderVersion: 43,
+    });
+
+    const preview = document.getElementById('markdown-preview');
+    const img = preview?.querySelector('img');
+    expect(img?.getAttribute('src')).toBe(dataUrl);
+    expect(preview?.querySelector('code')?.textContent).toBe('assets/pic.png');
+  });
+
   test('should preserve embedded base64 images without modification', async () => {
     const base64Data = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
     const markdown = `![Red Pixel](${base64Data})`;
