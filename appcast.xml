@@ -7,6 +7,23 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 1.34.445</title>
+            <link>https://github.com/xykong/flux-markdown/releases/tag/v1.34.445</link>
+            <sparkle:version>445</sparkle:version>
+            <sparkle:shortVersionString>1.34.445</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+            <pubDate>Wed, 03 Jun 2026 07:15:36 +0000</pubDate>
+            <enclosure
+                url="https://github.com/xykong/flux-markdown/releases/download/v1.34.445/FluxMarkdown.dmg"
+                sparkle:edSignature="17vh2S09N1DfSyWpG2kVmy+PRfhoUupQgWBL1X2hSGzzCfTvqMV/ztvZn44e3Xw098STdP0hCdFUM4xahgpzAA=="
+                length="11017339"
+                type="application/octet-stream" />
+            <description><![CDATA[
+                <h2>更新内容</h2><h3>Added</h3><ul><li><strong>MDC QuickLook support</strong> (#41, thanks <a href="https://github.com/marko-cancar">@marko-cancar</a>): Added <code>.mdc</code> to the supported Markdown-family file types so Finder QuickLook, the standalone app, and the documentation all recognize AI instruction/rules files.</li></ul><h3>Fixed</h3><ul><li><strong>QuickLook local images</strong>: Fixed relative local images failing inside QuickLook previews under the app sandbox.</li><li>&nbsp;&nbsp;&nbsp;&nbsp;QuickLook now safely inlines supported sibling image assets for Markdown rendering.</li><li>&nbsp;&nbsp;&nbsp;&nbsp;The renderer applies inline image data only to Markdown image tokens, avoiding accidental replacements in code, text, or links.</li><li>&nbsp;&nbsp;&nbsp;&nbsp;<code>local-md://</code> fallback reads now enforce base-directory containment for traversal, encoded traversal, and symlink escape paths.</li><li><strong>Development QuickLook installs</strong>: Fixed development install signing so QuickLook entitlement paths expand the current home directory before re-signing nested extension code.</li></ul><p><a href="https://github.com/xykong/flux-markdown/releases/tag/v1.34.445">查看完整更新日志</a></p>
+            ]]></description>
+        </item>
+
+        <item>
             <title>Version 1.33.436</title>
             <link>https://github.com/xykong/flux-markdown/releases/tag/v1.33.436</link>
             <sparkle:version>436</sparkle:version>
