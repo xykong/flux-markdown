@@ -263,17 +263,27 @@ public class AppearancePreference: ObservableObject {
     // (zoom level, scroll positions, window sizes)
     private let localStore: UserDefaults
 
-    public init() {
+    public convenience init() {
         // Detect if running inside the QuickLook extension by checking bundle identifier.
         // Extension: alwaysReload=true (short-lived, needs latest settings from main app).
         // Main app: alwaysReload=false (long-lived, writes settings itself, uses mod-date caching).
         let isExtension = Bundle.main.bundleIdentifier?.hasSuffix(".QuickLook") == true
-        self.sharedStore = SharedPreferenceStore(alwaysReload: isExtension)
-        self.localStore = UserDefaults.standard
+        self.init(
+            sharedStore: SharedPreferenceStore(alwaysReload: isExtension),
+            localStore: UserDefaults.standard,
+            migrateFromAppGroup: true
+        )
+    }
+
+    init(sharedStore: SharedPreferenceStore, localStore: UserDefaults, migrateFromAppGroup: Bool) {
+        self.sharedStore = sharedStore
+        self.localStore = localStore
 
         // Migrate preferences from pre-Tahoe App Group UserDefaults on first launch.
         // Safe to call from extension too (no-op since canWrite is false).
-        sharedStore.migrateFromAppGroupIfNeeded()
+        if migrateFromAppGroup {
+            sharedStore.migrateFromAppGroupIfNeeded()
+        }
 
         // Sync @Published backing store from disk so views have the correct initial value.
         let raw = sharedStore.string(forKey: key) ?? AppearanceMode.system.rawValue
