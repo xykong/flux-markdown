@@ -1201,6 +1201,10 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
             var options: [String: Any] = ["theme": theme, "context": contextValue, "uiLanguage": capturedUILanguage, "collapseBlockquotes": capturedCollapseBlockquotes, "showLineNumbers": capturedShowLineNumbers, "fontSize": capturedFontSize, "renderVersion": capturedRenderVersion]
             if let url = capturedURL {
                 options["baseUrl"] = url.deletingLastPathComponent().path
+                let imageData = MarkdownImageDataCollector.collectImageData(from: url, content: content)
+                if !imageData.isEmpty {
+                    options["imageData"] = imageData
+                }
             }
             if let prev = capturedPrevMarkdown, !prev.isEmpty {
                 options["prevContent"] = prev
