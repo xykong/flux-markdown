@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Allow read-only access to user-selected Markdown documents. -->
+    <key>com.apple.security.files.user-selected.read-only</key>
+    <true/>
+
+    <!-- Allow network access for WebView and remote images. -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+
+    <!-- Allow JIT for WKWebView rendering performance. -->
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
+
+    <!-- Allow printing / PDF export. -->
+    <key>com.apple.security.print</key>
+    <true/>
+
+    <!-- Allow access to downloads for user-selected files and update workflows. -->
+    <key>com.apple.security.files.downloads.read-write</key>
+    <true/>
+
+    <!-- Sparkle Installer Support -->
+    <key>com.apple.security.temporary-exception.mach-lookup.global-name</key>
+    <array>
+        <string>$(PRODUCT_BUNDLE_IDENTIFIER)-spks</string>
+        <string>$(PRODUCT_BUNDLE_IDENTIFIER)-spki</string>
+    </array>
+
+    <!-- Allow Sparkle to write to /Applications for update installation. -->
+    <key>com.apple.security.temporary-exception.files.absolute-path.read-write</key>
+    <array>
+        <string>/Applications</string>
+    </array>
+</dict>
+</plist>

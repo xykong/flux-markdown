@@ -21,15 +21,21 @@ targets:
         name: WebRenderer
         type: folder
     settings:
-      ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-      PRODUCT_NAME: "FluxMarkdown"
-      PRODUCT_BUNDLE_IDENTIFIER: com.xykong.Markdown
-      INFOPLIST_FILE: Sources/Markdown/Info.plist
-      INFOPLIST_KEY_NSMainStoryboardFile: ""
-      CODE_SIGN_ENTITLEMENTS: Sources/Markdown/Markdown.entitlements
-      ENABLE_PREVIEWS: NO
-      MARKETING_VERSION: ${MARKETING_VERSION}
-      CURRENT_PROJECT_VERSION: ${CURRENT_PROJECT_VERSION}
+      base:
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        PRODUCT_NAME: "FluxMarkdown"
+        PRODUCT_BUNDLE_IDENTIFIER: com.xykong.Markdown
+        INFOPLIST_FILE: Sources/Markdown/Info.plist
+        INFOPLIST_KEY_NSMainStoryboardFile: ""
+        ENABLE_PREVIEWS: NO
+        MARKETING_VERSION: ${MARKETING_VERSION}
+        CURRENT_PROJECT_VERSION: ${CURRENT_PROJECT_VERSION}
+      configs:
+        Debug:
+          CODE_SIGN_ENTITLEMENTS: Sources/Markdown/Markdown.entitlements
+        Release:
+          CODE_SIGN_ENTITLEMENTS: Sources/Markdown/MarkdownRelease.entitlements
+          CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
     dependencies:
       - target: MarkdownPreview
         embed: true
@@ -46,12 +52,18 @@ targets:
         name: WebRenderer
         type: folder
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: com.xykong.Markdown.QuickLook
-      INFOPLIST_FILE: Sources/MarkdownPreview/Info.plist
-      CODE_SIGN_ENTITLEMENTS: Sources/MarkdownPreview/MarkdownPreview.entitlements
-      SKIP_INSTALL: YES
-      MARKETING_VERSION: ${MARKETING_VERSION}
-      CURRENT_PROJECT_VERSION: ${CURRENT_PROJECT_VERSION}
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.xykong.Markdown.QuickLook
+        INFOPLIST_FILE: Sources/MarkdownPreview/Info.plist
+        SKIP_INSTALL: YES
+        MARKETING_VERSION: ${MARKETING_VERSION}
+        CURRENT_PROJECT_VERSION: ${CURRENT_PROJECT_VERSION}
+      configs:
+        Debug:
+          CODE_SIGN_ENTITLEMENTS: Sources/MarkdownPreview/MarkdownPreview.entitlements
+        Release:
+          CODE_SIGN_ENTITLEMENTS: Sources/MarkdownPreview/MarkdownPreviewRelease.entitlements
+          CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
     dependencies:
       - sdk: QuickLookUI.framework
 

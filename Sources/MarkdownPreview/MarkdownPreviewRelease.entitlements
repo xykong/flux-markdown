@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Quick Look extensions MUST be sandboxed or pkd will reject them. -->
+    <key>com.apple.security.app-sandbox</key>
+    <true/>
+
+    <!-- Read-only access to the file selected in Finder. -->
+    <key>com.apple.security.files.user-selected.read-only</key>
+    <true/>
+
+    <!-- Keep document-scoped bookmark support for local resources. -->
+    <key>com.apple.security.files.bookmarks.document-scope</key>
+    <true/>
+
+    <!-- Read main-app preferences without embedding a build-machine absolute home path. -->
+    <key>com.apple.security.temporary-exception.files.home-relative-path.read-only</key>
+    <array>
+        <string>/Library/Application Support/FluxMarkdown/</string>
+    </array>
+
+    <!-- Allow network access for WebView and remote images. -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+
+    <!-- Allow JIT for WKWebView rendering performance. -->
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
+
+    <!-- Allow printing / PDF export. -->
+    <key>com.apple.security.print</key>
+    <true/>
+
+    <!-- Allow reading files from Downloads, a common preview location. -->
+    <key>com.apple.security.files.downloads.read-only</key>
+    <true/>
+</dict>
+</plist>

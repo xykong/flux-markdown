@@ -28,6 +28,7 @@
 			<array>
 				<string>net.daringfireball.markdown</string>
 				<string>public.markdown</string>
+				<string>net.ia.markdown</string>
 				<string>com.fluxmarkdown.mdx</string>
 				<string>com.fluxmarkdown.rmd</string>
 				<string>com.fluxmarkdown.qmd</string>

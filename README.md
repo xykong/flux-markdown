@@ -53,6 +53,15 @@
 brew install --cask xykong/tap/flux-markdown
 ```
 
+If Homebrew reports that `xykong/tap` is not trusted, this is Homebrew's third-party tap trust warning, not a FluxMarkdown install failure. Prefer trusting only this cask:
+
+```bash
+brew trust --cask xykong/tap/flux-markdown
+brew install --cask xykong/tap/flux-markdown
+```
+
+See [Tap Trust](https://docs.brew.sh/Tap-Trust) for Homebrew's security model.
+
 ### Manual (DMG)
 
 1. Download the latest `FluxMarkdown.dmg` from [Releases](https://github.com/xykong/flux-markdown/releases)

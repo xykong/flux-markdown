@@ -9,8 +9,8 @@ import Foundation
 ///
 /// - The main app (unsandboxed) writes to:
 ///   `~/Library/Application Support/FluxMarkdown/shared-preferences.plist`
-/// - The QuickLook extension (sandboxed) reads from that file via its
-///   `temporary-exception.files.absolute-path.read-only` entitlement for `$HOME/`.
+/// - The QuickLook extension (sandboxed) reads from that file via a read-only
+///   temporary exception for the app's Application Support directory.
 ///
 /// Both processes resolve the path via `getpwuid(getuid())` to ensure the real
 /// home directory is used, bypassing sandbox container redirection.

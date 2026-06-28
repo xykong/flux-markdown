@@ -133,6 +133,31 @@ final class AppZoomTests: XCTestCase {
         let _ = Notification.Name.resetZoom  // NEW — must be added
     }
 
+    func testMainAppRegistersMenuKeyboardShortcutsForZoomInOutAndReset() throws {
+        let source = try String(
+            contentsOf: projectRoot().appendingPathComponent("Sources/Markdown/MarkdownApp.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(source.contains("NotificationCenter.default.post(name: .zoomIn, object: nil)"))
+        XCTAssertTrue(source.contains(".keyboardShortcut(\"=\", modifiers: .command)"))
+        XCTAssertTrue(source.contains("NotificationCenter.default.post(name: .zoomOut, object: nil)"))
+        XCTAssertTrue(source.contains(".keyboardShortcut(\"-\", modifiers: .command)"))
+        XCTAssertTrue(source.contains("NotificationCenter.default.post(name: .resetZoom, object: nil)"))
+        XCTAssertTrue(source.contains(".keyboardShortcut(\"0\", modifiers: .command)"))
+    }
+
+    func testQuickLookKeyEventMonitorIsRemovedOnDeinit() throws {
+        let source = try String(
+            contentsOf: projectRoot().appendingPathComponent("Sources/MarkdownPreview/PreviewViewController.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(source.contains("private var keyDownEventMonitor: Any?"))
+        XCTAssertTrue(source.contains("keyDownEventMonitor = NSEvent.addLocalMonitorForEvents"))
+        XCTAssertTrue(source.contains("NSEvent.removeMonitor(keyDownEventMonitor)"))
+    }
+
     // MARK: - Bug 6: magnification vs pageZoom (text reflow)
 
     func testScrollZoom_usesPageZoomNotMagnification() {
@@ -199,4 +224,11 @@ extension Comparable {
     func clamped(to range: ClosedRange<Self>) -> Self {
         min(max(self, range.lowerBound), range.upperBound)
     }
+}
+
+private func projectRoot() -> URL {
+    URL(fileURLWithPath: #file)
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
 }

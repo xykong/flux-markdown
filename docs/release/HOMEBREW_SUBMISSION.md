@@ -5,7 +5,7 @@
 | 版本 | 文件 | 安装方式 | 特性 |
 |------|------|----------|------|
 | **功能版（tap）** | `../homebrew-tap/Casks/flux-markdown.rb` | `brew install --cask xykong/tap/flux-markdown` | duti 默认关联、auto_updates、Sparkle livecheck |
-| **官方版草稿** | `../homebrew-tap/Casks/flux-markdown-official.rb` | 提交到 homebrew/homebrew-cask 后：`brew install --cask flux-markdown` | 符合官方规范，无 formula 依赖 |
+| **官方版草稿** | `../homebrew-tap/Drafts/flux-markdown-official.rb` | 提交到 homebrew/homebrew-cask 后：`brew install --cask flux-markdown` | 符合官方规范，无 formula 依赖 |
 
 ---
 
@@ -15,7 +15,7 @@
 
 - `gh` CLI 已安装且已登录（`gh auth status`）
 - 当前版本已 release 并已运行 `update-homebrew-cask.sh`
-- `brew style ../homebrew-tap/Casks/flux-markdown-official.rb` 无报错
+- `./scripts/submit-to-homebrew.sh` 会复制草稿到官方 tap 路径后执行 `brew style`
 
 ### 提交
 

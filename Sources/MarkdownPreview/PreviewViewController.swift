@@ -81,6 +81,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     var isWebViewLoaded = false
     var currentZoomLevel: Double = 1.0
     var currentViewMode: ViewMode = .preview
+    var rendererBundleSchemeHandler: RendererBundleSchemeHandler?
     var localSchemeHandler: LocalSchemeHandler?
     private var gestureMagnificationBase: CGFloat = 1.0
 
@@ -177,6 +178,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     private static let compactHeightThreshold: CGFloat = 500
     
     private var appearanceObservation: NSKeyValueObservation?
+    private var keyDownEventMonitor: Any?
     
     private let maxPreviewSizeBytes: UInt64 = 500 * 1024 // 500KB limit
     
@@ -310,13 +312,12 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         os_log("🔵 viewDidLoad called", log: logger, type: .default)
         
         self.view.wantsLayer = true
-        self.view.layer?.backgroundColor = NSColor.white.cgColor
-        
         AppearancePreference.shared.apply(to: self.view)
+        applyInitialBackgroundColor()
         
         setupWindowResizeObservers()
         
-        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+        keyDownEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             os_log("🔵 Local event monitor triggered", log: self?.logger ?? .default, type: .debug)
             return self?.handleKeyDownEvent(event) ?? event
         }
@@ -348,6 +349,13 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         let schemeHandler = LocalSchemeHandler()
         webConfiguration.setURLSchemeHandler(schemeHandler, forURLScheme: "local-md")
         localSchemeHandler = schemeHandler
+
+        if let rendererHandler = RendererBundleSchemeHandler(bundle: Bundle(for: type(of: self))) {
+            webConfiguration.setURLSchemeHandler(rendererHandler, forURLScheme: RendererBundleSchemeHandler.scheme)
+            rendererBundleSchemeHandler = rendererHandler
+        } else {
+            os_log("🔴 Renderer bundle handler could not locate index.html", log: logger, type: .error)
+        }
         
         os_log("🔵 initializing InteractiveWebView instance...", log: logger, type: .default)
         webView = InteractiveWebView(frame: self.view.bounds, configuration: webConfiguration)
@@ -366,19 +374,10 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         setupReloadButton()
         setupVersionLabel()
         
-        var bundleURL: URL?
-        if let url = Bundle(for: type(of: self)).url(forResource: "index", withExtension: "html", subdirectory: "WebRenderer") {
-            bundleURL = url
-        } else if let url = Bundle(for: type(of: self)).url(forResource: "index", withExtension: "html", subdirectory: "dist") {
-            bundleURL = url
-        } else if let url = Bundle(for: type(of: self)).url(forResource: "index", withExtension: "html") {
-            bundleURL = url
-        }
-        
-        if let url = bundleURL {
-            let distDir = url.deletingLastPathComponent()
-            webView.loadFileURL(url, allowingReadAccessTo: distDir)
-            os_log("🔵 Loaded HTML via loadFileURL: %{public}@", log: logger, type: .default, url.path)
+        if rendererBundleSchemeHandler != nil {
+            let url = RendererBundleSchemeHandler.rendererURL()
+            webView.load(URLRequest(url: url))
+            os_log("🔵 Loaded renderer via custom scheme: %{public}@", log: logger, type: .default, url.absoluteString)
         } else {
             webView.loadHTMLString("<h1>Error: index.html not found</h1>", baseURL: nil)
         }
@@ -405,6 +404,17 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     
     @objc func handleDoubleClick(_ gesture: NSClickGestureRecognizer) {
         os_log("🔵 Intercepted double click gesture", log: logger, type: .debug)
+    }
+
+    private func applyInitialBackgroundColor() {
+        let appearanceName = self.view.effectiveAppearance.name
+        if appearanceName == .darkAqua || appearanceName == .vibrantDark ||
+           appearanceName == .accessibilityHighContrastDarkAqua ||
+           appearanceName == .accessibilityHighContrastVibrantDark {
+            self.view.layer?.backgroundColor = NSColor(red: 0.051, green: 0.067, blue: 0.09, alpha: 1.0).cgColor
+        } else {
+            self.view.layer?.backgroundColor = NSColor.textBackgroundColor.cgColor
+        }
     }
     
     
@@ -567,6 +577,10 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         handshakeWorkItem?.cancel()
         saveSizeWorkItem?.cancel()
         resizeTrackingWorkItem?.cancel()
+        if let keyDownEventMonitor {
+            NSEvent.removeMonitor(keyDownEventMonitor)
+            self.keyDownEventMonitor = nil
+        }
     }
 
     private func stopSecurityScopedAccessIfNeeded() {

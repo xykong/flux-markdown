@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-OFFICIAL_CASK_FILE="../homebrew-tap/Casks/flux-markdown-official.rb"
+OFFICIAL_CASK_FILE="../homebrew-tap/Drafts/flux-markdown-official.rb"
 VERSION_FILE=".version"
 
 if [ ! -f "$VERSION_FILE" ]; then
@@ -26,10 +26,6 @@ fi
 
 echo "🍺 Preparing to submit flux-markdown v$VERSION to homebrew/homebrew-cask"
 echo "   GitHub user: $GITHUB_USER"
-echo ""
-
-brew style "$OFFICIAL_CASK_FILE"
-echo "✅ Style check passed"
 echo ""
 
 if ! gh repo view "$GITHUB_USER/homebrew-cask" &>/dev/null 2>&1; then

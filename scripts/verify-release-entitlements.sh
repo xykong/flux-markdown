@@ -5,6 +5,10 @@ TARGET_PATH="${1:-build/artifacts/FluxMarkdown.dmg}"
 APP_NAME="FluxMarkdown.app"
 APPEX_RELATIVE_PATH="Contents/PlugIns/MarkdownPreview.appex"
 REQUIRED_ENTITLEMENT="com.apple.security.app-sandbox"
+FORBIDDEN_RELEASE_ENTITLEMENTS=(
+    "com.apple.security.get-task-allow"
+    "com.apple.security.temporary-exception.files.absolute-path.read-only"
+)
 
 cleanup_mount=""
 
@@ -52,6 +56,22 @@ ENTITLEMENTS=$(/usr/bin/codesign -d --entitlements :- "$APPEX_PATH" 2>/dev/null 
 
 if ! printf '%s\n' "$ENTITLEMENTS" | grep -q "$REQUIRED_ENTITLEMENT"; then
     fail "MarkdownPreview.appex is missing $REQUIRED_ENTITLEMENT"
+fi
+
+for forbidden in "${FORBIDDEN_RELEASE_ENTITLEMENTS[@]}"; do
+    if printf '%s\n' "$ENTITLEMENTS" | grep -q "$forbidden"; then
+        fail "MarkdownPreview.appex release entitlements must not include $forbidden"
+    fi
+done
+
+if printf '%s\n' "$ENTITLEMENTS" | grep -q "/Users/"; then
+    fail "MarkdownPreview.appex release entitlements must not include build-machine home paths"
+fi
+
+echo "🔐 Checking app release entitlements..."
+APP_ENTITLEMENTS=$(/usr/bin/codesign -d --entitlements :- "$APP_PATH" 2>/dev/null || true)
+if printf '%s\n' "$APP_ENTITLEMENTS" | grep -q "com.apple.security.get-task-allow"; then
+    fail "FluxMarkdown.app release entitlements must not include com.apple.security.get-task-allow"
 fi
 
 echo "✅ Release artifact preserves MarkdownPreview.appex sandbox entitlement"

@@ -165,6 +165,16 @@ struct MarkdownApp: App {
                 }
                 .keyboardShortcut("0", modifiers: .command)
 
+                Button(NSLocalizedString("Zoom In", comment: "Zoom in menu item")) {
+                    NotificationCenter.default.post(name: .zoomIn, object: nil)
+                }
+                .keyboardShortcut("=", modifiers: .command)
+
+                Button(NSLocalizedString("Zoom Out", comment: "Zoom out menu item")) {
+                    NotificationCenter.default.post(name: .zoomOut, object: nil)
+                }
+                .keyboardShortcut("-", modifiers: .command)
+
                 Divider()
 
                 Menu(NSLocalizedString("Appearance", comment: "Appearance submenu")) {

@@ -1,5 +1,14 @@
 ## [Unreleased]
-_无待发布的变更_
+
+### Fixed
+- **QuickLook renderer loading** (#48): Fixed blank or fallback QuickLook previews by loading bundled renderer assets through a `WKURLSchemeHandler` custom scheme instead of relying on sandboxed `file://` module loading.
+  - The standalone app, QuickLook extension, and PDF exporter now share the same bundled renderer loading path.
+  - Release builds now use release-only entitlements, and the release verifier rejects debug-only entitlements or build-machine home paths.
+- **QuickLook startup appearance** (#47): Fixed the initial QuickLook preview background matching neither Light nor Dark Mode during renderer startup.
+- **Keyboard zoom shortcuts** (#45): Added working `Cmd+=` / `Cmd+-` zoom shortcuts in the standalone app and QuickLook preview.
+- **iA Writer Markdown type support** (#40): Added the `net.ia.markdown` UTI to the app and QuickLook extension file type declarations.
+- **Homebrew tap validation** (#46): Documented Homebrew trust instructions and moved the official cask draft out of the live tap casks so tap validation is not broken by the submission draft.
+- **Toolbar button visibility** (#44): Covered the native adaptive toolbar controls with regression tests so toolbar buttons stay visible across appearances.
 
 ## [1.34.445] - 2026-06-03
 

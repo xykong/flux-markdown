@@ -4,7 +4,7 @@ set -e
 VERSION_FILE=".version"
 DMG_PATH="build/artifacts/FluxMarkdown.dmg"
 CASK_FILE="../homebrew-tap/Casks/flux-markdown.rb"
-OFFICIAL_CASK_FILE="../homebrew-tap/Casks/flux-markdown-official.rb"
+OFFICIAL_CASK_FILE="../homebrew-tap/Drafts/flux-markdown-official.rb"
 
 if [ ! -f "$VERSION_FILE" ]; then
     echo "❌ Error: Version file not found: $VERSION_FILE"
@@ -67,7 +67,7 @@ cd "$(dirname "$CASK_FILE")/.."
 
 CHANGED_FILES=()
 git diff --quiet Casks/flux-markdown.rb || CHANGED_FILES+=("Casks/flux-markdown.rb")
-git diff --quiet Casks/flux-markdown-official.rb 2>/dev/null || CHANGED_FILES+=("Casks/flux-markdown-official.rb")
+git diff --quiet Drafts/flux-markdown-official.rb 2>/dev/null || CHANGED_FILES+=("Drafts/flux-markdown-official.rb")
 
 if [ ${#CHANGED_FILES[@]} -gt 0 ]; then
     echo "📝 Changes detected in: ${CHANGED_FILES[*]}"

@@ -42,6 +42,7 @@ final class CLIExporter: NSObject {
     private var webView: WKWebView!
     private var offscreenWindow: NSWindow!
     private var rendererReady = false
+    private var rendererBundleSchemeHandler: RendererBundleSchemeHandler?
 
     init(input: URL, output: URL) {
         self.inputURL  = input
@@ -70,6 +71,12 @@ final class CLIExporter: NSObject {
         let handler = LocalSchemeHandler()
         handler.baseDirectory = inputURL.deletingLastPathComponent()
         config.setURLSchemeHandler(handler, forURLScheme: "local-md")
+
+        if let rendererHandler = RendererBundleSchemeHandler(bundle: .main) {
+            config.setURLSchemeHandler(rendererHandler, forURLScheme: RendererBundleSchemeHandler.scheme)
+            rendererBundleSchemeHandler = rendererHandler
+        }
+
         config.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
 
         // A4 width in points; height is a reasonable viewport for rendering
@@ -93,20 +100,13 @@ final class CLIExporter: NSObject {
     }
 
     private func loadRenderer() {
-        var bundleURL: URL?
-        if let u = Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "WebRenderer") {
-            bundleURL = u
-        } else if let u = Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "dist") {
-            bundleURL = u
-        } else {
-            bundleURL = Bundle.main.url(forResource: "index", withExtension: "html")
-        }
-        guard let url = bundleURL else {
+        guard rendererBundleSchemeHandler != nil else {
             fputs("Error: index.html not found in bundle\n", stderr)
             exit(1)
         }
-        fputs("Loading renderer from: \(url.path)\n", stderr)
-        webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
+        let url = RendererBundleSchemeHandler.rendererURL()
+        fputs("Loading renderer from: \(url.absoluteString)\n", stderr)
+        webView.load(URLRequest(url: url))
     }
 
     private func renderAndExport() {

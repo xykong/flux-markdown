@@ -354,6 +354,17 @@ final class FileExtensionTests: XCTestCase {
                       "Extension Info.plist QLSupportedContentTypes must include com.fluxmarkdown.mdc")
     }
 
+    func testUTIDeclarations_extensionPlistContainsIAWriterMarkdownUTI() throws {
+        let plistURL = URL(fileURLWithPath: #file)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Sources/MarkdownPreview/Info.plist")
+        let plistContent = try String(contentsOf: plistURL, encoding: .utf8)
+        XCTAssertTrue(plistContent.contains("net.ia.markdown"),
+                      "Extension Info.plist QLSupportedContentTypes must include iA Writer's net.ia.markdown UTI")
+    }
+
     func testUTIDeclarations_bothPlistsDeclareSameUTIs() throws {
         let root = URL(fileURLWithPath: #file)
             .deletingLastPathComponent()
@@ -365,6 +376,7 @@ final class FileExtensionTests: XCTestCase {
         let requiredUTIs = [
             "net.daringfireball.markdown",
             "public.markdown",
+            "net.ia.markdown",
             "com.fluxmarkdown.mdx",
             "com.fluxmarkdown.rmd",
             "com.fluxmarkdown.qmd",

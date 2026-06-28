@@ -66,6 +66,13 @@ struct MarkdownWebView: NSViewRepresentable {
 
         webConfiguration.setURLSchemeHandler(localSchemeHandler, forURLScheme: "local-md")
 
+        if let rendererHandler = RendererBundleSchemeHandler(bundle: .main) {
+            webConfiguration.setURLSchemeHandler(rendererHandler, forURLScheme: RendererBundleSchemeHandler.scheme)
+            coordinator.rendererBundleSchemeHandler = rendererHandler
+        } else {
+            os_log("Failed to find renderer index.html in bundle", log: coordinator.logger, type: .error)
+        }
+
         webConfiguration.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
 
 
@@ -78,22 +85,12 @@ struct MarkdownWebView: NSViewRepresentable {
         webView.navigationDelegate = coordinator
         coordinator.currentWebView = webView
         
-        var bundleURL: URL?
-        if let url = Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "WebRenderer") {
-            bundleURL = url
-        } else if let url = Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "dist") {
-            bundleURL = url
+        if coordinator.rendererBundleSchemeHandler != nil {
+            let url = RendererBundleSchemeHandler.rendererURL()
+            os_log("Loading renderer via custom scheme: %{public}@", log: coordinator.logger, type: .debug, url.absoluteString)
+            webView.load(URLRequest(url: url))
         } else {
-            bundleURL = Bundle.main.url(forResource: "index", withExtension: "html")
-        }
-        
-        if let url = bundleURL {
-            // Ensure read access to the directory containing index.html and assets
-            let dir = url.deletingLastPathComponent()
-            os_log("Loading HTML from: %{public}@", log: coordinator.logger, type: .debug, url.path)
-            webView.loadFileURL(url, allowingReadAccessTo: dir)
-        } else {
-             os_log("Failed to find index.html in bundle", log: coordinator.logger, type: .error)
+            os_log("Failed to find index.html in bundle", log: coordinator.logger, type: .error)
         }
         
         return webView
@@ -115,6 +112,7 @@ struct MarkdownWebView: NSViewRepresentable {
         var isWebViewLoaded = false
         var pendingRender: (() -> Void)?
         weak var currentWebView: WKWebView?
+        var rendererBundleSchemeHandler: RendererBundleSchemeHandler?
         var currentFileURL: URL?
         var pendingAnchor: String?
         private var gestureMagnificationBase: CGFloat = 1.0
