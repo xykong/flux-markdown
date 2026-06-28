@@ -1,4 +1,7 @@
 ## [Unreleased]
+_无待发布的变更_
+
+## [1.34.449] - 2026-06-29
 
 ### Fixed
 - **QuickLook renderer loading** (#48): Fixed blank or fallback QuickLook previews by loading bundled renderer assets through a `WKURLSchemeHandler` custom scheme instead of relying on sandboxed `file://` module loading.
