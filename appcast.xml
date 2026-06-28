@@ -7,6 +7,23 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 1.34.449</title>
+            <link>https://github.com/xykong/flux-markdown/releases/tag/v1.34.449</link>
+            <sparkle:version>449</sparkle:version>
+            <sparkle:shortVersionString>1.34.449</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+            <pubDate>Sun, 28 Jun 2026 17:56:51 +0000</pubDate>
+            <enclosure
+                url="https://github.com/xykong/flux-markdown/releases/download/v1.34.449/FluxMarkdown.dmg"
+                sparkle:edSignature="ZjbqGYRwnxwa9miY4d16Ee5E1TzchzaZydlNKrWnXvDJPfv4fuzwkf+p6tMluuEhUUIlc+HBFs8OXIiWoLtNBw=="
+                length="11033268"
+                type="application/octet-stream" />
+            <description><![CDATA[
+                <h2>更新内容</h2><h3>Fixed</h3><ul><li><strong>QuickLook renderer loading</strong> (#48): Fixed blank or fallback QuickLook previews by loading bundled renderer assets through a <code>WKURLSchemeHandler</code> custom scheme instead of relying on sandboxed <code>file://</code> module loading.</li><li>&nbsp;&nbsp;&nbsp;&nbsp;The standalone app, QuickLook extension, and PDF exporter now share the same bundled renderer loading path.</li><li>&nbsp;&nbsp;&nbsp;&nbsp;Release builds now use release-only entitlements, and the release verifier rejects debug-only entitlements or build-machine home paths.</li><li><strong>QuickLook startup appearance</strong> (#47): Fixed the initial QuickLook preview background matching neither Light nor Dark Mode during renderer startup.</li><li><strong>Keyboard zoom shortcuts</strong> (#45): Added working <code>Cmd+=</code> / <code>Cmd+-</code> zoom shortcuts in the standalone app and QuickLook preview.</li><li><strong>iA Writer Markdown type support</strong> (#40): Added the <code>net.ia.markdown</code> UTI to the app and QuickLook extension file type declarations.</li><li><strong>Homebrew tap validation</strong> (#46): Documented Homebrew trust instructions and moved the official cask draft out of the live tap casks so tap validation is not broken by the submission draft.</li><li><strong>Toolbar button visibility</strong> (#44): Covered the native adaptive toolbar controls with regression tests so toolbar buttons stay visible across appearances.</li></ul><p><a href="https://github.com/xykong/flux-markdown/releases/tag/v1.34.449">查看完整更新日志</a></p>
+            ]]></description>
+        </item>
+        
+        <item>
             <title>Version 1.34.445</title>
             <link>https://github.com/xykong/flux-markdown/releases/tag/v1.34.445</link>
             <sparkle:version>445</sparkle:version>
