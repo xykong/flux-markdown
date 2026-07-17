@@ -1,5 +1,6 @@
 import XCTest
 import AppKit
+import SwiftUI
 
 final class ToolbarButtonHitAreaTests: XCTestCase {
     func testMainAppAndQuickLookUseSharedNativeCircularToolbarButtons() throws {
@@ -79,6 +80,83 @@ final class ToolbarButtonHitAreaTests: XCTestCase {
             quickLookSource.contains("toolTip: \"Reload File (⌘R)\"")
                 && quickLookSource.contains("toolTip: \"Reset Zoom (⌘0)\""),
             "QuickLook refresh and reset zoom controls should keep explicit user-facing tooltip text."
+        )
+    }
+
+    func testMainAppToolbarButtonsReceiveTheSelectedPreviewAppearance() throws {
+        // GIVEN the selected preview appearance can differ from the host window.
+        let root = try projectRoot()
+        let mainAppSourcePath = root.appendingPathComponent("Sources/Markdown/MarkdownApp.swift").path
+        let mainAppSource = try String(contentsOfFile: mainAppSourcePath, encoding: .utf8)
+
+        // WHEN the seven floating toolbar buttons are constructed.
+        let appearanceBindings = mainAppSource
+            .components(separatedBy: "appearance: preference.currentMode.nsAppearance")
+            .count - 1
+
+        // THEN every button must receive the same explicit appearance as the preview.
+        XCTAssertEqual(
+            appearanceBindings,
+            7,
+            "Every main app toolbar button must resolve its native colors against the selected preview appearance, not an unrelated host appearance."
+        )
+    }
+
+    func testCircularToolbarButtonResolvesLabelTintAgainstExplicitAppearance() {
+        // GIVEN SwiftUI bridges its dynamic label color while the host is Dark.
+        let target = ToolbarButtonTarget()
+        var bridgedLabelColor: NSColor?
+        NSAppearance(named: .darkAqua)?.performAsCurrentDrawingAppearance {
+            bridgedLabelColor = NSColor(Color(NSColor.labelColor))
+        }
+
+        // AND a native toolbar button renders that color for an explicitly Light preview.
+        let lightAppearance = NSAppearance(named: .aqua)
+        let button = CircularToolbarButton.make(
+            systemName: "arrow.clockwise",
+            accessibilityDescription: "Reload File",
+            tintColor: bridgedLabelColor ?? .labelColor,
+            target: target,
+            action: #selector(ToolbarButtonTarget.performAction),
+            toolTip: "Reload File",
+            appearance: lightAppearance
+        )
+
+        // WHEN AppKit resolves the dynamic label color for that button.
+        var resolvedTint: NSColor?
+        button.effectiveAppearance.performAsCurrentDrawingAppearance {
+            resolvedTint = button.contentTintColor?.usingColorSpace(NSColorSpace.deviceRGB)
+        }
+
+        // THEN the button uses Aqua and produces a dark foreground for contrast.
+        XCTAssertEqual(button.appearance?.name, .aqua)
+        XCTAssertNotNil(resolvedTint)
+        XCTAssertLessThan(
+            resolvedTint?.brightnessComponent ?? 1,
+            0.5,
+            "A label-colored icon over a Light preview must resolve to a dark foreground."
+        )
+
+        // GIVEN the same button is updated for an explicitly dark preview.
+        button.appearance = NSAppearance(named: .darkAqua)
+        button.configure(
+            systemName: "arrow.clockwise",
+            accessibilityDescription: "Reload File",
+            tintColor: bridgedLabelColor ?? .labelColor,
+            toolTip: "Reload File"
+        )
+
+        // WHEN AppKit resolves the dynamic label color again.
+        button.effectiveAppearance.performAsCurrentDrawingAppearance {
+            resolvedTint = button.contentTintColor?.usingColorSpace(NSColorSpace.deviceRGB)
+        }
+
+        // THEN it produces a light foreground for contrast.
+        XCTAssertEqual(button.appearance?.name, .darkAqua)
+        XCTAssertGreaterThan(
+            resolvedTint?.brightnessComponent ?? 0,
+            0.5,
+            "A label-colored icon over a Dark preview must resolve to a light foreground."
         )
     }
 

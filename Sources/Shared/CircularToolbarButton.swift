@@ -16,9 +16,11 @@ final class CircularToolbarButton: NSButton, NSViewToolTipOwner {
         tintColor: NSColor,
         target: AnyObject,
         action: Selector,
-        toolTip: String? = nil
+        toolTip: String? = nil,
+        appearance: NSAppearance? = nil
     ) -> CircularToolbarButton {
         let button = CircularToolbarButton(frame: NSRect(x: 0, y: 0, width: diameter, height: diameter))
+        button.appearance = appearance
         button.configure(
             systemName: systemName,
             accessibilityDescription: accessibilityDescription,
@@ -104,7 +106,22 @@ struct CircularToolbarIconButton: NSViewRepresentable {
     let systemName: String
     let foregroundColor: Color
     let helpText: String
+    let appearance: NSAppearance?
     let action: () -> Void
+
+    init(
+        systemName: String,
+        foregroundColor: Color,
+        helpText: String,
+        appearance: NSAppearance? = nil,
+        action: @escaping () -> Void
+    ) {
+        self.systemName = systemName
+        self.foregroundColor = foregroundColor
+        self.helpText = helpText
+        self.appearance = appearance
+        self.action = action
+    }
 
     func makeCoordinator() -> Coordinator {
         Coordinator(action: action)
@@ -117,12 +134,14 @@ struct CircularToolbarIconButton: NSViewRepresentable {
             tintColor: NSColor(foregroundColor),
             target: context.coordinator,
             action: #selector(Coordinator.performAction),
-            toolTip: helpText
+            toolTip: helpText,
+            appearance: appearance
         )
     }
 
     func updateNSView(_ button: CircularToolbarButton, context: Context) {
         context.coordinator.action = action
+        button.appearance = appearance
         button.configure(
             systemName: systemName,
             accessibilityDescription: helpText,

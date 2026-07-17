@@ -248,7 +248,8 @@ private struct DocumentPreviewScene: View {
                 CircularToolbarIconButton(
                     systemName: "arrow.clockwise",
                     foregroundColor: Color(NSColor.labelColor),
-                    helpText: NSLocalizedString("Reload File (⌘R)", comment: "Reload file tooltip")
+                    helpText: NSLocalizedString("Reload File (⌘R)", comment: "Reload file tooltip"),
+                    appearance: preference.currentMode.nsAppearance
                 ) {
                     showToolbarToast(reloadSuccessToastMessage)
                     NotificationCenter.default.post(name: .reloadFile, object: nil)
@@ -257,7 +258,8 @@ private struct DocumentPreviewScene: View {
                 CircularToolbarIconButton(
                     systemName: "textformat.size.smaller",
                     foregroundColor: Color(NSColor.labelColor),
-                    helpText: NSLocalizedString("Zoom Out", comment: "Zoom out tooltip")
+                    helpText: NSLocalizedString("Zoom Out", comment: "Zoom out tooltip"),
+                    appearance: preference.currentMode.nsAppearance
                 ) {
                     NotificationCenter.default.post(name: .zoomOut, object: nil)
                 }
@@ -265,7 +267,8 @@ private struct DocumentPreviewScene: View {
                 CircularToolbarIconButton(
                     systemName: "arrow.uturn.backward",
                     foregroundColor: Color(NSColor.labelColor),
-                    helpText: NSLocalizedString("Reset Zoom (⌘0)", comment: "Reset zoom tooltip")
+                    helpText: NSLocalizedString("Reset Zoom (⌘0)", comment: "Reset zoom tooltip"),
+                    appearance: preference.currentMode.nsAppearance
                 ) {
                     showToolbarToast(resetZoomToastMessage)
                     NotificationCenter.default.post(name: .resetZoom, object: nil)
@@ -274,7 +277,8 @@ private struct DocumentPreviewScene: View {
                 CircularToolbarIconButton(
                     systemName: "textformat.size.larger",
                     foregroundColor: Color(NSColor.labelColor),
-                    helpText: NSLocalizedString("Zoom In", comment: "Zoom in tooltip")
+                    helpText: NSLocalizedString("Zoom In", comment: "Zoom in tooltip"),
+                    appearance: preference.currentMode.nsAppearance
                 ) {
                     NotificationCenter.default.post(name: .zoomIn, object: nil)
                 }
@@ -282,7 +286,8 @@ private struct DocumentPreviewScene: View {
                 CircularToolbarIconButton(
                     systemName: "questionmark.circle",
                     foregroundColor: Color(NSColor.labelColor),
-                    helpText: NSLocalizedString("Show Help", comment: "Show help tooltip")
+                    helpText: NSLocalizedString("Show Help", comment: "Show help tooltip"),
+                    appearance: preference.currentMode.nsAppearance
                 ) {
                     NotificationCenter.default.post(name: .toggleHelp, object: nil)
                 }
@@ -292,7 +297,8 @@ private struct DocumentPreviewScene: View {
                     foregroundColor: viewMode == .source ? .blue : Color(NSColor.labelColor),
                     helpText: viewMode == .source
                         ? NSLocalizedString("Show Preview", comment: "Show preview tooltip")
-                        : NSLocalizedString("Show Source", comment: "Show source tooltip")
+                        : NSLocalizedString("Show Source", comment: "Show source tooltip"),
+                    appearance: preference.currentMode.nsAppearance
                 ) {
                     viewMode = (viewMode == .preview) ? .source : .preview
                 }
@@ -300,7 +306,8 @@ private struct DocumentPreviewScene: View {
                 CircularToolbarIconButton(
                     systemName: preference.currentMode == .light ? "sun.max.fill" : preference.currentMode == .dark ? "moon.fill" : "circle.lefthalf.filled",
                     foregroundColor: preference.currentMode == .light ? .yellow : Color(NSColor.labelColor),
-                    helpText: NSLocalizedString("Toggle Theme (System / Light / Dark)", comment: "Theme toggle tooltip")
+                    helpText: NSLocalizedString("Toggle Theme (System / Light / Dark)", comment: "Theme toggle tooltip"),
+                    appearance: preference.currentMode.nsAppearance
                 ) {
                     switch preference.currentMode {
                     case .system: preference.currentMode = .light
