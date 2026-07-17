@@ -56,5 +56,11 @@ over a light page.
 - Green: `ToolbarButtonHitAreaTests` passed with explicit Light and Dark
   preview appearances, including the SwiftUI `Color` to `NSColor` bridge.
 - Green: the `Markdown` scheme built successfully in Release configuration.
-- Pending final E2E: exercise the installed app with mismatched system/app
-  appearances and confirm QuickLook remains unchanged.
+- E2E: installed development build
+  `1.34.449-dev-20260717-131319` on macOS 26.5.2.
+- E2E: with the macOS host in Light appearance and FluxMarkdown explicitly
+  set to Dark, all seven main-app toolbar controls remained visible over the
+  dark preview.
+- E2E: the same fixture rendered through Finder QuickLook using
+  `flux-renderer://bundle/index.html`; all seven QuickLook controls remained
+  visible and the preview content matched the standalone app.
