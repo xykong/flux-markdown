@@ -67,6 +67,11 @@ macOS QuickLook extension for Markdown files. Hybrid architecture: Native Swift 
 - **TDD**: Write tests/metrics *before* implementation (see `.clinerules`).
 - **Docs**: Create `docs/debug/DEBUG_*.md` for hard problems.
 - **Logs**: Use `os_log` via the JS bridge. Do not rely on `console.log` alone.
+- **Automatic Commits**: After completing and verifying each important,
+  self-contained work item, automatically create a Conventional Commit. Do not
+  wait for the user to request the commit unless they explicitly ask not to
+  commit. Stage only files that belong to the completed work item, and leave
+  unrelated worktree changes untouched.
 
 ## GITHUB ISSUE MANAGEMENT
 

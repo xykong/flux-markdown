@@ -1,4 +1,83 @@
-import { preprocessMermaidNewlines } from '../src/index';
+import {
+    preprocessMermaidGanttTaskColons,
+    preprocessMermaidNewlines,
+} from '../src/index';
+
+describe('preprocessMermaidGanttTaskColons', () => {
+    test('escapes label colons in the reported speech-outline Gantt diagram', () => {
+        const input = [
+            'gantt',
+            '    title 10 分钟全景走马灯演讲时间分配与生命周期流转',
+            '    dateFormat  X',
+            '    axisFormat %M:%S',
+            '',
+            '    section 1. 破冰与平台',
+            '    P1-P2: Title & 需求痛点引入 :active, 0, 90',
+            '',
+            '    section 2. 需求与设计',
+            '    P3: “嘟嘟” PRD 自动生成器 : 90, 210',
+            '',
+            '    section 3. 研发与调试',
+            '    P4: DONG 客户端平台与技能宝典 : 210, 360',
+            '',
+            '    section 4. 上线与分析',
+            '    P5: DP-Hub 技能与一站式数据闭环 : 360, 510',
+            '',
+            '    section 5. 收益与展望',
+            '    P6: 提效成果与人机协同边界 : 510, 600',
+        ].join('\n');
+
+        const result = preprocessMermaidGanttTaskColons(input);
+
+        expect(result).toContain('P1-P2#colon; Title & 需求痛点引入 :active, 0, 90');
+        expect(result).toContain('P3#colon; “嘟嘟” PRD 自动生成器 : 90, 210');
+        expect(result).toContain('P4#colon; DONG 客户端平台与技能宝典 : 210, 360');
+        expect(result).toContain('P5#colon; DP-Hub 技能与一站式数据闭环 : 360, 510');
+        expect(result).toContain('P6#colon; 提效成果与人机协同边界 : 510, 600');
+    });
+
+    test('leaves standard Gantt task lines unchanged', () => {
+        const input = [
+            'gantt',
+            '    dateFormat YYYY-MM-DD',
+            '    Design :done, design, 2026-07-01, 3d',
+        ].join('\n');
+
+        expect(preprocessMermaidGanttTaskColons(input)).toBe(input);
+    });
+
+    test('preserves timestamp colons while escaping title colons', () => {
+        const input = [
+            'gantt',
+            '    dateFormat YYYY-MM-DD HH:mm',
+            '    Release: Europe at 10:30 : 2026-07-17 10:00, 2026-07-17 11:00',
+        ].join('\n');
+
+        expect(preprocessMermaidGanttTaskColons(input)).toContain(
+            'Release#colon; Europe at 10#colon;30 : 2026-07-17 10:00, 2026-07-17 11:00'
+        );
+    });
+
+    test('leaves Gantt directives and comments unchanged', () => {
+        const input = [
+            'gantt',
+            '    %% note: keep this : unchanged',
+            '    title Roadmap: 2026 : H2',
+            '    todayMarker stroke-width:2px,stroke:#f00,opacity:0.5',
+        ].join('\n');
+
+        expect(preprocessMermaidGanttTaskColons(input)).toBe(input);
+    });
+
+    test('leaves non-Gantt Mermaid diagrams unchanged', () => {
+        const input = [
+            'flowchart TD',
+            '    A[Phase: Design] --> B[Phase: Build]',
+        ].join('\n');
+
+        expect(preprocessMermaidGanttTaskColons(input)).toBe(input);
+    });
+});
 
 describe('preprocessMermaidNewlines', () => {
     describe('sequenceDiagram participant quote stripping', () => {

@@ -1,4 +1,47 @@
 /**
+ * Escapes colons inside Gantt task labels when the metadata delimiter is
+ * written as a spaced colon. Mermaid's lexer always splits at the first raw
+ * colon, while `#colon;` is decoded back to a visible colon after parsing.
+ */
+export function preprocessMermaidGanttTaskColons(code: string): string {
+    let foundGanttHeader = false;
+    const directivePattern = /^(?:%%|---|title\b|dateFormat\b|inclusiveEndDates\b|topAxis\b|axisFormat\b|tickInterval\b|includes\b|excludes\b|todayMarker\b|weekday\b|weekend\b|section\b|click\b|accTitle\b|accDescr(?:iption)?\b)/i;
+    const taskTags = new Set(['active', 'done', 'crit', 'milestone', 'vert']);
+
+    return code.replace(/[^\r\n]+/g, (line) => {
+        const trimmedLine = line.trim();
+        if (/^gantt$/i.test(trimmedLine)) {
+            foundGanttHeader = true;
+            return line;
+        }
+        if (!foundGanttHeader || !trimmedLine || directivePattern.test(trimmedLine)) {
+            return line;
+        }
+
+        const delimiterPattern = /\s+:/g;
+        let delimiterIndex = -1;
+        let match: RegExpExecArray | null;
+        while ((match = delimiterPattern.exec(line)) !== null) {
+            const candidateIndex = match.index + match[0].length - 1;
+            const fields = line.slice(candidateIndex + 1).split(',').map((field) => field.trim());
+            while (fields.length > 0 && taskTags.has(fields[0].toLowerCase())) {
+                fields.shift();
+            }
+            if (fields.length >= 1 && fields.length <= 3 && fields.every(Boolean)) {
+                delimiterIndex = candidateIndex;
+            }
+        }
+
+        const title = delimiterIndex >= 0 ? line.slice(0, delimiterIndex) : '';
+        if (!title.includes(':')) {
+            return line;
+        }
+
+        return title.replace(/:/g, '#colon;') + line.slice(delimiterIndex);
+    });
+}
+
+/**
  * Pre-processes Mermaid diagram source code before handing it to mermaid.render().
  *
  * Mermaid v11 does NOT convert `\n` to `<br>` for unquoted node labels —
@@ -845,7 +888,9 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
                 const mermaidDivs = outputDiv.querySelectorAll('.mermaid');
                 for (const div of mermaidDivs) {
                     const code = div.textContent || '';
-                    const processedCode = preprocessMermaidNewlines(code);
+                    const processedCode = preprocessMermaidNewlines(
+                        preprocessMermaidGanttTaskColons(code)
+                    );
                     const id = div.id || `mermaid-${Date.now()}`;
                     try {
                         const { svg } = await mermaid.render(id + '-svg', processedCode);

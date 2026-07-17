@@ -35,6 +35,21 @@ graph TD;
     expect(mermaid.render).toHaveBeenCalled();
   });
 
+  test('should escape Gantt task label colons before rendering', async () => {
+    const markdown = `
+\`\`\`mermaid
+gantt
+    dateFormat X
+    P3: “嘟嘟” PRD 自动生成器 : 90, 210
+\`\`\`
+    `;
+
+    await window.renderMarkdown(markdown);
+
+    const renderCall = (mermaid.render as jest.Mock).mock.calls[0];
+    expect(renderCall[1]).toContain('P3#colon; “嘟嘟” PRD 自动生成器 : 90, 210');
+  });
+
   test('should display error message when mermaid syntax is invalid', async () => {
     const mermaidMock = require('mermaid');
     mermaidMock.render.mockRejectedValueOnce(new Error('Parse error on line 1'));
