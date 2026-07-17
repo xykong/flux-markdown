@@ -233,4 +233,36 @@ invalid syntax here
     // Without renderVersion, no ?v= param should be appended (backward compatible)
     expect(img?.getAttribute('src')).toBe('local-md:///Users/me/docs/pic.png');
   });
+
+  test('should reflow semantic linefeeds within a paragraph (no <br> for soft breaks)', async () => {
+    const markdown = 'This is a sentence.\nThis is another sentence but still the same paragraph.';
+
+    await window.renderMarkdown(markdown);
+
+    const preview = document.getElementById('markdown-preview');
+    const paragraphs = preview?.querySelectorAll('p');
+    expect(paragraphs?.length).toBe(1);
+    expect(paragraphs?.[0].querySelector('br')).toBeNull();
+    expect(paragraphs?.[0].textContent).toBe('This is a sentence.\nThis is another sentence but still the same paragraph.');
+  });
+
+  test('should still separate paragraphs on a blank line', async () => {
+    const markdown = 'First paragraph.\n\nSecond paragraph.';
+
+    await window.renderMarkdown(markdown);
+
+    const preview = document.getElementById('markdown-preview');
+    const paragraphs = preview?.querySelectorAll('p');
+    expect(paragraphs?.length).toBe(2);
+  });
+
+  test('should preserve hard line breaks written as trailing two spaces', async () => {
+    const markdown = 'Line one.  \nLine two.';
+
+    await window.renderMarkdown(markdown);
+
+    const preview = document.getElementById('markdown-preview');
+    const paragraph = preview?.querySelector('p');
+    expect(paragraph?.querySelector('br')).not.toBeNull();
+  });
 });
