@@ -1,4 +1,7 @@
 ## [Unreleased]
+_无待发布的变更_
+
+## [1.34.459] - 2026-07-17
 
 ### Fixed
 - **Mermaid Gantt task labels**: Preserved visible colons inside Gantt task labels without confusing them with Mermaid's task-metadata delimiter.
