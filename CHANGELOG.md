@@ -1,5 +1,9 @@
 ## [Unreleased]
-_无待发布的变更_
+
+### Fixed
+- **Mermaid Gantt task labels**: Preserved visible colons inside Gantt task labels without confusing them with Mermaid's task-metadata delimiter.
+- **Markdown paragraph line breaks** (#38, thanks [@timokox](https://github.com/timokox)): Reflowed single source line breaks within paragraphs while preserving explicit hard breaks written with two trailing spaces ([#39](https://github.com/xykong/flux-markdown/pull/39)).
+- **Standalone app toolbar visibility** (#44): Fixed toolbar controls becoming invisible when the selected Markdown preview appearance differs from the macOS window appearance.
 
 ## [1.34.449] - 2026-06-29
 
