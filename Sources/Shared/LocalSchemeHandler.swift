@@ -3,7 +3,21 @@ import os.log
 
 class LocalSchemeHandler: NSObject, WKURLSchemeHandler {
     private let logger = OSLog(subsystem: "com.markdownquicklook.app", category: "LocalSchemeHandler")
+    private let allowedFilesLock = NSLock()
+    private var allowedFilePaths = Set<String>()
     var baseDirectory: URL?
+    var allowedFileURLs: Set<URL> {
+        get {
+            allowedFilesLock.lock()
+            defer { allowedFilesLock.unlock() }
+            return Set(allowedFilePaths.map { URL(fileURLWithPath: $0) })
+        }
+        set {
+            allowedFilesLock.lock()
+            allowedFilePaths = Set(newValue.map { $0.standardizedFileURL.path })
+            allowedFilesLock.unlock()
+        }
+    }
 
     func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
         guard let url = urlSchemeTask.request.url else { return }
@@ -81,7 +95,10 @@ class LocalSchemeHandler: NSObject, WKURLSchemeHandler {
         guard let baseDirectory else { return nil }
 
         let fileURL = URL(fileURLWithPath: resolveFilePath(from: url))
-        return isContained(fileURL, in: baseDirectory) ? fileURL : nil
+        if isContained(fileURL, in: baseDirectory) || isExplicitlyAllowed(fileURL) {
+            return fileURL
+        }
+        return nil
     }
 
     func buildResponse(for url: URL, data: Data) -> URLResponse {
@@ -124,5 +141,12 @@ class LocalSchemeHandler: NSObject, WKURLSchemeHandler {
         let filePath = url.resolvingSymlinksInPath().standardizedFileURL.path
         if filePath == basePath { return true }
         return filePath.hasPrefix(basePath.hasSuffix("/") ? basePath : "\(basePath)/")
+    }
+
+    private func isExplicitlyAllowed(_ url: URL) -> Bool {
+        let resolvedPath = url.resolvingSymlinksInPath().standardizedFileURL.path
+        allowedFilesLock.lock()
+        defer { allowedFilesLock.unlock() }
+        return allowedFilePaths.contains(resolvedPath)
     }
 }

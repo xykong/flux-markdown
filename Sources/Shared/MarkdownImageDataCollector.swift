@@ -18,31 +18,13 @@ enum MarkdownImageDataCollector {
         content: String,
         limits: Limits = .default
     ) -> [String: String] {
-        let baseDirectory = markdownURL.deletingLastPathComponent()
-        let resolvedBaseDirectory = baseDirectory.resolvingSymlinksInPath().standardizedFileURL
-        let nsContent = content as NSString
-        let pattern = #"!\[[^\]]*\]\(([^)\"]+(?:\s+\"[^\"]*\")?)\)"#
-        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [:] }
-
-        let matches = regex.matches(
-            in: content,
-            range: NSRange(location: 0, length: nsContent.length)
-        )
-
         var imageData: [String: String] = [:]
         var collectedImageCount = 0
         var collectedBytes: UInt64 = 0
-        for match in matches where match.numberOfRanges >= 2 {
+        for reference in localImageReferences(from: markdownURL, content: content) {
             guard collectedImageCount < limits.maxImageCount else { break }
-
-            let originalReference = nsContent.substring(with: match.range(at: 1))
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-            let imagePath = stripMarkdownImageTitle(from: originalReference)
-
-            guard shouldInline(imagePath) else { continue }
-
-            let imageURL = resolveImageURL(imagePath, relativeTo: baseDirectory)
-            guard isContained(imageURL, in: resolvedBaseDirectory) else { continue }
+            let imagePath = reference.path
+            let imageURL = reference.url
             guard let mimeType = mimeType(for: imageURL) else { continue }
             guard let fileSize = fileSize(of: imageURL) else { continue }
             guard fileSize <= limits.maxImageBytes else { continue }
@@ -63,6 +45,63 @@ enum MarkdownImageDataCollector {
         }
 
         return imageData
+    }
+
+    static func referencedLocalImageURLs(from markdownURL: URL, content: String) -> Set<URL> {
+        Set(localImageReferences(from: markdownURL, content: content).map(\.url))
+    }
+
+    private struct LocalImageReference {
+        let location: Int
+        let path: String
+        let url: URL
+    }
+
+    private static func localImageReferences(from markdownURL: URL, content: String) -> [LocalImageReference] {
+        let nsContent = content as NSString
+        let fullRange = NSRange(location: 0, length: nsContent.length)
+        var pathMatches: [(location: Int, path: String)] = []
+
+        let markdownPattern = #"!\[[^\]]*\]\(([^)\"]+(?:\s+\"[^\"]*\")?)\)"#
+        if let regex = try? NSRegularExpression(pattern: markdownPattern) {
+            for match in regex.matches(in: content, range: fullRange) where match.numberOfRanges >= 2 {
+                let originalReference = nsContent.substring(with: match.range(at: 1))
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                pathMatches.append((match.range.location, stripMarkdownImageTitle(from: originalReference)))
+            }
+        }
+
+        let htmlPattern = #"<img\b[^>]*?\bsrc\s*=\s*(?:\"([^\"]*)\"|'([^']*)'|([^\s\"'=<>`]+))[^>]*>"#
+        if let regex = try? NSRegularExpression(pattern: htmlPattern, options: [.caseInsensitive]) {
+            for match in regex.matches(in: content, range: fullRange) {
+                for captureIndex in 1..<match.numberOfRanges where match.range(at: captureIndex).location != NSNotFound {
+                    let path = nsContent.substring(with: match.range(at: captureIndex))
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                    pathMatches.append((match.range.location, path))
+                    break
+                }
+            }
+        }
+
+        let resolvedBaseDirectory = markdownURL.deletingLastPathComponent()
+            .resolvingSymlinksInPath()
+            .standardizedFileURL
+        var seenPaths = Set<String>()
+
+        return pathMatches
+            .sorted { $0.location < $1.location }
+            .compactMap { match in
+                guard shouldInline(match.path), seenPaths.insert(match.path).inserted else { return nil }
+
+                let imageURL = resolveImageURL(match.path, relativeTo: resolvedBaseDirectory)
+                    .standardizedFileURL
+                guard mimeType(for: imageURL) != nil else { return nil }
+
+                // Do not turn a symlink into an implicit escape from the explicitly named path.
+                guard imageURL.resolvingSymlinksInPath().standardizedFileURL == imageURL else { return nil }
+
+                return LocalImageReference(location: match.location, path: match.path, url: imageURL)
+            }
     }
 
     private static func stripMarkdownImageTitle(from reference: String) -> String {
@@ -96,12 +135,6 @@ enum MarkdownImageDataCollector {
             }
         }
         return imageURL
-    }
-
-    private static func isContained(_ url: URL, in baseDirectory: URL) -> Bool {
-        let basePath = baseDirectory.path
-        let imagePath = url.resolvingSymlinksInPath().standardizedFileURL.path
-        return imagePath.hasPrefix(basePath.hasSuffix("/") ? basePath : "\(basePath)/")
     }
 
     private static func mimeType(for url: URL) -> String? {

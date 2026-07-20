@@ -1195,6 +1195,12 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         
         if let url = capturedURL {
             localSchemeHandler?.baseDirectory = url.deletingLastPathComponent()
+            localSchemeHandler?.allowedFileURLs = MarkdownImageDataCollector.referencedLocalImageURLs(
+                from: url,
+                content: content
+            )
+        } else {
+            localSchemeHandler?.allowedFileURLs = []
         }
 
         let capturedUILanguage = AppearancePreference.shared.uiLanguage

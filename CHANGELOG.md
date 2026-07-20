@@ -1,5 +1,9 @@
 ## [Unreleased]
-_无待发布的变更_
+
+### Fixed
+- **Local HTML images**: Rendered raw HTML `<img>` elements that reference local files, including explicitly referenced parent-directory paths such as `../assets/avatar.png`, in the standalone app, Quick Look, and CLI PDF export.
+  - Local image access remains restricted to the Markdown file's directory plus exact image files referenced by the current document; unreferenced traversal and symlink escapes remain blocked.
+  - The yellow missing-image appearance is now applied only after an actual image load failure.
 
 ## [1.34.459] - 2026-07-17
 

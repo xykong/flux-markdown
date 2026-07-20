@@ -22,6 +22,7 @@ FluxMarkdown primarily supports local images by **reading image files in Swift**
 | Network image (HTTPS) | `https://example.com/img.png` | ✅ | Loaded by WebView |
 | Network image (HTTP) | `http://example.com/img.png` | ⚠️ | May be blocked by WebKit security policy |
 | Base64 data URL | `data:image/png;base64,...` | ✅ | Extra handling for markdown-it validation / WKWebView |
+| Raw HTML image | `<img src="../assets/logo.png" width="160">` | ✅ | Preserves HTML presentation attributes and uses the same local-image pipeline |
 
 \* Absolute paths are constrained by sandbox rules (see “Security & Entitlements”).
 
@@ -29,11 +30,12 @@ FluxMarkdown primarily supports local images by **reading image files in Swift**
 
 ## 2. Rendering approach (high-level)
 
-1. **Swift** parses Markdown content and extracts image references.
+1. **Swift** extracts rendered-image references from Markdown image syntax and raw HTML `<img src>` elements.
 2. **Swift** attempts to read local image files and builds a map: `originalPath -> data:image/<type>;base64,...`.
-3. **Swift** calls the renderer with Markdown text + image map.
-4. **Renderer (TS)** replaces image `src` for supported local paths.
-5. For `data:` images, the renderer may rewrite into `blob:` URLs to bypass WKWebView restrictions.
+3. **Swift** authorizes each exact local image reference for the `local-md://` fallback; this allows an explicit parent-directory image without granting access to the parent directory itself.
+4. **Swift** calls the renderer with Markdown text + image map.
+5. **Renderer (TS)** replaces image `src` for both Markdown-generated and raw HTML images.
+6. Images that exceed the inline size limits fall back to `local-md://` and must match the document's explicit file allowlist.
 
 ---
 
@@ -42,7 +44,7 @@ FluxMarkdown primarily supports local images by **reading image files in Swift**
 The project documents three visible outcomes:
 
 1. ✅ Image shows normally
-2. ⚠️ A “placeholder” UI appears for missing relative-path images
+2. ⚠️ A “placeholder” UI appears only after a local image emits a real load error
 3. 🚫 Browser broken-image icon appears for unsupported path types (or blocked loads)
 
 Details are preserved in `docs/history/images/IMAGE_DISPLAY_BEHAVIOR.md`.
@@ -77,7 +79,10 @@ Example entitlement:
 </array>
 ```
 
-This constrains which absolute-path images can be read.
+This constrains which absolute-path images can be read. The custom scheme handler additionally
+requires a path to remain inside the Markdown file's directory or exactly match a local image
+reference extracted from the current document. Symlinked image references are not added to the
+explicit allowlist.
 
 ---
 

@@ -55,6 +55,34 @@ final class LocalSchemeHandlerTests: XCTestCase {
         XCTAssertNil(handler.resolveContainedFileURL(from: url))
     }
 
+    func testResolveContainedFileURLAllowsExplicitlyReferencedParentImageOnly() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let notes = root.appendingPathComponent("notes", isDirectory: true)
+        let assets = root.appendingPathComponent("assets", isDirectory: true)
+        try FileManager.default.createDirectory(at: notes, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: assets, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let referencedImage = assets.appendingPathComponent("referenced.png")
+        let unreferencedImage = assets.appendingPathComponent("unreferenced.png")
+        try Data([0x89, 0x50]).write(to: referencedImage)
+        try Data([0x89, 0x50]).write(to: unreferencedImage)
+
+        let handler = LocalSchemeHandler()
+        handler.baseDirectory = notes
+        handler.allowedFileURLs = Set([referencedImage])
+
+        let referencedURL = URL(string: "local-md://\(referencedImage.path)")!
+        let unreferencedURL = URL(string: "local-md://\(unreferencedImage.path)")!
+
+        XCTAssertEqual(
+            handler.resolveContainedFileURL(from: referencedURL)?.standardizedFileURL,
+            referencedImage.standardizedFileURL
+        )
+        XCTAssertNil(handler.resolveContainedFileURL(from: unreferencedURL))
+    }
+
     func testResolveContainedFileURLRejectsEncodedParentDirectoryTraversal() throws {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)

@@ -30,6 +30,61 @@ final class MarkdownImageDataCollectorTests: XCTestCase {
         XCTAssertEqual(String(data: decoded, encoding: .utf8), svg)
     }
 
+    func testCollectsParentDirectoryHTMLImageAsDataURL() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let requirements = root.appendingPathComponent("requirements", isDirectory: true)
+        let assets = root.appendingPathComponent("assets", isDirectory: true)
+        try FileManager.default.createDirectory(at: requirements, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: assets, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let imageURL = assets.appendingPathComponent("avatar.png")
+        let png = Data([0x89, 0x50, 0x4E, 0x47])
+        try png.write(to: imageURL)
+
+        let markdownURL = requirements.appendingPathComponent("avatars.md")
+        let source = "../assets/avatar.png"
+        let markdown = #"<img src="../assets/avatar.png" width="160" alt="Avatar">"#
+
+        let imageData = MarkdownImageDataCollector.collectImageData(
+            from: markdownURL,
+            content: markdown
+        )
+
+        let dataURL = try XCTUnwrap(imageData[source])
+        XCTAssertTrue(dataURL.hasPrefix("data:image/png;base64,"))
+    }
+
+    func testExtractsOnlyExplicitLocalImageReferences() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let requirements = root.appendingPathComponent("requirements", isDirectory: true)
+        let assets = root.appendingPathComponent("assets", isDirectory: true)
+        try FileManager.default.createDirectory(at: requirements, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: assets, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let referencedURL = assets.appendingPathComponent("referenced.png")
+        let unreferencedURL = assets.appendingPathComponent("unreferenced.png")
+        try Data([0x89, 0x50]).write(to: referencedURL)
+        try Data([0x89, 0x50]).write(to: unreferencedURL)
+
+        let markdownURL = requirements.appendingPathComponent("avatars.md")
+        let markdown = """
+        <img src='../assets/referenced.png' alt='Referenced'>
+        <img src="https://example.com/network.png" alt="Network">
+        """
+
+        let references = MarkdownImageDataCollector.referencedLocalImageURLs(
+            from: markdownURL,
+            content: markdown
+        )
+
+        XCTAssertEqual(references, Set([referencedURL.resolvingSymlinksInPath().standardizedFileURL]))
+        XCTAssertFalse(references.contains(unreferencedURL.resolvingSymlinksInPath().standardizedFileURL))
+    }
+
     func testSkipsNetworkEmbeddedAndAbsoluteImageReferences() throws {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -52,18 +107,13 @@ final class MarkdownImageDataCollectorTests: XCTestCase {
         XCTAssertTrue(imageData.isEmpty)
     }
 
-    func testSkipsParentDirectoryTraversalAndUnknownFileTypes() throws {
+    func testSkipsUnknownFileTypes() throws {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
         let notes = root.appendingPathComponent("notes", isDirectory: true)
         try FileManager.default.createDirectory(at: notes, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
 
-        try "secret".write(
-            to: root.appendingPathComponent("secret.png"),
-            atomically: true,
-            encoding: .utf8
-        )
         try "unknown".write(
             to: notes.appendingPathComponent("data.txt"),
             atomically: true,
@@ -72,8 +122,6 @@ final class MarkdownImageDataCollectorTests: XCTestCase {
 
         let markdownURL = notes.appendingPathComponent("note.md")
         let markdown = """
-        ![Traversal](../secret.png)
-        ![EncodedTraversal](%2e%2e/secret.png)
         ![Unknown](data.txt)
         """
 
@@ -83,6 +131,38 @@ final class MarkdownImageDataCollectorTests: XCTestCase {
         )
 
         XCTAssertTrue(imageData.isEmpty)
+    }
+
+    func testSkipsSymlinkedImageReference() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let notes = root.appendingPathComponent("notes", isDirectory: true)
+        let outside = root.appendingPathComponent("outside", isDirectory: true)
+        try FileManager.default.createDirectory(at: notes, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: outside, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let outsideImage = outside.appendingPathComponent("secret.png")
+        try Data([0x89, 0x50]).write(to: outsideImage)
+        try FileManager.default.createSymbolicLink(
+            at: notes.appendingPathComponent("linked.png"),
+            withDestinationURL: outsideImage
+        )
+
+        let markdownURL = notes.appendingPathComponent("note.md")
+        let markdown = "![Linked](linked.png)"
+
+        let imageData = MarkdownImageDataCollector.collectImageData(
+            from: markdownURL,
+            content: markdown
+        )
+        let references = MarkdownImageDataCollector.referencedLocalImageURLs(
+            from: markdownURL,
+            content: markdown
+        )
+
+        XCTAssertTrue(imageData.isEmpty)
+        XCTAssertTrue(references.isEmpty)
     }
 
     func testSkipsImagesLargerThanPerImageLimit() throws {

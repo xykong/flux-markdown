@@ -4,11 +4,8 @@ img {
   height: auto;
 }
 
-/* 图片未找到时的占位样式 - 对本地路径生效（相对路径和绝对路径） */
-img[alt][src^="./"],
-img[alt][src^="../"],
-img[alt][src^="/"],
-img[alt][src^="file://"] {
+/* Only apply placeholder styling after the renderer observes a load error. */
+img.image-load-failed {
   display: inline-block;
   min-width: 200px;
   min-height: 100px;
@@ -23,20 +20,14 @@ img[alt][src^="file://"] {
   position: relative;
 }
 
-img[alt][src^="./"]::before,
-img[alt][src^="../"]::before,
-img[alt][src^="/"]::before,
-img[alt][src^="file://"]::before {
+img.image-load-failed::before {
   content: "⚠️ 图片未找到";
   display: block;
   font-weight: 600;
   margin-bottom: 8px;
 }
 
-img[alt][src^="./"]::after,
-img[alt][src^="../"]::after,
-img[alt][src^="/"]::after,
-img[alt][src^="file://"]::after {
+img.image-load-failed::after {
   content: attr(alt);
   display: block;
   font-size: 12px;
@@ -45,10 +36,7 @@ img[alt][src^="file://"]::after {
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
-  img[alt][src^="./"],
-  img[alt][src^="../"],
-  img[alt][src^="/"],
-  img[alt][src^="file://"] {
+  img.image-load-failed {
     background: #2d2020;
     border-color: #856404;
     color: #ffc107;

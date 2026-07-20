@@ -351,7 +351,13 @@ struct MarkdownWebView: NSViewRepresentable {
                 // but passing the URL allows the handler to work consistently
                 if let handler = webView.configuration.urlSchemeHandler(forURLScheme: "local-md") as? LocalSchemeHandler {
                     handler.baseDirectory = baseDir
+                    handler.allowedFileURLs = MarkdownImageDataCollector.referencedLocalImageURLs(
+                        from: url,
+                        content: content
+                    )
                 }
+            } else if let handler = webView.configuration.urlSchemeHandler(forURLScheme: "local-md") as? LocalSchemeHandler {
+                handler.allowedFileURLs = []
             }
 
             pendingRender = { [weak self] in

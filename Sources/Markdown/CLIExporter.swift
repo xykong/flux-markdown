@@ -70,6 +70,12 @@ final class CLIExporter: NSObject {
 
         let handler = LocalSchemeHandler()
         handler.baseDirectory = inputURL.deletingLastPathComponent()
+        if let content = try? String(contentsOf: inputURL, encoding: .utf8) {
+            handler.allowedFileURLs = MarkdownImageDataCollector.referencedLocalImageURLs(
+                from: inputURL,
+                content: content
+            )
+        }
         config.setURLSchemeHandler(handler, forURLScheme: "local-md")
 
         if let rendererHandler = RendererBundleSchemeHandler(bundle: .main) {

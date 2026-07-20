@@ -378,27 +378,7 @@ function buildMd(): MarkdownIt {
         const srcIndex = token.attrIndex('src');
         if (srcIndex >= 0) {
             const originalSrc = token.attrs[srcIndex][1];
-            const cleanOriginalSrc = originalSrc.startsWith('./') ? originalSrc.slice(2) : originalSrc;
-            const imageData = env?.imageData as Record<string, string> | undefined;
-            const inlinedSrc = imageData?.[originalSrc] || imageData?.[cleanOriginalSrc] || imageData?.[`./${cleanOriginalSrc}`];
-            if (inlinedSrc) {
-                token.attrs[srcIndex][1] = inlinedSrc;
-                return defaultImageRender(tokens, idx, options, env, self);
-            }
-
-            const isNetworkUrl = /^(http:\/\/|https:\/\/)/.test(originalSrc);
-            const isEmbeddedBase64Image = originalSrc.startsWith('data:');
-            const isLocalFile = !isNetworkUrl && !isEmbeddedBase64Image && !originalSrc.startsWith('local-md://');
-
-            if (isLocalFile && env?.baseUrl) {
-                const basePath = env.baseUrl.replace(/\/$/, '');
-                const cleanSrc = cleanOriginalSrc;
-                const absolutePath = cleanSrc.startsWith('/')
-                    ? cleanSrc
-                    : `${basePath}/${cleanSrc}`;
-                const cacheBust = env?.renderVersion != null ? `?v=${env.renderVersion}` : '';
-                token.attrs[srcIndex][1] = `local-md://${absolutePath}${cacheBust}`;
-            }
+            token.attrs[srcIndex][1] = resolveImageSource(originalSrc, env);
         }
         return defaultImageRender(tokens, idx, options, env, self);
     };
@@ -452,6 +432,41 @@ interface RenderOptions {
     prevContent?: string;
     showLineNumbers?: boolean;
     renderVersion?: number;
+}
+
+function imageDataForSource(source: string, imageData?: Record<string, string>): string | undefined {
+    const cleanSource = source.startsWith('./') ? source.slice(2) : source;
+    return imageData?.[source] || imageData?.[cleanSource] || imageData?.[`./${cleanSource}`];
+}
+
+function resolveImageSource(source: string, options: RenderOptions): string {
+    const inlinedSource = imageDataForSource(source, options.imageData);
+    if (inlinedSource) return inlinedSource;
+
+    const isRemoteOrEmbedded = /^(?:https?:|data:|blob:|local-md:)/i.test(source) || source.startsWith('//');
+    const hasUnsupportedScheme = /^[a-z][a-z0-9+.-]*:/i.test(source) && !source.startsWith('file:');
+    if (isRemoteOrEmbedded || hasUnsupportedScheme || !options.baseUrl) return source;
+
+    try {
+        const baseHref = `file://${options.baseUrl.replace(/\/$/, '')}/`;
+        const fileURL = source.startsWith('file:') ? new URL(source) : new URL(source, baseHref);
+        const cacheBust = options.renderVersion != null ? `?v=${options.renderVersion}` : '';
+        return `local-md://${fileURL.pathname}${cacheBust}`;
+    } catch {
+        return source;
+    }
+}
+
+function prepareRenderedImages(root: HTMLElement, options: RenderOptions): void {
+    root.querySelectorAll<HTMLImageElement>('img[src]').forEach(img => {
+        img.addEventListener('error', () => img.classList.add('image-load-failed'));
+        img.addEventListener('load', () => img.classList.remove('image-load-failed'));
+
+        const source = img.getAttribute('src');
+        if (!source) return;
+        const resolvedSource = resolveImageSource(source, options);
+        if (resolvedSource !== source) img.setAttribute('src', resolvedSource);
+    });
 }
 
 let currentContext: 'quicklook' | 'app' | 'finder' = 'app';
@@ -851,6 +866,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
 
         logToSwift(`[renderMarkdown:${callId}] UPDATING DOM innerHTML`);
         outputDiv.innerHTML = tempDiv.innerHTML;
+        prepareRenderedImages(outputDiv, options);
         logToSwift(`[renderMarkdown:${callId}] DOM UPDATED successfully`);
 
         if (showLineNumbers) {

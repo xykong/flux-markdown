@@ -96,6 +96,51 @@ invalid syntax here
     expect(img?.getAttribute('src')).toBe(dataUrl);
   });
 
+  test('should inline a raw HTML image and preserve its presentation attributes', async () => {
+    const source = '../assets/avatar.png';
+    const dataUrl = 'data:image/png;base64,AAAA';
+    const markdown = `<img src="${source}" width="160" alt="Avatar">`;
+
+    await window.renderMarkdown(markdown, {
+      baseUrl: '/Users/me/project/docs/requirements',
+      imageData: { [source]: dataUrl },
+    });
+
+    const img = document.querySelector<HTMLImageElement>('#markdown-preview img');
+    expect(img?.getAttribute('src')).toBe(dataUrl);
+    expect(img?.getAttribute('width')).toBe('160');
+    expect(img?.getAttribute('alt')).toBe('Avatar');
+  });
+
+  test('should route a raw HTML parent image through the local scheme', async () => {
+    const markdown = '<img src="../assets/avatar.png" width="160" alt="Avatar">';
+
+    await window.renderMarkdown(markdown, {
+      baseUrl: '/Users/me/project/docs/requirements',
+      renderVersion: 7,
+    });
+
+    const img = document.querySelector<HTMLImageElement>('#markdown-preview img');
+    expect(img?.getAttribute('src')).toBe(
+      'local-md:///Users/me/project/docs/assets/avatar.png?v=7',
+    );
+  });
+
+  test('should apply the missing-image class only after a real load error', async () => {
+    const markdown = '<img src="./missing.png" alt="Missing">';
+
+    await window.renderMarkdown(markdown, { baseUrl: '/Users/me/docs' });
+
+    const img = document.querySelector<HTMLImageElement>('#markdown-preview img')!;
+    expect(img.classList.contains('image-load-failed')).toBe(false);
+
+    img.dispatchEvent(new Event('error'));
+    expect(img.classList.contains('image-load-failed')).toBe(true);
+
+    img.dispatchEvent(new Event('load'));
+    expect(img.classList.contains('image-load-failed')).toBe(false);
+  });
+
   test('should match dot-slash image references against normalized imageData keys', async () => {
     const dataUrl = 'data:image/png;base64,AAAA';
     const markdown = '![img](./assets/pic.png)';
