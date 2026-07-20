@@ -1,4 +1,7 @@
 ## [Unreleased]
+_无待发布的变更_
+
+## [1.34.464] - 2026-07-20
 
 ### Fixed
 - **Local HTML images**: Rendered raw HTML `<img>` elements that reference local files, including explicitly referenced parent-directory paths such as `../assets/avatar.png`, in the standalone app, Quick Look, and CLI PDF export.
