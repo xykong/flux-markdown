@@ -6,7 +6,7 @@ import SwiftUI
 
 // Subclass WKWebView to intercept mouse events and prevent them from bubbling up 
 // to the QuickLook host, which would otherwise trigger "Open with default app".
-class InteractiveWebView: WKWebView {
+class InteractiveWebView: NativeMagnifyingWebView {
     private let logger = OSLog(subsystem: "com.markdownquicklook.app", category: "InteractiveWebView")
 
     override func mouseDown(with event: NSEvent) {
@@ -56,14 +56,6 @@ class InteractiveWebView: WKWebView {
         super.scrollWheel(with: event)
     }
 
-    // Two-finger double-tap on trackpad fires NSEvent.EventType.smartMagnify.
-    // allowsMagnification=false does not suppress this event; we use it to reset zoom.
-    override func smartMagnify(with event: NSEvent) {
-        NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = 0.25
-            self.animator().magnification = 1.0
-        }
-    }
 }
 
 enum ViewMode {
@@ -83,7 +75,6 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     var currentViewMode: ViewMode = .preview
     var rendererBundleSchemeHandler: RendererBundleSchemeHandler?
     var localSchemeHandler: LocalSchemeHandler?
-    private var gestureMagnificationBase: CGFloat = 1.0
 
     private var securityScopedURL: URL?
     private var isSecurityScopedAccessActive: Bool = false
@@ -147,6 +138,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
 
     private var isResizeTrackingEnabled = false
     private var didUserResizeSinceOpen = false
+    private var isFullScreenTransitionInProgress = false
 
     // Track which window we saw a live resize start event for.
     // This prevents spurious saves from programmatic resizes.
@@ -342,8 +334,6 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         let userContentController = WKUserContentController()
         userContentController.add(self, name: "logger")
         userContentController.add(self, name: "linkClicked")
-        userContentController.add(self, name: "gestureZoom")
-        userContentController.add(self, name: "pinchZoom")
         webConfiguration.userContentController = userContentController
         
         let schemeHandler = LocalSchemeHandler()
@@ -387,7 +377,6 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         doubleClickGesture.delaysPrimaryMouseButtonEvents = false
         webView.addGestureRecognizer(doubleClickGesture)
         
-        webView.allowsMagnification = false  // Pinch zoom goes via JS ctrlKey+wheel → pinchZoom bridge → setMagnification
         // Zoom is session-only; always start at 1.0 (Bug 2 fix)
         webView.pageZoom = 1.0
         
@@ -431,6 +420,16 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         
         guard isResizeTrackingEnabled else {
             os_log("📊 [viewDidLayout] SKIPPED - tracking disabled", log: logger, type: .default)
+            return
+        }
+
+        if let window = view.window,
+           !Self.shouldTrackWindowSize(
+               styleMask: window.styleMask,
+               isFullScreenTransitionInProgress: isFullScreenTransitionInProgress,
+               windowFrame: window.frame,
+               visibleScreenFrame: window.screen?.visibleFrame
+           ) {
             return
         }
         
@@ -510,7 +509,19 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                didUserResizeSinceOpen ? "YES" : "NO",
                currentSize != nil ? "\(currentSize!.width)x\(currentSize!.height)" : "nil")
 
-        if didUserResizeSinceOpen, let size = self.currentSize, Self.isSizeValidForPersistence(size) {
+        let shouldPersistWindowSize = view.window.map {
+            Self.shouldTrackWindowSize(
+                styleMask: $0.styleMask,
+                isFullScreenTransitionInProgress: isFullScreenTransitionInProgress,
+                windowFrame: $0.frame,
+                visibleScreenFrame: $0.screen?.visibleFrame
+            )
+        } ?? false
+
+        if shouldPersistWindowSize,
+           didUserResizeSinceOpen,
+           let size = self.currentSize,
+           Self.isSizeValidForPersistence(size) {
             os_log("📊 [viewWillDisappear] Saving final size after user resize: %.0fx%.0f", log: logger, type: .default, size.width, size.height)
             AppearancePreference.shared.quickLookSize = size
         } else {
@@ -554,8 +565,6 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         webView.navigationDelegate = nil
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "logger")
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "linkClicked")
-        webView.configuration.userContentController.removeScriptMessageHandler(forName: "gestureZoom")
-        webView.configuration.userContentController.removeScriptMessageHandler(forName: "pinchZoom")
         
         for recognizer in webView.gestureRecognizers where recognizer is NSClickGestureRecognizer {
             webView.removeGestureRecognizer(recognizer)
@@ -1372,24 +1381,6 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         } else if message.name == "linkClicked", let href = message.body as? String {
             os_log("🔵 Link clicked from JS: %{public}@", log: logger, type: .default, href)
             handleLinkClick(href: href)
-        } else if message.name == "pinchZoom", let delta = message.body as? Double {
-            let newMag = min(5.0, max(0.25, webView.magnification * (1.0 + delta)))
-            webView.setMagnification(newMag, centeredAt: .zero)
-            os_log("🔵 pinchZoom magnification: %.2f (delta=%.3f)", log: logger, type: .debug, newMag, delta)
-        } else if message.name == "gestureZoom",
-                  let body = message.body as? [String: Any],
-                  let phase = body["phase"] as? String,
-                  let scale = body["scale"] as? Double {
-            switch phase {
-            case "start":
-                gestureMagnificationBase = webView.magnification
-            case "change", "end":
-                let newMag = min(5.0, max(0.25, gestureMagnificationBase * CGFloat(scale)))
-                webView.setMagnification(newMag, centeredAt: .zero)
-                os_log("🔵 gestureZoom phase=%{public}@ mag=%.2f", log: logger, type: .debug, phase, newMag)
-            default:
-                break
-            }
         }
     }
     
@@ -1596,6 +1587,30 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
             name: NSWindow.didEndLiveResizeNotification,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(windowWillEnterFullScreen),
+            name: NSWindow.willEnterFullScreenNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(windowDidEnterFullScreen),
+            name: NSWindow.didEnterFullScreenNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(windowWillExitFullScreen),
+            name: NSWindow.willExitFullScreenNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(windowDidExitFullScreen),
+            name: NSWindow.didExitFullScreenNotification,
+            object: nil
+        )
 
         #if DEBUG
         NotificationCenter.default.addObserver(
@@ -1626,6 +1641,17 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
 
         let windowId = ObjectIdentifier(window)
 
+        guard Self.shouldTrackWindowSize(
+            styleMask: window.styleMask,
+            isFullScreenTransitionInProgress: isFullScreenTransitionInProgress,
+            windowFrame: window.frame,
+            visibleScreenFrame: window.screen?.visibleFrame
+        ) else {
+            sawLiveResizeStartForWindow = nil
+            os_log("📊 [windowDidEndLiveResize] Skipping save - full-screen transition", log: logger, type: .default)
+            return
+        }
+
         // Only save if we previously observed a matching start event for this window.
         // This prevents saving sizes from programmatic/animated resizes.
         guard sawLiveResizeStartForWindow == windowId else {
@@ -1655,12 +1681,78 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         guard let window = notification.object as? NSWindow, window == self.view.window else {
             return
         }
+        guard Self.shouldTrackWindowSize(
+            styleMask: window.styleMask,
+            isFullScreenTransitionInProgress: isFullScreenTransitionInProgress,
+            windowFrame: window.frame,
+            visibleScreenFrame: window.screen?.visibleFrame
+        ) else {
+            sawLiveResizeStartForWindow = nil
+            os_log("📊 [windowWillStartLiveResize] Ignoring full-screen transition", log: logger, type: .default)
+            return
+        }
         sawLiveResizeStartForWindow = ObjectIdentifier(window)
         os_log("📊 [windowWillStartLiveResize] Window starting live resize", log: logger, type: .default)
 
         #if DEBUG
         logScreenEnvironment(context: "windowWillStartLiveResize")
         #endif
+    }
+
+    static func shouldTrackWindowSize(
+        styleMask: NSWindow.StyleMask,
+        isFullScreenTransitionInProgress: Bool,
+        windowFrame: CGRect? = nil,
+        visibleScreenFrame: CGRect? = nil
+    ) -> Bool {
+        guard !isFullScreenTransitionInProgress, !styleMask.contains(.fullScreen) else {
+            return false
+        }
+
+        guard let windowFrame, let visibleScreenFrame else {
+            return true
+        }
+
+        // Quick Look full screen is hosted in a remote window that does not
+        // forward full-screen notifications or expose .fullScreen here.
+        let tolerance: CGFloat = 2
+        let fillsVisibleScreen =
+            abs(windowFrame.minX - visibleScreenFrame.minX) <= tolerance &&
+            abs(windowFrame.minY - visibleScreenFrame.minY) <= tolerance &&
+            abs(windowFrame.maxX - visibleScreenFrame.maxX) <= tolerance &&
+            abs(windowFrame.maxY - visibleScreenFrame.maxY) <= tolerance
+
+        return !fillsVisibleScreen
+    }
+
+    @objc private func windowWillEnterFullScreen(_ notification: Notification) {
+        setFullScreenTransition(true, notification: notification, context: "willEnter")
+    }
+
+    @objc private func windowDidEnterFullScreen(_ notification: Notification) {
+        setFullScreenTransition(false, notification: notification, context: "didEnter")
+    }
+
+    @objc private func windowWillExitFullScreen(_ notification: Notification) {
+        setFullScreenTransition(true, notification: notification, context: "willExit")
+    }
+
+    @objc private func windowDidExitFullScreen(_ notification: Notification) {
+        setFullScreenTransition(false, notification: notification, context: "didExit")
+    }
+
+    private func setFullScreenTransition(
+        _ inProgress: Bool,
+        notification: Notification,
+        context: String
+    ) {
+        guard let window = notification.object as? NSWindow, window == view.window else {
+            return
+        }
+        isFullScreenTransitionInProgress = inProgress
+        sawLiveResizeStartForWindow = nil
+        os_log("📊 [fullScreen] %{public}@ inProgress=%{public}@", log: logger, type: .default,
+               context, inProgress ? "YES" : "NO")
     }
 
     #if DEBUG

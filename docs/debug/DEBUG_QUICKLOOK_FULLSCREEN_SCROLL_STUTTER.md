@@ -6,14 +6,13 @@ In Finder Quick Look, a Markdown preview scrolls unevenly with a two-finger
 trackpad gesture after entering full screen. The same document scrolls smoothly
 when the standalone FluxMarkdown app is full screen.
 
-## Current State
+## Test Environment
 
-- Investigated on 2026-08-12.
+- Investigated and fixed on 2026-08-12.
 - macOS: 26.5.2 (25F84).
-- FluxMarkdown: 1.34.464 (build 464).
+- Baseline: FluxMarkdown 1.34.464 (build 464).
+- Verified development build: `1.34.464-dev-20260812-115104`.
 - Fixture: `CHANGELOG.md` (591 lines, about 43 KB).
-- The installed Quick Look extension and the repository build are the same
-  version.
 
 ## Reproduction
 
@@ -92,16 +91,27 @@ pair as a user resize and saves the full-screen size (`1512x950` in this run).
 This is a separate persistence bug. It does not explain the scrolling stutter:
 the notifications stop when the transition ends, before the scroll gesture.
 
-## Fix Direction
+## Implementation
 
-1. Keep ordinary wheel events off any permanent non-passive JavaScript listener.
-2. Recognize pinch separately, preferably in AppKit, and keep both Quick Look
-   and standalone app behavior aligned.
-3. Preserve issue #21 behavior for Mouseless-style synthesized scrolling.
-4. Add a regression test that inspects wheel-listener registration, not only
-   the handler result for a constructed event.
-5. Handle full-screen transitions separately from user-initiated window resize
-   persistence.
+- Removed the renderer's global non-passive `wheel` listener and WebKit gesture
+  listeners. Ordinary two-finger scrolling is again eligible for WebKit's
+  asynchronous scrolling path.
+- Added the shared AppKit `NativeMagnifyingWebView` base class. Both Quick Look
+  and the standalone app now recognize pinch with
+  `NSMagnificationGestureRecognizer` and apply `WKWebView` visual
+  magnification without a JavaScript round trip.
+- Kept Command-scroll zoom in each host and two-finger double-tap reset in the
+  shared native class.
+- Kept Control-only synthesized-wheel compatibility at the native layer, where
+  it scrolls with `window.scrollBy` without installing a permanent renderer
+  listener.
+- Removed the `pinchZoom` and `gestureZoom` script-message handlers from both
+  hosts.
+- Excluded full-screen transitions from Quick Look window-size persistence.
+  macOS Quick Look's remote full-screen host does not forward the normal
+  full-screen notifications and does not expose `.fullScreen` in its local
+  `NSWindow.styleMask`, so the guard also rejects a window frame that fills the
+  screen's visible frame within a two-point tolerance.
 
 ## Acceptance Criteria
 
@@ -121,13 +131,48 @@ the notifications stop when the transition ends, before the scroll gesture.
 
 ## Verification Status
 
-- Reproduced the Quick Look full-screen host path with the installed 1.34.464
-  extension.
-- Confirmed that the same renderer bundle is used by Quick Look and the app.
-- Confirmed the permanent non-passive wheel listener and its commit history.
-- Confirmed via logs that full-screen transition layout work stops before
-  scrolling.
-- Continuous physical trackpad frame timing still needs to be collected after
-  the implementation change; the Computer Use harness cannot synthesize the
-  required continuous trackpad gesture for a valid frame-time comparison.
+### TDD regression coverage
 
+- Red: five of six focused renderer tests failed with the old global listener;
+  the focused Swift run failed because `NativeMagnifyingWebView` did not yet
+  exist.
+- Green: renderer focused tests passed (`6/6`), native magnification and window
+  persistence tests passed (`38/38` after the remote-host regression was
+  added).
+- Renderer full suite: `28/28` suites and `302/302` tests passed.
+- Swift functional suite: `216/216` tests passed. The separate
+  `RenderBenchmarkTests` suite cannot run inside the unsigned `xctest` sandbox:
+  its WebKit child loses access to required system services and hangs on the
+  first cold run. The signed application paths were exercised below instead.
+- Renderer production build and macOS Release application build both passed.
+- `git diff --check` passed, and source inspection found no renderer-level
+  `wheel` listener or zoom message bridge.
+
+### Finder Quick Look end-to-end
+
+1. Installed and code-sign verified development build
+   `1.34.464-dev-20260812-115104` with `make install-debug`.
+2. Opened `CHANGELOG.md` from Finder with Space and confirmed the development
+   version and rendered Markdown in the real Quick Look extension process.
+3. Entered Quick Look full screen and moved the native scroll position from
+   `0.75` to `0.25`; the visible document content and accessibility scroll value
+   changed together.
+4. Exited full screen and confirmed the windowed Quick Look size remained
+   `1386x837`. Logs show `windowWillStartLiveResize` ignored the full-screen
+   frame and `windowDidEndLiveResize` skipped persistence; no `1512x950` save
+   occurred with the final build.
+
+### Standalone app end-to-end
+
+1. Opened the same `CHANGELOG.md` through the Quick Look Open action and
+   confirmed development build `1.34.464-dev-20260812-115104` in the app.
+2. Entered app full screen, moved its native scroll position from `0` to `0.6`,
+   then injected an ordinary scroll action; the position advanced to `0.637`
+   and the visible content updated.
+
+The Computer Use harness cannot synthesize a continuous physical trackpad
+gesture or pinch, so it cannot produce a valid 10-second frame-time trace or a
+physical pinch verification. Those two hardware-specific acceptance checks
+remain manual. The blocking cause is nevertheless covered directly: the
+permanent non-passive wheel listener and synchronous zoom bridge are absent,
+and both real signed host paths render and scroll successfully in full screen.

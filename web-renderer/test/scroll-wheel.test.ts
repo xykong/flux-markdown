@@ -19,34 +19,34 @@ describe('wheel event handling', () => {
     expect(preventDefaultSpy).not.toHaveBeenCalled();
   });
 
-  test('ctrlKey+wheel calls preventDefault (blocks system zoom UI)', () => {
-    const event = new WheelEvent('wheel', { ctrlKey: true, deltaY: 100, cancelable: true, bubbles: true });
+  test('ctrlKey+wheel is not intercepted by the renderer', () => {
+    const scrollBySpy = jest.spyOn(window, 'scrollBy').mockImplementation(() => {});
+    const event = new WheelEvent('wheel', {
+      ctrlKey: true,
+      deltaX: 12,
+      deltaY: 100,
+      cancelable: true,
+      bubbles: true,
+    });
     const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
 
     document.dispatchEvent(event);
 
-    expect(preventDefaultSpy).toHaveBeenCalled();
+    expect(preventDefaultSpy).not.toHaveBeenCalled();
+    expect(scrollBySpy).not.toHaveBeenCalled();
+    scrollBySpy.mockRestore();
   });
 
-  test('ctrlKey+wheel posts to pinchZoom messageHandler (trackpad pinch path)', () => {
+  test('ctrlKey+wheel never enters a synchronous Swift zoom bridge', () => {
     const pinchZoomSpy = jest.fn();
     (window as any).webkit = { messageHandlers: { pinchZoom: { postMessage: pinchZoomSpy } } };
 
     const event = new WheelEvent('wheel', { ctrlKey: true, deltaY: -100, cancelable: true, bubbles: true });
     document.dispatchEvent(event);
 
-    expect(pinchZoomSpy).toHaveBeenCalledTimes(1);
+    expect(pinchZoomSpy).not.toHaveBeenCalled();
 
     delete (window as any).webkit;
   });
 
-  test('ctrlKey+wheel does NOT call scrollBy', () => {
-    const scrollBySpy = jest.spyOn(window, 'scrollBy').mockImplementation(() => {});
-
-    const event = new WheelEvent('wheel', { ctrlKey: true, deltaY: 100, cancelable: true, bubbles: true });
-    document.dispatchEvent(event);
-
-    expect(scrollBySpy).not.toHaveBeenCalled();
-    scrollBySpy.mockRestore();
-  });
 });

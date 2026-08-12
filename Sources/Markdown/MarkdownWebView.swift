@@ -40,8 +40,6 @@ struct MarkdownWebView: NSViewRepresentable {
         let userContentController = WKUserContentController()
         userContentController.add(coordinator, name: "logger")
         userContentController.add(coordinator, name: "linkClicked")
-        userContentController.add(coordinator, name: "gestureZoom")
-        userContentController.add(coordinator, name: "pinchZoom")
         
         let debugSource = """
         window.onerror = function(msg, url, line, col, error) {
@@ -115,7 +113,6 @@ struct MarkdownWebView: NSViewRepresentable {
         var rendererBundleSchemeHandler: RendererBundleSchemeHandler?
         var currentFileURL: URL?
         var pendingAnchor: String?
-        private var gestureMagnificationBase: CGFloat = 1.0
 
         // File monitoring
         private var fileMonitor: DispatchSourceFileSystemObject?
@@ -556,27 +553,6 @@ struct MarkdownWebView: NSViewRepresentable {
             } else if message.name == "linkClicked", let href = message.body as? String {
                 os_log("🔵 Link clicked from JS: %{public}@", log: logger, type: .default, href)
                 handleLinkClick(href: href)
-            } else if message.name == "pinchZoom",
-                      let delta = message.body as? Double,
-                      let webView = message.webView {
-                let newMag = min(5.0, max(0.25, webView.magnification * (1.0 + delta)))
-                webView.setMagnification(newMag, centeredAt: .zero)
-                os_log("🔵 pinchZoom magnification: %.2f (delta=%.3f)", log: logger, type: .debug, newMag, delta)
-            } else if message.name == "gestureZoom",
-                      let body = message.body as? [String: Any],
-                      let phase = body["phase"] as? String,
-                      let scale = body["scale"] as? Double,
-                      let webView = message.webView {
-                switch phase {
-                case "start":
-                    gestureMagnificationBase = webView.magnification
-                case "change", "end":
-                    let newMag = min(5.0, max(0.25, gestureMagnificationBase * CGFloat(scale)))
-                    webView.setMagnification(newMag, centeredAt: .zero)
-                    os_log("🔵 gestureZoom phase=%{public}@ mag=%.2f", log: logger, type: .debug, phase, newMag)
-                default:
-                    break
-                }
             }
         }
         
@@ -858,7 +834,7 @@ struct MarkdownWebView: NSViewRepresentable {
 
 }
 
-class ResizableWKWebView: WKWebView {
+class ResizableWKWebView: NativeMagnifyingWebView {
     private let webUndoManager = UndoManager()
 
     override var undoManager: UndoManager? {
@@ -931,16 +907,6 @@ class ResizableWKWebView: WKWebView {
         }
     }
 
-    // Two-finger double-tap on trackpad fires NSEvent.EventType.smartMagnify.
-    // We reset visual magnification to 1.0 with animation (same UX as Photos.app).
-    override func smartMagnify(with event: NSEvent) {
-        NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = 0.25
-            self.animator().magnification = 1.0
-        }
-        os_log("🔵 smartMagnify → reset magnification to 1.0", log: logger, type: .debug)
-    }
-
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
 
@@ -948,7 +914,6 @@ class ResizableWKWebView: WKWebView {
         self.window?.minSize = WindowAccessor.minimumRestorableWindowSize
         hasSetInitialSize = true
 
-        self.allowsMagnification = false  // Pinch zoom goes via JS ctrlKey+wheel → pinchZoom bridge → setMagnification
         self.pageZoom = AppearancePreference.shared.zoomLevel
     }
 }

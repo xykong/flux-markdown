@@ -309,6 +309,56 @@ final class WindowSizePersistenceTests: XCTestCase {
         XCTAssertFalse(shouldSave, "Should NOT save after flag reset")
     }
 
+    func testWindowResizeTracking_RejectsFullScreenTransition() {
+        XCTAssertFalse(
+            PreviewViewController.shouldTrackWindowSize(
+                styleMask: [.titled, .resizable],
+                isFullScreenTransitionInProgress: true
+            )
+        )
+    }
+
+    func testWindowResizeTracking_RejectsFullScreenWindow() {
+        XCTAssertFalse(
+            PreviewViewController.shouldTrackWindowSize(
+                styleMask: [.titled, .resizable, .fullScreen],
+                isFullScreenTransitionInProgress: false
+            )
+        )
+    }
+
+    func testWindowResizeTracking_AcceptsWindowedUserResize() {
+        XCTAssertTrue(
+            PreviewViewController.shouldTrackWindowSize(
+                styleMask: [.titled, .resizable],
+                isFullScreenTransitionInProgress: false
+            )
+        )
+    }
+
+    func testWindowResizeTracking_RejectsQuickLookRemoteFullScreenFrame() {
+        XCTAssertFalse(
+            PreviewViewController.shouldTrackWindowSize(
+                styleMask: [.titled, .resizable],
+                isFullScreenTransitionInProgress: false,
+                windowFrame: CGRect(x: 0, y: 0, width: 1_512, height: 950),
+                visibleScreenFrame: CGRect(x: 0, y: 0, width: 1_512, height: 949)
+            ),
+            "Quick Look's remote host does not expose fullScreen in its styleMask"
+        )
+    }
+
+    func testWindowResizeTracking_AcceptsLargeWindowWithVisibleScreenMargins() {
+        XCTAssertTrue(
+            PreviewViewController.shouldTrackWindowSize(
+                styleMask: [.titled, .resizable],
+                isFullScreenTransitionInProgress: false,
+                windowFrame: CGRect(x: 63, y: 56, width: 1_386, height: 837),
+                visibleScreenFrame: CGRect(x: 0, y: 0, width: 1_512, height: 949)
+            )
+        )
+    }
+
     // MARK: - Restore Clamp Tests
 
     func testRestoreClamp_IgnoresTinyPersistedSizes() {
