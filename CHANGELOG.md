@@ -1,4 +1,7 @@
 ## [Unreleased]
+_无待发布的变更_
+
+## [1.34.471] - 2026-08-12
 
 ### Fixed
 - **Quick Look full-screen scrolling**: Restored smooth two-finger scrolling in Finder Quick Look full screen by removing the renderer's blocking wheel-event bridge and handling pinch magnification natively.
