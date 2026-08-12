@@ -169,7 +169,6 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     private static let compactWidthThreshold: CGFloat = 700
     private static let compactHeightThreshold: CGFloat = 500
     
-    private var appearanceObservation: NSKeyValueObservation?
     private var keyDownEventMonitor: Any?
     
     private let maxPreviewSizeBytes: UInt64 = 500 * 1024 // 500KB limit
@@ -304,8 +303,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         os_log("🔵 viewDidLoad called", log: logger, type: .default)
         
         self.view.wantsLayer = true
-        AppearancePreference.shared.apply(to: self.view)
-        applyInitialBackgroundColor()
+        applySelectedAppearanceToView()
         
         setupWindowResizeObservers()
         
@@ -352,6 +350,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         webView.autoresizingMask = [.width, .height]
         webView.navigationDelegate = self
         self.view.addSubview(webView)
+        applySelectedAppearanceToView()
         
         os_log("🔵 WebView initialized and added to view", log: logger, type: .default)
         
@@ -396,14 +395,27 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     }
 
     private func applyInitialBackgroundColor() {
-        let appearanceName = self.view.effectiveAppearance.name
-        if appearanceName == .darkAqua || appearanceName == .vibrantDark ||
-           appearanceName == .accessibilityHighContrastDarkAqua ||
-           appearanceName == .accessibilityHighContrastVibrantDark {
+        if currentThemeString() == "dark" {
             self.view.layer?.backgroundColor = NSColor(red: 0.051, green: 0.067, blue: 0.09, alpha: 1.0).cgColor
         } else {
-            self.view.layer?.backgroundColor = NSColor.textBackgroundColor.cgColor
+            self.view.effectiveAppearance.performAsCurrentDrawingAppearance {
+                self.view.layer?.backgroundColor = NSColor.textBackgroundColor.cgColor
+            }
         }
+    }
+
+    private func applySelectedAppearanceToView() {
+        let mode = AppearancePreference.shared.currentMode
+        let appearance: NSAppearance?
+        if mode == .system {
+            let appearanceName: NSAppearance.Name = currentThemeString() == "dark" ? .darkAqua : .aqua
+            appearance = NSAppearance(named: appearanceName)
+        } else {
+            appearance = mode.nsAppearance
+        }
+        self.view.appearance = appearance
+        self.webView?.appearance = appearance
+        applyInitialBackgroundColor()
     }
     
     
@@ -452,13 +464,6 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         
         updatePreviewMode()
         
-        appearanceObservation = view.observe(\.effectiveAppearance, options: [.new]) { [weak self] _, _ in
-            guard let self = self else { return }
-            os_log("🌓 [effectiveAppearance KVO] System appearance changed", log: self.logger, type: .default)
-            self.applyThemeToWebView()
-            self.updateThemeButtonState()
-        }
-        
         DispatchQueue.main.async { [weak self] in
             self?.view.window?.makeFirstResponder(self)
             os_log("🔵 Attempted to make view controller first responder",
@@ -499,8 +504,6 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         super.viewWillDisappear()
         logScreenEnvironment(context: "viewWillDisappear")
 
-        appearanceObservation?.invalidate()
-        appearanceObservation = nil
         stopFileMonitoring()
 
         os_log("📊 [viewWillDisappear] trackingEnabled=%{public}@ didUserResize=%{public}@ currentSize=%{public}@",
@@ -583,6 +586,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         stopFileMonitoring()
         stopSecurityScopedAccessIfNeeded()
         NotificationCenter.default.removeObserver(self)
+        DistributedNotificationCenter.default().removeObserver(self)
         handshakeWorkItem?.cancel()
         saveSizeWorkItem?.cancel()
         resizeTrackingWorkItem?.cancel()
@@ -640,7 +644,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         }
         
         AppearancePreference.shared.currentMode = newMode
-        AppearancePreference.shared.apply(to: self.view)
+        applySelectedAppearanceToView()
         
         updateThemeButtonState()
         
@@ -868,19 +872,28 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         ])
     }
 
-    /// 根据当前 effectiveAppearance 返回 "dark" / "light" / "system"
-    private func currentThemeString() -> String {
-        let appearanceName = self.view.effectiveAppearance.name
-        if appearanceName == .darkAqua || appearanceName == .vibrantDark ||
-           appearanceName == .accessibilityHighContrastDarkAqua ||
-           appearanceName == .accessibilityHighContrastVibrantDark {
-            return "dark"
-        } else if appearanceName == .aqua || appearanceName == .vibrantLight ||
-                  appearanceName == .accessibilityHighContrastAqua ||
-                  appearanceName == .accessibilityHighContrastVibrantLight {
+    static func resolvedTheme(
+        mode: AppearanceMode,
+        systemInterfaceStyle: String?
+    ) -> String {
+        switch mode {
+        case .light:
             return "light"
+        case .dark:
+            return "dark"
+        case .system:
+            return systemInterfaceStyle?.caseInsensitiveCompare("dark") == .orderedSame
+                ? "dark"
+                : "light"
         }
-        return "system"
+    }
+
+    /// Resolve System from the global macOS preference, not Quick Look's host window.
+    private func currentThemeString() -> String {
+        Self.resolvedTheme(
+            mode: AppearancePreference.shared.currentMode,
+            systemInterfaceStyle: UserDefaults.standard.string(forKey: "AppleInterfaceStyle")
+        )
     }
 
     /// 调用 JS window.updateTheme()，不重新渲染文档（避免 DOM 重建）
@@ -1611,6 +1624,12 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
             name: NSWindow.didExitFullScreenNotification,
             object: nil
         )
+        DistributedNotificationCenter.default().addObserver(
+            self,
+            selector: #selector(systemAppearanceDidChange),
+            name: Notification.Name("AppleInterfaceThemeChangedNotification"),
+            object: nil
+        )
 
         #if DEBUG
         NotificationCenter.default.addObserver(
@@ -1739,6 +1758,14 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
 
     @objc private func windowDidExitFullScreen(_ notification: Notification) {
         setFullScreenTransition(false, notification: notification, context: "didExit")
+    }
+
+    @objc private func systemAppearanceDidChange(_ notification: Notification) {
+        guard AppearancePreference.shared.currentMode == .system else { return }
+        applySelectedAppearanceToView()
+        applyThemeToWebView()
+        updateThemeButtonState()
+        os_log("🌓 [systemAppearance] Applied global macOS appearance", log: logger, type: .default)
     }
 
     private func setFullScreenTransition(
