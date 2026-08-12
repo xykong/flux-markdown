@@ -1,5 +1,11 @@
 ## [Unreleased]
-_无待发布的变更_
+
+### Fixed
+- **Quick Look full-screen scrolling**: Restored smooth two-finger scrolling in Finder Quick Look full screen by removing the renderer's blocking wheel-event bridge and handling pinch magnification natively.
+  - Kept standalone app scrolling, Command-scroll zoom, two-finger double-tap reset, and Mouseless-style synthesized scrolling working.
+  - Prevented Quick Look full-screen dimensions from overwriting the saved windowed preview size.
+- **Quick Look system appearance in full screen**: Kept System appearance aligned with the macOS Light/Dark setting when Finder's remote full-screen host uses a dark presentation appearance.
+  - Applied the resolved appearance directly to both the native preview container and `WKWebView`, keeping renderer themes and CSS media queries consistent.
 
 ## [1.34.464] - 2026-07-20
 
