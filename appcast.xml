@@ -7,6 +7,23 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 1.34.471</title>
+            <link>https://github.com/xykong/flux-markdown/releases/tag/v1.34.471</link>
+            <sparkle:version>471</sparkle:version>
+            <sparkle:shortVersionString>1.34.471</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+            <pubDate>Wed, 12 Aug 2026 07:31:18 +0000</pubDate>
+            <enclosure
+                url="https://github.com/xykong/flux-markdown/releases/download/v1.34.471/FluxMarkdown.dmg"
+                sparkle:edSignature="mTLYzYsvwrhGxkAykvJfIRUMCpPIWBp4ta7mV1189EEzd1TgVE5mqCXEtGFfIVP/blhzVmX74j9dFZSRpEUvAQ=="
+                length="11109208"
+                type="application/octet-stream" />
+            <description><![CDATA[
+                <h2>更新内容</h2><h3>Fixed</h3><ul><li><strong>Quick Look full-screen scrolling</strong>: Restored smooth two-finger scrolling in Finder Quick Look full screen by removing the renderer's blocking wheel-event bridge and handling pinch magnification natively.</li><li>&nbsp;&nbsp;&nbsp;&nbsp;Kept standalone app scrolling, Command-scroll zoom, two-finger double-tap reset, and Mouseless-style synthesized scrolling working.</li><li>&nbsp;&nbsp;&nbsp;&nbsp;Prevented Quick Look full-screen dimensions from overwriting the saved windowed preview size.</li><li><strong>Quick Look system appearance in full screen</strong>: Kept System appearance aligned with the macOS Light/Dark setting when Finder's remote full-screen host uses a dark presentation appearance.</li><li>&nbsp;&nbsp;&nbsp;&nbsp;Applied the resolved appearance directly to both the native preview container and <code>WKWebView</code>, keeping renderer themes and CSS media queries consistent.</li></ul><p><a href="https://github.com/xykong/flux-markdown/releases/tag/v1.34.471">查看完整更新日志</a></p>
+            ]]></description>
+        </item>
+        
+        <item>
             <title>Version 1.34.464</title>
             <link>https://github.com/xykong/flux-markdown/releases/tag/v1.34.464</link>
             <sparkle:version>464</sparkle:version>
