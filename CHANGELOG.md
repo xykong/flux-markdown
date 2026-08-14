@@ -1,4 +1,7 @@
 ## [Unreleased]
+_无待发布的变更_
+
+## [1.34.475] - 2026-08-14
 
 ### Fixed
 - **App full-screen linked documents**: Prevented local Markdown links opened from a full-screen App window from flashing and then shrinking into a window-sized area inside the full-screen tab.
