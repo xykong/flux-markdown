@@ -1,9 +1,11 @@
 import SwiftUI
 import AppKit
+import os.log
 
 struct WindowAccessor: NSViewRepresentable {
     static let minimumRestorableWindowSize = CGSize(width: 320, height: 200)
     private static let initialFrameReapplyDelays: [TimeInterval] = [0.20, 0.80]
+    private static let logger = OSLog(subsystem: "com.markdownquicklook.app", category: "WindowAccessor")
 
     struct FrameApplication: Equatable {
         let delay: TimeInterval
@@ -68,6 +70,21 @@ struct WindowAccessor: NSViewRepresentable {
         return contentRect.size
     }
 
+    static func isInFullScreenContext(
+        styleMask: NSWindow.StyleMask,
+        tabbedWindowStyleMasks: [NSWindow.StyleMask]
+    ) -> Bool {
+        styleMask.contains(.fullScreen) ||
+            tabbedWindowStyleMasks.contains { $0.contains(.fullScreen) }
+    }
+
+    private static func isInFullScreenContext(_ window: NSWindow) -> Bool {
+        isInFullScreenContext(
+            styleMask: window.styleMask,
+            tabbedWindowStyleMasks: window.tabbedWindows?.map(\.styleMask) ?? []
+        )
+    }
+
     private static func frameApplications(currentFrame: CGRect, targetFrame: CGRect, visibleFrames: [CGRect]) -> [FrameApplication] {
         guard isFrameRestorable(targetFrame, visibleFrames: visibleFrames) else { return [] }
 
@@ -89,7 +106,10 @@ struct WindowAccessor: NSViewRepresentable {
             window.minSize = Self.minimumRestorableWindowSize
 
             let startupPhase: Coordinator.StartupPhase
-            if let savedFrame = AppearancePreference.shared.hostWindowFrame {
+            if Self.isInFullScreenContext(window) {
+                startupPhase = .applyingDefault
+                os_log("Skipping startup frame restore in full-screen context", log: Self.logger, type: .debug)
+            } else if let savedFrame = AppearancePreference.shared.hostWindowFrame {
                 let visibleFrames = Self.currentVisibleFrames()
                 if Self.isFrameRestorable(savedFrame, visibleFrames: visibleFrames) {
                     startupPhase = .restoring(targetFrame: savedFrame)
@@ -116,6 +136,7 @@ struct WindowAccessor: NSViewRepresentable {
     }
 
     private static func applyDefaultFrame(to window: NSWindow) {
+        guard !isInFullScreenContext(window) else { return }
         guard let screen = window.screen ?? NSScreen.main ?? NSScreen.screens.first else { return }
 
         let frame = defaultDocumentFrame(
@@ -126,7 +147,15 @@ struct WindowAccessor: NSViewRepresentable {
         applyFrameApplications(to: window, targetFrame: frame, visibleFrames: [screen.visibleFrame])
     }
 
-    private static func applyFrameApplications(to window: NSWindow, targetFrame: CGRect, visibleFrames: [CGRect]) {
+    static func applyFrameApplications(
+        to window: NSWindow,
+        targetFrame: CGRect,
+        visibleFrames: [CGRect],
+        fullScreenContextProvider: ((NSWindow) -> Bool)? = nil
+    ) {
+        let isFullScreen = fullScreenContextProvider ?? isInFullScreenContext
+        guard !isFullScreen(window) else { return }
+
         let applications = frameApplications(
             currentFrame: window.frame,
             targetFrame: targetFrame,
@@ -140,6 +169,10 @@ struct WindowAccessor: NSViewRepresentable {
                 DispatchQueue.main.asyncAfter(deadline: .now() + application.delay) { [weak window] in
                     guard let window else { return }
                     guard !window.inLiveResize else { return }
+                    guard !isFullScreen(window) else {
+                        os_log("Cancelled delayed frame restore after window entered full-screen context", log: logger, type: .debug)
+                        return
+                    }
                     guard !framesApproximatelyEqual(window.frame, application.frame) else { return }
                     applyFrame(application.frame, to: window)
                 }
@@ -148,12 +181,14 @@ struct WindowAccessor: NSViewRepresentable {
     }
 
     private static func applyFrame(_ frame: CGRect, to window: NSWindow) {
+        guard !isInFullScreenContext(window) else { return }
         guard !framesApproximatelyEqual(window.frame, frame) else { return }
         window.setFrame(frame, display: true)
     }
 
-    static func shouldSaveFrame(for window: NSWindow) -> Bool {
-        window.title.hasSuffix(".md") || window.representedURL != nil
+    static func shouldSaveFrame(for window: NSWindow, isFullScreenTransitionInProgress: Bool = false) -> Bool {
+        guard !isFullScreenTransitionInProgress, !isInFullScreenContext(window) else { return false }
+        return window.title.hasSuffix(".md") || window.representedURL != nil
     }
 
     private static func framesApproximatelyEqual(_ lhs: CGRect, _ rhs: CGRect) -> Bool {
@@ -190,6 +225,7 @@ struct WindowAccessor: NSViewRepresentable {
         var window: NSWindow?
         var observers: [NSObjectProtocol] = []
         private var startupPhase: StartupPhase = .settled
+        private var isFullScreenTransitionInProgress = false
         
         deinit {
             observers.forEach { NotificationCenter.default.removeObserver($0) }
@@ -213,6 +249,25 @@ struct WindowAccessor: NSViewRepresentable {
                 MainActor.assumeIsolated { self?.saveFrame() }
             })
 
+            observers.append(center.addObserver(forName: NSWindow.willEnterFullScreenNotification, object: window, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.isFullScreenTransitionInProgress = true }
+            })
+
+            observers.append(center.addObserver(forName: NSWindow.didEnterFullScreenNotification, object: window, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.isFullScreenTransitionInProgress = false }
+            })
+
+            observers.append(center.addObserver(forName: NSWindow.willExitFullScreenNotification, object: window, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.isFullScreenTransitionInProgress = true }
+            })
+
+            observers.append(center.addObserver(forName: NSWindow.didExitFullScreenNotification, object: window, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated {
+                    self?.isFullScreenTransitionInProgress = false
+                    self?.saveFrame()
+                }
+            })
+
             settleStartupPersistenceGate(after: 1.0)
         }
 
@@ -225,7 +280,10 @@ struct WindowAccessor: NSViewRepresentable {
         @MainActor
         private func saveFrame() {
             guard let window = window else { return }
-            guard WindowAccessor.shouldSaveFrame(for: window) else { return }
+            guard WindowAccessor.shouldSaveFrame(
+                for: window,
+                isFullScreenTransitionInProgress: isFullScreenTransitionInProgress
+            ) else { return }
             guard WindowAccessor.isFrameValidForRestore(window.frame) else { return }
             guard shouldPersistCurrentFrame(window.frame) else { return }
             AppearancePreference.shared.hostWindowFrame = window.frame

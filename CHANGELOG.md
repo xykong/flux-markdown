@@ -1,5 +1,9 @@
 ## [Unreleased]
-_无待发布的变更_
+
+### Fixed
+- **App full-screen linked documents**: Prevented local Markdown links opened from a full-screen App window from flashing and then shrinking into a window-sized area inside the full-screen tab.
+  - Startup frame restoration now recognizes the entire full-screen tab group and cancels delayed windowed-frame applications after a document joins it.
+  - Full-screen transitions and full-screen tab geometry no longer overwrite the saved windowed document frame.
 
 ## [1.34.471] - 2026-08-12
 
