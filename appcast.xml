@@ -7,6 +7,23 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 1.34.475</title>
+            <link>https://github.com/xykong/flux-markdown/releases/tag/v1.34.475</link>
+            <sparkle:version>475</sparkle:version>
+            <sparkle:shortVersionString>1.34.475</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+            <pubDate>Fri, 14 Aug 2026 03:27:00 +0000</pubDate>
+            <enclosure
+                url="https://github.com/xykong/flux-markdown/releases/download/v1.34.475/FluxMarkdown.dmg"
+                sparkle:edSignature="lnLx6kmxvAGuQjZ8xPa0LbZHxELB5iqWcpsKZBlgi09S5fzgtJeXij1qU+8os7MgKaE2VePnsGA+QnzgLQqjBA=="
+                length="11130087"
+                type="application/octet-stream" />
+            <description><![CDATA[
+                <h2>更新内容</h2><h3>Fixed</h3><ul><li><strong>App full-screen linked documents</strong>: Prevented local Markdown links opened from a full-screen App window from flashing and then shrinking into a window-sized area inside the full-screen tab.</li><li>&nbsp;&nbsp;&nbsp;&nbsp;Startup frame restoration now recognizes the entire full-screen tab group and cancels delayed windowed-frame applications after a document joins it.</li><li>&nbsp;&nbsp;&nbsp;&nbsp;Full-screen transitions and full-screen tab geometry no longer overwrite the saved windowed document frame.</li></ul><p><a href="https://github.com/xykong/flux-markdown/releases/tag/v1.34.475">查看完整更新日志</a></p>
+            ]]></description>
+        </item>
+        
+        <item>
             <title>Version 1.34.471</title>
             <link>https://github.com/xykong/flux-markdown/releases/tag/v1.34.471</link>
             <sparkle:version>471</sparkle:version>
