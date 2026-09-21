@@ -293,8 +293,11 @@ function extractFrontMatter(text: string): { yaml: string | null; body: string }
 
 function yamlValueToHtml(value: unknown): string {
     if (value === null || value === undefined) return '';
+    if (value instanceof Date) {
+        return escapeHtml(value.toISOString().slice(0, 10));
+    }
     if (Array.isArray(value)) {
-        return '<ul>' + value.map(v => `<li>${escapeHtml(String(v))}</li>`).join('') + '</ul>';
+        return '<ul>' + value.map(v => `<li>${yamlValueToHtml(v)}</li>`).join('') + '</ul>';
     }
     if (typeof value === 'object') {
         return yamlObjectToTable(value as Record<string, unknown>);
@@ -304,8 +307,7 @@ function yamlValueToHtml(value: unknown): string {
 
 function yamlObjectToTable(obj: Record<string, unknown>): string {
     const rows = Object.entries(obj).map(([k, v]) => {
-        const isComplex = v !== null && typeof v === 'object';
-        return `<tr><th>${escapeHtml(k)}</th><td>${isComplex ? yamlValueToHtml(v) : escapeHtml(String(v ?? ''))}</td></tr>`;
+        return `<tr><th>${escapeHtml(k)}</th><td>${yamlValueToHtml(v)}</td></tr>`;
     }).join('');
     return `<table class="yaml-frontmatter"><tbody>${rows}</tbody></table>`;
 }

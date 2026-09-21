@@ -26,6 +26,8 @@ date: 2024-01-01
         expect(table!.textContent).toContain('Hello World');
         expect(table!.textContent).toContain('author');
         expect(table!.textContent).toContain('Jane Doe');
+        expect(table!.textContent).toContain('date');
+        expect(table!.textContent).toContain('2024-01-01');
     });
 
     test('does not render front matter headings in TOC', async () => {
