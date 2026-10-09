@@ -56,11 +56,11 @@ import sys
 app, extension = map(Path, sys.argv[1:])
 for bundle in (app, extension):
     output = subprocess.run(
-        ['/usr/bin/codesign', '-d', '--entitlements', '-', str(bundle)],
+        ['/usr/bin/codesign', '-d', '--entitlements', '-', '--xml', str(bundle)],
         check=True, capture_output=True,
     )
     entitlements = plistlib.loads(output.stdout)
-    if entitlements.get('com.apple.security.app-sandbox') is not True:
+    if bundle == extension and entitlements.get('com.apple.security.app-sandbox') is not True:
         raise SystemExit(f'{bundle.name} must enable App Sandbox.')
     forbidden = {
         'com.apple.security.get-task-allow',
@@ -85,5 +85,5 @@ if list(app.rglob('Sparkle.framework')):
 for notice in ('LICENSE', 'THIRD_PARTY_LICENSES.md', 'RENDERER_LICENSES.txt'):
     if not (app / 'Contents/Resources' / notice).is_file():
         raise SystemExit(f'The release must include {notice}.')
-print('Verified sandboxed bundles, license notices, and absence of the in-app updater.')
+print('Verified QuickLook sandbox, license notices, and absence of the in-app updater.')
 PY

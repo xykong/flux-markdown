@@ -4,6 +4,7 @@
 - **YAML date values**: Display ISO dates in front matter tables and array items.
   - Retains the fix by [@xluffy](https://github.com/xluffy) proposed in [upstream PR #56](https://github.com/xykong/flux-markdown/pull/56).
 - **macOS build tools**: Use the system `sed` when a Nix environment also provides GNU `sed`.
+- **Artifact verification**: Read signed entitlements as XML and preserve the original host app's sandbox policy.
 
 ### Changed
 - **Unofficial personal fork**: Preserve attribution to xykong and all upstream contributors.
