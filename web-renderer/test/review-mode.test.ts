@@ -1,9 +1,8 @@
 import {
   collectBlocks,
   computeBlockChanges,
-  computeSimilarity,
   hashText,
-  markInlineDiff,
+  inlineDiff,
   normalizeBlockText,
   ReviewController,
   clearReviewDom,
@@ -82,45 +81,37 @@ describe('computeBlockChanges', () => {
   });
 });
 
-describe('computeSimilarity', () => {
-  test('returns 1 for equal text', () => {
-    expect(computeSimilarity('same text', 'same text')).toBe(1);
-  });
-
-  test('returns a low value for a large rewrite', () => {
-    expect(computeSimilarity('alpha beta gamma delta', 'one two three four')).toBeLessThan(0.4);
-  });
-});
-
-describe('markInlineDiff', () => {
+describe('inlineDiff', () => {
   test('wraps added words', () => {
-    const container = makeContainer(block('p', 'hello brave world', 1, 1));
-    const p = container.querySelector('p') as HTMLElement;
-    markInlineDiff(p, 'hello world');
-    const added = p.querySelectorAll('.review-word-added');
-    expect(added.length).toBeGreaterThan(0);
-    expect(p.textContent).toContain('brave');
+    const html = inlineDiff('hello world', 'hello brave world');
+    expect(html).toContain('review-word-added');
+    expect(html).toContain('brave');
   });
 
-  test('inserts removed words as del elements', () => {
-    const container = makeContainer(block('p', 'hello world', 1, 1));
-    const p = container.querySelector('p') as HTMLElement;
-    markInlineDiff(p, 'hello brave world');
-    const removed = p.querySelectorAll('del.review-word-removed');
-    expect(removed.length).toBeGreaterThan(0);
-    expect(removed[0].textContent?.trim()).toBe('brave');
+  test('marks removed words with del elements', () => {
+    const html = inlineDiff('hello brave world', 'hello world');
+    expect(html).toContain('del class="review-word-removed"');
+    expect(html).toContain('brave');
   });
 
   test('preserves link elements', () => {
-    const container = makeContainer(
-      block('p', 'visit <a href="https://example.com">site now</a>', 1, 1)
-    );
-    const p = container.querySelector('p') as HTMLElement;
-    markInlineDiff(p, 'visit site');
-    const link = p.querySelector('a');
-    expect(link).toBeTruthy();
-    expect(link?.getAttribute('href')).toBe('https://example.com');
-    expect(link?.querySelector('.review-word-added')).toBeTruthy();
+    const oldHtml = 'visit <a href="https://example.com">site</a>';
+    const newHtml = 'visit <a href="https://example.com">site now</a>';
+    const html = inlineDiff(oldHtml, newHtml);
+    expect(html).toContain('<a href="https://example.com">');
+    expect(html).toContain('review-word-added');
+  });
+
+  test('returns null for a large rewrite', () => {
+    expect(inlineDiff('alpha beta gamma delta', 'one two three four')).toBeNull();
+  });
+
+  test('returns null for a diagram', () => {
+    expect(inlineDiff('<svg></svg>', '<svg></svg>')).toBeNull();
+  });
+
+  test('returns null when only tags changed', () => {
+    expect(inlineDiff('<strong>same</strong>', '<em>same</em>')).toBeNull();
   });
 });
 

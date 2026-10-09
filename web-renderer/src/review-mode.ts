@@ -1,4 +1,4 @@
-import { diffArrays, diffWordsWithSpace } from 'diff';
+import { diffArrays } from 'diff';
 import type { ChangeObject } from 'diff';
 
 /**
@@ -41,20 +41,6 @@ export interface ReviewSummary {
   remaining: number;
 }
 
-interface TextNodeRange {
-  node: Text;
-  start: number;
-  end: number;
-}
-
-interface InlineOperation {
-  kind: 'add' | 'remove';
-  start: number;
-  end: number;
-  text: string;
-}
-
-const LARGE_REWRITE_THRESHOLD = 0.4;
 const STORE_PREFIX = 'flux-review:';
 
 export function normalizeBlockText(text: string): string {
@@ -173,144 +159,222 @@ export function computeBlockChanges(
   return result;
 }
 
-/**
- * Similarity value in the range [0, 1]. A value near 1 means the two texts are
- * almost equal. A value near 0 means the two texts are almost different.
- */
-export function computeSimilarity(previous: string, current: string): number {
-  if (!previous && !current) return 1;
-  if (!previous || !current) return 0;
-  const parts = diffWordsWithSpace(previous, current);
-  let commonLength = 0;
-  for (const part of parts) {
-    if (!part.added && !part.removed) commonLength += part.value.length;
-  }
-  const totalLength = previous.length + current.length;
-  return totalLength === 0 ? 1 : (2 * commonLength) / totalLength;
+// ─── Inline HTML word diff ───────────────────────────────────────────────
+//
+// This runs on the rendered HTML of the two block versions, not on the
+// Markdown source. Marking the source would break the syntax the marks land
+// in. An HTML token stream is safe to diff as long as a tag never splits from
+// its partner.
+//
+// Tokens are "optional whitespace + one tag or one word". Matching ignores
+// whitespace, so a reflowed paragraph is not one big change. Output uses the
+// token verbatim, so spacing survives.
+
+const BLOCK_TAG =
+  /^<\/?(?:address|article|aside|blockquote|dd|details|div|dl|dt|figcaption|figure|footer|h[1-6]|header|hr|li|main|nav|ol|p|pre|section|summary|table|tbody|td|tfoot|th|thead|tr|ul)\b/i;
+
+// Adjacent changes separated by at most this many unchanged words are merged,
+// so a rewritten sentence reads as one phrase rather than a row of confetti.
+const BRIDGE_WORDS = 3;
+// Past these, the paragraph has been rewritten rather than edited, and an
+// inline diff is less readable than simply showing the two versions.
+const MIN_SIMILARITY = 0.4;
+const MAX_GROUPS = 12;
+const MAX_HTML = 200_000;
+
+const VOID_TAGS = new Set([
+  'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
+  'link', 'meta', 'param', 'source', 'track', 'wbr',
+]);
+
+type InlineOp = 'eq' | 'add' | 'del';
+
+interface InlineGroup {
+  t: InlineOp;
+  tokens: string[];
 }
 
-function collectTextRanges(root: HTMLElement): { ranges: TextNodeRange[]; text: string } {
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-  const ranges: TextNodeRange[] = [];
-  let text = '';
-  let node = walker.nextNode();
-  while (node) {
-    const textNode = node as Text;
-    const value = textNode.nodeValue ?? '';
-    ranges.push({ node: textNode, start: text.length, end: text.length + value.length });
-    text += value;
-    node = walker.nextNode();
-  }
-  return { ranges, text };
+function tokenizeHtml(html: string): string[] {
+  return html.match(/\s*(?:<[^>]+>|[^<\s]+)/g) ?? [];
 }
 
-function findRangeAt(ranges: TextNodeRange[], position: number): TextNodeRange | null {
-  for (const range of ranges) {
-    if (position >= range.start && position < range.end) return range;
-  }
-  return ranges.length > 0 ? ranges[ranges.length - 1] : null;
+function normalizeToken(token: string): string {
+  return token.replace(/\s+/g, ' ').trim();
 }
 
-function wrapTextRange(root: HTMLElement, start: number, end: number): void {
-  const { ranges } = collectTextRanges(root);
-  const overlapping = ranges.filter((r) => r.end > start && r.start < end);
-  for (const range of overlapping) {
-    const value = range.node.nodeValue ?? '';
-    const localStart = Math.max(0, start - range.start);
-    const localEnd = Math.min(value.length, end - range.start);
-    if (localEnd <= localStart) continue;
-
-    const parent = range.node.parentNode;
-    if (!parent) continue;
-
-    const middle = value.slice(localStart, localEnd);
-    const before = value.slice(0, localStart);
-    const after = value.slice(localEnd);
-
-    const span = document.createElement('span');
-    span.className = 'review-word-added';
-    span.textContent = middle;
-
-    if (after.length > 0) {
-      parent.insertBefore(document.createTextNode(after), range.node.nextSibling);
-    }
-    parent.insertBefore(span, range.node.nextSibling);
-    if (before.length > 0) {
-      range.node.nodeValue = before;
-    } else {
-      parent.removeChild(range.node);
-    }
-  }
+function isTagToken(token: string): boolean {
+  return token.trimStart().startsWith('<');
 }
 
-function insertRemovedText(root: HTMLElement, position: number, text: string): void {
-  const { ranges } = collectTextRanges(root);
-  const range = findRangeAt(ranges, position);
-  if (!range) {
-    root.appendChild(makeRemovedMark(text));
-    return;
-  }
-
-  const value = range.node.nodeValue ?? '';
-  const local = Math.max(0, Math.min(value.length, position - range.start));
-  const parent = range.node.parentNode;
-  if (!parent) return;
-
-  const mark = makeRemovedMark(text);
-  if (local === 0) {
-    parent.insertBefore(mark, range.node);
-    return;
-  }
-  if (local >= value.length) {
-    parent.insertBefore(mark, range.node.nextSibling);
-    return;
-  }
-
-  const after = value.slice(local);
-  range.node.nodeValue = value.slice(0, local);
-  parent.insertBefore(mark, range.node.nextSibling);
-  parent.insertBefore(document.createTextNode(after), mark.nextSibling);
+function isBlockToken(token: string): boolean {
+  return BLOCK_TAG.test(token.trimStart());
 }
 
-function makeRemovedMark(text: string): HTMLElement {
-  const mark = document.createElement('del');
-  mark.className = 'review-word-removed';
-  mark.textContent = text;
-  return mark;
+function isWordToken(token: string): boolean {
+  return !isTagToken(token) && normalizeToken(token) !== '';
 }
 
 /**
- * Mark inline word changes between the baseline text and the current block.
- * The function operates on text nodes only. Tags stay in place.
+ * Indices of tags whose partner lies outside `tokens`. A mark may not span one
+ * of these, or it would interleave with an element it does not contain —
+ * `<strong><ins>x</strong>y</ins>` and friends.
  */
-export function markInlineDiff(blockEl: HTMLElement, baselineText: string): void {
-  const { text: currentText } = collectTextRanges(blockEl);
-  if (currentText.length === 0) return;
-
-  const parts = diffWordsWithSpace(baselineText, currentText);
-  const operations: InlineOperation[] = [];
-  let cursor = 0;
-
-  for (const part of parts) {
-    if (part.removed) {
-      operations.push({ kind: 'remove', start: cursor, end: cursor, text: part.value });
-    } else if (part.added) {
-      operations.push({ kind: 'add', start: cursor, end: cursor + part.value.length, text: part.value });
-      cursor += part.value.length;
+function findUnpairedTags(tokens: string[]): Set<number> {
+  const open: { name: string; index: number }[] = [];
+  const loose = new Set<number>();
+  tokens.forEach((token, index) => {
+    if (!isTagToken(token)) return;
+    const match = /^<(\/?)([a-zA-Z][\w-]*)/.exec(token.trimStart());
+    if (!match) return; // comment or doctype: harmless
+    const closing = match[1];
+    const name = match[2];
+    if (VOID_TAGS.has(name.toLowerCase()) || token.trimEnd().endsWith('/>')) return;
+    if (!closing) {
+      open.push({ name, index });
+    } else if (open.length > 0 && open[open.length - 1].name === name) {
+      open.pop();
     } else {
-      cursor += part.value.length;
+      loose.add(index); // closes something opened before this run
+    }
+  });
+  for (const entry of open) loose.add(entry.index); // closed after this run
+  return loose;
+}
+
+/** Wrap `body` without swallowing the whitespace that positions it. */
+function markTokens(tag: string, className: string, value: string): string {
+  const leadMatch = value.match(/^\s*/);
+  const lead = leadMatch ? leadMatch[0] : '';
+  const body = value.slice(lead.length);
+  return body ? `${lead}<${tag} class="${className}">${body}</${tag}>` : value;
+}
+
+/**
+ * Deleted text only: the old version's tags are dropped so nothing unbalances,
+ * but the whitespace in front of them is kept — it is what separates words.
+ */
+function emitRemoved(tokens: string[]): string {
+  const text = tokens
+    .map((token) => (isTagToken(token) ? (token.match(/^\s*/)?.[0] ?? '') : token))
+    .join('');
+  return markTokens('del', 'review-word-removed', text);
+}
+
+/** Added tokens keep the new version's structure; marks stop at tags they do not own. */
+function emitAdded(tokens: string[]): string {
+  const loose = findUnpairedTags(tokens);
+  let out = '';
+  let buffer: string[] = [];
+  const flush = () => {
+    if (buffer.length) out += markTokens('span', 'review-word-added', buffer.join(''));
+    buffer = [];
+  };
+  tokens.forEach((token, index) => {
+    if (isBlockToken(token) || loose.has(index)) {
+      flush();
+      out += token;
+    } else {
+      buffer.push(token);
+    }
+  });
+  flush();
+  return out;
+}
+
+/** Duplicate short unchanged runs into both sides so changes read as phrases. */
+function bridgeGroups(groups: InlineGroup[]): InlineGroup[] {
+  const out: InlineGroup[] = [];
+  for (let i = 0; i < groups.length; i++) {
+    const group = groups[i];
+    const prev = out[out.length - 1];
+    const next = groups[i + 1];
+    const short = group.tokens.filter(isWordToken).length <= BRIDGE_WORDS;
+    if (
+      group.t === 'eq' &&
+      short &&
+      prev !== undefined &&
+      prev.t !== 'eq' &&
+      next !== undefined &&
+      next.t !== 'eq' &&
+      !group.tokens.some(isBlockToken)
+    ) {
+      out.push({ t: 'del', tokens: group.tokens }, { t: 'add', tokens: group.tokens });
+    } else {
+      out.push(group);
     }
   }
+  return out;
+}
 
-  const additions = operations.filter((op) => op.kind === 'add').sort((a, b) => b.start - a.start);
-  for (const op of additions) {
-    wrapTextRange(blockEl, op.start, op.end);
+/**
+ * Mark up `newHtml` with what changed relative to `oldHtml`.
+ * Returns the annotated HTML, or null when a word diff would not help.
+ */
+export function inlineDiff(oldHtml: string, newHtml: string): string | null {
+  // Diagrams are one opaque node (or thousands of SVG elements); a word diff
+  // of either is meaningless.
+  if (oldHtml.length + newHtml.length > MAX_HTML) return null;
+  if (/<svg|class="mermaid"/.test(oldHtml) || /<svg|class="mermaid"/.test(newHtml)) return null;
+
+  const before = tokenizeHtml(oldHtml);
+  const after = tokenizeHtml(newHtml);
+  if (!before.length || !after.length) return null;
+
+  const parts = diffArrays(before, after, {
+    comparator: (a, b) => normalizeToken(a) === normalizeToken(b),
+  });
+
+  let same = 0;
+  let added = 0;
+  let removed = 0;
+  let groups = 0;
+  let inGroup = false;
+  for (const part of parts) {
+    const wordCount = part.value.filter(isWordToken).length;
+    if (part.added) added += wordCount;
+    else if (part.removed) removed += wordCount;
+    else same += wordCount;
+
+    const changed = Boolean(part.added || part.removed);
+    if (changed && !inGroup) groups++;
+    inGroup = changed;
   }
 
-  const removals = operations.filter((op) => op.kind === 'remove').sort((a, b) => b.start - a.start);
-  for (const op of removals) {
-    insertRemovedText(blockEl, op.start, op.text);
+  if (!added && !removed) return null; // only tags moved — not worth marking
+  if (groups > MAX_GROUPS) return null;
+  if (same / (same + Math.max(added, removed)) < MIN_SIMILARITY) return null;
+  // A removal that spans structure (a whole list item, a table row) has no
+  // valid place to sit inline. Show the two versions instead.
+  if (parts.some((part) => part.removed && part.value.some(isBlockToken))) return null;
+
+  const ops = bridgeGroups(
+    parts.map((part) => ({
+      t: (part.added ? 'add' : part.removed ? 'del' : 'eq') as InlineOp,
+      tokens: part.value,
+    }))
+  );
+
+  let html = '';
+  for (let i = 0; i < ops.length; ) {
+    if (ops[i].t === 'eq') {
+      html += ops[i].tokens.join('');
+      i++;
+      continue;
+    }
+    // Collect the whole run of changes, then show old text before new.
+    const deleted: string[] = [];
+    const inserted: string[] = [];
+    for (; i < ops.length && ops[i].t !== 'eq'; i++) {
+      if (ops[i].t === 'del') deleted.push(...ops[i].tokens);
+      else inserted.push(...ops[i].tokens);
+    }
+    // Any block tags the addition opens with come first, so the deleted text
+    // lands inside the new element rather than in front of it.
+    let lead = 0;
+    while (lead < inserted.length && isBlockToken(inserted[lead])) lead++;
+    html += inserted.slice(0, lead).join('') + emitRemoved(deleted) + emitAdded(inserted.slice(lead));
   }
+  return html;
 }
 
 class ReviewStore {
@@ -526,12 +590,11 @@ export class ReviewController {
     if (!blockEl) return;
 
     if (change.type === 'modified' && change.baselineEl) {
-      const previousText = change.baselineEl.textContent ?? '';
-      const similarity = computeSimilarity(previousText, blockEl.textContent ?? '');
-      if (similarity < LARGE_REWRITE_THRESHOLD) {
+      const annotated = inlineDiff(change.baselineEl.innerHTML, blockEl.innerHTML);
+      if (annotated === null) {
         this.insertBeforeDisclosure(change, blockEl, change.baselineEl);
       } else {
-        markInlineDiff(blockEl, previousText);
+        blockEl.innerHTML = annotated;
       }
     }
 

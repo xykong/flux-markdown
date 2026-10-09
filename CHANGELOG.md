@@ -1,5 +1,11 @@
 ## [Unreleased]
 
+### Changed
+- **Review mode inline diff**: Diff the rendered HTML token stream instead of text nodes (by [@xluffy](https://github.com/xluffy)).
+  - Links and emphasis stay intact, and marks cannot interleave with tags they do not own.
+  - Short unchanged runs merge, so a rewritten phrase reads as one change.
+  - Large rewrites, structural removals, and diagrams fall back to a before disclosure.
+
 ## [1.34.493] - 2026-10-09
 
 ### Changed
