@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+## [1.34.502] - 2026-10-09
+
 ### Changed
 - **Review controls**: Move the review control into the block's left gutter as a small icon, so it no longer adds a line and makes the block taller.
 
