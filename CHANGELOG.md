@@ -1,5 +1,16 @@
 ## [Unreleased]
 
+### Added
+- **Review mode**: Show changed Markdown blocks against the previous version, then let the reviewer mark each block as reviewed (by [@xluffy](https://github.com/xluffy)).
+  - Inline word-level marks preserve links and bold text.
+  - Reviewed state persists per document, and a block reopens when its text changes.
+  - Removed content and large rewrites appear in a before disclosure.
+  - Print and HTML export hide the review notes.
+
+### Changed
+- **Renderer build**: Install renderer dependencies only when `node_modules` is missing or the lockfile changes.
+- **App build**: Use an incremental Xcode build by default; pass `CLEAN=1` for a clean build.
+
 ## [1.34.485] - 2026-10-09
 
 ### Fixed
