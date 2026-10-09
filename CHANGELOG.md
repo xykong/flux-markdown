@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+## [1.34.493] - 2026-10-09
+
 ### Changed
 - **Review mode**: Show removed and added words with clear red and green backgrounds in the rendered document.
   - The transient block animation no longer tints the whole changed block, so the inline word marks stay visible.
