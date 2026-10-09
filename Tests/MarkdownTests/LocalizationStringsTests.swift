@@ -58,14 +58,16 @@ final class LocalizationStringsTests: XCTestCase {
     private func stringKeys(in languageDirectory: URL) throws -> Set<String> {
         let file = languageDirectory.appendingPathComponent("Localizable.strings")
         let content = try String(contentsOf: file, encoding: .utf8)
+        let pattern = try NSRegularExpression(pattern: "^\\s*\"([^\"]*)\"\\s*=")
         var keys = Set<String>()
-        for line in content.split(separator: "\n") {
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-            guard trimmed.hasPrefix("\""), let equalsIndex = trimmed.firstIndex(of: "=") else {
+        for line in content.split(separator: "\n", omittingEmptySubsequences: false) {
+            let text = String(line)
+            let range = NSRange(text.startIndex..<text.endIndex, in: text)
+            guard let match = pattern.firstMatch(in: text, range: range),
+                  let keyRange = Range(match.range(at: 1), in: text) else {
                 continue
             }
-            let key = trimmed[trimmed.index(after: trimmed.startIndex)..<equalsIndex]
-            keys.insert(String(key))
+            keys.insert(String(text[keyRange]))
         }
         return keys
     }
