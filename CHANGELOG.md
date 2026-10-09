@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+## [1.34.489] - 2026-10-09
+
 ### Added
 - **Review mode**: Show changed Markdown blocks against the previous version, then let the reviewer mark each block as reviewed (by [@xluffy](https://github.com/xluffy)).
   - Inline word-level marks preserve links and bold text.
