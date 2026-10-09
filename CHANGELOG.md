@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+### Fixed
+- **Release build**: Pass `clean build` to `xcodebuild` when `CLEAN=1`, so the DMG workflow performs a clean build.
+
 ## [1.34.489] - 2026-10-09
 
 ### Added

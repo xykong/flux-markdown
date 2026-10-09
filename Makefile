@@ -30,7 +30,7 @@ generate: build_renderer
 
 app: generate
 	@echo "🔨 Building application in $(or $(CONFIGURATION),Release) configuration..."
-	@xcodebuild -project FluxMarkdown.xcodeproj -scheme Markdown -configuration $(or $(CONFIGURATION),Release) -derivedDataPath "$(CURDIR)/build/DerivedData" -destination 'platform=macOS,arch=arm64' ARCHS=arm64 ONLY_ACTIVE_ARCH=YES CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO $(if $(CLEAN),clean,)build -quiet 2> build_error.log || (cat build_error.log; rm -f build_error.log; exit 1)
+	@xcodebuild -project FluxMarkdown.xcodeproj -scheme Markdown -configuration $(or $(CONFIGURATION),Release) -derivedDataPath "$(CURDIR)/build/DerivedData" -destination 'platform=macOS,arch=arm64' ARCHS=arm64 ONLY_ACTIVE_ARCH=YES CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO $(if $(CLEAN),clean build,build) -quiet 2> build_error.log || (cat build_error.log; rm -f build_error.log; exit 1)
 	@rm -f build_error.log
 	@echo "✅ Build completed: $(or $(CONFIGURATION),Release) configuration"
 
