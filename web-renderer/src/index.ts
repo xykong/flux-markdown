@@ -133,6 +133,7 @@ import './styles/print.css';
 import './styles/help-overlay.css';
 import './styles/blockquote-collapse.css';
 import './styles/diff-animations.css';
+import './styles/review-mode.css';
 import './styles/line-numbers.css';
 import './styles/finder-pane.css';
 import './styles/typst.css';
@@ -277,6 +278,7 @@ import { BlockquoteCollapse } from './blockquote-collapse';
 import { detectRtlContent } from './rtl';
 import { DiffAnimator } from './diff-animator';
 import { computeLineDiff } from './diff-engine';
+import { ReviewController, clearReviewDom, stripReviewHtml } from './review-mode';
 
 function extractFrontMatter(text: string): { yaml: string | null; body: string } {
     if (!text.startsWith('---')) {
@@ -401,6 +403,16 @@ function buildMd(): MarkdownIt {
 let md: MarkdownIt = buildMd();
 const diffAnimator = new DiffAnimator();
 
+interface ReviewContextCache {
+    body: string;
+    baselineBody: string;
+    documentKey: string;
+    options: RenderOptions;
+}
+
+let reviewController: ReviewController | null = null;
+let lastReviewContext: ReviewContextCache | null = null;
+
 function rebuildMd(): void {
     md = buildMd();
 }
@@ -434,6 +446,9 @@ interface RenderOptions {
     prevContent?: string;
     showLineNumbers?: boolean;
     renderVersion?: number;
+    reviewMode?: boolean;
+    baselineContent?: string;
+    documentKey?: string;
 }
 
 function imageDataForSource(source: string, imageData?: Record<string, string>): string | undefined {
@@ -533,6 +548,9 @@ declare global {
         renderMarkdown: (text: string, options?: RenderOptions) => Promise<void>;
         renderSource: (text: string, theme: string, prevContent?: string) => void;
         clearDiffMarks: () => void;
+        setReviewMode: (enabled: boolean) => void;
+        exitReview: () => void;
+        reviewSummary: () => { total: number; remaining: number };
         updateTheme: (theme: string) => void;
         exportHTML: () => string;
         setZoomLevel: (level: number) => void;
@@ -665,6 +683,7 @@ window.exportHTML = function(): string {
     const previewDiv = document.getElementById('markdown-preview');
     // Ensure we clone the content so we don't modify the active DOM
     const clone = previewDiv ? (previewDiv.cloneNode(true) as HTMLElement) : document.createElement('div');
+    clone.innerHTML = stripReviewHtml(clone.innerHTML);
     
     // Force all relative image srcs to be absolute file:// or local-md:// URIs
     // so Swift can easily find and replace them with base64 data URIs
@@ -881,6 +900,21 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
             diffAnimator.annotateRenderDOM(outputDiv, diffs);
         }
 
+        const shouldReview = options.reviewMode !== false;
+        const baselineRaw = options.baselineContent ?? options.prevContent;
+        const baselineBody = baselineRaw ? extractFrontMatter(baselineRaw).body : '';
+        reviewController = null;
+        lastReviewContext = null;
+        if (shouldReview && baselineBody && baselineBody !== renderBody) {
+            const documentKey = options.documentKey || options.baseUrl || 'default';
+            const renderBaseline = (body: string) => md.render(body, { baseUrl: options.baseUrl, imageData: options.imageData, renderVersion: options.renderVersion });
+            const controller = new ReviewController(outputDiv, documentKey, logToSwift);
+            const summary = controller.activate({ currentBody: renderBody, baselineBody, documentKey, renderBaseline, log: logToSwift });
+            reviewController = summary.total > 0 ? controller : null;
+            lastReviewContext = { body: renderBody, baselineBody, documentKey, options };
+            logToSwift(`[review] activated: total=${summary.total} remaining=${summary.remaining}`);
+        }
+
         if (blockquoteCollapse) {
             blockquoteCollapse.setInitialState(options.collapseBlockquotes === true);
         }
@@ -978,6 +1012,8 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
 };
 
 window.renderSource = function(text: string, theme: string, prevContent?: string) {
+    reviewController = null;
+    lastReviewContext = null;
     logToSwift(`[renderSource] START textLen=${text.length} theme=${theme}`);
     document.documentElement.setAttribute('data-line-numbers', lastShowLineNumbers ? 'true' : 'false');
     const normalizedTheme = (theme === 'light') ? 'default' : theme;
@@ -1011,6 +1047,8 @@ window.renderSource = function(text: string, theme: string, prevContent?: string
 window.clearDiffMarks = function() {
     const outputDiv = document.getElementById('markdown-preview');
     if (!outputDiv) return;
+    clearReviewDom(outputDiv);
+    reviewController = null;
     outputDiv.querySelectorAll<HTMLElement>('.render-diff-deleted-marker').forEach(el => el.remove());
     const animClasses = ['diff-entering', 'diff-exiting', 'render-diff-block-enter', 'render-diff-block-modified'];
     for (const cls of animClasses) {
@@ -1024,6 +1062,40 @@ window.clearDiffMarks = function() {
         el.style.backgroundColor = '';
         if (!el.style.cssText.trim()) el.removeAttribute('style');
     });
+};
+
+window.setReviewMode = function(enabled: boolean) {
+    const outputDiv = document.getElementById('markdown-preview');
+    if (!outputDiv) return;
+    if (!enabled) {
+        reviewController?.clear();
+        reviewController = null;
+        return;
+    }
+    if (!lastReviewContext || reviewController) return;
+    const controller = new ReviewController(outputDiv, lastReviewContext.documentKey, logToSwift);
+    const renderBaseline = (body: string) => md.render(body, {
+        baseUrl: lastReviewContext?.options.baseUrl,
+        imageData: lastReviewContext?.options.imageData,
+        renderVersion: lastReviewContext?.options.renderVersion,
+    });
+    const summary = controller.activate({
+        currentBody: lastReviewContext.body,
+        baselineBody: lastReviewContext.baselineBody,
+        documentKey: lastReviewContext.documentKey,
+        renderBaseline,
+        log: logToSwift,
+    });
+    reviewController = summary.total > 0 ? controller : null;
+};
+
+window.exitReview = function() {
+    reviewController?.clear();
+    reviewController = null;
+};
+
+window.reviewSummary = function() {
+    return reviewController?.getSummary() ?? { total: 0, remaining: 0 };
 };
 
 window.updateTheme = function(theme: string) {

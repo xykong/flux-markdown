@@ -1,0 +1,175 @@
+/* ═══════════════════════════════════════════
+   FluxMarkdown — Review Mode
+   Persistent block review UI. Diff stays in
+   one document column.
+   ═══════════════════════════════════════════ */
+
+.review-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px 0;
+  padding: 8px 12px;
+  border: 1px solid var(--review-toolbar-border, rgba(128, 128, 128, 0.28));
+  border-radius: 8px;
+  background: var(--review-toolbar-bg, rgba(128, 128, 128, 0.08));
+  backdrop-filter: blur(8px);
+  font-size: 13px;
+}
+
+.review-count {
+  margin-right: auto;
+  font-weight: 600;
+}
+
+.review-toolbar-button {
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 10px;
+  border: 1px solid var(--review-toolbar-border, rgba(128, 128, 128, 0.35));
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.review-toolbar-button:hover {
+  background: var(--review-button-hover, rgba(128, 128, 128, 0.18));
+}
+
+/* ─── Reviewed blocks fade to a neutral state ─── */
+.review-item {
+  position: relative;
+  margin: 8px 0;
+  padding: 4px 10px;
+  border-left: 3px solid transparent;
+  border-radius: 4px;
+}
+
+.review-item.review-added {
+  border-left-color: var(--diff-add-border);
+  background: var(--diff-add-bg);
+}
+
+.review-item.review-modified {
+  border-left-color: var(--diff-mod-border);
+  background: var(--diff-mod-bg);
+}
+
+.review-item.is-reviewed {
+  border-left-color: var(--review-reviewed-border, rgba(128, 128, 128, 0.35));
+  background: transparent;
+}
+
+.review-item.is-reviewed > *:not(.review-footer) {
+  opacity: 0.72;
+}
+
+.review-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.review-check {
+  font: inherit;
+  font-size: 11px;
+  padding: 2px 8px;
+  border: 1px solid var(--review-toolbar-border, rgba(128, 128, 128, 0.35));
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.review-check[aria-pressed='true'] {
+  border-color: var(--diff-add-border);
+  color: var(--diff-add-border);
+}
+
+.review-check:hover {
+  background: var(--review-button-hover, rgba(128, 128, 128, 0.18));
+}
+
+/* ─── Before disclosure for removals and large rewrites ─── */
+.review-before {
+  margin: 8px 0;
+  padding: 4px 10px;
+  border-left: 3px solid var(--diff-del-border);
+  border-radius: 4px;
+  background: var(--diff-del-bg);
+  font-size: 13px;
+}
+
+.review-before > summary {
+  cursor: pointer;
+  color: var(--diff-del-border);
+  font-weight: 600;
+  user-select: none;
+}
+
+.review-before-body {
+  margin-top: 6px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: var(--review-before-body-bg, rgba(128, 128, 128, 0.10));
+  color: var(--review-before-body-fg, inherit);
+  text-decoration: line-through;
+  text-decoration-color: rgba(248, 81, 73, 0.5);
+  opacity: 0.9;
+}
+
+.review-before.is-reviewed {
+  border-left-color: var(--review-reviewed-border, rgba(128, 128, 128, 0.35));
+  background: transparent;
+}
+
+.review-before.is-reviewed > summary {
+  color: var(--review-reviewed-border, rgba(128, 128, 128, 0.7));
+}
+
+/* ─── Inline word marks ─── */
+.review-word-added {
+  background-color: var(--diff-add-char-bg);
+  border-radius: 2px;
+}
+
+.review-word-removed {
+  background-color: var(--diff-del-char-bg);
+  border-radius: 2px;
+  text-decoration: line-through;
+  text-decoration-color: rgba(248, 81, 73, 0.7);
+}
+
+/* ─── Print: hide all review annotations ─── */
+@media print {
+  .review-toolbar,
+  .review-before,
+  .review-footer,
+  .review-word-removed {
+    display: none !important;
+  }
+
+  .review-item {
+    background: transparent !important;
+    border-left: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .review-word-added {
+    background: transparent !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .review-item,
+  .review-check,
+  .review-toolbar-button {
+    transition: none !important;
+  }
+}
