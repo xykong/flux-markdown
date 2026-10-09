@@ -41,7 +41,7 @@
   background: var(--review-button-hover, rgba(128, 128, 128, 0.18));
 }
 
-/* ─── Reviewed blocks fade to a neutral state ─── */
+/* ─── Reviewed blocks stay in the normal document flow ─── */
 .review-item {
   position: relative;
   margin: 8px 0;
@@ -52,17 +52,14 @@
 
 .review-item.review-added {
   border-left-color: var(--diff-add-border);
-  background: var(--diff-add-bg);
 }
 
 .review-item.review-modified {
   border-left-color: var(--diff-mod-border);
-  background: var(--diff-mod-bg);
 }
 
 .review-item.is-reviewed {
   border-left-color: var(--review-reviewed-border, rgba(128, 128, 128, 0.35));
-  background: transparent;
 }
 
 .review-item.is-reviewed > *:not(.review-footer) {
@@ -132,17 +129,27 @@
   color: var(--review-reviewed-border, rgba(128, 128, 128, 0.7));
 }
 
-/* ─── Inline word marks ─── */
+/* ─── Inline word marks: clear red and green backgrounds ─── */
 .review-word-added {
-  background-color: var(--diff-add-char-bg);
+  background-color: var(--review-add-bg, rgba(46, 160, 67, 0.32));
   border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(46, 160, 67, 0.25);
 }
 
 .review-word-removed {
-  background-color: var(--diff-del-char-bg);
+  background-color: var(--review-del-bg, rgba(248, 81, 73, 0.32));
   border-radius: 2px;
   text-decoration: line-through;
-  text-decoration-color: rgba(248, 81, 73, 0.7);
+  text-decoration-color: #b31d28;
+}
+
+[data-theme='dark'] .review-word-added {
+  background-color: var(--review-add-bg, rgba(63, 185, 80, 0.35));
+}
+
+[data-theme='dark'] .review-word-removed {
+  background-color: var(--review-del-bg, rgba(248, 81, 73, 0.35));
+  text-decoration-color: #ff7b72;
 }
 
 /* ─── Print: hide all review annotations ─── */

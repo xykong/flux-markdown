@@ -894,25 +894,31 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
             addLineNumbersToCodeBlocks(outputDiv);
         }
 
-        if (options.prevContent && options.prevContent.length > 0) {
-            const prevBody = extractFrontMatter(options.prevContent).body;
-            const diffs = computeLineDiff(prevBody, renderBody);
-            diffAnimator.annotateRenderDOM(outputDiv, diffs);
-        }
-
-        const shouldReview = options.reviewMode !== false;
+        // Review mode and the transient diff animation are mutually exclusive.
+        // Review mode shows persistent inline word marks; the animation is the fallback.
+        const reviewEnabled = options.reviewMode !== false;
         const baselineRaw = options.baselineContent ?? options.prevContent;
         const baselineBody = baselineRaw ? extractFrontMatter(baselineRaw).body : '';
         reviewController = null;
         lastReviewContext = null;
-        if (shouldReview && baselineBody && baselineBody !== renderBody) {
+        let reviewActive = false;
+        if (reviewEnabled && baselineBody && baselineBody !== renderBody) {
             const documentKey = options.documentKey || options.baseUrl || 'default';
             const renderBaseline = (body: string) => md.render(body, { baseUrl: options.baseUrl, imageData: options.imageData, renderVersion: options.renderVersion });
             const controller = new ReviewController(outputDiv, documentKey, logToSwift);
             const summary = controller.activate({ currentBody: renderBody, baselineBody, documentKey, renderBaseline, log: logToSwift });
-            reviewController = summary.total > 0 ? controller : null;
-            lastReviewContext = { body: renderBody, baselineBody, documentKey, options };
-            logToSwift(`[review] activated: total=${summary.total} remaining=${summary.remaining}`);
+            if (summary.total > 0) {
+                reviewController = controller;
+                lastReviewContext = { body: renderBody, baselineBody, documentKey, options };
+                reviewActive = true;
+                logToSwift(`[review] activated: total=${summary.total} remaining=${summary.remaining}`);
+            }
+        }
+
+        if (!reviewActive && options.prevContent && options.prevContent.length > 0) {
+            const prevBody = extractFrontMatter(options.prevContent).body;
+            const diffs = computeLineDiff(prevBody, renderBody);
+            diffAnimator.annotateRenderDOM(outputDiv, diffs);
         }
 
         if (blockquoteCollapse) {

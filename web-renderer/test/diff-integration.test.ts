@@ -95,11 +95,11 @@ describe('Task 6: renderMarkdown with prevContent diff annotation', () => {
     document.body.innerHTML = '<div id="markdown-preview"></div>';
   });
 
-  test('renderMarkdown with prevContent adds render-diff-block-enter class to added blocks', async () => {
+  test('renderMarkdown with prevContent adds render-diff-block-enter class to added blocks when review mode is off', async () => {
     const oldContent = '# Title\n\nFirst paragraph';
     const newContent = '# Title\n\nFirst paragraph\n\nNew paragraph';
 
-    await window.renderMarkdown(newContent, { prevContent: oldContent });
+    await window.renderMarkdown(newContent, { prevContent: oldContent, reviewMode: false });
     const preview = document.getElementById('markdown-preview')!;
     const entering = preview.querySelectorAll('.render-diff-block-enter');
     expect(entering.length).toBeGreaterThan(0);
@@ -124,11 +124,11 @@ describe('Task 6: renderMarkdown with prevContent diff annotation', () => {
     ).resolves.not.toThrow();
   });
 
-  test('renderMarkdown with YAML front matter only animates changed body blocks', async () => {
+  test('renderMarkdown with YAML front matter only animates changed body blocks when review mode is off', async () => {
     const oldContent = '---\ntitle: Test\n---\n\n# Heading\n\nOld paragraph';
     const newContent = '---\ntitle: Test\n---\n\n# Heading\n\nNew paragraph';
 
-    await window.renderMarkdown(newContent, { prevContent: oldContent });
+    await window.renderMarkdown(newContent, { prevContent: oldContent, reviewMode: false });
     const preview = document.getElementById('markdown-preview')!;
 
     const heading = preview.querySelector('h1');
@@ -144,5 +144,38 @@ describe('Task 6: renderMarkdown with prevContent diff annotation', () => {
     const preview = document.getElementById('markdown-preview')!;
     const heading = preview.querySelector('h1');
     expect(heading?.getAttribute('data-source-line-end')).toBeTruthy();
+  });
+});
+
+describe('Review mode integration', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '<div id="markdown-preview"></div>';
+    window.localStorage.clear();
+  });
+
+  test('shows inline removed text and skips the transient animation', async () => {
+    const oldText = 'This document describes where the app stores cookies and sessions';
+    const newText = 'This document describes where the app stores sessions';
+
+    await window.renderMarkdown(newText, { prevContent: oldText });
+    const preview = document.getElementById('markdown-preview')!;
+
+    expect(preview.querySelector('.review-toolbar')).toBeTruthy();
+    const removed = preview.querySelector('.review-word-removed');
+    expect(removed).toBeTruthy();
+    expect(removed?.textContent).toContain('cookies and');
+    expect(preview.querySelector('.render-diff-block-modified')).toBeNull();
+  });
+
+  test('shows inline added text', async () => {
+    const oldText = 'This document describes where the app stores sessions';
+    const newText = 'This document describes where the app stores cookies and sessions';
+
+    await window.renderMarkdown(newText, { prevContent: oldText });
+    const preview = document.getElementById('markdown-preview')!;
+
+    const added = preview.querySelector('.review-word-added');
+    expect(added).toBeTruthy();
+    expect(added?.textContent).toContain('cookies');
   });
 });
