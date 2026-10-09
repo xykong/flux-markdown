@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+## [1.34.485] - 2026-10-09
+
 ### Fixed
 - **YAML date values**: Display ISO dates in front matter tables and array items.
   - Retains the fix by [@xluffy](https://github.com/xluffy) proposed in [upstream PR #56](https://github.com/xykong/flux-markdown/pull/56).
