@@ -87,7 +87,7 @@ PY
 git add -- .version CHANGELOG.md
 git commit -m "chore(release): prepare $TAG"
 [ "$(git rev-list --count HEAD)" = "$build" ] || fail "Release commit count changed unexpectedly; nothing pushed."
-git tag "$TAG"
+git tag -a "$TAG" -m "FluxMarkdown $TAG: unofficial personal maintenance fork"
 verify_origin
 # Atomic push rejects conflicts without updating either remote ref. Never force.
 git push --atomic origin "HEAD:refs/heads/$BRANCH" "refs/tags/$TAG:refs/tags/$TAG"
