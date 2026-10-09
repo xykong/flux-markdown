@@ -91,3 +91,6 @@
 /* === Toast Messages === */
 "QuickLook preview does not support link navigation" = "L’aperçu QuickLook ne prend pas en charge la navigation par liens";
 "Double-click .md file to open in main app for full functionality" = "Double-cliquez sur le fichier .md pour l’ouvrir dans l’application principale et accéder à toutes les fonctionnalités";
+"Document reloaded" = "Document rechargé";
+"Reload failed" = "Échec du rechargement";
+"Zoom reset" = "Zoom réinitialisé";

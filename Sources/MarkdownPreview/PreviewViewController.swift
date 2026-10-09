@@ -996,16 +996,16 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     @objc private func resetZoom() {
         webView.pageZoom = 1.0
         AppearancePreference.shared.zoomLevel = 1.0
-        showToolbarFeedbackToast(NSLocalizedString("已重置缩放", comment: "Reset zoom toast"))
+        showToolbarFeedbackToast(NSLocalizedString("Zoom reset", comment: "Reset zoom toast"))
         os_log("🔵 pageZoom reset", log: logger, type: .debug)
     }
 
     @objc private func reloadFileManually() {
         os_log("🔄 Manual reload triggered by button/shortcut", log: logger, type: .default)
         if reloadFromDisk(force: true) {
-            showToolbarFeedbackToast(NSLocalizedString("已重新载入文档", comment: "Reload success toast"))
+            showToolbarFeedbackToast(NSLocalizedString("Document reloaded", comment: "Reload success toast"))
         } else {
-            showToolbarFeedbackToast(NSLocalizedString("重新载入失败", comment: "Reload failure toast"))
+            showToolbarFeedbackToast(NSLocalizedString("Reload failed", comment: "Reload failure toast"))
         }
     }
     

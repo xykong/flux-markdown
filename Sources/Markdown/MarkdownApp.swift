@@ -192,9 +192,9 @@ private struct DocumentPreviewScene: View {
     @State private var toolbarToast: ToolbarToastState?
 
     private let initialContentSize: CGSize
-    private let reloadSuccessToastMessage = NSLocalizedString("已重新载入文档", comment: "Reload success toast")
-    private let reloadFailureToastMessage = NSLocalizedString("重新载入失败", comment: "Reload failure toast")
-    private let resetZoomToastMessage = NSLocalizedString("已重置缩放", comment: "Reset zoom toast")
+    private let reloadSuccessToastMessage = NSLocalizedString("Document reloaded", comment: "Reload success toast")
+    private let reloadFailureToastMessage = NSLocalizedString("Reload failed", comment: "Reload failure toast")
+    private let resetZoomToastMessage = NSLocalizedString("Zoom reset", comment: "Reset zoom toast")
 
     init(file: FileDocumentConfiguration<MarkdownDocument>, preference: AppearancePreference, viewMode: Binding<ViewMode>) {
         self.file = file

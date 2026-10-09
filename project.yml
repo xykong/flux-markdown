@@ -48,6 +48,16 @@ targets:
     sources:
       - Sources/MarkdownPreview
       - Sources/Shared
+      - path: Sources/Markdown/en.lproj
+        buildPhase: resources
+      - path: Sources/Markdown/de.lproj
+        buildPhase: resources
+      - path: Sources/Markdown/es.lproj
+        buildPhase: resources
+      - path: Sources/Markdown/fr.lproj
+        buildPhase: resources
+      - path: Sources/Markdown/zh-Hans.lproj
+        buildPhase: resources
       - path: web-renderer/dist
         name: WebRenderer
         type: folder

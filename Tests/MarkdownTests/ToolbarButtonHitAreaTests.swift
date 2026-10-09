@@ -257,9 +257,9 @@ final class ToolbarButtonHitAreaTests: XCTestCase {
                 && mainAppSource.contains("@State private var toolbarToast")
                 && mainAppSource.contains("ToolbarFeedbackObserver")
                 && mainAppSource.contains("ToolbarFeedbackNotificationRouter")
-                && mainAppSource.contains("已重新载入文档")
-                && mainAppSource.contains("重新载入失败")
-                && mainAppSource.contains("已重置缩放"),
+                && mainAppSource.contains("Document reloaded")
+                && mainAppSource.contains("Reload failed")
+                && mainAppSource.contains("Zoom reset"),
             "Main document windows should show the existing native toast feedback for reload success/failure and reset zoom."
         )
         XCTAssertTrue(
@@ -273,9 +273,9 @@ final class ToolbarButtonHitAreaTests: XCTestCase {
             quickLookSource.contains("showToolbarFeedbackToast")
                 && quickLookSource.contains("showToast(")
                 && quickLookSource.contains("if reloadFromDisk(force: true)")
-                && quickLookSource.contains("已重新载入文档")
-                && quickLookSource.contains("重新载入失败")
-                && quickLookSource.contains("已重置缩放"),
+                && quickLookSource.contains("Document reloaded")
+                && quickLookSource.contains("Reload failed")
+                && quickLookSource.contains("Zoom reset"),
             "QuickLook should reuse its existing native toast container for reload and reset-zoom tips."
         )
     }

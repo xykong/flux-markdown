@@ -91,3 +91,6 @@
 /* === Toast Messages === */
 "QuickLook preview does not support link navigation" = "QuickLook 预览模式不支持链接跳转";
 "Double-click .md file to open in main app for full functionality" = "请双击 .md 文件用主应用打开以使用完整功能";
+"Document reloaded" = "已重新载入文档";
+"Reload failed" = "重新载入失败";
+"Zoom reset" = "已重置缩放";
