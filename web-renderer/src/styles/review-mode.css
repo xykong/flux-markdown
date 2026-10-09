@@ -45,7 +45,7 @@
 .review-item {
   position: relative;
   margin: 8px 0;
-  padding: 4px 10px;
+  padding: 4px 10px 4px 30px;
   border-left: 3px solid transparent;
   border-radius: 4px;
 }
@@ -67,25 +67,44 @@
 }
 
 .review-footer {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 4px;
+  position: absolute;
+  left: 6px;
+  top: 4px;
+  margin: 0;
 }
 
 .review-check {
-  font: inherit;
-  font-size: 11px;
-  padding: 2px 8px;
-  border: 1px solid var(--review-toolbar-border, rgba(128, 128, 128, 0.35));
-  border-radius: 999px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--review-toolbar-border, rgba(128, 128, 128, 0.45));
+  border-radius: 50%;
   background: transparent;
   color: inherit;
   cursor: pointer;
+  font-size: 0;
+  line-height: 1;
+}
+
+.review-check::before {
+  content: '○';
+  font-size: 13px;
+  opacity: 0.7;
 }
 
 .review-check[aria-pressed='true'] {
   border-color: var(--diff-add-border);
+}
+
+.review-check[aria-pressed='true']::before {
+  content: '✓';
+  font-size: 12px;
+  font-weight: 700;
   color: var(--diff-add-border);
+  opacity: 1;
 }
 
 .review-check:hover {
@@ -94,8 +113,9 @@
 
 /* ─── Before disclosure for removals and large rewrites ─── */
 .review-before {
+  position: relative;
   margin: 8px 0;
-  padding: 4px 10px;
+  padding: 4px 10px 4px 30px;
   border-left: 3px solid var(--diff-del-border);
   border-radius: 4px;
   background: var(--diff-del-bg);

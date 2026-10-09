@@ -561,7 +561,8 @@ export class ReviewController {
     const button = this.container.querySelector<HTMLButtonElement>(`button[data-review-control="${change.id}"]`);
     if (button) {
       button.setAttribute('aria-pressed', String(reviewed));
-      button.textContent = reviewed ? '✓ Reviewed' : 'Mark reviewed';
+      button.textContent = reviewed ? 'Reviewed' : 'Mark reviewed';
+      button.title = reviewed ? 'Reviewed' : 'Mark reviewed';
     }
   }
 
@@ -668,7 +669,8 @@ export class ReviewController {
     button.setAttribute('data-review-control', changeId);
     const reviewed = this.isReviewed(changeId);
     button.setAttribute('aria-pressed', String(reviewed));
-    button.textContent = reviewed ? '✓ Reviewed' : 'Mark reviewed';
+    button.textContent = reviewed ? 'Reviewed' : 'Mark reviewed';
+    button.title = reviewed ? 'Reviewed' : 'Mark reviewed';
     button.addEventListener('click', () => {
       const change = this.changes.find((c) => c.id === changeId);
       if (change) this.setReviewed(change, !this.isReviewed(changeId));
