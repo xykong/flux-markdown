@@ -2,6 +2,8 @@ name: CI
 
 on:
   push:
+    branches:
+      - '**'
   pull_request:
 
 permissions:
@@ -61,6 +63,9 @@ jobs:
         run: |
           npm ci
           npm run build
+
+      - name: Collect renderer licenses
+        run: node scripts/collect-licenses.mjs
 
       - name: Generate Xcode project
         run: |
