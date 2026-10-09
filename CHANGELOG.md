@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+### Added
+- **About screen**: Show a fork or upstream badge and the fork version, with links to the fork and upstream repositories (by [@xluffy](https://github.com/xluffy)).
+
 ## [1.34.495] - 2026-10-09
 
 ### Changed

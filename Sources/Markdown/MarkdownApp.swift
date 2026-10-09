@@ -60,6 +60,12 @@ struct MarkdownApp: App {
             DocumentPreviewScene(file: file, preference: preference, viewMode: $viewMode)
         }
         .commands {
+            CommandGroup(replacing: .appInfo) {
+                Button(NSLocalizedString("About FluxMarkdown", comment: "About menu item")) {
+                    AboutWindowController.shared.present()
+                }
+            }
+
             CommandGroup(after: .saveItem) {
                 Button(action: {
                     NotificationCenter.default.post(name: .reloadFile, object: nil)
