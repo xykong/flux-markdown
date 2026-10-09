@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+## [1.34.505] - 2026-10-09
+
 ### Fixed
 - **Localized toasts**: Show the reload and zoom toast messages in the selected language. The messages used Chinese keys that had no translation, so the app showed Chinese text on other languages.
 - **QuickLook toast localization**: Bundle the localization files with the QuickLook extension, so its toasts use the selected language.
