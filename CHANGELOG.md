@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+### Fixed
+- **Review mode diagrams**: Skip diagram blocks in the block diff, so an unchanged Mermaid, Vega, or Graphviz diagram does not read as a removed block.
+
 ## [1.34.497] - 2026-10-09
 
 ### Added

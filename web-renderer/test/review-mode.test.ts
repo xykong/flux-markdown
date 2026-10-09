@@ -46,6 +46,20 @@ describe('collectBlocks', () => {
     const blocks = collectBlocks(container);
     expect(blocks.map((b) => b.text)).toEqual(['one', 'two']);
   });
+
+  test('skips rendered diagram containers', () => {
+    const container = makeContainer('<div class="mermaid" data-source-line="3" data-source-line-end="5">graph</div>');
+    expect(collectBlocks(container)).toHaveLength(0);
+  });
+
+  test('skips diagram fences in the baseline', () => {
+    const container = makeContainer(block('p', 'same', 1, 1));
+    const baseline = makeContainer(
+      block('p', 'same', 1, 1) +
+        '<pre data-source-line="3" data-source-line-end="5"><code class="language-mermaid">graph TD</code></pre>'
+    );
+    expect(computeBlockChanges(collectBlocks(container), collectBlocks(baseline))).toHaveLength(0);
+  });
 });
 
 describe('computeBlockChanges', () => {

@@ -59,11 +59,23 @@ function blockChangeId(type: ReviewChangeType, text: string): string {
   return `${type}:${hashText(text)}`;
 }
 
+const DIAGRAM_BLOCK = /language-(?:mermaid|vega|vega-lite|dot|graphviz)\b/;
+
 export function collectBlocks(root: HTMLElement): ReviewBlock[] {
   const blocks: ReviewBlock[] = [];
   for (const child of Array.from(root.children)) {
     const el = child as HTMLElement;
     if (!el.hasAttribute('data-source-line')) continue;
+    // A diagram is a code fence in the baseline but a rendered container in the
+    // live DOM. Skip it on both sides, or every diagram reads as a removed block.
+    if (
+      el.classList.contains('mermaid') ||
+      el.classList.contains('vega-diagram') ||
+      el.classList.contains('graphviz-diagram')
+    ) {
+      continue;
+    }
+    if (DIAGRAM_BLOCK.test(el.innerHTML)) continue;
     blocks.push({ el, text: normalizeBlockText(el.textContent ?? '') });
   }
   return blocks;
