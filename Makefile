@@ -1,9 +1,17 @@
-.PHONY: all build_renderer generate app install install-debug dmg release
+.PHONY: all build_renderer generate app install install-debug dmg release clean clean-build
 
 all: app
 
+# Reinstall renderer dependencies only when node_modules is missing or the
+# lockfile is newer than the install stamp. This avoids a full `npm ci` on
+# every build.
 build_renderer:
-	cd web-renderer && npm ci --no-audit --no-fund --loglevel=warn && npm run build
+	@mkdir -p build
+	@if [ ! -d web-renderer/node_modules ] || [ web-renderer/package-lock.json -nt build/.renderer-deps.stamp ]; then \
+		echo "📦 Installing renderer dependencies..."; \
+		cd web-renderer && npm ci --no-audit --no-fund --loglevel=warn && cd .. && touch build/.renderer-deps.stamp; \
+	fi
+	cd web-renderer && npm run build
 	node scripts/collect-licenses.mjs
 
 generate: build_renderer
@@ -22,9 +30,17 @@ generate: build_renderer
 
 app: generate
 	@echo "🔨 Building application in $(or $(CONFIGURATION),Release) configuration..."
-	@xcodebuild -project FluxMarkdown.xcodeproj -scheme Markdown -configuration $(or $(CONFIGURATION),Release) -derivedDataPath "$(CURDIR)/build/DerivedData" -destination 'platform=macOS,arch=arm64' ARCHS=arm64 ONLY_ACTIVE_ARCH=YES CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO clean build -quiet 2> build_error.log || (cat build_error.log; rm -f build_error.log; exit 1)
+	@xcodebuild -project FluxMarkdown.xcodeproj -scheme Markdown -configuration $(or $(CONFIGURATION),Release) -derivedDataPath "$(CURDIR)/build/DerivedData" -destination 'platform=macOS,arch=arm64' ARCHS=arm64 ONLY_ACTIVE_ARCH=YES CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO $(if $(CLEAN),clean,)build -quiet 2> build_error.log || (cat build_error.log; rm -f build_error.log; exit 1)
 	@rm -f build_error.log
 	@echo "✅ Build completed: $(or $(CONFIGURATION),Release) configuration"
+
+# Force a full rebuild on the next `make app`.
+clean-build:
+	@echo "🧹 Removing derived data..."
+	@rm -rf build/DerivedData
+
+clean: clean-build
+	@rm -rf FluxMarkdown.xcodeproj web-renderer/dist build/.renderer-deps.stamp
 
 install:
 	@echo "🚀 Building and installing Release configuration..."; \

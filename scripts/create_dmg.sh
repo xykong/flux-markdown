@@ -12,8 +12,9 @@ OUTPUT_DIR="build/artifacts"
 echo "🚀 Starting DMG creation for ${APP_NAME}..."
 
 # 1. Ensure clean build
+# CLEAN=1 forces xcodebuild to drop all previous outputs before building.
 echo "📦 Building application..."
-make app CONFIGURATION=Release
+make app CONFIGURATION=Release CLEAN=1
 
 # Package only the Release app built by this checkout.
 if [ ! -d "$APP_PATH" ]; then
