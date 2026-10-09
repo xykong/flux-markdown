@@ -38,7 +38,6 @@ xcuserdata/
 /test-*.sh
 /check-keyboard.html
 /test-*.md
-.sparkle-keys/
 
 # Ignore temporary test files in Tests/ directory
 Tests/check-logs.sh
@@ -76,8 +75,6 @@ test-base64.html
 # Backup files (Swift backup)
 *.bak
 
-# Release temp files
-release_notes_tmp.md
 
 # Competitive analysis research files (reference only, not part of project)
 *_README.md

@@ -4,11 +4,6 @@ set -euo pipefail
 TARGET_PATH="${1:-build/artifacts/FluxMarkdown.dmg}"
 APP_NAME="FluxMarkdown.app"
 APPEX_RELATIVE_PATH="Contents/PlugIns/MarkdownPreview.appex"
-REQUIRED_ENTITLEMENT="com.apple.security.app-sandbox"
-FORBIDDEN_RELEASE_ENTITLEMENTS=(
-    "com.apple.security.get-task-allow"
-    "com.apple.security.temporary-exception.files.absolute-path.read-only"
-)
 
 cleanup_mount=""
 
@@ -51,27 +46,44 @@ fi
 echo "🔐 Verifying app signature..."
 /usr/bin/codesign --verify --strict --deep --verbose=2 "$APP_PATH"
 
-echo "🔐 Checking QuickLook extension sandbox entitlement..."
-ENTITLEMENTS=$(/usr/bin/codesign -d --entitlements :- "$APPEX_PATH" 2>/dev/null || true)
+echo "Checking the packaged app's sandbox and Nix-managed update policy..."
+python3 - "$APP_PATH" "$APPEX_PATH" <<'PY'
+from pathlib import Path
+import plistlib
+import subprocess
+import sys
 
-if ! printf '%s\n' "$ENTITLEMENTS" | grep -q "$REQUIRED_ENTITLEMENT"; then
-    fail "MarkdownPreview.appex is missing $REQUIRED_ENTITLEMENT"
-fi
+app, extension = map(Path, sys.argv[1:])
+for bundle in (app, extension):
+    output = subprocess.run(
+        ['/usr/bin/codesign', '-d', '--entitlements', '-', str(bundle)],
+        check=True, capture_output=True,
+    )
+    entitlements = plistlib.loads(output.stdout)
+    if entitlements.get('com.apple.security.app-sandbox') is not True:
+        raise SystemExit(f'{bundle.name} must enable App Sandbox.')
+    forbidden = {
+        'com.apple.security.get-task-allow',
+        'com.apple.security.files.downloads.read-write',
+        'com.apple.security.temporary-exception.mach-lookup.global-name',
+        'com.apple.security.temporary-exception.files.absolute-path.read-write',
+    }
+    if bundle == extension:
+        forbidden.add('com.apple.security.temporary-exception.files.absolute-path.read-only')
+    for key in forbidden:
+        if key in entitlements:
+            raise SystemExit(f'{bundle.name} must not grant {key}.')
+    if '/Users/' in str(entitlements):
+        raise SystemExit(f'{bundle.name} must not contain build-machine home paths.')
 
-for forbidden in "${FORBIDDEN_RELEASE_ENTITLEMENTS[@]}"; do
-    if printf '%s\n' "$ENTITLEMENTS" | grep -q "$forbidden"; then
-        fail "MarkdownPreview.appex release entitlements must not include $forbidden"
-    fi
-done
-
-if printf '%s\n' "$ENTITLEMENTS" | grep -q "/Users/"; then
-    fail "MarkdownPreview.appex release entitlements must not include build-machine home paths"
-fi
-
-echo "🔐 Checking app release entitlements..."
-APP_ENTITLEMENTS=$(/usr/bin/codesign -d --entitlements :- "$APP_PATH" 2>/dev/null || true)
-if printf '%s\n' "$APP_ENTITLEMENTS" | grep -q "com.apple.security.get-task-allow"; then
-    fail "FluxMarkdown.app release entitlements must not include com.apple.security.get-task-allow"
-fi
-
-echo "✅ Release artifact preserves MarkdownPreview.appex sandbox entitlement"
+with (app / 'Contents/Info.plist').open('rb') as stream:
+    info = plistlib.load(stream)
+if any(key.startswith('SU') for key in info):
+    raise SystemExit('The Nix-managed app must not configure Sparkle.')
+if list(app.rglob('Sparkle.framework')):
+    raise SystemExit('The Nix-managed app must not embed Sparkle.')
+for notice in ('LICENSE', 'THIRD_PARTY_LICENSES.md', 'RENDERER_LICENSES.txt'):
+    if not (app / 'Contents/Resources' / notice).is_file():
+        raise SystemExit(f'The release must include {notice}.')
+print('Verified sandboxed bundles, license notices, and absence of the in-app updater.')
+PY

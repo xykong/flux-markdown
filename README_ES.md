@@ -1,5 +1,10 @@
 # FluxMarkdown
 
+> This is an unofficial personal maintenance fork of FluxMarkdown by xykong and its contributors.
+> Original copyright and licenses remain intact.
+> The documentation below describes upstream.
+> Use the [fork release process](docs/release/RELEASE_PROCESS.md) for this fork.
+
 <p align="center">
   <em>Hermosas previsualizaciones de Markdown en QuickLook de macOS Finder</em><br>
   Mermaid • KaTeX • GFM • TOC • Gráficos • Exportar

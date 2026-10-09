@@ -1,5 +1,9 @@
 # Homebrew 官方库提交与维护指南
 
+> Historical upstream reference.
+> This fork ships through GitHub releases and Nix/Home Manager.
+> Do not use these upstream Homebrew instructions to publish fork releases.
+
 ## 双轨策略
 
 | 版本 | 文件 | 安装方式 | 特性 |

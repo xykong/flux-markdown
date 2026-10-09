@@ -1,5 +1,21 @@
 # FluxMarkdown
 
+## Unofficial personal maintenance fork
+
+FluxMarkdown was created by [xykong](https://github.com/xykong) and its contributors.
+This fork maintains a personal Nix/Home Manager build.
+It does not claim upstream endorsement.
+Original copyright, licenses, and commit authorship remain intact.
+Fork-specific distribution changes started on 2026-10-09.
+
+Use the [fork release process](docs/release/RELEASE_PROCESS.md) to build, publish, and install this version.
+Fork releases are available at [xluffy-fork/flux-markdown](https://github.com/xluffy-fork/flux-markdown/releases).
+
+## Retained upstream documentation
+
+The documentation below preserves the original project's descriptions and attribution.
+Its Homebrew and release links refer to upstream, not this fork.
+
 <p align="center">
   <em>Beautiful Markdown previews in macOS Finder QuickLook</em><br>
   Mermaid • KaTeX • GFM • TOC • Charts • Export

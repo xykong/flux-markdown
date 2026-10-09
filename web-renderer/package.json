@@ -4,7 +4,7 @@
   "description": "Web renderer for macOS Quick Look Extension",
   "main": "index.js",
   "scripts": {
-    "build": "vite build --logLevel silent && sed -i '' 's/crossorigin//g' dist/index.html",
+    "build": "vite build --logLevel silent && /usr/bin/sed -i '' 's/crossorigin//g' dist/index.html",
     "preview": "vite preview",
     "test": "jest",
     "playground": "vite --port 5174 --open /playground.html"

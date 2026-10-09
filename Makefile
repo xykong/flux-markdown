@@ -1,9 +1,10 @@
-.PHONY: all build_renderer generate app install install-debug dmg release delete-release
+.PHONY: all build_renderer generate app install install-debug dmg release
 
 all: app
 
 build_renderer:
-	cd web-renderer && npm install --no-audit --no-fund --loglevel=warn && npm run build
+	cd web-renderer && npm ci --no-audit --no-fund --loglevel=warn && npm run build
+	node scripts/collect-licenses.mjs
 
 generate: build_renderer
 	@if ! command -v xcodegen >/dev/null; then \
@@ -21,7 +22,7 @@ generate: build_renderer
 
 app: generate
 	@echo "🔨 Building application in $(or $(CONFIGURATION),Release) configuration..."
-	@xcodebuild -project FluxMarkdown.xcodeproj -scheme Markdown -configuration $(or $(CONFIGURATION),Release) -destination 'platform=macOS,arch=arm64' clean build -quiet 2> build_error.log || (cat build_error.log; rm -f build_error.log; exit 1)
+	@xcodebuild -project FluxMarkdown.xcodeproj -scheme Markdown -configuration $(or $(CONFIGURATION),Release) -derivedDataPath "$(CURDIR)/build/DerivedData" -destination 'platform=macOS,arch=arm64' ARCHS=arm64 ONLY_ACTIVE_ARCH=YES CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO clean build -quiet 2> build_error.log || (cat build_error.log; rm -f build_error.log; exit 1)
 	@rm -f build_error.log
 	@echo "✅ Build completed: $(or $(CONFIGURATION),Release) configuration"
 
@@ -40,9 +41,6 @@ dmg:
 
 release:
 	./scripts/release.sh $(filter-out $@,$(MAKECMDGOALS))
-
-delete-release:
-	./scripts/delete_release.sh $(filter-out $@,$(MAKECMDGOALS))
 
 %:
 	@:

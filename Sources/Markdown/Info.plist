@@ -63,6 +63,8 @@
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
+	<key>FMDisplayVersion</key>
+	<string>$(MARKETING_VERSION)-xluffy.1</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSMinimumSystemVersion</key>
@@ -312,22 +314,5 @@
 			</dict>
 		</dict>
 	</array>
-	<key>SUFeedURL</key>
-	<string>https://raw.githubusercontent.com/xykong/flux-markdown/master/appcast.xml</string>
-	<key>SUPublicEDKey</key>
-	<string>BDhsLBTgtRax5K78RrmvkB2wCcLeKM7FxsuHu47soaU=</string>
-	<key>SUPublicEDKeyChain</key>
-	<array>
-		<string>6SVanhzrlDTTBpWI4kYycYh05QUI0lbkZg/LyOQCO8A=</string>
-		<string>BDhsLBTgtRax5K78RrmvkB2wCcLeKM7FxsuHu47soaU=</string>
-	</array>
-	<key>SUEnableAutomaticChecks</key>
-	<true/>
-	<key>SUScheduledCheckInterval</key>
-	<integer>86400</integer>
-	<key>SUAllowsAutomaticUpdates</key>
-	<true/>
-	<key>SUEnableInstallerLauncherService</key>
-	<true/>
 </dict>
 </plist>

@@ -56,12 +56,16 @@ macOS QuickLook extension for Markdown files. Hybrid architecture: Native Swift 
 - **Ephemeral Project**: `.xcodeproj` is ignored. Always use `xcodegen` (`make generate`).
 - **Versioning**: `.version` file stores full version (e.g., `1.13.149`). Build number (third part) aligns with git commit count.
 - **Sandbox**: App Sandbox enabled. Read-only access to files.
-- **Release Flow**: 
-  1. **PR Merged**: Run `./scripts/analyze-pr.sh <PR_NUMBER>` to generate CHANGELOG entry, add to `[Unreleased]` section.
-  2. **Release**: Run `make release [major|minor|patch]` → Updates `.version`, `CHANGELOG.md`, builds DMG, creates GitHub release.
-  3. **Homebrew**: Run `./scripts/update-homebrew-cask.sh` to update both tap and official cask files automatically.
-  4. See `docs/release/RELEASE_PROCESS.md` for complete workflow.
-- **Homebrew Distribution**: Two tracks — tap version (full features) and official homebrew-cask (compliant, no formula deps). See `docs/release/HOMEBREW_SUBMISSION.md`.
+- **Fork identity**: This is an unofficial personal fork of xykong's FluxMarkdown. Preserve original copyright, licenses, and contributor attribution.
+- **Release Flow**:
+  1. Record verified changes and contributor credit under `[Unreleased]` in `CHANGELOG.md`.
+  2. Run `make release [major|minor|patch]` from a clean checkout of the fork.
+  3. The script commits the numeric version and dated changelog, then pushes a `v<VERSION>-xluffy.1` tag.
+  4. `.github/workflows/release.yml` builds and verifies the ad-hoc ARM64 DMG on GitHub.
+  5. Update the version and DMG hash in `../nix-config/pkgs/flux-markdown.nix`.
+  6. See `docs/release/RELEASE_PROCESS.md` for the complete workflow.
+- **Updates**: Nix/Home Manager is the only update mechanism. Do not restore Sparkle or upstream appcast configuration.
+- **Upstream distribution docs**: Homebrew instructions are historical references, not this fork's release path.
 
 ## CONVENTIONS
 - **TDD**: Write tests/metrics *before* implementation (see `.clinerules`).
@@ -133,8 +137,8 @@ brew update && brew upgrade --cask flux-markdown
 make generate                    # Generate Xcode project from project.yml
 make build_renderer              # Build TypeScript engine (npm install && build)
 make app                         # Build macOS app
-make release [major|minor|patch] # Release new version
-./install.sh                     # Build & install locally (clears QL cache)
+make release [major|minor|patch] # Push a fork release tag for GitHub Actions
+./scripts/install.sh             # Development-only local install; permanent installs use Home Manager
 log stream --predicate 'subsystem == "com.markdownquicklook.app"' --level debug
 ./scripts/analyze-pr.sh <PR_NUM> # Analyze PR and generate CHANGELOG entry
 ./scripts/update-homebrew-cask.sh # Update both tap and official Homebrew Cask

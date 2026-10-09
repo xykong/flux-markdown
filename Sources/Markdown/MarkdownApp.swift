@@ -1,17 +1,8 @@
 import SwiftUI
 import AppKit
-import Sparkle
 
 class AppDelegate: NSObject, NSApplicationDelegate {
-    let updaterController = SPUStandardUpdaterController(
-        startingUpdater: true,
-        updaterDelegate: UpdateDelegate.shared,
-        userDriverDelegate: nil
-    )
-
     func applicationDidFinishLaunching(_ notification: Notification) {
-        print("✅ Sparkle updater controller initialized")
-
         if CommandLine.arguments.contains("--register-only") {
             NSApplication.shared.terminate(nil)
         }
@@ -22,8 +13,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             forEventClass: AEEventClass(kInternetEventClass),
             andEventID: AEEventID(kAEGetURL)
         )
-
-        UpdateRestorationManager.shared.restoreLastOpenedFile()
     }
 
     @objc func handleURLEvent(_ event: NSAppleEventDescriptor, withReplyEvent replyEvent: NSAppleEventDescriptor) {
@@ -48,12 +37,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
-    }
-
-    func application(_ application: NSApplication, openFile filename: String) -> Bool {
-        let fileURL = URL(fileURLWithPath: filename)
-        UpdateRestorationManager.shared.saveLastOpenedFile(url: fileURL)
-        return false
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -106,10 +89,6 @@ struct MarkdownApp: App {
                 .keyboardShortcut("p", modifiers: [.command, .shift])
             }
             
-            CommandGroup(after: .appInfo) {
-                CheckForUpdatesView(updaterController: appDelegate.updaterController)
-            }
-
             CommandGroup(after: .textEditing) {
                 Divider()
                 Button(action: {
@@ -321,11 +300,6 @@ private struct DocumentPreviewScene: View {
             ToolbarFeedbackToastHost(toast: toolbarToast)
                 .allowsHitTesting(false)
                 .zIndex(3)
-        }
-        .onAppear {
-            if let fileURL = file.fileURL {
-                UpdateRestorationManager.shared.saveLastOpenedFile(url: fileURL)
-            }
         }
         .frame(
             minWidth: WindowAccessor.minimumRestorableWindowSize.width,
@@ -563,15 +537,3 @@ private final class WindowObservingToolbarFeedbackView: NSView {
     }
 }
 
-struct CheckForUpdatesView: View {
-    let updaterController: SPUStandardUpdaterController
-
-    var body: some View {
-        Button(NSLocalizedString("Check for Updates...", comment: "Check for updates menu item")) {
-            print("🔍 [DEBUG] Triggering update check...")
-            NSApp.sendAction(#selector(SPUStandardUpdaterController.checkForUpdates(_:)), to: updaterController, from: nil)
-        }
-        .keyboardShortcut("u", modifiers: [.command])
-        Divider()
-    }
-}

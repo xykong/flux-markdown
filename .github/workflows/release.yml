@@ -1,0 +1,138 @@
+name: Fork release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*-xluffy.1'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: github.repository == 'xluffy-fork/flux-markdown'
+    runs-on: macos-15
+    env:
+      CI: true
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check release version
+        shell: bash
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == push ]]; then
+            test "$GITHUB_REF_NAME" = "v$(cat .version)-xluffy.1"
+          fi
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web-renderer/package-lock.json
+
+      - name: Install packaging tools
+        run: brew install xcodegen create-dmg
+
+      - name: Build and verify ARM64 DMG
+        run: make dmg
+
+      - name: Run renderer regression tests
+        working-directory: web-renderer
+        run: npm test -- --runInBand
+
+      - name: Run native tests
+        run: |
+          xcodebuild test \
+            -project FluxMarkdown.xcodeproj \
+            -scheme Markdown \
+            -configuration Debug \
+            -destination 'platform=macOS,arch=arm64' \
+            -derivedDataPath build/DerivedData \
+            -resultBundlePath build/TestResults \
+            -skip-testing:MarkdownTests/RenderBenchmarkTests \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Package matching source and runtime dependencies
+        shell: bash
+        run: |
+          source_dir=$(mktemp -d)
+          trap 'rm -rf "$source_dir"' EXIT
+          git archive HEAD | tar -x -C "$source_dir"
+          npm prune --omit=dev --ignore-scripts --prefix web-renderer
+          cp -R web-renderer/node_modules "$source_dir/web-renderer/"
+          tar -czf build/artifacts/FluxMarkdown-source.tar.gz -C "$source_dir" .
+          cd build/artifacts
+          shasum -a 256 FluxMarkdown.dmg FluxMarkdown-source.tar.gz > SHA256SUMS
+
+      - name: Upload verified artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: flux-markdown-${{ github.sha }}
+          path: build/artifacts/
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout release notes
+        uses: actions/checkout@v4
+
+      - name: Download verified artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: flux-markdown-${{ github.sha }}
+          path: build/artifacts
+
+      - name: Prepare release notes
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          node --input-type=module <<'JS'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const version = readFileSync('.version', 'utf8').trim();
+          const changelog = readFileSync('CHANGELOG.md', 'utf8');
+          const heading = `## [${version}] - `;
+          const start = changelog.indexOf(heading);
+          if (start < 0) throw new Error(`Missing changelog entry for ${version}`);
+          const bodyStart = changelog.indexOf('\n', start) + 1;
+          const next = changelog.indexOf('\n## [', bodyStart);
+          const changes = changelog.slice(bodyStart, next < 0 ? undefined : next).trim();
+          writeFileSync('build/release-notes.md', [
+            'Unofficial maintenance fork of [FluxMarkdown](https://github.com/xykong/flux-markdown).',
+            'Original copyright and GPL-3.0 license remain intact.',
+            '',
+            'This ARM64 build is ad-hoc signed. It is not Developer ID signed or notarized.',
+            'Nix/Home Manager manages updates. The application has no in-app updater.',
+            '',
+            changes,
+            '',
+            'The source archive includes the matching fork source and installed renderer runtime dependencies.',
+            'SHA256SUMS contains checksums for both archives.',
+            '',
+          ].join('\n'));
+          JS
+
+      - name: Publish immutable fork release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            build/artifacts/FluxMarkdown.dmg \
+            build/artifacts/FluxMarkdown-source.tar.gz \
+            build/artifacts/SHA256SUMS \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --title "FluxMarkdown $GITHUB_REF_NAME (unofficial fork)" \
+            --notes-file build/release-notes.md

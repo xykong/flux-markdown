@@ -55,6 +55,6 @@ FluxMarkdown 是一个 macOS QuickLook 扩展，让用户在 Finder 中按 Space
 
 ## External Dependencies
 
-- **Sparkle**: 自动更新框架（`exactVersion: 2.8.1`）
+- **Fork updates**: Nix/Home Manager controls updates. This personal fork does not use an in-app updater.
 - **XcodeGen**: 从 `project.yml` 生成项目文件（`make generate`）
 - **vite-plugin-singlefile**: 当前将所有资源内联为 5.5 MB 单 HTML（P0 优化目标：废弃此插件）

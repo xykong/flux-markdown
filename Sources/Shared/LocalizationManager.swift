@@ -26,12 +26,12 @@ public enum LocalizationManager {
     /// The preference that was active when `bootstrap` first ran. Used by the
     /// Settings UI to detect "needs restart for system menus" situations,
     /// because `AppleLanguages` is only honored at process start by AppKit,
-    /// SwiftUI's `Settings` scene, and Sparkle.
+    /// and SwiftUI's `Settings` scene.
     public private(set) static var launchPreference: String = "system"
     private static var didBootstrap = false
 
     /// Install the bundle subclass, persist `AppleLanguages` so AppKit /
-    /// SwiftUI / Sparkle pick up the chosen language on this process run, and
+    /// SwiftUI pick up the chosen language on this process run, and
     /// apply the initial preference to our own `NSLocalizedString` lookups.
     /// Safe to call multiple times — only the first call seeds the AppKit
     /// language and the launch preference.
@@ -45,7 +45,7 @@ public enum LocalizationManager {
         apply(languageCode: initialPreference)
     }
 
-    /// Pin AppleLanguages for this app's domain so AppKit / SwiftUI / Sparkle
+    /// Pin AppleLanguages for this app's domain so AppKit / SwiftUI
     /// honor the picker on next launch. Pass `"system"` to clear the override
     /// and fall back to the OS-level setting.
     public static func applyAppleLanguages(for preference: String) {

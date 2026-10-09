@@ -24,22 +24,10 @@ else
     echo "📦 Skipping build (already completed)..."
 fi
 
-# 2. Copy to Applications
-echo "🔍 Locating built application..."
-APP_PATH=""
-
-for path in ~/Library/Developer/Xcode/DerivedData/FluxMarkdown-*/Build/Products/"$CONFIGURATION"/"FluxMarkdown.app"; do
-    if [ -d "$path" ]; then
-        if [ -z "$APP_PATH" ] || [ "$path" -nt "$APP_PATH" ]; then
-            APP_PATH="$path"
-        fi
-    fi
-done
-
-if [ -z "$APP_PATH" ]; then
-    echo "❌ Error: Could not find built application in DerivedData."
-    echo "   Expected path: .../Build/Products/$CONFIGURATION/FluxMarkdown.app"
-    echo "   Please check if the build succeeded."
+# 2. Use the application built by this checkout, not global DerivedData.
+APP_PATH="$PROJECT_ROOT/build/DerivedData/Build/Products/$CONFIGURATION/FluxMarkdown.app"
+if [ ! -d "$APP_PATH" ]; then
+    echo "Error: Could not find $APP_PATH"
     exit 1
 fi
 

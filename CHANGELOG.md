@@ -1,5 +1,19 @@
 ## [Unreleased]
-_无待发布的变更_
+
+### Fixed
+- **YAML date values**: Display ISO dates in front matter tables and array items.
+  - Retains the fix by [@xluffy](https://github.com/xluffy) proposed in [upstream PR #56](https://github.com/xykong/flux-markdown/pull/56).
+- **macOS build tools**: Use the system `sed` when a Nix environment also provides GNU `sed`.
+
+### Changed
+- **Unofficial personal fork**: Preserve attribution to xykong and all upstream contributors.
+  - Fork-specific distribution changes started on 2026-10-09.
+- **Nix-managed updates**: Remove the in-app updater and its update-only permissions.
+  - Home Manager controls application updates.
+- **Fork releases**: Publish verified ARM64 DMGs from the fork's tagged GitHub Actions workflow.
+  - Builds use project-local DerivedData and ad-hoc signatures.
+  - Releases include matching source, renderer runtime dependencies, and checksums.
+- **License notices**: Bundle the original GPL license and third-party notices with the application.
 
 ## [1.34.475] - 2026-08-14
 

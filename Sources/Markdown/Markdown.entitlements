@@ -29,24 +29,6 @@
     <key>com.apple.security.print</key>
     <true/>
 
-    <!-- Allow access to downloads (Sparkle needs read-write for installing updates) -->
-    <key>com.apple.security.files.downloads.read-write</key>
-    <true/>
-
-    <!-- Sparkle Installer Support -->
-    <!-- Allow Sparkle XPC services communication (required for sandboxed apps) -->
-    <key>com.apple.security.temporary-exception.mach-lookup.global-name</key>
-    <array>
-        <string>$(PRODUCT_BUNDLE_IDENTIFIER)-spks</string>
-        <string>$(PRODUCT_BUNDLE_IDENTIFIER)-spki</string>
-    </array>
-
-    <!-- Allow Sparkle to write to /Applications for update installation -->
-    <key>com.apple.security.temporary-exception.files.absolute-path.read-write</key>
-    <array>
-        <string>/Applications</string>
-    </array>
-
     <!-- App Groups removed: macOS 26 (Tahoe) rejects App Group containers for ad-hoc signed apps.
          Settings are now shared via a plist file in ~/Library/Application Support/FluxMarkdown/.
          See: https://github.com/xykong/flux-markdown/issues/13 -->

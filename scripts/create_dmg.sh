@@ -1,9 +1,11 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 APP_NAME="FluxMarkdown"
 APP_BUNDLE="${APP_NAME}.app"
-BUILD_DIR="${HOME}/Library/Developer/Xcode/DerivedData/FluxMarkdown-*"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$REPO_ROOT"
+APP_PATH="$REPO_ROOT/build/DerivedData/Build/Products/Release/$APP_BUNDLE"
 DMG_NAME="FluxMarkdown.dmg"
 OUTPUT_DIR="build/artifacts"
 
@@ -11,45 +13,20 @@ echo "🚀 Starting DMG creation for ${APP_NAME}..."
 
 # 1. Ensure clean build
 echo "📦 Building application..."
-make app
+make app CONFIGURATION=Release
 
-# 2. Locate the built app
-EXPECTED_VERSION="$(cat .version 2>/dev/null || true)"
-APP_PATH=""
-
-if [ -n "$EXPECTED_VERSION" ]; then
-    while IFS= read -r candidate; do
-        info_plist="$candidate/Contents/Info.plist"
-        if [ ! -f "$info_plist" ]; then
-            continue
-        fi
-
-        candidate_version=$(/usr/bin/defaults read "$info_plist" CFBundleShortVersionString 2>/dev/null || true)
-        candidate_build=$(/usr/bin/defaults read "$info_plist" CFBundleVersion 2>/dev/null || true)
-
-        if [ "$candidate_version" = "$EXPECTED_VERSION" ]; then
-            APP_PATH="$candidate"
-            break
-        fi
-
-        expected_build="$(echo "$EXPECTED_VERSION" | awk -F. '{print $3}')"
-        if [ -n "$expected_build" ] && [ "$candidate_build" = "$expected_build" ]; then
-            APP_PATH="$candidate"
-            break
-        fi
-    done < <(find "$HOME/Library/Developer/Xcode/DerivedData" -name "${APP_BUNDLE}" -path "*/Build/Products/Release/*" 2>/dev/null)
-fi
-
-if [ -z "$APP_PATH" ]; then
-    APP_PATH=$(find "$HOME/Library/Developer/Xcode/DerivedData" -name "${APP_BUNDLE}" -path "*/Build/Products/Release/*" | head -n 1)
-fi
-
-if [ -z "$APP_PATH" ]; then
-    echo "❌ Error: Could not find built ${APP_BUNDLE}"
+# Package only the Release app built by this checkout.
+if [ ! -d "$APP_PATH" ]; then
+    echo "Error: Built app not found: $APP_PATH" >&2
     exit 1
 fi
-
-echo "✅ Found app at: $APP_PATH"
+EXPECTED_VERSION="$(cat .version)"
+ACTUAL_VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_PATH/Contents/Info.plist")
+if [ "$ACTUAL_VERSION" != "$EXPECTED_VERSION" ]; then
+    echo "Error: Built app version $ACTUAL_VERSION does not match $EXPECTED_VERSION" >&2
+    exit 1
+fi
+./scripts/verify-release-entitlements.sh "$APP_PATH"
 
 # 3. Create artifacts directory
 mkdir -p "$OUTPUT_DIR"
@@ -57,6 +34,7 @@ rm -f "$OUTPUT_DIR/$DMG_NAME"
 
 # 4. Prepare temporary folder
 TMP_DIR=$(mktemp -d)
+trap 'rm -rf "$TMP_DIR"' EXIT
 echo "📂 Preparing DMG content in $TMP_DIR..."
 cp -R "$APP_PATH" "$TMP_DIR/"
 # 4.5. Pre-seed the background directory with Retina asset for Finder
@@ -83,8 +61,6 @@ create-dmg \
 echo "🔐 Verifying release entitlements..."
 ./scripts/verify-release-entitlements.sh "$OUTPUT_DIR/$DMG_NAME"
 
-# 6. Cleanup
-rm -rf "$TMP_DIR"
 
 echo ""
 echo "✅ DMG created successfully at: $OUTPUT_DIR/$DMG_NAME"

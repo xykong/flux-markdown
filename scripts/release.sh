@@ -1,211 +1,97 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
-VERSION_FILE=".version"
-CHANGELOG_FILE="CHANGELOG.md"
-DMG_PATH="build/artifacts/FluxMarkdown.dmg"
-
-if ! command -v gh &> /dev/null; then
-    echo "❌ Error: 'gh' (GitHub CLI) is not installed."
-    exit 1
-fi
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$REPO_ROOT"
+fail() { echo "Error: $*" >&2; exit 1; }
 
 BUMP_TYPE=${1:-patch}
+[ "$#" -le 1 ] || fail "Usage: make release [major|minor|patch]"
+case "$BUMP_TYPE" in major|minor|patch) ;; *) fail "Use major, minor, or patch." ;; esac
 
-if [[ "$BUMP_TYPE" == "minus" ]]; then
-    BUMP_TYPE="minor"
-fi
+# Never publish to upstream, a sibling repository, or an extra push URL.
+verify_origin() {
+    local url
+    while IFS= read -r url; do
+        case "$url" in
+            git@github.com:xluffy-fork/flux-markdown.git|https://github.com/xluffy-fork/flux-markdown.git|https://github.com/xluffy-fork/flux-markdown|ssh://git@github.com/xluffy-fork/flux-markdown.git) ;;
+            *) fail "Origin must be xluffy-fork/flux-markdown; found: $url" ;;
+        esac
+    done < <(git remote get-url --push --all origin)
+    url=$(git remote get-url origin) || fail "Missing origin remote."
+    case "$url" in
+        git@github.com:xluffy-fork/flux-markdown.git|https://github.com/xluffy-fork/flux-markdown.git|https://github.com/xluffy-fork/flux-markdown|ssh://git@github.com/xluffy-fork/flux-markdown.git) ;;
+        *) fail "Origin fetch URL must identify xluffy-fork/flux-markdown." ;;
+    esac
+}
+verify_origin
+[ -z "$(git status --porcelain --untracked-files=all)" ] || fail "Release requires a clean working tree."
+[ "$(git rev-parse --is-shallow-repository)" = false ] || fail "Fetch full history before releasing."
+BRANCH=$(git symbolic-ref --quiet --short HEAD) || fail "Release requires a branch, not detached HEAD."
+[ -f .github/workflows/release.yml ] || fail "Missing tag-triggered release.yml workflow."
 
-if [[ "$BUMP_TYPE" != "major" && "$BUMP_TYPE" != "minor" && "$BUMP_TYPE" != "patch" ]]; then
-    echo "❌ Error: Invalid bump type '$BUMP_TYPE'. Use major, minor, or patch."
-    exit 1
-fi
+CURRENT_VERSION=$(cat .version)
+[[ "$CURRENT_VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]] || fail "Invalid numeric three-part .version."
+major=$((10#${BASH_REMATCH[1]}))
+minor=$((10#${BASH_REMATCH[2]}))
+# The release commit itself contributes one commit to the build component.
+build=$(( $(git rev-list --count HEAD) + 1 ))
+case "$BUMP_TYPE" in
+    major) major=$((major + 1)); minor=0 ;;
+    minor) minor=$((minor + 1)) ;;
+    patch) ;;
+esac
+VERSION="$major.$minor.$build"
+TAG="v${VERSION}-xluffy.1"
+! git show-ref --verify --quiet "refs/tags/$TAG" || fail "Tag already exists locally: $TAG"
+REMOTE_TAG=$(git ls-remote --tags origin "refs/tags/$TAG" "refs/tags/$TAG^{}") || fail "Cannot check remote tags."
+[ -z "$REMOTE_TAG" ] || fail "Tag already exists on origin: $TAG"
 
-if [ ! -f "$VERSION_FILE" ]; then
-    echo "1.0.0" > "$VERSION_FILE"
-fi
-
-CURRENT_FULL_VERSION=$(cat "$VERSION_FILE")
-IFS='.' read -r major minor build <<< "$CURRENT_FULL_VERSION"
-
-# Get current git commit count for build number alignment
-COMMIT_COUNT=$(git rev-list --count HEAD)
-
-if [[ "$BUMP_TYPE" == "major" ]]; then
-    major=$((major + 1))
-    minor=0
-    build=$COMMIT_COUNT
-    echo "🚀 Bumping Major Version: $CURRENT_FULL_VERSION -> $major.$minor.$build (aligned with commit #$COMMIT_COUNT)"
-elif [[ "$BUMP_TYPE" == "minor" ]]; then
-    minor=$((minor + 1))
-    build=$COMMIT_COUNT
-    echo "🚀 Bumping Minor Version: $CURRENT_FULL_VERSION -> $major.$minor.$build (aligned with commit #$COMMIT_COUNT)"
-elif [[ "$BUMP_TYPE" == "patch" ]]; then
-    build=$COMMIT_COUNT
-    echo "🚀 Patch Version: $CURRENT_FULL_VERSION -> $major.$minor.$build (aligned with commit #$COMMIT_COUNT)"
-fi
-
-NEW_FULL_VERSION="$major.$minor.$build"
-
-echo "🎯 Target Version: $NEW_FULL_VERSION"
-
-echo "$NEW_FULL_VERSION" > "$VERSION_FILE"
-
-echo "📝 Extracting user-facing release notes..."
-RELEASE_NOTES_FILE="release_notes_tmp.md"
-
-python3 -c "
-import sys
+# Validate the changelog before either tracked file changes. Replace files
+# atomically from same-directory temporary files; preserve all release notes.
+python3 - "$VERSION" <<'PY'
+import datetime
+import os
+from pathlib import Path
 import re
+import sys
+import tempfile
 
-BLACKLIST = ['架构', 'Architecture', '内部', 'Internal', '构建', 'Build', '测试', 'Test', 'CI', 'Refactor']
-
-def is_user_facing(line):
-    match = re.search(r'\*\*(.*?)\*\*:', line)
-    if match:
-        scope = match.group(1)
-        for b in BLACKLIST:
-            if b in scope:
-                return False
-    return True
-
+version = sys.argv[1]
+changelog = Path('CHANGELOG.md')
+content = changelog.read_text(encoding='utf-8')
+headers = list(re.finditer(r'^## \[Unreleased\][ \t]*$', content, re.MULTILINE))
+if len(headers) != 1:
+    raise SystemExit('Error: CHANGELOG.md must have exactly one [Unreleased] heading.')
+if re.search(r'^## \[' + re.escape(version) + r'\]', content, re.MULTILINE):
+    raise SystemExit('Error: Changelog already contains this version.')
+header = headers[0]
+updated = (content[:header.start()] + '## [Unreleased]\n\n## [' + version + '] - '
+           + datetime.date.today().isoformat() + content[header.end():])
+pending = []
 try:
-    with open('$CHANGELOG_FILE', 'r', encoding='utf-8') as f:
-        content = f.read()
-    
-    pattern = r'## \[Unreleased\]\n(.*?)(\n## \[|$)'
-    match = re.search(pattern, content, re.DOTALL)
-    
-    if match:
-        raw_notes = match.group(1).strip()
-        filtered_lines = []
-        for line in raw_notes.split('\n'):
-            if line.strip().startswith('-'):
-                if is_user_facing(line):
-                    filtered_lines.append(line)
-            else:
-                filtered_lines.append(line)
-        
-        final_notes = re.sub(r'\n{3,}', '\n\n', '\n'.join(filtered_lines)).strip()
-        print(final_notes)
-    else:
-        sys.stderr.write('Warning: No [Unreleased] section found.\n')
-except Exception as e:
-    sys.stderr.write(f'Error: {e}\n')
-    sys.exit(1)
-" > "$RELEASE_NOTES_FILE"
+    for path, text in ((changelog, updated), (Path('.version'), version + '\n')):
+        fd, name = tempfile.mkstemp(prefix='.' + path.name + '-', dir='.')
+        pending.append((name, path))
+        with os.fdopen(fd, 'w', encoding='utf-8') as stream:
+            stream.write(text)
+        os.chmod(name, path.stat().st_mode & 0o777)
+    for name, path in pending:
+        os.replace(name, path)
+finally:
+    for name, _ in pending:
+        if os.path.exists(name):
+            os.unlink(name)
+PY
 
-if [ ! -s "$RELEASE_NOTES_FILE" ]; then
-    echo "⚠️ Warning: Release notes are empty. Continuing..."
-    echo "No significant user-facing changes." > "$RELEASE_NOTES_FILE"
-else
-    echo "✅ Release notes extracted:"
-    cat "$RELEASE_NOTES_FILE"
-    echo "----------------------------------------"
-fi
-
-DATE_STR=$(date "+%Y-%m-%d")
-TEMP_CHANGELOG=$(mktemp)
-sed "s/^## \[Unreleased\]$/## [Unreleased]\\
-_无待发布的变更_\\
-\\
-## [$NEW_FULL_VERSION] - $DATE_STR/" "$CHANGELOG_FILE" > "$TEMP_CHANGELOG"
-mv "$TEMP_CHANGELOG" "$CHANGELOG_FILE"
-
-echo "💾 Committing changes..."
-git add "$VERSION_FILE" "$CHANGELOG_FILE"
-if git ls-files --error-unmatch .build_number >/dev/null 2>&1; then
-    git rm .build_number
-fi
-if git ls-files --error-unmatch scripts/increment_version.sh >/dev/null 2>&1; then
-    git rm scripts/increment_version.sh
-fi
-
-git commit -m "chore(release): bump version to $NEW_FULL_VERSION"
-git tag "v$NEW_FULL_VERSION"
-
-echo "☁️ Pushing to remote..."
-git push origin master
-git push origin "v$NEW_FULL_VERSION"
-
-echo "🔨 Building project and DMG..."
-make dmg
-
-if [ ! -f "$DMG_PATH" ]; then
-    echo "❌ Error: DMG not found at $DMG_PATH"
-    exit 1
-fi
-
-echo "📦 Building MacPorts source tarball..."
-MACPORTS_TARBALL="build/artifacts/FluxMarkdown-${NEW_FULL_VERSION}-macports-source.tar.gz"
-if ./scripts/create_macports_tarball.sh "$NEW_FULL_VERSION"; then
-    echo "✅ MacPorts tarball created: $MACPORTS_TARBALL"
-    if [ -f "macports/Portfile" ]; then
-        git add macports/Portfile
-        git commit -m "chore(macports): update Portfile checksums for v$NEW_FULL_VERSION" || true
-        git push origin master || true
-        echo "✅ macports/Portfile committed"
-    fi
-else
-    echo "⚠️  MacPorts tarball creation failed (non-fatal)"
-    MACPORTS_TARBALL=""
-fi
-
-echo "📦 Creating GitHub Release v$NEW_FULL_VERSION..."
-RELEASE_ASSETS="$DMG_PATH"
-if [ -n "$MACPORTS_TARBALL" ] && [ -f "$MACPORTS_TARBALL" ]; then
-    RELEASE_ASSETS="$RELEASE_ASSETS $MACPORTS_TARBALL"
-fi
-gh release create "v$NEW_FULL_VERSION" $RELEASE_ASSETS \
-    --title "v$NEW_FULL_VERSION" \
-    --notes-file "$RELEASE_NOTES_FILE" \
-    --draft=false \
-    --prerelease=false
-
-rm "$RELEASE_NOTES_FILE"
-
-echo ""
-echo "✨ Updating Sparkle appcast..."
-# Find sign_update tool (keys are stored in Keychain, not as files)
-SIGN_UPDATE_BIN=$(find ~/Library/Developer/Xcode/DerivedData -name "sign_update" -type f -perm +111 2>/dev/null | grep "Sparkle/bin/sign_update" | head -1)
-if [ -z "$SIGN_UPDATE_BIN" ] && [ -x "./sign_update" ]; then
-    SIGN_UPDATE_BIN="./sign_update"
-fi
-
-if [ -f "./scripts/generate-appcast.sh" ] && [ -x "$SIGN_UPDATE_BIN" ]; then
-    ./scripts/generate-appcast.sh "$DMG_PATH"
-    
-    if [ -f "appcast.xml" ]; then
-        git add appcast.xml
-        git commit -m "chore(sparkle): update appcast.xml for v$NEW_FULL_VERSION" || true
-        git push origin master || true
-        echo "✅ Appcast updated and committed"
-    fi
-else
-    echo "⚠️  Skipping appcast update"
-    if [ ! -f "./scripts/generate-appcast.sh" ]; then
-        echo "   Missing: ./scripts/generate-appcast.sh"
-    fi
-    if [ -z "$SIGN_UPDATE_BIN" ]; then
-        echo "   Missing: sign_update tool (build the project once to download Sparkle via SPM)"
-    fi
-fi
-
-echo ""
-echo "🍺 Updating Homebrew Cask..."
-if [ -f "./scripts/update-homebrew-cask.sh" ]; then
-    ./scripts/update-homebrew-cask.sh "$NEW_FULL_VERSION" || echo "⚠️  Homebrew update failed (non-fatal)"
-else
-    echo "⚠️  Skipping Homebrew update (script not found)"
-fi
-
-echo ""
-echo "🎉 Successfully released v$NEW_FULL_VERSION!"
-echo ""
-echo "📋 Post-release checklist:"
-echo "   ✅ GitHub Release created"
-echo "   ✅ DMG uploaded"
-echo "   ✅ Sparkle appcast updated (if configured)"
-echo "   ✅ Homebrew Cask updated (if configured)"
-echo ""
-echo "🌐 Release URL: https://github.com/xykong/flux-markdown/releases/tag/v$NEW_FULL_VERSION"
+git add -- .version CHANGELOG.md
+git commit -m "chore(release): prepare $TAG"
+[ "$(git rev-list --count HEAD)" = "$build" ] || fail "Release commit count changed unexpectedly; nothing pushed."
+git tag "$TAG"
+verify_origin
+# Atomic push rejects conflicts without updating either remote ref. Never force.
+git push --atomic origin "HEAD:refs/heads/$BRANCH" "refs/tags/$TAG:refs/tags/$TAG"
+echo "Pushed $TAG to xluffy-fork/flux-markdown."
+echo "The tag-triggered release.yml workflow builds and verifies the ad-hoc ARM64 DMG."
+echo "No local binaries were uploaded; no Developer ID signing or notarization is claimed."
+echo "Workflow: https://github.com/xluffy-fork/flux-markdown/actions/workflows/release.yml"

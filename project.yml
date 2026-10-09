@@ -6,10 +6,6 @@ options:
 settings:
   MARKETING_VERSION: ${MARKETING_VERSION}
   CURRENT_PROJECT_VERSION: ${CURRENT_PROJECT_VERSION}
-packages:
-  Sparkle:
-    url: https://github.com/sparkle-project/Sparkle
-    exactVersion: 2.8.1
 targets:
   Markdown:
     type: application
@@ -20,6 +16,12 @@ targets:
       - path: web-renderer/dist
         name: WebRenderer
         type: folder
+      - path: LICENSE
+        buildPhase: resources
+      - path: docs/licenses/THIRD_PARTY_LICENSES.md
+        buildPhase: resources
+      - path: build/RENDERER_LICENSES.txt
+        buildPhase: resources
     settings:
       base:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -39,8 +41,6 @@ targets:
     dependencies:
       - target: MarkdownPreview
         embed: true
-      - package: Sparkle
-        product: Sparkle
 
   MarkdownPreview:
     type: app-extension

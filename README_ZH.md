@@ -1,5 +1,10 @@
 # FluxMarkdown
 
+> This is an unofficial personal maintenance fork of FluxMarkdown by xykong and its contributors.
+> Original copyright and licenses remain intact.
+> The documentation below describes upstream.
+> Use the [fork release process](docs/release/RELEASE_PROCESS.md) for this fork.
+
 <p align="center">
   <em>在 macOS Finder 中按空格即可预览精美的 Markdown</em><br>
   Mermaid • KaTeX • GFM • 目录 • 图表 • 导出
