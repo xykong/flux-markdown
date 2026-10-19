@@ -127,8 +127,8 @@ final class UsageTelemetrySession {
             timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in self?.tick() }
         }
     }
-    func setHostVisible(_ visible: Bool) { hostVisible = visible; if !visible { flush() } }
-    func rendered() { ready = true }
+    func setHostVisible(_ visible: Bool) { hostVisible = visible; if visible { sample(seconds: 0) } else { flush() } }
+    func rendered() { ready = true; sample(seconds: 0) }
     func rendering() { flush(); ready = false }
     func stop() { flush(); timer?.invalidate(); timer = nil; ready = false; counted = false; document = nil; hostVisible = false }
     deinit { flush(); timer?.invalidate() }
@@ -139,16 +139,19 @@ final class UsageTelemetrySession {
     private func tick() {
         let uptime = ProcessInfo.processInfo.systemUptime
         let elapsed = uptime - lastTick; lastTick = uptime
-        guard ready, document != nil, elapsed > 0, elapsed < 2.5,
-              let view else { return }
+        guard elapsed > 0, elapsed < 2.5 else { flush(); return }
+        sample(seconds: 1)
+    }
+    private func sample(seconds: Int) {
+        guard ready, document != nil, let view else { return }
         if source == "quicklook" {
-            guard hostVisible else { return }
+            guard hostVisible else { flush(); return }
         } else {
             guard let window = view.window, window.isVisible, !window.isMiniaturized,
-                  window.occlusionState.contains(.visible), NSApp.isActive, window.isKeyWindow else { return }
+                  window.occlusionState.contains(.visible), NSApp.isActive, window.isKeyWindow else { flush(); return }
         }
         let now = Date(), second = Int(now.timeIntervalSince1970)
-        guard second != lastSecond else { return }; lastSecond = second
+        if seconds > 0 { guard second != lastSecond else { return }; lastSecond = second }
         guard let state = telemetry.transaction(wait: false, { $0 }) else { pendingSeconds = 0; return }
         if generation != state.installationID { pendingSeconds = 0; counted = false; generation = state.installationID }
         guard state.enabled else { pendingSeconds = 0; return }
@@ -157,7 +160,7 @@ final class UsageTelemetrySession {
             disclose(in: view)
         }
         if UsageTelemetryState.day(now) != UsageTelemetryState.day(pendingDate) { flush() }
-        pendingDate = now; pendingSeconds += 1
+        pendingDate = now; pendingSeconds += seconds
         if !counted { telemetry.record(source: source, seconds: 0, views: 1, installationID: generation, now: now); counted = true }
         if pendingSeconds >= 15 { flush() }
     }

@@ -189,3 +189,24 @@ extension UsageTelemetryTests {
         XCTAssertEqual(store.transaction { $0.buckets.count }, 0)
     }
 }
+
+extension UsageTelemetryTests {
+    func testQuickPreviewClosedBeforeFirstTimerStillCounts() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [UsageTestProtocol.self]
+        UsageTestProtocol.handler = { _ in (503, Data()) }
+        defer { UsageTestProtocol.handler = nil }
+        let store = UsageTelemetry(directory: root, configuration: config)
+        store.transaction { $0.disclosed = true }
+        let view = NSView(frame: NSRect(x: 0, y: 0, width: 600, height: 300))
+        let session = UsageTelemetrySession(source: "quicklook", telemetry: store)
+        session.attach(view, document: URL(fileURLWithPath: "/synthetic-quick-preview.md"))
+        session.setHostVisible(true); session.rendered(); session.stop()
+        let recorded = expectation(for: NSPredicate { _, _ in
+            store.transaction { $0.buckets.first?.documents_viewed == 1 } == true
+        }, evaluatedWith: nil)
+        wait(for: [recorded], timeout: 2)
+        XCTAssertEqual(store.transaction { $0.buckets.first?.active_seconds }, 0)
+    }
+}
