@@ -1062,7 +1062,9 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     }
     
     private func renderSourceView() {
-        renderVersion.next()
+        let usageRenderVersion = renderVersion.next()
+        usage.rendering()
+        usageReady = false
         guard let content = pendingMarkdown else {
             os_log("🟡 renderSourceView called but pendingMarkdown is nil", log: logger, type: .debug)
             return
@@ -1116,10 +1118,12 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         }
         
         self.webView.evaluateJavaScript(callJs) { (innerResult, innerError) in
+            guard self.renderVersion.isCurrent(usageRenderVersion) else { return }
             if let innerError = innerError {
                 os_log("🔴 JS Execution Error (renderSource): %{public}@", log: self.logger, type: .error, innerError.localizedDescription)
                 self.showFailure(.source, error: innerError)
             } else if let res = innerResult as? String {
+                if res == "success" { self.usageReady = true; self.usage.rendered() }
                 os_log("🔵 JS Execution Result (renderSource): %{public}@", log: self.logger, type: .debug, res)
                 self.isSearchReady = true
                 self.completePendingSearchRequest()
@@ -1424,6 +1428,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
             : AppearancePreference.shared.baseFontSize
         self.prevMarkdown = nil
         usage.rendering()
+        usageReady = false
         let capturedRenderVersion = renderVersion.next()
         webView.evaluateJavaScript("window.invalidateRender && window.invalidateRender();", completionHandler: nil)
 
