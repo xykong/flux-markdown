@@ -25,6 +25,12 @@ FluxMarkdown runs both as a host app and as a Quick Look extension. There is no 
 
 ## Open Questions
 
-- Where will the independent service be hosted and who owns its credentials?
+- Hosting selected by user: micro-services, Ubuntu 24.04 x86_64, Tokyo, 1 GB RAM, 50 GB disk, 168.110.10.104. Code, runtime and SQLite records stay on that machine. No additional database service. HTTPS hostname: t.xykong.cc; DNS now resolves to this server.
 - What exact raw-event retention period and deletion workflow will be approved?
 - Which settings screen should contain the opt-out control?
+
+## Deployment implementation
+
+Single Rust binary with Axum/Tokio and bundled SQLite, loopback-only listener, systemd 128 MiB memory cap, local SQLite WAL, SSH-only aggregate queries. Each checkpoint contains usage deltas; retries reuse event IDs. Raw records use a provisional 180-day receipt-time retention. Public ingress is deployed with trusted HTTPS and nginx rate limits. Client telemetry is not yet implemented.
+
+The user explicitly selected Rust, replacing the initial unshipped Python draft. Build the Linux x86_64 binary off-server; deploy only the executable and systemd units. Endpoint hostname is `t.xykong.cc`. Administrative queries remain SSH-only.

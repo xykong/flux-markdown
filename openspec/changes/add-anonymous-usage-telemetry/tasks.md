@@ -13,10 +13,10 @@
 
 ## 3. Independent service
 
-- [ ] 3.1 Create the HTTPS ingestion endpoint and versioned request schema.
-- [ ] 3.2 Validate and persist raw events with idempotency, authentication/rate limits, and restricted access.
-- [ ] 3.3 Add retention/deletion and aggregation jobs.
-- [ ] 3.4 Add service tests and deployment/operations documentation.
+- [x] 3.1 Create the HTTPS ingestion endpoint and versioned request schema.
+- [x] 3.2 Validate and persist raw events with idempotency, public ingress rate limits and SSH-only administrative access.
+- [x] 3.3 Add a retention timer and local aggregate query command.
+- [x] 3.4 Add service tests and deployment/operations documentation.
 
 ## 4. Verification
 

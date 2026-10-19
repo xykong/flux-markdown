@@ -1,0 +1,27 @@
+[Unit]
+Description=FluxMarkdown local telemetry ingestion
+After=network.target
+
+[Service]
+User=flux-telemetry
+Group=flux-telemetry
+WorkingDirectory=/opt/flux-telemetry
+Environment=TELEMETRY_DB=/var/lib/flux-telemetry/events.sqlite3
+ExecStart=/opt/flux-telemetry/flux-telemetry
+Restart=on-failure
+RestartSec=5
+StateDirectory=flux-telemetry
+StateDirectoryMode=0700
+UMask=0077
+MemoryHigh=96M
+MemoryMax=128M
+CPUQuota=30%
+TasksMax=16
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,16 @@
+[Unit]
+Description=Expire FluxMarkdown telemetry records
+[Service]
+Type=oneshot
+User=flux-telemetry
+Group=flux-telemetry
+WorkingDirectory=/opt/flux-telemetry
+Environment=TELEMETRY_DB=/var/lib/flux-telemetry/events.sqlite3
+Environment=RETENTION_DAYS=180
+ExecStart=/opt/flux-telemetry/flux-telemetry prune
+MemoryMax=128M
+CPUQuota=20%
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/flux-telemetry
