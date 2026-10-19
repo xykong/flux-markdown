@@ -73,6 +73,8 @@ import plistlib, sys
 p = plistlib.loads(sys.stdin.buffer.read())
 if p.get("com.apple.security.temporary-exception.files.home-relative-path.read-only") != ["/"]:
     sys.exit("QuickLook release must preserve portable read-only home access for referenced images")
+if p.get("com.apple.security.temporary-exception.files.home-relative-path.read-write") != ["/Library/Application Support/FluxMarkdown/Telemetry/"]:
+    sys.exit("QuickLook write access must be restricted to the telemetry directory")
 if p.get("com.apple.security.app-sandbox") is not True:
     sys.exit("QuickLook sandbox must be enabled")
 '

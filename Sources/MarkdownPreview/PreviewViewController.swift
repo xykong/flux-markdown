@@ -213,6 +213,8 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     private var sawLiveResizeStartForWindow: ObjectIdentifier?
     
     private let renderVersion = RenderVersionCounter()
+    private let usage = UsageTelemetrySession(source: "quicklook")
+    private var usageReady = false
     private let fileReadVersion = RenderVersionCounter()
 
     // MARK: - File Monitoring
@@ -547,6 +549,9 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     
     public override func viewDidAppear() {
         super.viewDidAppear()
+        usage.setHostVisible(true)
+        usage.attach(view, document: currentURL)
+        if usageReady { usage.rendered() }
         logScreenEnvironment(context: "viewDidAppear")
         
         updatePreviewMode()
@@ -585,6 +590,8 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     
     public override func viewWillDisappear() {
         super.viewWillDisappear()
+        usage.setHostVisible(false)
+        usage.stop()
         fileReadVersion.next()
         renderVersion.next()
         webView.evaluateJavaScript("window.invalidateRender && window.invalidateRender();", completionHandler: nil)
@@ -1298,6 +1305,8 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         previewHasUnreadableImages = false
         updateTruncationNotice(false)
         self.currentURL = url
+        usageReady = false
+        usage.attach(view, document: url)
         
         stopSecurityScopedAccessIfNeeded()
         securityScopedURL = url
@@ -1414,6 +1423,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
             ? AppearancePreference.shared.finderPaneFontSize
             : AppearancePreference.shared.baseFontSize
         self.prevMarkdown = nil
+        usage.rendering()
         let capturedRenderVersion = renderVersion.next()
         webView.evaluateJavaScript("window.invalidateRender && window.invalidateRender();", completionHandler: nil)
 
@@ -1462,6 +1472,8 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                         os_log("🔴 JS Execution Error (renderMarkdown): %{public}@", log: self.logger, type: .error, error.localizedDescription)
                 self.showFailure(.renderer, error: error)
                     case .success(let value):
+                        self.usageReady = true
+                        self.usage.rendered()
                         os_log("🔵 renderMarkdown completed successfully, result: %{public}@", log: self.logger, type: .debug, String(describing: value))
                         if let url = self.currentURL, let token = QuickLookProbeEvidence.token(for: url) {
                             let version = Bundle(for: type(of: self)).object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"

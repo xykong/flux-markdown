@@ -76,3 +76,17 @@
 "Copy Link" = "Copy Link";
 "Preview could not start" = "Preview could not start";
 "Download and reinstall FluxMarkdown, or open the document in your editor." = "Download and reinstall FluxMarkdown, or open the document in your editor.";
+
+"Share Usage Statistics" = "Share Usage Statistics";
+
+"Turn Off Usage Statistics" = "Turn Off Usage Statistics";
+
+"Usage statistics are on: system/app versions, daily reading time and view counts. No document names or contents. You can turn this off in Settings." = "Usage statistics are on: system/app versions, daily reading time and view counts. No document names or contents. You can turn this off in Settings.";
+
+"Share system/app versions, daily reading time and view counts. No document names or contents. Uploads occur at most hourly while in use." = "Share system/app versions, daily reading time and view counts. No document names or contents. Uploads occur at most hourly while in use.";
+
+"Dismiss" = "Dismiss";
+
+"Usage statistics preference could not be saved" = "Usage statistics preference could not be saved";
+
+"Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again." = "Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again.";

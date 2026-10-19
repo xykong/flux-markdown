@@ -76,3 +76,17 @@
 "Copy Link" = "复制链接";
 "Preview could not start" = "无法启动预览";
 "Download and reinstall FluxMarkdown, or open the document in your editor." = "请下载并重新安装 FluxMarkdown，或在编辑器中打开文档。";
+
+"Share Usage Statistics" = "分享使用统计";
+
+"Turn Off Usage Statistics" = "关闭使用统计";
+
+"Usage statistics are on: system/app versions, daily reading time and view counts. No document names or contents. You can turn this off in Settings." = "使用统计已开启：收集系统及应用版本、每日阅读时长和浏览次数，不收集文件名或内容。可在设置中关闭。";
+
+"Share system/app versions, daily reading time and view counts. No document names or contents. Uploads occur at most hourly while in use." = "分享系统及应用版本、每日阅读时长和浏览次数，不包含文件名或内容。使用期间最多每小时上传一次。";
+
+"Dismiss" = "关闭提示";
+
+"Usage statistics preference could not be saved" = "未能保存使用统计设置";
+
+"Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again." = "关闭 FluxMarkdown 和快速查看以结束本次会话。检查磁盘可用空间，然后重试关闭使用统计。";

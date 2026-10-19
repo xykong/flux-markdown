@@ -1,15 +1,15 @@
 ## 1. Specification and privacy
 
-- [ ] 1.1 Approve the telemetry fields, retention period, service owner, and hosting location.
-- [ ] 1.2 Add the `anonymous-usage-telemetry` capability spec and privacy documentation.
+- [x] 1.1 Approve the telemetry fields, retention period, service owner, and hosting location.
+- [x] 1.2 Add the `anonymous-usage-telemetry` capability spec and privacy documentation.
 
 ## 2. Client collection
 
-- [ ] 2.1 Add the default-on opt-out preference and localized settings UI.
-- [ ] 2.2 Implement installation/session identity and schema-versioned event models.
-- [ ] 2.3 Track App active duration, Quick Look preview sessions, and document-view counts without source metadata.
-- [ ] 2.4 Add bounded encrypted-at-rest retry storage, batching, backoff, duplicate IDs, and disable cleanup.
-- [ ] 2.5 Add client tests for consent, field allowlists, counters, lifecycle boundaries, and failed uploads.
+- [x] 2.1 Add the default-on opt-out preference and localized settings UI.
+- [x] 2.2 Implement installation/session identity and schema-versioned event models.
+- [x] 2.3 Track App active duration, Quick Look preview sessions, and document-view counts without source metadata.
+- [x] 2.4 Add bounded permission-protected cumulative storage, hourly shared throttling, snapshot acknowledgements, and disable cleanup.
+- [x] 2.5 Add client tests for consent, field allowlists, counters, lifecycle boundaries, and failed uploads.
 
 ## 3. Independent service
 
@@ -20,7 +20,7 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Verify no document content, paths, names, or credentials leave the client.
-- [ ] 4.2 Verify opt-out prevents new uploads and clears pending local events.
-- [ ] 4.3 Verify App and Quick Look behavior remains functional when the service is unavailable.
+- [x] 4.1 Verify no document content, paths, names, or credentials leave the client.
+- [x] 4.2 Verify opt-out prevents new uploads and clears pending local events.
+- [x] 4.3 Verify App and Quick Look behavior remains functional when the service is unavailable.
 - [ ] 4.4 Run native, renderer, service, and release checks.

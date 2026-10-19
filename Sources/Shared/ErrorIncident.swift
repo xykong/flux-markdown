@@ -5,11 +5,12 @@ enum IncidentSource: String, Codable { case app, quicklook, cli }
 enum IncidentReason: String, Codable { case operationFailed, invalidInput, moduleUnavailable, resourceUnavailable }
 enum IncidentPhase: String, Codable { case started, failed, completed, timeout }
 enum FailureKind: String, Codable, CaseIterable {
-    case update, fileRead, fileTooLarge, reload, exportHTML, exportPDF, renderer, rendererResources, source
+    case usageSettings, update, fileRead, fileTooLarge, reload, exportHTML, exportPDF, renderer, rendererResources, source
     case mermaid, typst, graphviz, vega, math, search, quickLook, images, previewLimit, link, browser
 
     var title: String {
         switch self {
+        case .usageSettings: return "Usage statistics preference could not be saved"
         case .update: return "Update could not be completed"
         case .fileRead, .fileTooLarge: return "Document could not be opened"
         case .reload: return "Document could not be reloaded"
@@ -26,6 +27,7 @@ enum FailureKind: String, Codable, CaseIterable {
     }
     var guidance: String {
         switch self {
+        case .usageSettings: return "Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again."
         case .update: return "You can download the latest version and install it manually."
         case .fileRead: return "Choose a readable UTF-8 Markdown file, or open it in your editor to check it."
         case .fileTooLarge: return "Open this document in your editor, or split it into smaller files before trying again."

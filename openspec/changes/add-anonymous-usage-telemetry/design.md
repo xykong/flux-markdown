@@ -1,36 +1,68 @@
-## Context
+## Approved design
 
-FluxMarkdown runs both as a host app and as a Quick Look extension. There is no existing backend. The data is needed to estimate macOS-version coverage and product usage before making a compatibility decision.
+Default-on, user-disableable usage statistics. The user selected an independent
+Rust service on micro-services (Ubuntu 24.04, Tokyo, 1 GiB RAM, 50 GiB local disk).
+HTTPS: https://t.xykong.cc/v2/snapshots. All raw data and analysis stay in local
+SQLite. No company analytics, external database, or Python ingestion runtime.
 
-## Goals / Non-Goals
+## Counter semantics
 
-- Goals: default-on transparent collection, one-click opt-out, minimal anonymous events, durable raw event storage, later aggregation, offline tolerance, and no impact on preview behavior.
-- Non-Goals: document telemetry, advertising, user profiling, crash dump collection, or collection of raw IP addresses by the application.
+Each installation generates random UUIDs. Counters partition by UTC calendar day,
+app version, macOS version and source (app or quicklook). A random bucket ID and
+monotonically increasing sequence identify each cumulative snapshot. Restart and
+upgrade preserve counters. Read-only file operations do not expose file identities.
+A successful visible document opening counts once; same-document rerender does not.
+Same-source overlapping activity is coalesced at persistence. Seconds measure visible
+reading-window activity; hidden windows, sleep and timer gaps are excluded. This
+is an estimate of usage, not proof of human attention. Time is checkpointed every
+15 seconds; abrupt termination can lose up to one checkpoint per live session.
 
-## Decisions
+Counters accumulate forever within a retained daily bucket; successful upload does
+not zero them. Server stores every distinct accepted snapshot, advances a bucket's
+high-water mark only for a larger sequence, rejects regressions/conflicts and retains
+late snapshots without counting them twice. Daily analysis sums high-water marks,
+not raw snapshot counts. Environment changes produce separate buckets.
 
-- **Independent service:** provide a small HTTPS ingestion API separate from the application repository's product services. The service accepts a versioned batch endpoint and writes validated events to append-only storage.
-- **Pseudonymous identity:** generate a random installation UUID locally. Do not derive it from hardware, Apple ID, file paths, or network identifiers. Resetting the installation creates a new identifier.
-- **Event records:** each event includes schema version, installation ID, event ID, client version/build, macOS version/build, architecture, install channel, event timestamp, event type, session ID, active duration, and documents-viewed count where applicable. No filename, path, content, URL, account, or raw log is included.
-- **Usage semantics:** a document viewed means a successful App render or Quick Look preview request; repeated renders of the same request are counted once per session. Active duration measures foreground App time or the lifetime of a Quick Look preview session, with a bounded heartbeat fallback.
-- **Consent:** telemetry is enabled on first launch. Settings show the current state, the exact categories collected, and a disable action. Disabling stops new events and deletes unsent local telemetry; it does not request server-side deletion of already accepted anonymous events unless a separate deletion token flow is added.
-- **Transport:** upload small batches asynchronously over HTTPS, with exponential backoff, a bounded queue, duplicate event IDs, and a server-side idempotency check. A failed upload is silent and must never block rendering.
-- **Retention:** raw events are retained for a documented, finite period (default 180 days), then deleted or irreversibly aggregated. Service access is restricted and infrastructure request logs use a shorter retention window.
+## Scheduling and privacy
 
-## Risks / Trade-offs
+Only dirty buckets upload. A shared persisted lease permits at most one attempt per
+hour across app and Quick Look, including retries. No background launch or system
+wake. Failures retain cumulative values and retry on later activity. Batches contain
+at most 50 buckets / 64 KiB; local storage retains 90 days / at most 720 buckets.
+Remote raw snapshots and daily counters expire after 180 days. These retention
+bounds are explicit; usage older than the local bound cannot be recovered offline.
 
-- Default-on collection can surprise users; mitigate with first-launch disclosure, a prominent setting, and clear privacy documentation.
-- Raw records enable better analysis but increase privacy and storage obligations; mitigate with strict schema validation, field allowlists, retention limits, and access controls.
-- Quick Look has short-lived processes; session summaries may be incomplete after termination. Use bounded heartbeats and mark incomplete sessions rather than inferring exact values.
+Default-on disclosure appears nonmodally at first visible reading, with direct
+opt-out. Settings provide the same switch. Opt-out clears local counters, rotates
+identity, stops new snapshots and cancels local in-flight uploads where possible.
+An already transmitted request cannot be recalled and historical server records
+are not deleted by opt-out. Re-enable starts a fresh identity and excludes disabled
+usage. Payloads contain only UUIDs, versions, date, architecture, channel (unknown
+unless reliably known), source, sequence and cumulative seconds/views. No names,
+paths, URLs, document contents, hardware serials, account identity or raw logs.
 
-## Open Questions
+## Local architecture
 
-- Hosting selected by user: micro-services, Ubuntu 24.04 x86_64, Tokyo, 1 GB RAM, 50 GB disk, 168.110.10.104. Code, runtime and SQLite records stay on that machine. No additional database service. HTTPS hostname: t.xykong.cc; DNS now resolves to this server.
-- What exact raw-event retention period and deletion workflow will be approved?
-- Which settings screen should contain the opt-out control?
+State lives in ~/Library/Application Support/FluxMarkdown/Telemetry/ with directory
+mode 0700 and files 0600, atomic writes and flock across processes. This is
+permission-protected local storage, not an encrypted database. Corrupt/unavailable
+state fails closed. Only the dedicated Telemetry directory receives a home-relative
+Quick Look sandbox write exception; no document write access is added. Network and
+counter writes run on a utility queue. Disclosure/preference reads are short locked
+transactions; later performance improvements can cache them with invalidation.
 
-## Deployment implementation
+## Server and operations
 
-Single Rust binary with Axum/Tokio and bundled SQLite, loopback-only listener, systemd 128 MiB memory cap, local SQLite WAL, SSH-only aggregate queries. Each checkpoint contains usage deltas; retries reuse event IDs. Raw records use a provisional 180-day receipt-time retention. Public ingress is deployed with trusted HTTPS and nginx rate limits. Client telemetry is not yet implemented.
+A 1.9 MiB-class Rust executable, SQLite WAL, systemd with 128 MiB memory cap,
+nginx TLS/body/rate/connection limits; no public read API. TLS auto-renewal and
+retention timers run locally. SQL reports are SSH-only. Administrative deletion by
+installation ID is available. Public submissions are pseudonymous and untrusted;
+statistics describe participating installations, not exact people or all users.
 
-The user explicitly selected Rust, replacing the initial unshipped Python draft. Build the Linux x86_64 binary off-server; deploy only the executable and systemd units. Endpoint hostname is `t.xykong.cc`. Administrative queries remain SSH-only.
+## Validation
+
+Counter rollover, restart persistence, concurrent writers, stale acknowledgement,
+opt-out/re-enable, bounded offline storage and hourly lease tests precede acceptance.
+Server tests cover retry, ordering, partitioning, regression and atomic validation.
+Verify the production protocol with synthetic records and remove only those records.
+Native checks cover settings, sandbox access and app/Quick Look lifecycle integration.

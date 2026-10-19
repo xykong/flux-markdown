@@ -76,3 +76,17 @@
 "Copy Link" = "Link kopieren";
 "Preview could not start" = "Vorschau konnte nicht gestartet werden";
 "Download and reinstall FluxMarkdown, or open the document in your editor." = "Lade FluxMarkdown herunter und installiere es erneut, oder öffne das Dokument in deinem Editor.";
+
+"Share Usage Statistics" = "Nutzungsstatistiken teilen";
+
+"Turn Off Usage Statistics" = "Nutzungsstatistiken deaktivieren";
+
+"Usage statistics are on: system/app versions, daily reading time and view counts. No document names or contents. You can turn this off in Settings." = "Nutzungsstatistiken sind aktiviert: System-/App-Versionen, tägliche Lesezeit und Aufrufe. Keine Dateinamen oder Inhalte. In den Einstellungen deaktivierbar.";
+
+"Share system/app versions, daily reading time and view counts. No document names or contents. Uploads occur at most hourly while in use." = "System-/App-Versionen, tägliche Lesezeit und Aufrufe teilen. Keine Dateinamen oder Inhalte. Während der Nutzung höchstens stündliche Übertragung.";
+
+"Dismiss" = "Ausblenden";
+
+"Usage statistics preference could not be saved" = "Einstellung für Nutzungsstatistiken konnte nicht gespeichert werden";
+
+"Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again." = "Schließe FluxMarkdown und Quick Look, um diese Sitzung zu beenden. Prüfe den freien Speicherplatz und versuche erneut, die Statistiken zu deaktivieren.";

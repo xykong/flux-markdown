@@ -1,3 +1,4 @@
+mod counters;
 use axum::{
     extract::{DefaultBodyLimit, State},
     http::StatusCode,
@@ -76,6 +77,7 @@ fn open(path: &PathBuf) -> rusqlite::Result<Connection> {
     db.execute_batch("PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA max_page_count=1048576;
         CREATE TABLE IF NOT EXISTS events(event_id TEXT PRIMARY KEY, received_at INTEGER NOT NULL, payload TEXT NOT NULL);
         CREATE INDEX IF NOT EXISTS events_received ON events(received_at);")?;
+    counters::schema(&db)?;
     Ok(db)
 }
 fn insert(db: &mut Connection, events: &[Event]) -> Result<(), StatusCode> {
@@ -132,12 +134,43 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path = PathBuf::from(std::env::var("TELEMETRY_DB")?);
     let db = open(&path)?;
     match std::env::args().nth(1).as_deref() {
+        Some("delete-installation") => {
+            let id = std::env::args()
+                .nth(2)
+                .ok_or("installation UUID required")?;
+            if uuid::Uuid::parse_str(&id)?.to_string() != id {
+                return Err("invalid UUID".into());
+            }
+            let tx = db.unchecked_transaction()?;
+            tx.execute("DELETE FROM snapshots WHERE installation=?1", [&id])?;
+            tx.execute("DELETE FROM counters WHERE installation=?1", [&id])?;
+            tx.execute(
+                "DELETE FROM events WHERE json_extract(payload,'$.installation_id')=?1",
+                [&id],
+            )?;
+            tx.commit()?;
+            println!("Deleted records for supplied installation");
+        }
         Some("prune") => {
             db.execute(
                 "DELETE FROM events WHERE received_at < ?1",
                 [now() - 180 * 86400],
             )?;
+            db.execute(
+                "DELETE FROM snapshots WHERE received_at < ?1",
+                [now() - 180 * 86400],
+            )?;
+            db.execute(
+                "DELETE FROM counters WHERE day < ?1",
+                [(chrono::Utc::now().date_naive() - chrono::Duration::days(180)).to_string()],
+            )?;
             db.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);")?;
+        }
+        Some("daily") => {
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&counters::summary(&db)?)?
+            );
         }
         Some("summary") => {
             let mut query = db.prepare("SELECT json_extract(payload,'$.os_version'),count(DISTINCT json_extract(payload,'$.installation_id')),sum(json_extract(payload,'$.active_seconds')),sum(json_extract(payload,'$.documents_viewed')),count(*) FROM events GROUP BY 1")?;
@@ -148,6 +181,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let app = Router::new()
                 .route("/healthz", get(|| async { "ok" }))
                 .route("/v1/events", post(ingest))
+                .route("/v2/snapshots", post(counters::ingest))
                 .layer(DefaultBodyLimit::max(65536))
                 .with_state(Arc::new(Mutex::new(db)));
             let listener = tokio::net::TcpListener::bind("127.0.0.1:8765").await?;

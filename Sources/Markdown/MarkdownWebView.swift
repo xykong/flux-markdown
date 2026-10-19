@@ -119,6 +119,7 @@ struct MarkdownWebView: NSViewRepresentable {
             webView.appearance = nil
         }
 
+        context.coordinator.usage.attach(webView, document: fileURL)
         context.coordinator.starReminder = starReminder
         starReminder?.attach(webView, url: fileURL, preview: viewMode == .preview)
         context.coordinator.updateContentsSide(webView: webView, side: contentsSide)
@@ -128,6 +129,7 @@ struct MarkdownWebView: NSViewRepresentable {
     class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         let logger = OSLog(subsystem: "com.markdownquicklook.app", category: "MarkdownWebView")
         let errorRegistry = RendererErrorRegistry()
+        let usage = UsageTelemetrySession(source: "app")
         func showFailure(_ kind: FailureKind, error: Error? = nil, recoveryTitle: String = "Reload", recovery: (() -> Void)? = nil) {
             guard let view = currentWebView else { return }
             let incident = errorRegistry.nativeFailure(kind, error: error)
@@ -599,6 +601,7 @@ struct MarkdownWebView: NSViewRepresentable {
             let generation = navigationRenderVersion
             renderingPositionContent = true
             starReminder?.rendering()
+            usage.rendering()
             webView.callAsyncJavaScript("return " + js, arguments: [:], in: nil, in: .page) { [weak self] result in
                 guard let self, generation == self.navigationRenderVersion,
                       self.currentFileURL == fileURL else { return }
@@ -610,6 +613,7 @@ struct MarkdownWebView: NSViewRepresentable {
                     return
                 }
                 self.starReminder?.rendered()
+                self.usage.rendered()
                 if let fileURL { self.applyPendingPosition(in: webView, for: fileURL) }
             }
         }

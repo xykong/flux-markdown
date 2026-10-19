@@ -20,7 +20,7 @@ identical event retries acknowledge without creating another record. Conflicting
 return 409; invalid batches return 400 without partial insertion. At most 50 events
 and 64 KiB per request. SQLite database is capped at approximately 4 GiB (1,048,576 pages); storage failures return 503.
 
-Usage counters are **deltas** since the previous checkpoint; a final summary must
+Legacy v1 usage counters are **deltas** (new clients use v2 below) since the previous checkpoint; a final summary must
 only contain the remaining delta. Event IDs must remain stable during retry. The
 seven-day timestamp window bounds stale queue replay. Versions are numeric;
 installation channel may be `unknown` rather than guessed. Each session carries
@@ -56,8 +56,8 @@ not the ingestion service. OCI uses a dedicated `micro-services-telemetry` NSG
 attached only to this instance, permitting TCP 80 (ACME challenge) and 443.
 The system firewall persists matching rules in `/etc/iptables/rules.v4`.
 
-- Client collection, default-on disclosure and opt-out remain unimplemented.
-- Confirm 180-day retention before real client collection.
+- Client collection, default-on disclosure and opt-out are implemented in source; no app release has been published.
+- Raw retention is 180 days, documented in the client privacy notice.
 - Anonymous ingestion cannot prove a genuine app install. Do not embed shared
   administrative credentials in clients; event statistics are untrusted input.
 - There is no automated backup. SQLite file space is reusable after deletion;
@@ -101,3 +101,27 @@ Certificate issuance succeeded and `certbot renew --dry-run
 retention timer and certificate renewal timer are enabled. TLS keys stay on the
 server and are never committed. The service does not require a user login or a
 client-held repository/API secret.
+
+## Cumulative protocol v2
+
+`POST /v2/snapshots` supersedes delta events for new clients. The v1 route remains
+available for compatibility. Each request includes schema_version=2,
+installation_id, architecture, channel and snapshots (up to 50). Each snapshot has
+bucket_id, UTC day, app_version, os_version, source, sequence, active_seconds and
+documents_viewed. Counters persist across uploads and normal restarts.
+
+Raw snapshots are keyed by installation/bucket/sequence. The `counters` table
+maintains high-water marks, rejects decreasing counters and conflicting metadata,
+and ignores late snapshots for totals. `daily` reports group by day/version/OS/source.
+Distinct installations per group must not be summed across groups to infer users.
+
+```sh
+sudo -u flux-telemetry env TELEMETRY_DB=/var/lib/flux-telemetry/events.sqlite3 \
+  /opt/flux-telemetry/flux-telemetry daily
+sudo -u flux-telemetry env TELEMETRY_DB=/var/lib/flux-telemetry/events.sqlite3 \
+  /opt/flux-telemetry/flux-telemetry delete-installation INSTALLATION_UUID
+```
+
+Client state is permission-protected and bounded (90 days / 720 buckets); normal
+network attempts are shared and limited to one/hour, including failures. Server
+accepts dates within 90 days; server raw and counter retention is 180 days.

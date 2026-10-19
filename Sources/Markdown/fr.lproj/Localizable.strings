@@ -219,3 +219,17 @@
 "Download and open FluxMarkdown.dmg, quit FluxMarkdown, then drag the app into Applications and choose Replace." = "Téléchargez et ouvrez FluxMarkdown.dmg, quittez FluxMarkdown, puis faites glisser l’app dans Applications et choisissez Remplacer.";
 "Preview could not start" = "Impossible de démarrer l’aperçu";
 "Download and reinstall FluxMarkdown, or open the document in your editor." = "Téléchargez et réinstallez FluxMarkdown, ou ouvrez le document dans votre éditeur.";
+
+"Share Usage Statistics" = "Partager les statistiques d’utilisation";
+
+"Turn Off Usage Statistics" = "Désactiver les statistiques";
+
+"Usage statistics are on: system/app versions, daily reading time and view counts. No document names or contents. You can turn this off in Settings." = "Les statistiques sont activées : versions système/app, durée de lecture quotidienne et consultations. Aucun nom ni contenu de fichier. Désactivation dans les réglages.";
+
+"Share system/app versions, daily reading time and view counts. No document names or contents. Uploads occur at most hourly while in use." = "Partager les versions système/app, la durée de lecture quotidienne et les consultations. Aucun nom ni contenu de fichier. Envoi au plus une fois par heure pendant l’utilisation.";
+
+"Dismiss" = "Fermer";
+
+"Usage statistics preference could not be saved" = "Impossible d’enregistrer le réglage des statistiques";
+
+"Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again." = "Fermez FluxMarkdown et Quick Look pour arrêter cette session. Vérifiez l’espace disque disponible, puis réessayez de désactiver les statistiques.";

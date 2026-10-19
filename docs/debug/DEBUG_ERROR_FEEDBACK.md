@@ -76,3 +76,11 @@ A full staged MacPorts build exposed a YAML-null dependency block after strippin
 - Direct NSError bridge probe passed with the localized recovery label and recovery attempter present. Sync/async recovery callback tests pass; feedback/alternative actions do not falsely report that the original read succeeded.
 - Acceptance-only error history was archived under ignored build artifacts and removed from the user's store. Original 1.36.573 installation and its editor association were restored. No release, default-branch push, Issue submission, reporter reply or done label was performed.
 - The only commit after the verified product-code revision updates these acceptance records and OpenSpec task status; no application behavior changes are included in that documentation commit.
+
+## Usage statistics preference failure
+
+The shared usage-statistics switch reports persistence failure through
+`FailureKind.usageSettings` / `ErrorFeedback`. Recovery retries the explicit
+opt-out; guidance explains closing the app/Quick Look and checking disk space.
+The switch does not claim the preference was saved on failure. Feedback captures
+the preference incident without uploading local telemetry counters or identifiers.

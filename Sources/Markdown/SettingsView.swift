@@ -126,6 +126,7 @@ struct AppearanceSettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
+            UsageTelemetrySetting()
             StarReminderSetting()
             Divider()
             SettingsSectionHeader(
@@ -557,5 +558,18 @@ struct SettingsSectionHeader: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
+    }
+}
+
+
+struct UsageTelemetrySetting: View {
+    @State private var enabled = UsageTelemetry.shared.enabled
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Toggle(NSLocalizedString("Share Usage Statistics", comment: "Telemetry setting"),
+                isOn: Binding(get: { enabled }, set: { if UsageTelemetry.shared.setEnabled($0) { enabled = $0 } else { UsageTelemetry.showPreferenceFailure() } }))
+            Text(NSLocalizedString("Share system/app versions, daily reading time and view counts. No document names or contents. Uploads occur at most hourly while in use.", comment: "Telemetry disclosure"))
+                .font(.caption).foregroundColor(.secondary)
+        }.onAppear { enabled = UsageTelemetry.shared.enabled }
     }
 }

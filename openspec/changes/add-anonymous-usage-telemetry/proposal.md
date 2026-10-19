@@ -6,9 +6,9 @@ The project needs reliable evidence about supported macOS versions and real prod
 
 ## What Changes
 
-- Collect anonymous installation, version, session, preview, and usage summary events.
+- Collect pseudonymous daily cumulative counters partitioned by versions and App/Quick Look source.
 - Enable collection by default and provide a visible setting to disable it.
-- Record session active duration and the number of Markdown documents previewed without collecting document names, paths, contents, or identifiers.
+- Record visible reading duration and the number of Markdown documents previewed without collecting document names, paths, contents, or identifiers.
 - Persist every accepted event on the telemetry service for later analysis, with an explicit retention policy and aggregate reporting jobs.
 - Upload events asynchronously over HTTPS with bounded local retry storage; telemetry failures never affect rendering or updates.
 - Document the collected fields, retention, disable behavior, and deletion process in the privacy documentation.

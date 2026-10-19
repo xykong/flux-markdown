@@ -1,5 +1,7 @@
 ## [Unreleased]
-_无待发布的变更_
+### Added
+- **Usage statistics**: Optional daily usage statistics, enabled by default with a direct opt-out. Count reading time and document views by UTC date, app/macOS version and App/Quick Look source; never collect document names, paths or contents. Persist cumulative counters and upload at most hourly while in use, with offline retry and duplicate-safe analysis.
+
 
 ## [1.37.596] - 2026-10-19
 ### Fixed
