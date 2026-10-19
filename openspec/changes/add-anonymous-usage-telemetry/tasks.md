@@ -6,8 +6,8 @@
 ## 2. Client collection
 
 - [x] 2.1 Add the default-on opt-out preference and localized settings UI.
-- [x] 2.2 Implement installation/session identity and schema-versioned event models.
-- [x] 2.3 Track App active duration, Quick Look preview sessions, and document-view counts without source metadata.
+- [x] 2.2 Implement installation/bucket identity and schema-versioned cumulative snapshot models.
+- [x] 2.3 Track App foreground duration, Quick Look visible preview sessions, and document-view counts without source metadata.
 - [x] 2.4 Add bounded permission-protected cumulative storage, hourly shared throttling, snapshot acknowledgements, and disable cleanup.
 - [x] 2.5 Add client tests for consent, field allowlists, counters, lifecycle boundaries, and failed uploads.
 
@@ -23,4 +23,4 @@
 - [x] 4.1 Verify no document content, paths, names, or credentials leave the client.
 - [x] 4.2 Verify opt-out prevents new uploads and clears pending local events.
 - [x] 4.3 Verify App and Quick Look behavior remains functional when the service is unavailable.
-- [ ] 4.4 Run native, renderer, service, and release checks.
+- [x] 4.4 Run native, renderer, service, and release checks.

@@ -30,9 +30,9 @@ No macOS minimum-version change or product release is part of this work.
 ## Evidence
 
 - Native full functional suite: 357 tests passed before final lifecycle/UI coverage;
-  final focused telemetry suite: 8 tests passed, including concurrent writers,
+  final focused telemetry suite: 9 tests passed, including concurrent writers,
   UTC rollover, persistence, stale acknowledgement, opt-out, HTTP 503/200, and
-  native disclosure/disable controls and reopen-vs-rerender behavior.
+  native disclosure/disable controls, reopen-vs-rerender behavior and previews closed before the first timer tick.
 - A standalone signed `.app` probe with actual Quick Look release entitlements
   successfully created/read/cleared a temporary counter directory. A raw standalone
   executable could not initialize App Sandbox; packaged probe was used instead.
@@ -50,3 +50,18 @@ No macOS minimum-version change or product release is part of this work.
 Native window/action tests and signed sandbox tests verify the lifecycle contract,
 layout controls and opt-out. This is not a claim of screenshots or acceptance on
 all Finder host versions. The installed user app has not been replaced by this work.
+
+## Final compatibility verification
+
+[Release CI 39254046562](https://github.com/xykong/flux-markdown/actions/runs/39254046562)
+passed for source commit `277186b0de6926820f1a231fc2503986fe8efa52` using Xcode 16.4.
+Native suite: 360 executed, one expected environment-dependent skip, zero failures.
+Renderer tests, real WebKit tests, MacPorts transforms, macOS 11 target, universal
+arm64/x86_64 Release build, signing/entitlement checks and artifact packaging passed.
+The documentation-only completion commit does not change these build inputs.
+
+Deployed Rust SHA256:
+`7290646def88913a8bcd1a9b6e969c9be228a02ab18979660c4c40a4f3d200a5`.
+Local cross-build and installed server executable hashes match. Service, nginx,
+retention timer and certificate renewal timer are active. Product app publication
+and replacement of the user's installed app were not performed.
