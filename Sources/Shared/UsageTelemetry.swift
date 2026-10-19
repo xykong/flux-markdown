@@ -81,7 +81,7 @@ final class UsageTelemetry {
               let body = try? JSONEncoder().encode(upload), body.count <= 65536 else { return }
         // Recheck after reserving the shared lease; the other process may have opted out.
         guard transaction({ $0.enabled && $0.installationID == upload.installation_id }) == true else { return }
-        var request = URLRequest(url: URL(string: "https://t.xykong.cc/v2/snapshots")!)
+        var request = URLRequest(url: URL(string: "https://t.xykong.cc/v3/snapshots")!)
         request.httpMethod = "POST"; request.httpBody = body
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         task = session.dataTask(with: request) { data, response, error in

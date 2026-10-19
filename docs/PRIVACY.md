@@ -11,7 +11,7 @@ We do not send document names, paths, contents, URLs, account identifiers,
 hardware serial numbers or raw diagnostic logs. A repeated opening counts again;
 a refresh does not. We do not identify or count distinct files.
 
-Days use UTC. Time estimates visible reading-window activity, excluding hidden
+Days use UTC. Uploads represent preparation time and UTC day starts as integer Unix timestamps in seconds, with no local date/time strings or offsets. UTC daily totals are not users’ local-calendar-day totals. Time estimates visible reading-window activity, excluding hidden
 windows, sleep and long scheduling gaps. It does not measure attention. A crash
 can lose up to 15 seconds since the last checkpoint.
 

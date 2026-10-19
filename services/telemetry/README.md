@@ -125,3 +125,19 @@ sudo -u flux-telemetry env TELEMETRY_DB=/var/lib/flux-telemetry/events.sqlite3 \
 Client state is permission-protected and bounded (90 days / 720 buckets); normal
 network attempts are shared and limited to one/hour, including failures. Server
 accepts dates within 90 days; server raw and counter retention is 180 days.
+
+
+## Unix-second protocol v3
+
+New clients POST `/v3/snapshots` with `schema_version: 3`, integer `timestamp`
+(preparation time, seconds since 1970-01-01T00:00:00Z), and integer
+`day_start_timestamp` in each snapshot instead of the `day` string. UTC daily
+starts must be divisible by 86400. All other cumulative counter fields and
+acknowledgements are unchanged. v2 remains available for existing clients.
+
+SQLite snapshots additionally store `client_timestamp` and
+`bucket_start_timestamp` as INTEGER, alongside existing INTEGER `received_at`.
+Migration preserves existing payloads and counters, backfills legacy UTC starts,
+and leaves unknown historical client times NULL. Timestamp changes on retries do
+not change deduplication identity. Daily reports label dates in UTC; they cannot
+reconstruct local-day totals by shifting already aggregated buckets.

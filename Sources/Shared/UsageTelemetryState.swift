@@ -16,24 +16,33 @@ struct UsageSnapshot: Codable {
 }
 struct UsageUpload: Encodable {
     let schema_version: Int
+    let timestamp: Int64
     let installation_id: String
     let architecture: String
     let channel: String
     let snapshots: [UsageSnapshot]
-    enum CodingKeys: String, CodingKey { case schema_version, installation_id, architecture, channel, snapshots }
+    enum CodingKeys: String, CodingKey { case schema_version, timestamp, installation_id, architecture, channel, snapshots }
     func encode(to encoder: Encoder) throws {
         struct Counter: Encodable {
-            let bucket_id: String, day: String, app_version: String, os_version: String, source: String
+            let bucket_id: String, app_version: String, os_version: String, source: String
+            let day_start_timestamp: Int64
             let sequence: Int, active_seconds: Int, documents_viewed: Int
         }
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encode(schema_version, forKey: .schema_version)
+        try c.encode(timestamp, forKey: .timestamp)
         try c.encode(installation_id, forKey: .installation_id)
         try c.encode(architecture, forKey: .architecture)
         try c.encode(channel, forKey: .channel)
-        try c.encode(snapshots.map { Counter(bucket_id: $0.bucket_id, day: $0.day, app_version: $0.app_version,
-            os_version: $0.os_version, source: $0.source, sequence: $0.sequence,
-            active_seconds: $0.active_seconds, documents_viewed: $0.documents_viewed) }, forKey: .snapshots)
+        let counters = try snapshots.map { snapshot -> Counter in
+            guard let start = UsageTelemetryState.dayStartTimestamp(snapshot.day) else {
+                throw EncodingError.invalidValue(snapshot.day, .init(codingPath: encoder.codingPath, debugDescription: "Invalid UTC counter date"))
+            }
+            return Counter(bucket_id: snapshot.bucket_id, app_version: snapshot.app_version,
+                os_version: snapshot.os_version, source: snapshot.source, day_start_timestamp: start,
+                sequence: snapshot.sequence, active_seconds: snapshot.active_seconds, documents_viewed: snapshot.documents_viewed)
+        }
+        try c.encode(counters, forKey: .snapshots)
     }
 }
 struct UsageTelemetryState: Codable {
@@ -45,8 +54,16 @@ struct UsageTelemetryState: Codable {
     var nextAttempt = Date.distantPast
     static func day(_ date: Date) -> String {
         let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX")
+        f.calendar = Calendar(identifier: .gregorian)
         f.timeZone = TimeZone(secondsFromGMT: 0); f.dateFormat = "yyyy-MM-dd"
         return f.string(from: date)
+    }
+    static func dayStartTimestamp(_ day: String) -> Int64? {
+        let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX")
+        f.calendar = Calendar(identifier: .gregorian); f.timeZone = TimeZone(secondsFromGMT: 0)
+        f.dateFormat = "yyyy-MM-dd"; f.isLenient = false
+        guard let date = f.date(from: day), f.string(from: date) == day else { return nil }
+        return Int64(date.timeIntervalSince1970)
     }
     mutating func setEnabled(_ value: Bool) {
         guard value != enabled else { return }
@@ -77,7 +94,7 @@ struct UsageTelemetryState: Codable {
         #else
         let architecture = "x86_64"
         #endif
-        return UsageUpload(schema_version: 2, installation_id: installationID,
+        return UsageUpload(schema_version: 3, timestamp: Int64(now.timeIntervalSince1970.rounded(.down)), installation_id: installationID,
             architecture: architecture, channel: "unknown", snapshots: dirty)
     }
     mutating func acknowledge(_ upload: UsageUpload) {

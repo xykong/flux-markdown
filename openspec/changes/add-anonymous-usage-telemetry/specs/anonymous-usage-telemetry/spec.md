@@ -56,3 +56,19 @@ TLS, request size limits and rate limits without retaining request access logs.
 #### Scenario: Retention timer runs
 - **WHEN** records exceed their documented retention period
 - **THEN** the daily local cleanup removes them
+
+
+### Requirement: Unambiguous global timestamps
+New clients SHALL send integer Unix seconds as `timestamp` and per-bucket
+`day_start_timestamp`, with explicit UTC daily boundaries. They SHALL NOT send
+local date/time strings or timezone offset strings. The server SHALL validate
+units and boundaries, preserve client and receipt timestamps separately, and keep
+legacy v2 counter identities compatible.
+
+#### Scenario: Timezone or daylight saving changes
+- **WHEN** the same instant is observed under another user timezone or DST offset
+- **THEN** its uploaded timestamp and UTC daily bucket start remain identical
+
+#### Scenario: Same snapshot retried at a different time
+- **WHEN** a retry has a later upload timestamp but the same bucket and sequence
+- **THEN** it is acknowledged without duplicate usage or conflicting counter identity

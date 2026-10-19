@@ -15,7 +15,7 @@ server {
     client_body_timeout 10s;
     client_header_timeout 10s;
     keepalive_timeout 10s;
-    location ~ ^/(v1/events|v2/snapshots)$ {
+    location ~ ^/(v1/events|v2/snapshots|v3/snapshots)$ {
         limit_except POST { deny all; }
         limit_req zone=flux_events burst=10 nodelay;
         limit_req_status 429;

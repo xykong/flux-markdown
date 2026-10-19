@@ -2,7 +2,7 @@
 
 Default-on, user-disableable usage statistics. The user selected an independent
 Rust service on micro-services (Ubuntu 24.04, Tokyo, 1 GiB RAM, 50 GiB local disk).
-HTTPS: https://t.xykong.cc/v2/snapshots. All raw data and analysis stay in local
+HTTPS: https://t.xykong.cc/v3/snapshots. All raw data and analysis stay in local
 SQLite. No company analytics, external database, or Python ingestion runtime.
 
 ## Counter semantics
@@ -66,3 +66,18 @@ opt-out/re-enable, bounded offline storage and hourly lease tests precede accept
 Server tests cover retry, ordering, partitioning, regression and atomic validation.
 Verify the production protocol with synthetic records and remove only those records.
 Native checks cover settings, sandbox access and app/Quick Look lifecycle integration.
+
+## Global time representation (2026-10-20)
+
+New uploads use schema v3 with integer Unix seconds: envelope `timestamp` for
+snapshot preparation and per-counter `day_start_timestamp` for UTC midnight.
+No date/time strings or UTC offset strings are sent by new clients. These are
+absolute instants, not local clock values; unit is seconds, never milliseconds.
+The server preserves numeric client timestamps separately from numeric receipt
+timestamps and validates units, freshness and UTC-midnight alignment. Retry
+identity remains installation/bucket/sequence, independent of upload timestamp.
+Legacy v2 remains supported; local persisted bucket keys/IDs and server daily
+report labels remain compatible. SQLite migration backfills numeric bucket starts
+from explicitly UTC legacy dates; unknown historical client timestamps stay null.
+The daily basis is still UTC, not the viewer's local day; already aggregated UTC
+buckets must not be relabelled as local-day totals.

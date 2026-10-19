@@ -24,3 +24,10 @@
 - [x] 4.2 Verify opt-out prevents new uploads and clears pending local events.
 - [x] 4.3 Verify App and Quick Look behavior remains functional when the service is unavailable.
 - [x] 4.4 Run native, renderer, service, and release checks.
+
+## 5. Global timestamp correction
+
+- [x] 5.1 Encode new uploads as Unix seconds with explicit UTC daily starts.
+- [x] 5.2 Keep v2 compatible; migrate integer timestamp columns without resetting counters.
+- [x] 5.3 Test timezone/DST/midnight boundaries, unit errors, retries and migration.
+- [x] 5.4 Deploy v3, verify HTTPS using synthetic data and clean up test data/temporary backup.

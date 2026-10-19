@@ -102,7 +102,7 @@ extension UsageTelemetryTests {
             let id = store.transaction { $0.installationID }!
             let delivered = expectation(description: "request \(status)")
             UsageTestProtocol.handler = { request in
-                XCTAssertEqual(request.url?.path, "/v2/snapshots")
+                XCTAssertEqual(request.url?.path, "/v3/snapshots")
                 let stream = request.httpBodyStream
                 var body = request.httpBody ?? Data()
                 if body.isEmpty, let stream {
@@ -208,5 +208,41 @@ extension UsageTelemetryTests {
         }, evaluatedWith: nil)
         wait(for: [recorded], timeout: 2)
         XCTAssertEqual(store.transaction { $0.buckets.first?.active_seconds }, 0)
+    }
+}
+
+extension UsageTelemetryTests {
+    func testWireTimestampsAreUnixSecondsIndependentOfTimezoneAndDST() throws {
+        let previous = NSTimeZone.default
+        defer { NSTimeZone.default = previous }
+        let parser = ISO8601DateFormatter()
+        // Both sides of the US spring-forward and fall-back transitions, plus UTC midnight.
+        for value in ["2026-03-08T06:59:59Z", "2026-03-08T07:00:00Z", "2026-11-01T05:59:59Z", "2026-11-01T06:00:00Z", "2026-10-19T23:59:59Z", "2026-10-20T00:00:00Z"] {
+            let now = parser.date(from: value)!
+            for zone in [TimeZone(secondsFromGMT: -12 * 3600)!, TimeZone(identifier: "Pacific/Kiritimati")!, TimeZone(identifier: "America/New_York")!, TimeZone(identifier: "Asia/Shanghai")!] {
+                NSTimeZone.default = zone
+                var state = UsageTelemetryState()
+                state.record(source: "app", version: "1.0.1", os: "12.0", at: now, seconds: 10, views: 1)
+                let body = try JSONSerialization.jsonObject(with: JSONEncoder().encode(state.prepare(at: now)!)) as! [String: Any]
+                XCTAssertEqual(body["timestamp"] as? Int64, Int64(now.timeIntervalSince1970))
+                let counter = (body["snapshots"] as! [[String: Any]])[0]
+                XCTAssertNil(counter["day"])
+                XCTAssertEqual(counter["day_start_timestamp"] as? Int64, Int64(floor(now.timeIntervalSince1970 / 86400)) * 86400)
+            }
+        }
+    }
+    func testStoredCounterIdentitySurvivesTimestampWireUpgrade() throws {
+        var state = UsageTelemetryState()
+        let now = Date()
+        state.record(source: "quicklook", version: "1.0.1", os: "12.0", at: now, seconds: 15, views: 2)
+        let original = state.buckets[0]
+        let data = try JSONEncoder().encode(state)
+        var restored = try JSONDecoder().decode(UsageTelemetryState.self, from: data)
+        let wire = restored.prepare(at: now)!
+        XCTAssertEqual(wire.snapshots[0].bucket_id, original.bucket_id)
+        XCTAssertEqual(wire.snapshots[0].sequence, original.sequence)
+        XCTAssertEqual(wire.snapshots[0].documents_viewed, 2)
+        let json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(wire)) as! [String: Any]
+        XCTAssertEqual(json["schema_version"] as? Int, 3)
     }
 }

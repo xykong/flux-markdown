@@ -182,6 +182,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .route("/healthz", get(|| async { "ok" }))
                 .route("/v1/events", post(ingest))
                 .route("/v2/snapshots", post(counters::ingest))
+                .route("/v3/snapshots", post(counters::ingest_timestamps))
                 .layer(DefaultBodyLimit::max(65536))
                 .with_state(Arc::new(Mutex::new(db)));
             let listener = tokio::net::TcpListener::bind("127.0.0.1:8765").await?;
