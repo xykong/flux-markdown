@@ -15,7 +15,7 @@ export function scrollProgress(y: number, height: number, viewport: number): num
 const labels = {
     en: ['Position', 'Document updated'], zh: ['位置', '文档已更新'],
     de: ['Position', 'Dokument aktualisiert'], fr: ['Position', 'Document actualisé'],
-    es: ['Posición', 'Documento actualizado']
+    es: ['Posición', 'Documento actualizado'], ar: ['الموضع', 'تم تحديث المستند']
 };
 export class ReadingStatus {
     private lastText: string | undefined;

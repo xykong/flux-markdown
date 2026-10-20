@@ -1,0 +1,221 @@
+/* === Menu Items === */
+"Reload File" = "إعادة تحميل الملف";
+"Open in External Editor" = "فتح في محرر خارجي";
+"Export as HTML…" = "تصدير بصيغة HTML…";
+"Export as PDF…" = "تصدير بصيغة PDF…";
+"Find..." = "بحث...";
+"FluxMarkdown Help" = "مساعدة FluxMarkdown";
+"README" = "README";
+"Report an Issue" = "الإبلاغ عن مشكلة";
+"Release Notes" = "ملاحظات الإصدار";
+"Show Preview" = "عرض المعاينة";
+"Show Source" = "عرض المصدر";
+"Reset Zoom" = "إعادة ضبط التكبير";
+"Appearance" = "المظهر";
+"Check for Updates..." = "التحقق من التحديثات...";
+
+/* === Context Menu / Search === */
+"Context menu search item" = "بحث...";
+"Search menu item" = "بحث...";
+
+/* === Toolbar Tooltips === */
+"Reload File (⌘R)" = "إعادة تحميل الملف (⌘R)";
+"Zoom Out" = "تصغير";
+"Reset Zoom (⌘0)" = "إعادة ضبط التكبير (⌘0)";
+"Zoom In" = "تكبير";
+"Show Help" = "عرض المساعدة";
+"Toggle Theme (System / Light / Dark)" = "تبديل المظهر (النظام / فاتح / داكن)";
+
+/* === Appearance Modes === */
+"Light" = "فاتح";
+"Dark" = "داكن";
+"System" = "النظام";
+
+/* === Settings: Tabs === */
+"Rendering" = "العرض";
+"Editor" = "المحرر";
+
+/* === Settings: Theme Section === */
+"Theme" = "المظهر";
+"Choose your preferred interface style" = "اختر نمط الواجهة المفضل لديك";
+
+/* === Settings: Language Section === */
+"Language" = "اللغة";
+"Interface language for the entire app" = "لغة واجهة التطبيق بأكمله";
+"System Default" = "افتراضي النظام";
+"Some menus update only after restarting the app." = "لا تتحدث بعض القوائم إلا بعد إعادة تشغيل التطبيق.";
+"Restart Now" = "إعادة التشغيل الآن";
+
+/* === Settings: Features Section === */
+"Features" = "الميزات";
+"Enable or disable rendering capabilities" = "تفعيل أو تعطيل إمكانات العرض";
+"Mermaid Diagrams" = "مخططات Mermaid";
+"Flowcharts, sequence diagrams, and more" = "المخططات الانسيابية ومخططات التسلسل والمزيد";
+"KaTeX Math" = "رياضيات KaTeX";
+"Mathematical expressions and equations" = "التعبيرات الرياضية والمعادلات";
+"Emoji Support" = "دعم الرموز التعبيرية";
+"GitHub flavored emoji codes like :smile:" = "رموز تعبيرية بنمط GitHub مثل :smile:";
+"Collapse Blockquotes by Default" = "طي الاقتباسات افتراضيًا";
+"Collapse blockquote sections when opening a document" = "طي أقسام الاقتباس عند فتح مستند";
+"Show Line Numbers" = "إظهار أرقام الأسطر";
+"Display source line numbers in rendered preview and source view" = "عرض أرقام أسطر المصدر في المعاينة وعرض المصدر";
+
+/* === Settings: Typography Section === */
+"Typography" = "الطباعة";
+"Adjust the reading experience" = "اضبط تجربة القراءة";
+"Font Size" = "حجم الخط";
+"Font Size:" = "حجم الخط:";
+
+/* === Settings: Code Highlighting Section === */
+"Code Highlighting" = "تمييز الشيفرة";
+"Syntax highlighting theme for code blocks" = "سمة تمييز الصياغة لكتل الشيفرة";
+"Default" = "افتراضي";
+
+/* === Settings: Window === */
+"Settings" = "الإعدادات";
+
+/* === Welcome View === */
+"Open a Markdown file or drop it here to start." = "افتح ملف Markdown أو أفلته هنا للبدء.";
+"Open Markdown File…" = "فتح ملف Markdown…";
+"Drag & drop .md/.mdx/.txt here" = "اسحب ملفات ‎.md/.mdx/.txt‎ وأفلتها هنا";
+"QuickLook" = "نظرة سريعة";
+"In Finder, select a file and press Space." = "في Finder، حدد ملفًا واضغط مفتاح المسافة.";
+"Open with App" = "فتح باستخدام التطبيق";
+"Double-click a .md file to open it here." = "انقر نقرًا مزدوجًا على ملف ‎.md‎ لفتحه هنا.";
+"Drag & Drop" = "السحب والإفلات";
+"Drop files onto the + area to open." = "أفلت الملفات على منطقة + لفتحها.";
+"Open Settings" = "فتح الإعدادات";
+"Troubleshooting" = "استكشاف الأخطاء وإصلاحها";
+"Open" = "فتح";
+"FluxMarkdown App Icon" = "أيقونة تطبيق FluxMarkdown";
+
+/* === Toast Messages === */
+"QuickLook preview does not support link navigation" = "لا تدعم معاينة نظرة سريعة التنقل عبر الروابط";
+"Double-click .md file to open in main app for full functionality" = "انقر نقرًا مزدوجًا على ملف ‎.md‎ لفتحه في التطبيق الرئيسي بكل الوظائف";
+
+/* === Feedback and diagnostics === */
+"Suggest a Feature…" = "اقتراح ميزة…";
+"Review your report before continuing. The summary will be sent to GitHub; submitted issues are public." = "راجع تقريرك قبل المتابعة. سيُرسل الملخص إلى GitHub، والمشكلات المُرسلة عامة.";
+"What happened? Include steps to reproduce and what you expected." = "ماذا حدث؟ اذكر خطوات إعادة الإنتاج وما كنت تتوقعه.";
+"Problem description" = "وصف المشكلة";
+"Include diagnostics and recent settings changes" = "تضمين التشخيصات وتغييرات الإعدادات الأخيرة";
+"Stored locally: the latest 200 settings changes, without time expiration. Document contents and file paths are excluded." = "يُحفظ محليًا: آخر 200 تغيير في الإعدادات، دون انتهاء صلاحية. تُستبعد محتويات المستندات ومسارات الملفات.";
+"Diagnostic report" = "تقرير التشخيص";
+"Clear Settings History…" = "مسح سجل الإعدادات…";
+"Copy Report" = "نسخ التقرير";
+"Save Report…" = "حفظ التقرير…";
+"Report copied." = "تم نسخ التقرير.";
+"You submit the issue on GitHub. A GitHub account is required." = "أنت من يرسل المشكلة على GitHub. يلزم حساب GitHub.";
+"Cancel" = "إلغاء";
+"Continue on GitHub…" = "المتابعة على GitHub…";
+"Clear Settings History?" = "مسح سجل الإعدادات؟";
+"This removes recorded changes and startup snapshots. Your current settings stay unchanged." = "يزيل هذا التغييرات المسجلة ولقطات بدء التشغيل. تبقى إعداداتك الحالية دون تغيير.";
+"Clear" = "مسح";
+"Settings history cleared." = "تم مسح سجل الإعدادات.";
+"Report saved." = "تم حفظ التقرير.";
+"Could not save the report. You can copy it instead." = "تعذّر حفظ التقرير. يمكنك نسخه بدلًا من ذلك.";
+"GitHub opened with a shortened summary. Copy or save the full report if needed." = "فُتح GitHub بملخص مختصر. انسخ التقرير الكامل أو احفظه عند الحاجة.";
+"GitHub opened. Review the form and submit when ready." = "فُتح GitHub. راجع النموذج وأرسله عندما تكون جاهزًا.";
+"Could not open the browser. Copy the report or save it and try again." = "تعذّر فتح المتصفح. انسخ التقرير أو احفظه ثم حاول مرة أخرى.";
+"Copy Link" = "نسخ الرابط";
+
+/* QuickLook recovery */
+"Repair Quick Look…" = "إصلاح نظرة سريعة…";
+"Quick Look registration repaired" = "تم إصلاح تسجيل نظرة سريعة";
+"Quick Look repair failed" = "فشل إصلاح نظرة سريعة";
+"Try selecting the file in Finder and pressing Space. Your default editor was preserved." = "جرّب تحديد الملف في Finder والضغط على مفتاح المسافة. تم الاحتفاظ بمحررك الافتراضي.";
+
+"Contents Position" = "موضع المحتويات";
+
+"Left" = "يسار";
+
+"Right" = "يمين";
+
+"Keep contents and its button on the same side" = "أبقِ المحتويات وزرها على الجانب نفسه";
+
+/* GitHub project support */
+"Star on GitHub" = "أضف نجمة على GitHub";
+"Open GitHub and click Star to support FluxMarkdown." = "افتح GitHub وانقر Star لدعم FluxMarkdown.";
+"Could not open GitHub" = "تعذّر فتح GitHub";
+
+/* Optional GitHub support invitations */
+"Enjoying FluxMarkdown?" = "هل تستمتع باستخدام FluxMarkdown؟";
+"If FluxMarkdown makes reading easier, give it a Star on GitHub to support development." = "إذا كان FluxMarkdown يسهّل القراءة، فأضف له نجمة على GitHub لدعم التطوير.";
+"Remind Me Later" = "ذكّرني لاحقًا";
+"Don't Remind Me" = "لا تذكّرني";
+"I've Already Starred" = "لقد أضفت نجمة بالفعل";
+"Invite me to support the project on GitHub" = "ادعني لدعم المشروع على GitHub";
+
+"Preview limited to 500 KiB. Use Open with FluxMarkdown above to read the complete document." = "المعاينة محدودة بـ 500 KiB. استخدم «فتح باستخدام FluxMarkdown» أعلاه لقراءة المستند كاملًا.";
+"Test Quick Look" = "اختبار نظرة سريعة";
+"Quick Look preview verified" = "تم التحقق من معاينة نظرة سريعة";
+"Quick Look preview not confirmed" = "لم يتم تأكيد معاينة نظرة سريعة";
+"The installed extension rendered the test document. Your default editor was preserved." = "عرضت الإضافة المثبتة مستند الاختبار. تم الاحتفاظ بمحررك الافتراضي.";
+"The test did not confirm a rendered preview. Include Quick Look diagnostics when reporting this issue." = "لم يؤكد الاختبار عرض معاينة. أرفق تشخيصات نظرة سريعة عند الإبلاغ عن هذه المشكلة.";
+"Some local images could not be read. Use Open with FluxMarkdown above to view the document." = "تعذّرت قراءة بعض الصور المحلية. استخدم «فتح باستخدام FluxMarkdown» أعلاه لعرض المستند.";
+
+"Document reloaded" = "تمت إعادة تحميل المستند";
+"Reload failed" = "فشلت إعادة التحميل";
+"Zoom reset" = "تمت إعادة ضبط التكبير";
+
+"Typst Math" = "رياضيات Typst";
+
+"Typst math expressions in ```typst code blocks" = "تعبيرات رياضيات Typst في كتل الشيفرة ‎```typst";
+
+"Finder Preview Font Size" = "حجم خط معاينة Finder";
+
+"Font size when previewing in Finder's column view" = "حجم الخط عند المعاينة في عرض الأعمدة في Finder";
+/* Actionable update failure recovery */
+"Could Not Update FluxMarkdown" = "تعذّر تحديث FluxMarkdown";
+"The automatic update could not be completed. You can update manually: download FluxMarkdown.dmg from our official download page, open it, quit FluxMarkdown, then drag FluxMarkdown into Applications and choose Replace.\n\nIf manual installation also fails, choose Help → Report an Issue and include the diagnostics, your macOS version, and how you installed FluxMarkdown." = "تعذّر إكمال التحديث التلقائي. يمكنك التحديث يدويًا: نزّل FluxMarkdown.dmg من صفحة التنزيل الرسمية، وافتحه، وأنهِ FluxMarkdown، ثم اسحب FluxMarkdown إلى مجلد Applications واختر «استبدال».\n\nإذا فشل التثبيت اليدوي أيضًا، فاختر «مساعدة» ثم «الإبلاغ عن مشكلة» وأرفق التشخيصات وإصدار macOS وطريقة تثبيت FluxMarkdown.";
+"Download Latest Version" = "تنزيل أحدث إصدار";
+"Close" = "إغلاق";
+"Could Not Open Download Page" = "تعذّر فتح صفحة التنزيل";
+"Copy the download link and paste it into your browser to download the latest version." = "انسخ رابط التنزيل والصقه في متصفحك لتنزيل أحدث إصدار.";
+"Copy Download Link" = "نسخ رابط التنزيل";
+
+/* Contextual error recovery and feedback */
+"Update could not be completed" = "تعذّر إكمال التحديث";
+"Document could not be opened" = "تعذّر فتح المستند";
+"Document could not be reloaded" = "تعذّرت إعادة تحميل المستند";
+"Export could not be completed" = "تعذّر إكمال التصدير";
+"Document could not be displayed" = "تعذّر عرض المستند";
+"This diagram or formula could not be displayed" = "تعذّر عرض هذا المخطط أو المعادلة";
+"Search could not be completed" = "تعذّر إكمال البحث";
+"Quick Look could not complete this operation" = "تعذّرت على نظرة سريعة إكمال هذه العملية";
+"Some images could not be displayed" = "تعذّر عرض بعض الصور";
+"This preview is incomplete" = "هذه المعاينة غير مكتملة";
+"The destination could not be opened" = "تعذّر فتح الوجهة";
+"You can download the latest version and install it manually." = "يمكنك تنزيل أحدث إصدار وتثبيته يدويًا.";
+"Choose a readable UTF-8 Markdown file, or open it in your editor to check it." = "اختر ملف Markdown مقروءًا بترميز UTF-8، أو افتحه في محررك للتحقق منه.";
+"Open this document in your editor, or split it into smaller files before trying again." = "افتح هذا المستند في محررك، أو قسّمه إلى ملفات أصغر قبل المحاولة مجددًا.";
+"Try reloading again when the file is available. Your current document has not been discarded." = "جرّب إعادة التحميل عندما يكون الملف متاحًا. لم يتم التخلص من مستندك الحالي.";
+"Try exporting again and choose another writable folder." = "جرّب التصدير مجددًا واختر مجلدًا آخر قابلًا للكتابة.";
+"Try reloading the preview, or open the document in your editor." = "جرّب إعادة تحميل المعاينة، أو افتح المستند في محررك.";
+"Check the source syntax in your editor. The rest of the document is still available." = "تحقق من صياغة المصدر في محررك. بقية المستند لا تزال متاحة.";
+"Check the search expression, or open the document in FluxMarkdown and press Command-F." = "تحقق من تعبير البحث، أو افتح المستند في FluxMarkdown واضغط Command-F.";
+"Open the document in FluxMarkdown. You can also run Repair Quick Look from the Help menu." = "افتح المستند في FluxMarkdown. يمكنك أيضًا تشغيل «إصلاح نظرة سريعة» من قائمة المساعدة.";
+"Open the document in FluxMarkdown to read beyond the preview limits." = "افتح المستند في FluxMarkdown لتقرأ ما يتجاوز حدود المعاينة.";
+"Open the destination in your browser or editor. You can copy a report if this keeps happening." = "افتح الوجهة في متصفحك أو محررك. يمكنك نسخ تقرير إذا استمر حدوث ذلك.";
+"Report This Problem" = "الإبلاغ عن هذه المشكلة";
+"Include diagnostics" = "تضمين التشخيصات";
+"Review Feedback…" = "مراجعة الملاحظات…";
+"Review Last Error…" = "مراجعة آخر خطأ…";
+"Clear Error History" = "مسح سجل الأخطاء";
+"Additional details (optional)" = "تفاصيل إضافية (اختياري)";
+"Opens GitHub with this error and system information. You confirm publication there." = "يفتح GitHub مع هذا الخطأ ومعلومات النظام. أنت تؤكد النشر هناك.";
+"The feedback page could not be opened. Copy or save this report and try again later." = "تعذّر فتح صفحة الملاحظات. انسخ هذا التقرير أو احفظه وحاول لاحقًا.";
+"The feedback page could not be opened. Copy the report, then use Help → Report an Issue in FluxMarkdown." = "تعذّر فتح صفحة الملاحظات. انسخ التقرير، ثم استخدم «مساعدة» ثم «الإبلاغ عن مشكلة» في FluxMarkdown.";
+"The report is ready. GitHub requires you to confirm publication. You can reopen, copy or save it here." = "التقرير جاهز. يتطلب GitHub تأكيدك للنشر. يمكنك إعادة فتحه أو نسخه أو حفظه هنا.";
+"Open Feedback Page" = "فتح صفحة الملاحظات";
+"Done" = "تم";
+"Try Again" = "إعادة المحاولة";
+"Reload" = "إعادة التحميل";
+"Export Again" = "التصدير مجددًا";
+"Choose Another Folder" = "اختيار مجلد آخر";
+"Choose Another File" = "اختيار ملف آخر";
+"Open in FluxMarkdown" = "فتح في FluxMarkdown";
+"How to Install…" = "كيفية التثبيت…";
+"Download and open FluxMarkdown.dmg, quit FluxMarkdown, then drag the app into Applications and choose Replace." = "نزّل FluxMarkdown.dmg وافتحه، وأنهِ FluxMarkdown، ثم اسحب التطبيق إلى Applications واختر «استبدال».";
+"Preview could not start" = "تعذّر بدء المعاينة";
+"Download and reinstall FluxMarkdown, or open the document in your editor." = "نزّل FluxMarkdown وأعد تثبيته، أو افتح المستند في محررك.";

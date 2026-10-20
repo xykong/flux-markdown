@@ -408,6 +408,7 @@ private struct DocumentPreviewScene: View {
                 showToolbarToast(resetZoomToastMessage)
             }
         })
+        .interfaceLayoutDirection(for: preference.uiLanguage)
     }
 
     private func showToolbarToast(_ message: String) {

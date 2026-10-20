@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 import AppKit
 
 struct WelcomeView: View {
+    @ObservedObject private var preference = AppearancePreference.shared
     @State private var isTargeted = false
     @State private var window: NSWindow?
     @State private var openErrorMessage: String?
@@ -46,6 +47,7 @@ struct WelcomeView: View {
         .onReceive(Timer.publish(every: 0.25, on: .main, in: .common).autoconnect()) { _ in
             closeIfAnyDocumentIsOpen()
         }
+        .interfaceLayoutDirection(for: preference.uiLanguage)
     }
 
     private var background: some View {
@@ -457,11 +459,12 @@ private final class SettingsWindowManager: NSObject {
         let view = SettingsView()
         let hostingView = NSHostingView(rootView: view)
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 600, height: 440),
+            contentRect: NSRect(x: 0, y: 0, width: SettingsView.preferredWidth, height: SettingsView.preferredHeight),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
         )
+        window.contentMinSize = NSSize(width: SettingsView.preferredWidth, height: SettingsView.preferredHeight)
         window.title = NSLocalizedString("Settings", comment: "Settings window title")
         window.center()
         window.contentView = hostingView

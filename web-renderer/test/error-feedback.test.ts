@@ -39,6 +39,14 @@ describe('contextual error feedback', () => {
         expect(postMessage.mock.calls[postMessage.mock.calls.length - 1]?.[0].action).toBe('inspect');
         stop();
     });
+    it('localizes the feedback controls in Arabic', async () => {
+        window.__fluxLang = 'ar';
+        const stop = installErrorFeedback(document.body);
+        document.body.innerHTML = '<div class="mermaid-error">خطأ</div>';
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(document.querySelector<HTMLButtonElement>('[data-feedback-action="report"]')?.textContent).toBe('الإبلاغ عن هذه المشكلة');
+        stop();
+    });
 });
 
 describe('error surface coverage', () => {

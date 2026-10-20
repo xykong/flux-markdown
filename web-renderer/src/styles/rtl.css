@@ -1,0 +1,158 @@
+/*
+ * Arabic (right-to-left) interface chrome.
+ *
+ * The document keeps its own content-detected direction; these rules only
+ * mirror the app chrome: reading controls, contents sidebar, search, and the
+ * source view. Physical left/right choices from the Contents Position setting
+ * are mirrored so the sidebar stays on the side the user picked in reading
+ * order.
+ */
+
+/* Native window tools sit on the left in RTL; reserve that edge instead. */
+html[dir="rtl"][data-reading-shared="true"] #reading-controls {
+    left: var(--reading-native-reserve, 340px);
+    right: 20px;
+}
+
+/* Contents docked on the reading-order end (default) moves to the left. */
+html[dir="rtl"] #toc-container[data-layout="sidebar"] .toc-nav {
+    right: auto;
+    left: 20px;
+    background-position: right top;
+    padding: 0 12px 4px 0;
+}
+
+html[dir="rtl"] #toc-container[data-layout="overlay"] {
+    right: auto;
+    left: 16px;
+}
+
+/* Contents pinned to physical "Left" mirrors to the right in RTL. */
+html[dir="rtl"][data-toc-side="left"] #toc-container[data-layout="sidebar"] .toc-nav {
+    left: auto;
+    right: 20px;
+    background-position: left top;
+    padding: 0 0 4px 12px;
+}
+
+html[dir="rtl"][data-toc-side="left"] #toc-container[data-layout="overlay"] {
+    left: auto;
+    right: 16px;
+}
+
+html[dir="rtl"][data-reading-shared="true"]:not([data-toc-side="left"]) #toc-button-container {
+    right: auto;
+    left: 20px;
+}
+
+/* Indentation and the active marker follow the text start edge. */
+html[dir="rtl"] .toc-link {
+    padding: 7px calc(12px + var(--toc-indent, 0px)) 7px 10px;
+}
+
+html[dir="rtl"] .toc-link.active::before {
+    left: auto;
+    right: 0;
+}
+
+/* Search panel: mirror the counter and the options separator. */
+html[dir="rtl"] .search-input {
+    padding: 4px 8px 4px 60px;
+}
+
+html[dir="rtl"] .search-match-counter {
+    right: auto;
+    left: 8px;
+}
+
+html[dir="rtl"] .search-button-close {
+    margin-left: 0;
+    margin-right: 4px;
+}
+
+html[dir="rtl"] .search-options {
+    margin-left: 0;
+    margin-right: 4px;
+    padding-left: 0;
+    padding-right: 8px;
+    border-left: 0;
+    border-right: 1px solid #d0d7de;
+}
+
+@media (prefers-color-scheme: dark) {
+    html[dir="rtl"] .search-options {
+        border-right-color: #30363d;
+    }
+}
+
+/* Keep the docked search centered in the content column, not the sidebar. */
+html[dir="rtl"][data-toc-docked="true"] #search-container {
+    left: calc((100% + 264px) / 2);
+}
+
+html[dir="rtl"][data-toc-side="left"][data-toc-docked="true"] #search-container {
+    left: calc((100% - 264px) / 2);
+}
+
+/* Code, math, and the source view stay left-to-right inside Arabic content. */
+#markdown-preview[dir="rtl"] pre,
+#markdown-preview[dir="rtl"] pre code,
+#markdown-preview[dir="rtl"] .katex,
+#markdown-preview[dir="rtl"] .katex-display,
+#markdown-preview.source-mode {
+    direction: ltr;
+    text-align: left;
+}
+
+#markdown-preview[dir="rtl"] code:not(pre code) {
+    unicode-bidi: isolate;
+}
+
+/* Lists and quote rails follow the right edge in Arabic content. */
+#markdown-preview[dir="rtl"] ul,
+#markdown-preview[dir="rtl"] ol {
+    padding-left: 0;
+    padding-right: 2em;
+}
+
+#markdown-preview[dir="rtl"] blockquote,
+#markdown-preview[dir="rtl"] .markdown-alert {
+    border-left: 0;
+    border-right: .25em solid var(--borderColor-default);
+}
+
+#markdown-preview[dir="rtl"] .markdown-alert.markdown-alert-note {
+    border-right-color: var(--borderColor-accent-emphasis);
+}
+
+#markdown-preview[dir="rtl"] .markdown-alert.markdown-alert-important {
+    border-right-color: var(--borderColor-done-emphasis);
+}
+
+#markdown-preview[dir="rtl"] .markdown-alert.markdown-alert-warning {
+    border-right-color: var(--borderColor-attention-emphasis);
+}
+
+#markdown-preview[dir="rtl"] .markdown-alert.markdown-alert-tip {
+    border-right-color: var(--borderColor-success-emphasis);
+}
+
+#markdown-preview[dir="rtl"] .markdown-alert.markdown-alert-caution {
+    border-right-color: var(--borderColor-danger-emphasis);
+}
+
+#markdown-preview[dir="rtl"] .blockquote-placeholder {
+    border-left: 0;
+    border-right: 3px solid #d0d7de;
+    border-radius: 4px 0 0 4px;
+}
+
+[data-theme="dark"] #markdown-preview[dir="rtl"] .blockquote-placeholder {
+    border-right-color: #30363d;
+}
+
+@media (prefers-color-scheme: dark) {
+    #markdown-preview[dir="rtl"] .blockquote-placeholder {
+        border-right-color: #30363d;
+    }
+}

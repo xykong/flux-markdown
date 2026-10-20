@@ -9,6 +9,7 @@ const searchLabels = {
 	de: { find: 'Auf der Seite suchen', query: 'Suchanfrage', previous: 'Vorheriger Treffer', next: 'Nächster Treffer', close: 'Schließen', case: 'Groß-/Kleinschreibung beachten', word: 'Ganzes Wort suchen', regex: 'Regulären Ausdruck verwenden', invalidRegex: 'Ungültiger regulärer Ausdruck' },
 	fr: { find: 'Rechercher dans la page', query: 'Requête de recherche', previous: 'Résultat précédent', next: 'Résultat suivant', close: 'Fermer', case: 'Respecter la casse', word: 'Mot entier', regex: 'Utiliser une expression régulière', invalidRegex: 'Expression régulière non valide' },
 	es: { find: 'Buscar en la página', query: 'Consulta de búsqueda', previous: 'Coincidencia anterior', next: 'Coincidencia siguiente', close: 'Cerrar', case: 'Distinguir mayúsculas', word: 'Coincidir palabra completa', regex: 'Usar expresión regular', invalidRegex: 'Expresión regular no válida' },
+	ar: { find: 'البحث في الصفحة', query: 'نص البحث', previous: 'المطابقة السابقة', next: 'المطابقة التالية', close: 'إغلاق', case: 'مطابقة حالة الأحرف', word: 'مطابقة الكلمة كاملة', regex: 'استخدام تعبير نمطي', invalidRegex: 'تعبير نمطي غير صالح' },
 } as const;
 
 function localizedSearchLabels() {

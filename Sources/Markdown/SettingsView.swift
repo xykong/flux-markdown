@@ -24,6 +24,26 @@ private extension View {
     }
 }
 
+/// Keeps the Settings window from restoring to a size that clips the sidebar.
+private struct SettingsWindowSizer: NSViewRepresentable {
+    let minSize: NSSize
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async {
+            guard let window = view.window else { return }
+            window.contentMinSize = minSize
+            let current = window.contentLayoutRect.size
+            guard current.width < minSize.width || current.height < minSize.height else { return }
+            window.setContentSize(NSSize(width: max(current.width, minSize.width),
+                                         height: max(current.height, minSize.height)))
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+}
+
 // MARK: - Models
 
 enum SettingsTab: String, CaseIterable, Identifiable {
@@ -53,11 +73,14 @@ enum SettingsTab: String, CaseIterable, Identifiable {
 // MARK: - Main View
 
 struct SettingsView: View {
+    static let preferredWidth: CGFloat = 700
+    static let preferredHeight: CGFloat = 500
+
     @ObservedObject private var preference = AppearancePreference.shared
     @State private var selectedTab: SettingsTab? = .appearance
 
     var body: some View {
-        NavigationView {
+        HStack(spacing: 0) {
             // Sidebar
             List {
                 ForEach(SettingsTab.allCases) { tab in
@@ -70,7 +93,9 @@ struct SettingsView: View {
                 }
             }
             .listStyle(SidebarListStyle())
-            .frame(minWidth: 180)
+            .frame(width: 200)
+
+            Divider()
 
             // Content
             Group {
@@ -92,8 +117,11 @@ struct SettingsView: View {
                     Color.clear
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(width: 600, height: 440)
+        .frame(minWidth: Self.preferredWidth, minHeight: Self.preferredHeight)
+        .background(SettingsWindowSizer(minSize: NSSize(width: Self.preferredWidth, height: Self.preferredHeight)))
+        .interfaceLayoutDirection(for: preference.uiLanguage)
     }
 
     private func SidebarRow(title: String, icon: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
@@ -207,6 +235,10 @@ struct AppearanceSettingsView: View {
                 Divider().padding(.leading, 12)
                 LanguageOptionRow(label: "中文", value: "zh", current: preference.uiLanguage) {
                     preference.uiLanguage = "zh"
+                }
+                Divider().padding(.leading, 12)
+                LanguageOptionRow(label: "العربية", value: "ar", current: preference.uiLanguage) {
+                    preference.uiLanguage = "ar"
                 }
             }
             .background(Color(NSColor.controlBackgroundColor))
