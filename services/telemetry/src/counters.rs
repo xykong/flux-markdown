@@ -44,6 +44,10 @@ pub fn schema(db: &Connection) -> rusqlite::Result<()> {
         db.execute_batch("ALTER TABLE snapshots ADD COLUMN bucket_start_timestamp INTEGER;
             UPDATE snapshots SET bucket_start_timestamp = CAST(strftime('%s', json_extract(payload, '$.snapshot.day') || 'T00:00:00Z') AS INTEGER);")?;
     }
+    db.execute_batch("CREATE TABLE IF NOT EXISTS timezone_observations (
+        installation TEXT NOT NULL, timestamp INTEGER NOT NULL, timezone_id TEXT NOT NULL,
+        received_at INTEGER NOT NULL, PRIMARY KEY(installation,timestamp));
+        CREATE INDEX IF NOT EXISTS timezone_observations_received ON timezone_observations(received_at);")?;
     Ok(())
 }
 fn uuid_ok(s: &str) -> bool {
@@ -52,12 +56,13 @@ fn uuid_ok(s: &str) -> bool {
         .unwrap_or(false)
 }
 pub fn store(db: &mut Connection, upload: &Upload) -> Result<serde_json::Value, StatusCode> {
-    store_at(db, upload, None)
+    store_at(db, upload, None, None)
 }
 fn store_at(
     db: &mut Connection,
     upload: &Upload,
     timestamp: Option<i64>,
+    timezone: Option<&str>,
 ) -> Result<serde_json::Value, StatusCode> {
     let invalid = StatusCode::BAD_REQUEST;
     let unavailable = StatusCode::SERVICE_UNAVAILABLE;
@@ -134,6 +139,20 @@ fn store_at(
         .map_err(|_| unavailable)?;
         tx.execute("INSERT INTO counters VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9) ON CONFLICT(installation,bucket) DO UPDATE SET sequence=excluded.sequence,seconds=excluded.seconds,views=excluded.views WHERE excluded.sequence > counters.sequence",params![upload.installation_id,s.bucket_id,s.day,s.app_version,s.os_version,s.source,s.sequence,s.active_seconds,s.documents_viewed]).map_err(|_|unavailable)?;
         ack.insert(s.bucket_id.clone(), s.sequence.into());
+    }
+    if let Some(timestamp) = timestamp {
+        let timezone = timezone.unwrap_or("");
+        let previous: Option<String> = tx.query_row(
+            "SELECT timezone_id FROM timezone_observations WHERE installation=?1 AND timestamp=?2",
+            params![upload.installation_id,timestamp], |r|r.get(0)).optional().map_err(|_| unavailable)?;
+        if previous.as_ref().is_some_and(|v| v != timezone) {
+            return Err(StatusCode::CONFLICT);
+        }
+        tx.execute(
+            "INSERT OR IGNORE INTO timezone_observations VALUES (?1,?2,?3,?4)",
+            params![upload.installation_id, timestamp, timezone, now()],
+        )
+        .map_err(|_| unavailable)?;
     }
     tx.commit().map_err(|_| unavailable)?;
     Ok(serde_json::json!({"accepted":ack}))
@@ -228,6 +247,8 @@ pub struct TimestampSnapshot {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct TimestampUpload {
+    #[serde(default)]
+    timezone_id: Option<String>,
     schema_version: u32,
     timestamp: i64,
     installation_id: String,
@@ -240,7 +261,11 @@ fn store_timestamps(
     upload: TimestampUpload,
 ) -> Result<serde_json::Value, StatusCode> {
     let invalid = StatusCode::BAD_REQUEST;
-    if upload.schema_version != 3
+    if upload
+        .timezone_id
+        .as_deref()
+        .is_some_and(|zone| !valid_timezone(zone))
+        || upload.schema_version != 3
         || upload.timestamp < now() - 7 * 86400
         || upload.timestamp > now() + 300
     {
@@ -278,6 +303,7 @@ fn store_timestamps(
             snapshots,
         },
         Some(upload.timestamp),
+        upload.timezone_id.as_deref(),
     )
 }
 pub async fn ingest_timestamps(
@@ -386,5 +412,119 @@ mod timestamp_tests {
             now() / 86400 * 86400
         );
         assert_eq!(summary(&db).unwrap()[0]["documents_viewed"], 1);
+    }
+}
+
+// Use the OS-maintained IANA TZif database; no hand-maintained country/offset list.
+fn valid_timezone(zone: &str) -> bool {
+    if ["localtime", "posixrules"].contains(&zone)
+        || zone.is_empty()
+        || zone.len() > 128
+        || !zone.is_ascii()
+        || zone
+            .split('/')
+            .any(|p| p.is_empty() || p == "." || p == "..")
+        || !zone
+            .bytes()
+            .all(|c| c.is_ascii_alphanumeric() || b"/_-+".contains(&c))
+        || zone.starts_with("posix/")
+        || zone.starts_with("right/")
+    {
+        return false;
+    }
+    use std::io::Read;
+    let root = std::path::Path::new("/usr/share/zoneinfo");
+    let Ok(root) = root.canonicalize() else {
+        return false;
+    };
+    let Ok(path) = root.join(zone).canonicalize() else {
+        return false;
+    };
+    if !path.starts_with(&root) {
+        return false;
+    }
+    let mut magic = [0; 4];
+    std::fs::File::open(path)
+        .and_then(|mut f| f.read_exact(&mut magic))
+        .is_ok()
+        && &magic == b"TZif"
+}
+pub fn timezone_summary(
+    db: &Connection,
+    start: i64,
+    end: i64,
+) -> rusqlite::Result<serde_json::Value> {
+    let mut q = db.prepare("WITH ranked AS (
+        SELECT timezone_id,ROW_NUMBER() OVER(PARTITION BY installation ORDER BY timestamp DESC) AS rank
+        FROM timezone_observations WHERE timestamp>=?1 AND timestamp<?2)
+        SELECT CASE WHEN timezone_id='' THEN 'unknown' ELSE timezone_id END,count(*)
+        FROM ranked WHERE rank=1 GROUP BY timezone_id ORDER BY count(*) DESC,timezone_id")?;
+    let groups=q.query_map(params![start,end], |r| Ok(serde_json::json!({"timezone_id":r.get::<_,String>(0)?,"installations":r.get::<_,i64>(1)?})))?
+        .collect::<rusqlite::Result<Vec<_>>>()?;
+    Ok(serde_json::json!({"start_timestamp":start,"end_timestamp":end,"groups":groups}))
+}
+
+#[cfg(test)]
+mod timezone_tests {
+    use super::*;
+    fn upload(ts: i64, zone: Option<&str>) -> TimestampUpload {
+        serde_json::from_value(serde_json::json!({"schema_version":3,"timestamp":ts,"timezone_id":zone,
+        "installation_id":"00000000-0000-4000-8000-000000000001","architecture":"arm64","channel":"unknown",
+        "snapshots":[{"bucket_id":"00000000-0000-4000-8000-000000000002","day_start_timestamp":now()/86400*86400,
+        "app_version":"1.0.1","os_version":"12.0","source":"app","sequence":1,"active_seconds":10,"documents_viewed":1}]})).unwrap()
+    }
+    #[test]
+    fn latest_timezone_is_not_arrival_order_and_retries_do_not_count_twice() {
+        let mut db = open(&PathBuf::from(":memory:")).unwrap();
+        let t = now() - 30;
+        store_timestamps(&mut db, upload(t, Some("Asia/Shanghai"))).unwrap();
+        store_timestamps(&mut db, upload(t + 20, Some("America/New_York"))).unwrap();
+        store_timestamps(&mut db, upload(t + 10, Some("Europe/London"))).unwrap();
+        store_timestamps(&mut db, upload(t + 20, Some("America/New_York"))).unwrap();
+        let groups = timezone_summary(&db, t, t + 21).unwrap();
+        assert_eq!(
+            groups["groups"],
+            serde_json::json!([{"timezone_id":"America/New_York","installations":1}])
+        );
+        assert_eq!(
+            timezone_summary(&db, t, t + 20).unwrap()["groups"][0]["timezone_id"],
+            "Europe/London"
+        );
+        assert_eq!(summary(&db).unwrap()[0]["documents_viewed"], 1);
+        assert_eq!(
+            store_timestamps(&mut db, upload(t + 20, Some("Asia/Shanghai"))),
+            Err(StatusCode::CONFLICT)
+        );
+    }
+    #[test]
+    fn unknown_legacy_and_invalid_zones() {
+        let mut db = open(&PathBuf::from(":memory:")).unwrap();
+        let t = now();
+        store_timestamps(&mut db, upload(t, None)).unwrap();
+        assert_eq!(
+            timezone_summary(&db, t, t + 1).unwrap()["groups"][0]["timezone_id"],
+            "unknown"
+        );
+        for zone in [
+            "../etc/passwd",
+            "/etc/passwd",
+            "Asia/Invalid",
+            "+08:00",
+            "zone.tab",
+            "posix/Asia/Shanghai",
+        ] {
+            assert_eq!(
+                store_timestamps(&mut db, upload(t + 1, Some(zone))),
+                Err(StatusCode::BAD_REQUEST)
+            );
+        }
+        assert!(valid_timezone("Asia/Kathmandu"));
+        assert!(valid_timezone("Etc/UTC"));
+        assert_eq!(
+            db.query_row("SELECT count(*) FROM timezone_observations", [], |r| r
+                .get::<_, i64>(0))
+                .unwrap(),
+            1
+        );
     }
 }

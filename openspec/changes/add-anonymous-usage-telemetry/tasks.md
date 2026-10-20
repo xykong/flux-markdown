@@ -31,3 +31,11 @@
 - [x] 5.2 Keep v2 compatible; migrate integer timestamp columns without resetting counters.
 - [x] 5.3 Test timezone/DST/midnight boundaries, unit errors, retries and migration.
 - [x] 5.4 Deploy v3, verify HTTPS using synthetic data and clean up test data/temporary backup.
+
+## 6. Minimal timezone metadata
+
+- [x] 6.1 Add batch-level IANA timezone_id without offset or per-counter duplication.
+- [x] 6.2 Preserve UTC counters and compatibility for older requests without timezone.
+- [x] 6.3 Store observations transactionally; implement SSH-only latest-per-installation interval statistics.
+- [x] 6.4 Include timezone observations in retention and installation deletion.
+- [x] 6.5 Update localized collection notices, privacy documentation, tests and production verification.

@@ -5,7 +5,7 @@ explains this and offers **Turn Off Usage Statistics**. You can also turn off
 **Share Usage Statistics** in Settings. This applies to the app and Quick Look.
 
 We collect random installation and counter identifiers, app/macOS versions,
-CPU architecture, installation channel if known, and daily cumulative reading
+CPU architecture, system IANA timezone identifier, installation channel if known, and daily cumulative reading
 seconds and document-view counts, separately for the app and Quick Look.
 We do not send document names, paths, contents, URLs, account identifiers,
 hardware serial numbers or raw diagnostic logs. A repeated opening counts again;
@@ -35,3 +35,12 @@ These records are **pseudonymous**, since multiple snapshots share an installati
 identifier. Installation counts are not people counts; reinstalls, opt-out and
 network failures affect coverage. The purpose is deciding OS support and improving
 the product based on actual usage.
+
+
+The system timezone is sent once per batch as `timezone_id`, not on every daily
+counter. No UTC offset is sent; it can be derived from the IANA timezone rules and
+Unix timestamp if needed. A timezone describes the device setting, not verified
+location or nationality. Unknown/non-IANA fixed-offset settings are omitted rather
+than guessed. Timezone reports count each installation once using its latest
+reported timezone in the selected Unix-time interval; unavailable metadata is
+reported as unknown. Historical UTC daily totals are not reassigned to local days.

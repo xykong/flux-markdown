@@ -3,6 +3,7 @@
 - **Telemetry time**: Send Unix-second upload and UTC-day timestamps, independent of user timezone or daylight saving time. Preserve existing counters and compatibility with earlier uploads.
 
 ### Added
+- **Timezone statistics**: Include the system IANA timezone once per usage upload, with no redundant UTC offset. Preserve UTC daily counters and count participating installations once by their latest reported timezone in a selected interval.
 - **Usage statistics**: Optional daily usage statistics, enabled by default with a direct opt-out. Count reading time and document views by UTC date, app/macOS version and App/Quick Look source; never collect document names, paths or contents. Persist cumulative counters and upload at most hourly while in use, with offline retry and duplicate-safe analysis.
 
 

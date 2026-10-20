@@ -81,9 +81,9 @@
 
 "Turn Off Usage Statistics" = "Turn Off Usage Statistics";
 
-"Usage statistics are on: system/app versions, daily reading time and view counts. No document names or contents. You can turn this off in Settings." = "Usage statistics are on: system/app versions, daily reading time and view counts. No document names or contents. You can turn this off in Settings.";
+"Usage statistics are on: system/app versions, system timezone, daily reading time and view counts. No document names or contents. You can turn this off in Settings." = "Usage statistics are on: system/app versions, system timezone, daily reading time and view counts. No document names or contents. You can turn this off in Settings.";
 
-"Share system/app versions, daily reading time and view counts. No document names or contents. Uploads occur at most hourly while in use." = "Share system/app versions, daily reading time and view counts. No document names or contents. Uploads occur at most hourly while in use.";
+"Share system/app versions, system timezone, daily reading time and view counts. No document names or contents. Uploads occur at most hourly while in use." = "Share system/app versions, system timezone, daily reading time and view counts. No document names or contents. Uploads occur at most hourly while in use.";
 
 "Dismiss" = "Dismiss";
 

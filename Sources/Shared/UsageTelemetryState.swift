@@ -17,11 +17,12 @@ struct UsageSnapshot: Codable {
 struct UsageUpload: Encodable {
     let schema_version: Int
     let timestamp: Int64
+    let timezone_id: String?
     let installation_id: String
     let architecture: String
     let channel: String
     let snapshots: [UsageSnapshot]
-    enum CodingKeys: String, CodingKey { case schema_version, timestamp, installation_id, architecture, channel, snapshots }
+    enum CodingKeys: String, CodingKey { case schema_version, timestamp, timezone_id, installation_id, architecture, channel, snapshots }
     func encode(to encoder: Encoder) throws {
         struct Counter: Encodable {
             let bucket_id: String, app_version: String, os_version: String, source: String
@@ -31,6 +32,7 @@ struct UsageUpload: Encodable {
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encode(schema_version, forKey: .schema_version)
         try c.encode(timestamp, forKey: .timestamp)
+        try c.encodeIfPresent(timezone_id, forKey: .timezone_id)
         try c.encode(installation_id, forKey: .installation_id)
         try c.encode(architecture, forKey: .architecture)
         try c.encode(channel, forKey: .channel)
@@ -84,7 +86,7 @@ struct UsageTelemetryState: Codable {
                 active_seconds: seconds, documents_viewed: views))
         }
     }
-    mutating func prepare(at now: Date) -> UsageUpload? {
+    mutating func prepare(at now: Date, timeZone: TimeZone = .autoupdatingCurrent) -> UsageUpload? {
         guard enabled, now >= nextAttempt else { return nil }
         let dirty = Array(buckets.filter { $0.sequence > $0.acknowledged }.prefix(50))
         guard !dirty.isEmpty else { return nil }
@@ -94,7 +96,9 @@ struct UsageTelemetryState: Codable {
         #else
         let architecture = "x86_64"
         #endif
-        return UsageUpload(schema_version: 3, timestamp: Int64(now.timeIntervalSince1970.rounded(.down)), installation_id: installationID,
+        let zone = timeZone.identifier
+        let knownZone = TimeZone.knownTimeZoneIdentifiers.contains(zone) || ["UTC", "GMT"].contains(zone)
+        return UsageUpload(schema_version: 3, timestamp: Int64(now.timeIntervalSince1970.rounded(.down)), timezone_id: knownZone ? zone : nil, installation_id: installationID,
             architecture: architecture, channel: "unknown", snapshots: dirty)
     }
     mutating func acknowledge(_ upload: UsageUpload) {

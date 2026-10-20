@@ -72,3 +72,18 @@ legacy v2 counter identities compatible.
 #### Scenario: Same snapshot retried at a different time
 - **WHEN** a retry has a later upload timestamp but the same bucket and sequence
 - **THEN** it is acknowledged without duplicate usage or conflicting counter identity
+
+
+### Requirement: Minimal batch timezone metadata
+The client SHALL send one IANA `timezone_id` per batch when known, alongside the
+Unix `timestamp`. Daily snapshots SHALL retain `day_start_timestamp` without
+repeating timezone metadata or transmitting `utc_offset_seconds`.
+
+#### Scenario: User switches timezone
+- **WHEN** the system timezone changes between uploads
+- **THEN** the next batch carries the current identifier without resetting UTC counters
+
+#### Scenario: Timezone distribution over a selected interval
+- **WHEN** an administrator requests a half-open Unix-time interval [start,end)
+- **THEN** each participating installation is assigned once to its latest reported timezone in that interval, regardless of arrival order
+- **AND** missing metadata is classified as unknown and invalid identifiers are rejected

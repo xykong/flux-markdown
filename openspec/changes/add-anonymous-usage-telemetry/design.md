@@ -81,3 +81,18 @@ report labels remain compatible. SQLite migration backfills numeric bucket start
 from explicitly UTC legacy dates; unknown historical client timestamps stay null.
 The daily basis is still UTC, not the viewer's local day; already aggregated UTC
 buckets must not be relabelled as local-day totals.
+
+## Approved three-field time model
+
+Each v3 batch adds optional `timezone_id` (system IANA identifier); each daily bucket
+keeps `day_start_timestamp`, and envelope `timestamp` remains Unix seconds. No
+`utc_offset_seconds` or per-bucket timezone is sent. Unknown fixed-offset identifiers
+are omitted; old v3 requests without timezone remain valid. The server validates
+against its OS-maintained IANA TZif database and records timezone observations
+transactionally with counters, keyed by installation/client timestamp. Same-timestamp
+conflicting metadata is rejected, exact retries deduplicate. Late arrivals do not
+replace newer client-time observations. SSH `timezones START END` uses [start,end)
+and the last observation per installation, grouping unknown separately. Old v1/v2
+clients without observations are outside this report's coverage. Retention and
+installation deletion include observations. Timezone describes the current upload,
+not the location or local day of historical counters included in that upload.

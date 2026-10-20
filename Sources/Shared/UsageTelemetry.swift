@@ -168,7 +168,7 @@ final class UsageTelemetrySession {
         let banner = NSStackView(); banner.orientation = .vertical; banner.alignment = .leading
         banner.wantsLayer = true; banner.layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
         banner.edgeInsets = NSEdgeInsets(top: 8, left: 12, bottom: 8, right: 12)
-        let text = NSTextField(wrappingLabelWithString: NSLocalizedString("Usage statistics are on: system/app versions, daily reading time and view counts. No document names or contents. You can turn this off in Settings.", comment: "Telemetry disclosure"))
+        let text = NSTextField(wrappingLabelWithString: NSLocalizedString("Usage statistics are on: system/app versions, system timezone, daily reading time and view counts. No document names or contents. You can turn this off in Settings.", comment: "Telemetry disclosure"))
         banner.addArrangedSubview(text)
         let actions = NSStackView()
         for (key, disable) in [("Turn Off Usage Statistics", true), ("Dismiss", false)] {

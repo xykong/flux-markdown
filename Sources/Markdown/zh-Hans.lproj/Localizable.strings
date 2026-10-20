@@ -224,9 +224,9 @@
 
 "Turn Off Usage Statistics" = "关闭使用统计";
 
-"Usage statistics are on: system/app versions, daily reading time and view counts. No document names or contents. You can turn this off in Settings." = "使用统计已开启：收集系统及应用版本、每日阅读时长和浏览次数，不收集文件名或内容。可在设置中关闭。";
+"Usage statistics are on: system/app versions, system timezone, daily reading time and view counts. No document names or contents. You can turn this off in Settings." = "使用统计已开启：收集系统及应用版本、系统时区、每日阅读时长和浏览次数，不收集文件名或内容。可在设置中关闭。";
 
-"Share system/app versions, daily reading time and view counts. No document names or contents. Uploads occur at most hourly while in use." = "分享系统及应用版本、每日阅读时长和浏览次数，不包含文件名或内容。使用期间最多每小时上传一次。";
+"Share system/app versions, system timezone, daily reading time and view counts. No document names or contents. Uploads occur at most hourly while in use." = "分享系统及应用版本、系统时区、每日阅读时长和浏览次数，不包含文件名或内容。使用期间最多每小时上传一次。";
 
 "Dismiss" = "关闭提示";
 

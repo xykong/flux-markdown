@@ -141,3 +141,30 @@ Migration preserves existing payloads and counters, backfills legacy UTC starts,
 and leaves unknown historical client times NULL. Timestamp changes on retries do
 not change deduplication identity. Daily reports label dates in UTC; they cannot
 reconstruct local-day totals by shifting already aggregated buckets.
+
+
+## Timezone metadata and installation distribution
+
+v3 optionally carries one batch-level `timezone_id` (IANA, such as Asia/Shanghai).
+No UTC offset is transmitted or duplicated on daily buckets. The current system
+setting is sampled when preparing the batch; this is not geographic location.
+Older v3 clients without the field remain accepted and are recorded as unknown.
+New `timezone_observations` rows are keyed by installation/client timestamp,
+independent of bucket sequence, so a changed timezone on a later retry can be
+observed without counting usage again. Exact retries deduplicate, conflicting
+same-timestamp metadata is rejected, and late arrivals do not override newer time.
+Observations share the 180-day retention and installation-deletion operation.
+
+```sh
+sudo -u flux-telemetry env TELEMETRY_DB=/var/lib/flux-telemetry/events.sqlite3 \
+  /opt/flux-telemetry/flux-telemetry timezones START_UNIX_SECONDS END_UNIX_SECONDS
+```
+
+The interval is [start,end). Each participating installation appears once in its
+latest timezone within that interval; missing metadata appears as `unknown`.
+Legacy v1/v2 data and pre-extension v3 requests with no observation records are
+outside this report's coverage. Counts are installations, not people or countries.
+Timezone aliases are retained as reported rather than inferred from IP or offsets.
+The service validates identifiers against `/usr/share/zoneinfo` TZif files; keep the
+Ubuntu tzdata package updated. macOS client identifiers not recognized as IANA are
+omitted rather than replaced with a guessed timezone.

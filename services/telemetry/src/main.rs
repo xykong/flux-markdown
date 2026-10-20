@@ -145,6 +145,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             tx.execute("DELETE FROM snapshots WHERE installation=?1", [&id])?;
             tx.execute("DELETE FROM counters WHERE installation=?1", [&id])?;
             tx.execute(
+                "DELETE FROM timezone_observations WHERE installation=?1",
+                [&id],
+            )?;
+            tx.execute(
                 "DELETE FROM events WHERE json_extract(payload,'$.installation_id')=?1",
                 [&id],
             )?;
@@ -164,7 +168,28 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "DELETE FROM counters WHERE day < ?1",
                 [(chrono::Utc::now().date_naive() - chrono::Duration::days(180)).to_string()],
             )?;
+            db.execute(
+                "DELETE FROM timezone_observations WHERE received_at < ?1",
+                [now() - 180 * 86400],
+            )?;
             db.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);")?;
+        }
+        Some("timezones") => {
+            let start: i64 = std::env::args()
+                .nth(2)
+                .ok_or("start Unix seconds required")?
+                .parse()?;
+            let end: i64 = std::env::args()
+                .nth(3)
+                .ok_or("end Unix seconds required")?
+                .parse()?;
+            if start < 0 || end <= start {
+                return Err("expected 0 <= start < end".into());
+            }
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&counters::timezone_summary(&db, start, end)?)?
+            );
         }
         Some("daily") => {
             println!(

@@ -246,3 +246,27 @@ extension UsageTelemetryTests {
         XCTAssertEqual(json["schema_version"] as? Int, 3)
     }
 }
+
+extension UsageTelemetryTests {
+    func testTimezoneIsBatchMetadataAndDoesNotSplitCounters() throws {
+        let previous = NSTimeZone.default
+        defer { NSTimeZone.default = previous }
+        var state = UsageTelemetryState()
+        let now = Date()
+        state.record(source: "app", version: "1.0.1", os: "12.0", at: now, seconds: 10, views: 1)
+        NSTimeZone.default = TimeZone(identifier: "Asia/Shanghai")!
+        let first = state.prepare(at: now, timeZone: TimeZone(identifier: "Asia/Shanghai")!)!
+        NSTimeZone.default = TimeZone(identifier: "America/New_York")!
+        let second = state.prepare(at: now.addingTimeInterval(3600), timeZone: TimeZone(identifier: "America/New_York")!)!
+        for (upload, expected) in [(first,"Asia/Shanghai"),(second,"America/New_York")] {
+            let body = try JSONSerialization.jsonObject(with: JSONEncoder().encode(upload)) as! [String: Any]
+            XCTAssertEqual(body["timezone_id"] as? String, expected)
+            XCTAssertNil(body["utc_offset_seconds"])
+            let snapshot = (body["snapshots"] as! [[String: Any]])[0]
+            XCTAssertNil(snapshot["timezone_id"])
+            XCTAssertNil(snapshot["utc_offset_seconds"])
+        }
+        XCTAssertEqual(first.snapshots[0].bucket_id, second.snapshots[0].bucket_id)
+        XCTAssertEqual(first.snapshots[0].sequence, second.snapshots[0].sequence)
+    }
+}

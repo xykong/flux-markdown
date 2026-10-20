@@ -224,9 +224,9 @@
 
 "Turn Off Usage Statistics" = "Desactivar estadísticas de uso";
 
-"Usage statistics are on: system/app versions, daily reading time and view counts. No document names or contents. You can turn this off in Settings." = "Las estadísticas están activadas: versiones del sistema y la app, tiempo diario de lectura y vistas. Sin nombres ni contenido de archivos. Se pueden desactivar en Ajustes.";
+"Usage statistics are on: system/app versions, system timezone, daily reading time and view counts. No document names or contents. You can turn this off in Settings." = "Las estadísticas están activadas: versiones del sistema y la app, zona horaria del sistema, tiempo diario de lectura y vistas. Sin nombres ni contenido de archivos. Se pueden desactivar en Ajustes.";
 
-"Share system/app versions, daily reading time and view counts. No document names or contents. Uploads occur at most hourly while in use." = "Comparte versiones del sistema y la app, tiempo diario de lectura y vistas. Sin nombres ni contenido de archivos. Se envía como máximo una vez por hora durante el uso.";
+"Share system/app versions, system timezone, daily reading time and view counts. No document names or contents. Uploads occur at most hourly while in use." = "Comparte versiones del sistema y la app, zona horaria del sistema, tiempo diario de lectura y vistas. Sin nombres ni contenido de archivos. Se envía como máximo una vez por hora durante el uso.";
 
 "Dismiss" = "Cerrar";
 
