@@ -7,6 +7,23 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 1.38.608</title>
+            <link>https://github.com/xykong/flux-markdown/releases/tag/v1.38.608</link>
+            <sparkle:version>608</sparkle:version>
+            <sparkle:shortVersionString>1.38.608</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+            <pubDate>Mon, 26 Oct 2026 09:20:56 +0000</pubDate>
+            <enclosure
+                url="https://github.com/xykong/flux-markdown/releases/download/v1.38.608/FluxMarkdown.dmg"
+                sparkle:edSignature="NO/VvrH2Kyef+t3cng/WeLci4iZRsF3fjiaj6mj+YduF65UheAwp6O+ESKxcU0Brmi6RO+dkryCImlcdnU9EBA=="
+                length="37766971"
+                type="application/octet-stream" />
+            <description><![CDATA[
+                <h2>更新内容</h2><h3>Fixed</h3><ul><li><strong>Quick Look statistics</strong>: Send queued usage through the authenticated helper when the preview host blocks direct networking, without requiring the main app to open. Preserve shared hourly throttling and opt-out.</li><li><strong>Telemetry time</strong>: Send Unix-second upload and UTC-day timestamps, independent of user timezone or daylight saving time. Preserve existing counters and compatibility with earlier uploads.</li><li><strong>Updater configuration</strong>: Use Sparkle's direct installer launcher for the non-sandboxed host app and remove obsolete installer sandbox exceptions. The reported update failure in #61 still needs confirmation on the affected machine.</li><li><strong>Update failure guidance</strong>: Offer the official download page, explain manual DMG installation, and tell users how to report a persistent failure. Provide a copyable download link if the browser cannot open. Localized in English, Simplified Chinese, German, French, and Spanish.</li><li><strong>Update failure reporting</strong>: Connect diagnostics to Sparkle's actual abort callback and exclude normal no-update/cancellation outcomes.</li><li><strong>Local images</strong>: Allow referenced images up to the existing 8 MiB document resource budget, so the README demo GIF is no longer blocked by the previous 2 MiB per-image limit.</li></ul><h3>Added</h3><ul><li><strong>Timezone statistics</strong>: Include the system IANA timezone once per usage upload, with no redundant UTC offset. Preserve UTC daily counters and count participating installations once by their latest reported timezone in a selected interval.</li><li><strong>Usage statistics</strong>: Optional daily usage statistics, enabled by default with a direct opt-out. Count reading time and document views by UTC date, app/macOS version and App/Quick Look source; never collect document names, paths or contents. Persist cumulative counters and upload at most hourly while in use, with offline retry and duplicate-safe analysis.</li><li><strong>Contextual error feedback</strong>: Offer recovery actions and one-click prefilled GitHub reports from app, Quick Look and renderer errors. Capture bounded, privacy-filtered error-time diagnostics; allow optional review/exclusion and copy/save fallback. Native recovery remains available when WebKit cannot render.</li><li><strong>Update diagnostics</strong>: Include the latest update failure's timestamp, versions, and underlying error codes in issue reports and application logs, without retaining private paths or error descriptions.</li></ul><p><a href="https://github.com/xykong/flux-markdown/releases/tag/v1.38.608">查看完整更新日志</a></p>
+            ]]></description>
+        </item>
+        
+        <item>
             <title>Version 1.36.582</title>
             <link>https://github.com/xykong/flux-markdown/releases/tag/v1.36.582</link>
             <sparkle:version>582</sparkle:version>
