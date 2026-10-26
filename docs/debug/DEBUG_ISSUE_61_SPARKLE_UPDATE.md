@@ -51,3 +51,10 @@
 - English and Simplified Chinese native NSAlert previews were inspected using window captures; guidance, addresses and buttons fit without truncation. A temporary preview app used the production driver code with a stubbed URL opener; it does not replace the installed application. The test harness has a placeholder application icon; the real app uses its own icon.
 - All seven recovery strings are present in each of the five host localizations. MacPorts source transformation passed in an isolated staging directory. Local Release build, deep signature verification and release-entitlement checks passed (macOS 12 diagnostic-only build on Xcode 27.1).
 - Final native run: 28 tests passed, zero skips/failures across UpdateErrorPresentationTests, UpdateDiagnosticsTests, FeedbackDiagnosticsTests and ReleaseEntitlementsTests. A real Sparkle check against an unavailable loopback feed was repeated twice; both errors used the recovery driver, reached the corrected diagnostic callback, and released the update cycle. The test waits for the asynchronous delegate notification after acknowledging the alert.
+
+## 2026-10-26 published progress follow-up
+
+- Verified the published v1.38.608 release notes include launcher configuration correction and contextual update diagnostics/recovery. Earlier sections describing no release/reply are historical.
+- Posted and read back Chinese progress response: https://github.com/xykong/flux-markdown/issues/61#issuecomment-6412738136.
+- Explained existing local upgrade verification and OS mismatch, manual DMG/Homebrew recovery, and why a broken old updater cannot necessarily install its own correction. Requested failed target version/current reproduction and new diagnostics where available.
+- Status: waiting for affected-machine confirmation; not marked done or closed. No additional update implementation or release was performed in this follow-up.

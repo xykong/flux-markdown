@@ -14,3 +14,9 @@
 - Escaped the hyphen to preserve relative paths without allowing executable/unknown schemes. Added URI safety checks and actual SVG decoding assertions for all three references, app/quicklook renderer contexts, and native inlining on/off.
 - Green: production typecheck/build and all 20 real WebKit cases pass. This is an unsandboxed WebKit harness, not proof of the reporter's Finder sandbox access.
 - The pure Markdown failure is not reproduced with the minimal SVG. Actual SVG, location category, affected host, and exact OS remain necessary to resolve the whole report. No released-fix or done claim is justified yet.
+
+## Follow-up
+
+- Full renderer suite: 43 suites / 388 tests passed; production typecheck/build passed.
+- Local fix committed as `5a83055`; not published. Reporter response posted and read back: https://github.com/xykong/flux-markdown/issues/63#issuecomment-6412707064.
+- Status: partial local fix; waiting for the actual SVG/host/location and OS clarification. Issue remains open without done.

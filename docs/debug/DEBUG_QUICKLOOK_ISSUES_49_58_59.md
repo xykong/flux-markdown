@@ -61,3 +61,12 @@ The replies distinguish diagnosis-only from voluntary developer/PR work, disclos
 ## #59 published
 
 At user request, released 1.36.568, verified the formal package and actual Homebrew upgrade, and installed it locally. #59 received the `done` label and https://github.com/xykong/flux-markdown/issues/59#issuecomment-6211966535; it remains open. See docs/release/RELEASE_1.36.568.md for checks and limitations. #49/#58 are still awaiting affected-machine evidence; the self-test and diagnostics requested earlier are now available in the published build.
+
+## 2026-10-26 follow-up: #58 new evidence and #49 status
+
+- #58 reporter's October 22 report states 1.36.582, macOS 27.0.1 / 26A434, one enabled registration, valid signature and expected Markdown UTI, with persistent Finder failure. No runtime invocation/render log was supplied. Treat these as reporter evidence, not locally observed state.
+- Local published 1.38.608 on the same OS/build: diagnostics show valid signature, enabled installed copy, and seven registrations including six development copies. Ran `/Applications/FluxMarkdown.app/Contents/MacOS/FluxMarkdown --quicklook-self-test`; exit 0, `quicklook_preview=rendered`. No repair, cache reset or default-editor change performed. This QLPreviewView result cannot prove the reporter's Finder problem fixed.
+- Requested self-test/Finder comparison and one bounded failed-preview log, rather than repeat reinstall instructions. Corrected old comments saying the self-test was unpublished.
+- Posted and read back #58: https://github.com/xykong/flux-markdown/issues/58#issuecomment-6412737704.
+- Posted and read back #49: https://github.com/xykong/flux-markdown/issues/49#issuecomment-6412738582.
+- Status: both waiting for affected-machine runtime evidence; neither marked done or closed. Similar symptoms are not proof of identical causes.
