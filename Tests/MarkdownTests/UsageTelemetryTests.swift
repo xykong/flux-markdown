@@ -270,3 +270,33 @@ extension UsageTelemetryTests {
         XCTAssertEqual(first.snapshots[0].sequence, second.snapshots[0].sequence)
     }
 }
+
+extension UsageTelemetryTests {
+    func testBrokerFlushReadsSharedStateAndHonorsOptOutAndHourlyLease() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [UsageTestProtocol.self]
+        let writer = UsageTelemetry(directory: root, configuration: config)
+        let broker = UsageTelemetry(directory: root, configuration: config)
+        writer.transaction { $0.record(source: "quicklook", version: "1.37.596", os: "27.0.1", at: Date(), seconds: 30, views: 1) }
+        var requests = 0
+        UsageTestProtocol.handler = { _ in requests += 1; return (503, Data()) }
+        defer { UsageTestProtocol.handler = nil }
+        XCTAssertTrue(writer.setEnabled(false))
+        let disabled = expectation(description: "broker respects disable")
+        broker.flush { result in XCTAssertFalse(result); disabled.fulfill() }
+        wait(for: [disabled], timeout: 3)
+        XCTAssertEqual(requests, 0)
+        XCTAssertTrue(writer.setEnabled(true))
+        writer.transaction { $0.record(source: "quicklook", version: "1.37.596", os: "27.0.1", at: Date(), seconds: 30, views: 1) }
+        let attempted = expectation(description: "broker uploads persisted counters")
+        broker.flush { result in XCTAssertFalse(result); attempted.fulfill() }
+        wait(for: [attempted], timeout: 3)
+        XCTAssertEqual(requests, 1)
+        let throttled = expectation(description: "host shares broker lease")
+        writer.flush { result in XCTAssertFalse(result); throttled.fulfill() }
+        wait(for: [throttled], timeout: 3)
+        XCTAssertEqual(requests, 1)
+        XCTAssertEqual(writer.transaction { $0.buckets.first?.active_seconds }, 30)
+    }
+}

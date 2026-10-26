@@ -39,3 +39,10 @@
 - [x] 6.3 Store observations transactionally; implement SSH-only latest-per-installation interval statistics.
 - [x] 6.4 Include timezone observations in retention and installation deletion.
 - [x] 6.5 Update localized collection notices, privacy documentation, tests and production verification.
+
+## 7. Quick Look host networking repair
+
+- [x] 7.1 Route preview upload through authenticated parameterless XPC request.
+- [x] 7.2 Enforce shared scheduling/opt-out in helper and narrow its entitlements.
+- [x] 7.3 Test broker policy, no-upload when disabled, hourly lease and retained failures.
+- [x] 7.4 Install and verify actual qlmanage-only HTTPS receipt and subsequent counters with main app closed.

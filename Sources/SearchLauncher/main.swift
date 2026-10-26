@@ -28,6 +28,9 @@ private func trustedPreview(_ connection: NSXPCConnection) -> Bool {
 }
 
 private final class Launcher: NSObject, SearchLaunchServing {
+    func flushUsage(reply: @escaping (Bool) -> Void) {
+        UsageTelemetry.shared.flush(completion: reply)
+    }
     func openDocument(_ value: String, reply: @escaping (Bool) -> Void) {
         guard value.utf8.count <= 8192, let url = URL(string: value), url.host == "open",
               let request = DocumentOpenRequest(url: url), !request.wantsSearch,

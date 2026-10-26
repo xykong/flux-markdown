@@ -96,3 +96,18 @@ and the last observation per installation, grouping unknown separately. Old v1/v
 clients without observations are outside this report's coverage. Retention and
 installation deletion include observations. Timezone describes the current upload,
 not the location or local day of historical counters included in that upload.
+
+## Quick Look transport repair (2026-10-26)
+
+The preview host sandbox can reject direct URLSession DNS even with network.client.
+The installed extension therefore persists counters and sends a parameterless
+`flushUsage` request to its existing authenticated XPC helper. The helper alone
+reads the shared state, checks opt-out, reserves the hourly lease, uploads to the
+fixed HTTPS endpoint and acknowledges counters. Main-app launch is not required.
+The helper retains App Sandbox and existing peer signature/path validation, with
+only network.client and the dedicated Telemetry directory added to its permissions.
+No arbitrary URL, request body, document path or secrets are accepted over this call.
+Failed XPC wakeup does not reserve the hourly lease; wakeups are limited to once per
+minute while eligible preview activity exists. Actual network attempts still use
+the shared hourly limit, including failures. There is no scheduled/background app
+launch; the on-demand XPC helper may live through a short request to persist its ack.

@@ -87,3 +87,14 @@ repeating timezone metadata or transmitting `utc_offset_seconds`.
 - **WHEN** an administrator requests a half-open Unix-time interval [start,end)
 - **THEN** each participating installation is assigned once to its latest reported timezone in that interval, regardless of arrival order
 - **AND** missing metadata is classified as unknown and invalid identifiers are rejected
+
+
+### Requirement: Preview-independent telemetry transport
+Quick Look SHALL upload through an authenticated sandboxed XPC helper without
+launching the main application or granting document write permissions. The helper
+SHALL validate opt-out and hourly scheduling from shared persisted state.
+
+#### Scenario: Preview host forbids DNS
+- **WHEN** only Quick Look is used under a host that blocks direct DNS resolution
+- **THEN** the helper sends the fixed telemetry request and persists server acknowledgement
+- **AND** failure to contact the helper itself does not reserve the shared upload lease

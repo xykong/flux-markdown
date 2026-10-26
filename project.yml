@@ -74,6 +74,11 @@ targets:
     platform: macOS
     sources:
       - Sources/SearchLauncher
+      - Sources/Shared/UsageTelemetry.swift
+      - Sources/Shared/UsageTelemetryState.swift
+      - Sources/Shared/SharedPreferenceStore.swift
+      - Sources/Shared/BoundedFileReader.swift
+      - Sources/Shared/SearchLaunchClient.swift
       - Sources/Shared/SearchLaunchProtocol.swift
       - Sources/Shared/ErrorIncident.swift
       - Sources/Shared/DocumentPosition.swift

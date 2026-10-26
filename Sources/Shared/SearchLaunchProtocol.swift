@@ -2,6 +2,7 @@ import Foundation
 
 @objc(FluxMarkdownSearchLaunchServing)
 protocol SearchLaunchServing {
+    func flushUsage(reply: @escaping (Bool) -> Void)
     func reportError(_ request: Data, reply: @escaping (Bool) -> Void)
     func openDocument(_ request: String, reply: @escaping (Bool) -> Void)
     func openGitHubRepository(reply: @escaping (Bool) -> Void)

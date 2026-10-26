@@ -53,3 +53,13 @@ The final lifecycle cleanup clears connection handlers before invalidation to av
 retaining completed clients. Delivered Release-configured candidate:
 `1.34.475-dev-20261009-130822`. Its release entitlement/signature check, installer and
 compressed-image verification passed; the standalone keyboard probe is not embedded.
+
+
+## 2026-10-26 telemetry extension
+
+The historical launch-only scope above now also includes a parameterless
+`flushUsage` operation for active Quick Look sessions. The same authenticated
+peer gate remains. Helper entitlements add client networking and read/write access
+only to the Telemetry state directory, enforced by release verification. This is
+necessary because the preview host blocks direct DNS. See
+`DEBUG_QUICKLOOK_TELEMETRY_TRANSPORT.md` for actual installed-host validation.

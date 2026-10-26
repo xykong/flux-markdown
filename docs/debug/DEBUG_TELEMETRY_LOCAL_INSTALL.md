@@ -47,3 +47,9 @@ is claimed. App render/reload were observed through native accessibility; Quick
 Look lifecycle and persistence were evidenced through process path and local state.
 
 The computer-use skill was used for actual app/Finder interaction attempts.
+
+
+Follow-up: the qlmanage direct-upload limitation above was repaired and validated
+on 2026-10-26 through the authenticated XPC helper; see
+`DEBUG_QUICKLOOK_TELEMETRY_TRANSPORT.md`. This preserves the original failed
+acceptance evidence rather than retroactively calling it a pass.

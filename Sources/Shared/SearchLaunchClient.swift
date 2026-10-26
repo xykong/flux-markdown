@@ -1,6 +1,9 @@
 import Foundation
 
 enum SearchLaunchClient {
+    static func flushUsage(completion: @escaping (Bool) -> Void) {
+        perform({ $0.flushUsage(reply: $1) }, timeout: 20, completion: completion)
+    }
     static func openForReading(_ fileURL: URL, completion: @escaping (Bool) -> Void) {
         guard let searchURL = DocumentOpenRequest.searchURL(for: fileURL), SearchLaunchPolicy.request(searchURL.absoluteString) != nil,
               var components = URLComponents(url: searchURL, resolvingAgainstBaseURL: false) else { completion(false); return }
@@ -22,7 +25,7 @@ enum SearchLaunchClient {
     }
 
     private static func perform(_ action: (SearchLaunchServing, @escaping (Bool) -> Void) -> Void,
-                                completion: @escaping (Bool) -> Void) {
+                                timeout: TimeInterval = 8, completion: @escaping (Bool) -> Void) {
         let connection = NSXPCConnection(serviceName: SearchLaunchPolicy.serviceName)
         connection.remoteObjectInterface = NSXPCInterface(with: SearchLaunchServing.self)
         let lock = NSLock()
@@ -44,6 +47,6 @@ enum SearchLaunchClient {
             finish(false); return
         }
         action(proxy, finish)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 8) { finish(false) }
+        DispatchQueue.main.asyncAfter(deadline: .now() + timeout) { finish(false) }
     }
 }
