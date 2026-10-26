@@ -2,19 +2,14 @@
 ### Fixed
 - **Quick Look statistics**: Send queued usage through the authenticated helper when the preview host blocks direct networking, without requiring the main app to open. Preserve shared hourly throttling and opt-out.
 - **Telemetry time**: Send Unix-second upload and UTC-day timestamps, independent of user timezone or daylight saving time. Preserve existing counters and compatibility with earlier uploads.
+- **Updater configuration**: Use Sparkle's direct installer launcher for the non-sandboxed host app and remove obsolete installer sandbox exceptions. The reported update failure in #61 still needs confirmation on the affected machine.
+- **Update failure guidance**: Offer the official download page, explain manual DMG installation, and tell users how to report a persistent failure. Provide a copyable download link if the browser cannot open. Localized in English, Simplified Chinese, German, French, and Spanish.
+- **Update failure reporting**: Connect diagnostics to Sparkle's actual abort callback and exclude normal no-update/cancellation outcomes.
+- **Local images**: Allow referenced images up to the existing 8 MiB document resource budget, so the README demo GIF is no longer blocked by the previous 2 MiB per-image limit.
 
 ### Added
 - **Timezone statistics**: Include the system IANA timezone once per usage upload, with no redundant UTC offset. Preserve UTC daily counters and count participating installations once by their latest reported timezone in a selected interval.
 - **Usage statistics**: Optional daily usage statistics, enabled by default with a direct opt-out. Count reading time and document views by UTC date, app/macOS version and App/Quick Look source; never collect document names, paths or contents. Persist cumulative counters and upload at most hourly while in use, with offline retry and duplicate-safe analysis.
-
-
-## [1.37.596] - 2026-10-19
-### Fixed
-- **Updater configuration**: Use Sparkle's direct installer launcher for the non-sandboxed host app and remove obsolete installer sandbox exceptions. The reported update failure in #61 still needs confirmation on the affected machine.
-- **Update failure guidance**: Offer the official download page, explain manual DMG installation, and tell users how to report a persistent failure. Provide a copyable download link if the browser cannot open. Localized in English, Simplified Chinese, German, French, and Spanish.
-- **Update failure reporting**: Connect diagnostics to Sparkle's actual abort callback and exclude normal no-update/cancellation outcomes.
-
-### Added
 - **Contextual error feedback**: Offer recovery actions and one-click prefilled GitHub reports from app, Quick Look and renderer errors. Capture bounded, privacy-filtered error-time diagnostics; allow optional review/exclusion and copy/save fallback. Native recovery remains available when WebKit cannot render.
 - **Update diagnostics**: Include the latest update failure's timestamp, versions, and underlying error codes in issue reports and application logs, without retaining private paths or error descriptions.
 

@@ -196,3 +196,9 @@ log stream --predicate 'subsystem == "com.markdownquicklook.app"' --level debug
 ./scripts/update-homebrew-cask.sh # Update both tap and official Homebrew Cask
 ./scripts/submit-to-homebrew.sh   # Submit official cask to homebrew/homebrew-cask
 ```
+
+## RELEASE VERSION POLICY
+
+- Regular user-requested releases increment the minor version by default. Do not
+  choose patch-only releases unless the user explicitly requests one. The third
+  component remains the script-generated commit-count build number.

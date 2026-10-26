@@ -12,7 +12,7 @@ fi
 
 RESUME=false
 if [ "${1:-}" = "--resume" ]; then RESUME=true; fi
-BUMP_TYPE=${1:-patch}
+BUMP_TYPE=${1:-minor}
 if $RESUME; then BUMP_TYPE=patch; fi
 if [ "$(git branch --show-current)" != "master" ]; then echo "Release requires master" >&2; exit 1; fi
 if [ -n "$(git status --porcelain --untracked-files=no)" ]; then echo "Commit tracked changes before release preparation" >&2; exit 1; fi
