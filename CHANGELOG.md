@@ -1,5 +1,6 @@
 ## [Unreleased]
-_无待发布的变更_
+### Fixed
+- **Relative HTML images** (#63): Preserve directory-based relative image and link URLs during HTML sanitization. The reported pure-Markdown image failure still requires affected-file/environment evidence.
 
 ## [1.38.608] - 2026-10-26
 ### Fixed

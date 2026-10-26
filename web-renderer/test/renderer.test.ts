@@ -80,6 +80,14 @@ invalid syntax here
     expect(img?.getAttribute('src')).toBe('local-md:///Users/me/docs/pic.png');
   });
 
+  test('preserves all three relative SVG references from issue 63', async () => {
+    const source = 'plugin/assets/plugin.svg';
+    await window.renderMarkdown(`<p align="center"><img src="${source}" alt="SQL Notebook" width="96" height="96"></p>\n\n![SQL](${source})\n\n![](${source})`, {baseUrl: '/Users/me/docs'});
+    const images = document.querySelectorAll('#markdown-preview img');
+    expect(images).toHaveLength(3);
+    images.forEach(img => expect(img.getAttribute('src')).toBe('local-md:///Users/me/docs/plugin/assets/plugin.svg'));
+  });
+
   test('should prefer provided imageData data URLs over local-md URLs for relative images', async () => {
     const dataUrl = 'data:image/svg+xml;base64,PHN2Zy8+';
     const markdown = '![img](assets/pic.svg)';

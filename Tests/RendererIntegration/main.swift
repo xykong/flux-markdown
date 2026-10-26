@@ -29,6 +29,17 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         ("Graphviz", "await window.renderMarkdown('```dot\\ndigraph { a -> b }\\n```'); const text=document.querySelector('.graphviz-diagram svg text');return text?.textContent==='a' && getComputedStyle(text).fill!=='none';"),
         ("Vega", "await window.renderMarkdown('```vega-lite\\n{\"data\":{\"values\":[{\"x\":1,\"y\":2}]},\"mark\":\"point\",\"encoding\":{\"x\":{\"field\":\"x\",\"type\":\"quantitative\"},\"y\":{\"field\":\"y\",\"type\":\"quantitative\"}}}\\n```'); return !!document.querySelector('.vega-diagram svg');"),
         ("slow export resource", "await window.renderMarkdown('# Slow'); const img=document.createElement('img'); document.getElementById('markdown-preview').append(img); Object.defineProperty(img,'complete',{value:false}); const start=performance.now(); setTimeout(()=>img.dispatchEvent(new Event('load')),3100); await window.waitForExportReady(5000); return performance.now()-start>=3000;"),
+        ("issue 63 relative SVG", """
+        for (const context of ['app', 'quicklook']) {
+          for (const inline of [false, true]) {
+            await window.renderMarkdown(svgMarkdown, {context, baseUrl:imageBase, imageData:inline ? svgImageData : undefined});
+            try { await window.waitForExportReady(); } catch(e) { throw new Error(JSON.stringify({context,inline,images:[...document.querySelectorAll('#markdown-preview img')].map(i=>({src:i.src,width:i.naturalWidth}))})); }
+            const images = [...document.querySelectorAll('#markdown-preview img')];
+            if (images.length !== 3 || images.some(img => img.naturalWidth !== 96 || img.naturalHeight !== 96)) return false;
+          }
+        }
+        return true;
+        """),
         ("local image", "await window.renderMarkdown('![Image](pixel.png)',{baseUrl:imageBase}); await window.waitForExportReady(); return document.querySelector('#markdown-preview img').naturalWidth===1;"),
         ("export ready", "await window.renderMarkdown('# Export\\n\\n$\\\\frac{a}{b}$'); await window.waitForExportReady(5000); return !!document.querySelector('.katex');"),
         ("search and refresh", "await window.renderMarkdown('# Search\\n\\nAlpha Alpha',{context:'app'});window.showSearch(); const input=document.querySelector('.search-input');input.value='Alpha';input.dispatchEvent(new Event('input',{bubbles:true}));if(!document.querySelector('.search-match-counter').textContent.includes('/2'))return false; await window.renderMarkdown('# Search\\n\\nAlpha Alpha Alpha',{context:'app'});const ok=input.value==='Alpha'&&document.querySelector('.search-match-counter').textContent.includes('/3');window.hideSearch();return ok;"),
@@ -64,6 +75,14 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         return true;
         """),
     ]
+    let svgMarkdown = """
+    <p align="center"><img src="plugin/assets/plugin.svg" alt="SQL Notebook" width="96" height="96"></p>
+
+    ![SQL](plugin/assets/plugin.svg)
+
+    ![](plugin/assets/plugin.svg)
+    """
+    var svgImageData: [String: String] = [:]
     func run() {
         let config = WKWebViewConfiguration()
         config.userContentController.add(self, name: "logger")
@@ -74,7 +93,13 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         try! Data(base64Encoded: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLbtAAAAABJRU5ErkJggg==")!.write(to: imageURL)
         let images = LocalSchemeHandler()
         images.baseDirectory = imageDirectory
-        images.allowedFileURLs = [imageURL]
+        let svgURL = imageDirectory.appendingPathComponent("plugin/assets/plugin.svg")
+        try! FileManager.default.createDirectory(at: svgURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try! #"<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96"><rect width="96" height="96" fill="green"/></svg>"#.write(to: svgURL, atomically: true, encoding: .utf8)
+        let markdownURL = imageDirectory.appendingPathComponent("issue63.md")
+        svgImageData = MarkdownImageDataCollector.collectImageData(from: markdownURL, content: svgMarkdown)
+        guard svgImageData["plugin/assets/plugin.svg"] != nil else { fatalError("SVG collector failed") }
+        images.allowedFileURLs = MarkdownImageDataCollector.referencedLocalImageURLs(from: markdownURL, content: svgMarkdown).union([imageURL])
         config.setURLSchemeHandler(images, forURLScheme: "local-md")
         webView = WKWebView(frame: CGRect(x: 0, y: 0, width: 800, height: 600), configuration: config)
         webView.load(URLRequest(url: RendererBundleSchemeHandler.rendererURL()))
@@ -92,7 +117,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         let (name, js) = cases[index]
         if name == "wide reading layout" { webView.setFrameSize(NSSize(width: 1800, height: 900)) }
         if name == "narrow reading layout" { webView.setFrameSize(NSSize(width: 600, height: 600)) }
-        webView.callAsyncJavaScript(js, arguments: ["imageBase": CommandLine.arguments[2]], in: nil, in: .page) { result in
+        webView.callAsyncJavaScript(js, arguments: ["imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData], in: nil, in: .page) { result in
             switch result {
             case .success(let value) where value as? Bool == true:
                 if name == "contextual feedback bridge" {
