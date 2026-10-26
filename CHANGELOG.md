@@ -1,4 +1,7 @@
 ## [Unreleased]
+_无待发布的变更_
+
+## [1.38.608] - 2026-10-26
 ### Fixed
 - **Quick Look statistics**: Send queued usage through the authenticated helper when the preview host blocks direct networking, without requiring the main app to open. Preserve shared hourly throttling and opt-out.
 - **Telemetry time**: Send Unix-second upload and UTC-day timestamps, independent of user timezone or daylight saving time. Preserve existing counters and compatibility with earlier uploads.
