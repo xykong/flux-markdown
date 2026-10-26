@@ -7,6 +7,23 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 1.39.614</title>
+            <link>https://github.com/xykong/flux-markdown/releases/tag/v1.39.614</link>
+            <sparkle:version>614</sparkle:version>
+            <sparkle:shortVersionString>1.39.614</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+            <pubDate>Mon, 26 Oct 2026 09:51:37 +0000</pubDate>
+            <enclosure
+                url="https://github.com/xykong/flux-markdown/releases/download/v1.39.614/FluxMarkdown.dmg"
+                sparkle:edSignature="SMxuHS7LmMLneZvWwLwGLm8aBTVoRNVNCfesvrean1kXsF7LwApziYbeOC3hyx4XeUP68zJBWqcamYH/NPSWCg=="
+                length="37768756"
+                type="application/octet-stream" />
+            <description><![CDATA[
+                <h2>更新内容</h2><h3>Fixed</h3><ul><li><strong>Relative HTML images</strong> (#63): Preserve directory-based relative image and link URLs during HTML sanitization. The reported pure-Markdown image failure still requires affected-file/environment evidence.</li></ul><p><a href="https://github.com/xykong/flux-markdown/releases/tag/v1.39.614">查看完整更新日志</a></p>
+            ]]></description>
+        </item>
+        
+        <item>
             <title>Version 1.38.608</title>
             <link>https://github.com/xykong/flux-markdown/releases/tag/v1.38.608</link>
             <sparkle:version>608</sparkle:version>
