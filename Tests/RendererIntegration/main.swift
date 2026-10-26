@@ -74,6 +74,47 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         }
         return true;
         """),
+        ("RTL wide geometry", """
+        for (const context of ['app','quicklook']) for (const contentsSide of ['left','right']) {
+          for (const uiLanguage of ['ar','en','ar']) {
+            await window.renderMarkdown('# One\\n\\n## Two\\n\\nEnglish text and `code`.',{context,contentsSide,uiLanguage});
+            await new Promise(resolve=>setTimeout(resolve,30));
+            const toggle=document.querySelector('.toc-toggle');
+            if (toggle.getAttribute('aria-expanded')!=='true') toggle.click();
+            await new Promise(resolve=>setTimeout(resolve,30));
+            const doc=document.getElementById('markdown-preview').getBoundingClientRect();
+            const nav=document.querySelector('.toc-nav').getBoundingClientRect();
+            const button=toggle.getBoundingClientRect();
+            const left=contentsSide==='left';
+            if (left ? nav.right>doc.left+2 : nav.left<doc.right-2) throw new Error(JSON.stringify({context,contentsSide,uiLanguage,doc:doc.toJSON(),nav:nav.toJSON()}));
+            if (left ? button.left>window.innerWidth/2 : button.right<window.innerWidth/2) throw new Error('Contents entrance on wrong side');
+            const controls=document.getElementById('reading-controls').getBoundingClientRect();
+            const reserve=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--reading-native-reserve'));
+            if (document.documentElement.dataset.readingShared==='true' && controls.right>window.innerWidth-reserve+2) throw new Error('Native right edge not reserved');
+            if (context==='app') {
+              window.showSearch(); await new Promise(resolve=>setTimeout(resolve,20));
+              const search=document.getElementById('search-container').getBoundingClientRect();
+              if(Math.abs((search.left+search.right)/2-(doc.left+doc.right)/2)>2) throw new Error('Search not centered over document');
+              window.hideSearch();
+            }
+          }
+        }
+        await window.renderMarkdown('# Reset',{uiLanguage:'en'}); return true;
+        """),
+        ("RTL narrow geometry", """
+        for (const context of ['app','quicklook']) for (const contentsSide of ['left','right']) {
+          await window.renderMarkdown('# One\\n\\n## Two',{context,contentsSide,uiLanguage:'ar'});
+          await new Promise(resolve=>setTimeout(resolve,30));
+          const toggle=document.querySelector('.toc-toggle');
+          if(toggle.getAttribute('aria-expanded')!=='true') toggle.click();
+          await new Promise(resolve=>setTimeout(resolve,30));
+          const panel=document.getElementById('toc-container');
+          const rect=panel.getBoundingClientRect();
+          if(panel.dataset.layout!=='overlay' || (contentsSide==='left' ? Math.abs(rect.left-16)>2 : Math.abs(rect.right-(window.innerWidth-16))>2)) throw new Error(JSON.stringify({contentsSide,rect:rect.toJSON()}));
+          document.querySelector('.toc-close').click();
+        }
+        await window.renderMarkdown('# Reset',{uiLanguage:'en'}); return true;
+        """),
     ]
     let svgMarkdown = """
     <p align="center"><img src="plugin/assets/plugin.svg" alt="SQL Notebook" width="96" height="96"></p>
@@ -115,8 +156,8 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private func next() {
         if index == cases.count { print("PASS all \(cases.count) real WebKit cases"); exit(0) }
         let (name, js) = cases[index]
-        if name == "wide reading layout" { webView.setFrameSize(NSSize(width: 1800, height: 900)) }
-        if name == "narrow reading layout" { webView.setFrameSize(NSSize(width: 600, height: 600)) }
+        if name == "wide reading layout" || name == "RTL wide geometry" { webView.setFrameSize(NSSize(width: 1800, height: 900)) }
+        if name == "narrow reading layout" || name == "RTL narrow geometry" { webView.setFrameSize(NSSize(width: 600, height: 600)) }
         webView.callAsyncJavaScript(js, arguments: ["imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData], in: nil, in: .page) { result in
             switch result {
             case .success(let value) where value as? Bool == true:

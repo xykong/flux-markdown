@@ -109,6 +109,7 @@ struct FeedbackView: View {
                       status = feedbackText("Settings history cleared.")
                   }, secondaryButton: .cancel(Text(feedbackText("Cancel"))))
         }
+        .interfaceLayoutDirection(for: AppearancePreference.shared.uiLanguage)
     }
 
     private func refresh() {

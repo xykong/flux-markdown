@@ -84,3 +84,7 @@ The shared usage-statistics switch reports persistence failure through
 opt-out; guidance explains closing the app/Quick Look and checking disk space.
 The switch does not claim the preference was saved on failure. Feedback captures
 the preference incident without uploading local telemetry counters or identifiers.
+
+## Arabic coverage (PR #62)
+
+Arabic is covered in both native error/feedback bundles, including usage-statistics failure recovery added on master. Resource parity tests compare Arabic with current English keys; FailureKind title/guidance checks now include all six languages. Renderer feedback recovery/report controls include Arabic. See DEBUG_PR62_ARABIC_RTL.md for regression and CI evidence.

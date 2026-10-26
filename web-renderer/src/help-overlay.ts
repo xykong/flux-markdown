@@ -9,7 +9,7 @@ declare global {
     }
 }
 
-type Lang = 'zh' | 'en' | 'de' | 'fr';
+type Lang = 'zh' | 'en' | 'de' | 'fr' | 'ar';
 
 interface I18n {
     title: string;
@@ -178,6 +178,42 @@ const STRINGS: Record<Lang, I18n> = {
             },
         },
     },
+    ar: {
+        starLabel: "أضف نجمة على GitHub",
+        starHint: "افتح GitHub وانقر Star لدعم FluxMarkdown.",
+        title: '⌨️ دليل ميزات FluxMarkdown',
+        contextBadgeQL: 'معاينة نظرة سريعة',
+        contextBadgeApp: 'تطبيق FluxMarkdown',
+        badgeApp: 'تطبيق',
+        qlBannerText: 'تعترض «نظرة سريعة» أحداث لوحة المفاتيح. يعمل فقط <strong>Cmd+التمرير</strong> و<strong>إيماءة الضغط</strong>؛ استخدم أزرار شريط الأدوات أو انقر نقرًا مزدوجًا لفتح الملف في التطبيق للوصول الكامل.',
+        footerQL: 'انقر على الخلفية أو <kbd>✕</kbd> للإغلاق',
+        footerApp: 'اضغط <kbd>?</kbd> أو <kbd>Esc</kbd> للإغلاق · استمر بالضغط على <kbd>⌘</kbd> لثانيتين لإعادة الفتح',
+        toastText: '💡 اضغط <kbd>?</kbd> أو انقر على <strong>?</strong> في شريط الأدوات لعرض كل الاختصارات',
+        closeLabel: 'إغلاق',
+        cmdHoldCheckboxLabel: 'فتح هذه اللوحة تلقائيًا بالضغط على ⌘ لثانيتين',
+        groups: {
+            searchNav: {
+                title: 'البحث والتنقل',
+                items: ['فتح / إغلاق البحث', 'المطابقة التالية', 'المطابقة السابقة', 'إغلاق البحث', 'زر المحتويات (أعلى اليمين)'],
+            },
+            zoom: {
+                title: 'التكبير',
+                items: ['تكبير', 'تصغير', 'إعادة ضبط التكبير', 'التكبير بالتمرير', 'التكبير بالضغط'],
+            },
+            view: {
+                title: 'العرض',
+                items: ['تبديل المعاينة / المصدر', 'زر المصدر (أعلى اليمين </>)', 'تبديل المظهر (☀/🌙 أعلى اليمين)'],
+            },
+            export: {
+                title: 'التصدير',
+                items: ['تصدير بصيغة HTML', 'تصدير بصيغة PDF'],
+            },
+            settings: {
+                title: 'الإعدادات',
+                items: ['فتح التفضيلات', 'التحقق من التحديثات', 'زر المساعدة (? أعلى اليمين)', 'عرض لوحة المساعدة هذه'],
+            },
+        },
+    },
 };
 
 interface ShortcutGroup {
@@ -240,11 +276,12 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
 
 function detectLang(): Lang {
     const stored = window.__fluxLang;
-    if (stored === 'zh' || stored === 'en' || stored === 'de' || stored === 'fr') return stored;
+    if (stored === 'zh' || stored === 'en' || stored === 'de' || stored === 'fr' || stored === 'ar') return stored;
     const sys = (navigator.language || '').toLowerCase();
     if (sys.startsWith('zh')) return 'zh';
     if (sys.startsWith('de')) return 'de';
     if (sys.startsWith('fr')) return 'fr';
+    if (sys.startsWith('ar')) return 'ar';
     return 'en';
 }
 

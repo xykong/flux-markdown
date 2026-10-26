@@ -374,6 +374,8 @@ private struct DocumentPreviewScene: View {
                 .allowsHitTesting(false)
                 .zIndex(3)
         }
+        // Match the renderer's physical right-edge reservation in every language.
+        .environment(\.layoutDirection, .leftToRight)
         StarReminderCard(session: starReminder)
             .preferredColorScheme(preference.currentMode == .system ? nil : (preference.currentMode == .dark ? .dark : .light))
         }
@@ -408,6 +410,7 @@ private struct DocumentPreviewScene: View {
                 showToolbarToast(resetZoomToastMessage)
             }
         })
+        .interfaceLayoutDirection(for: preference.uiLanguage)
     }
 
     private func showToolbarToast(_ message: String) {

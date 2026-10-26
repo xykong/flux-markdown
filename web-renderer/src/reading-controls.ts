@@ -4,7 +4,8 @@ const labels = {
     en: { tools: 'Reading controls', contents: 'Contents', close: 'Close contents', collapse: 'Collapse blockquotes', expand: 'Expand blockquotes' },
     zh: { tools: '阅读工具', contents: '目录', close: '关闭目录', collapse: '折叠引用块', expand: '展开引用块' },
     de: { tools: 'Lesewerkzeuge', contents: 'Inhalt', close: 'Inhalt schließen', collapse: 'Zitate einklappen', expand: 'Zitate ausklappen' },
-    fr: { tools: 'Outils de lecture', contents: 'Sommaire', close: 'Fermer le sommaire', collapse: 'Replier les citations', expand: 'Déplier les citations' }
+    fr: { tools: 'Outils de lecture', contents: 'Sommaire', close: 'Fermer le sommaire', collapse: 'Replier les citations', expand: 'Déplier les citations' },
+    ar: { tools: 'أدوات القراءة', contents: 'المحتويات', close: 'إغلاق المحتويات', collapse: 'طي الاقتباسات', expand: 'توسيع الاقتباسات' }
 };
 export function readingLabels() {
     const language = (window.__fluxLang || navigator.language || 'en').split('-')[0];

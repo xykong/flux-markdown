@@ -121,6 +121,7 @@ targets:
       - Sources/Markdown/QuickLookRegistration.swift
       - Sources/Markdown/AppUpdaterController.swift
       - Sources/Markdown/UpdateDelegate.swift
+      - Sources/Markdown/InterfaceLayoutDirection.swift
       - Sources/MarkdownPreview
       - Sources/Shared
       - benchmark/swift-bench/RenderBenchmarkTests.swift

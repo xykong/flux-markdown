@@ -50,6 +50,7 @@ test('no headings and compact Finder hide controls without losing docked prefere
 });
 test('toolbar labels localize and indentation starts at the shallowest heading', () => {
     window.__fluxLang = 'zh'; toc.render(headings); expect(document.querySelector('.toc-toggle')?.getAttribute('aria-label')).toBe('目录');
+    window.__fluxLang = 'ar'; toc.render(headings); expect(document.querySelector('.toc-toggle')?.getAttribute('aria-label')).toBe('المحتويات');
     expect(document.querySelector('[href="#title"]')?.getAttribute('data-depth')).toBe('0'); expect(document.querySelector('[href="#child"]')?.getAttribute('data-depth')).toBe('1');
     expect(document.querySelector('[href="#title"]')?.getAttribute('title')).toBe('Title');
 });

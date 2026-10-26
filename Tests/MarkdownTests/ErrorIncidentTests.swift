@@ -202,7 +202,7 @@ extension ErrorIncidentTests {
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         let keys = FailureKind.allCases.flatMap { [$0.title, $0.guidance] } + ["Report This Problem", "Review Feedback…", "Include diagnostics", "Open Feedback Page", "Copy Report", "Save Report…", "Close"]
         for target in ["Markdown", "MarkdownPreview"] {
-            for language in ["en", "zh-Hans", "de", "fr", "es"] {
+            for language in ["en", "zh-Hans", "de", "fr", "es", "ar"] {
                 let data = try Data(contentsOf: root.appendingPathComponent("Sources/\(target)/\(language).lproj/Localizable.strings"))
                 let strings = try XCTUnwrap(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: String])
                 for key in keys { XCTAssertNotNil(strings[key], "\(target)/\(language): \(key)") }

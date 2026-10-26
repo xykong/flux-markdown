@@ -14,7 +14,7 @@ describe('GitHub support entry', () => {
   expect(document.body.textContent).not.toContain('已点赞');
   overlay.hide();
  });
- test.each(['en','de','fr'])('localized support link is present for %s', language => {
+ test.each(['en','de','fr','ar'])('localized support link is present for %s', language => {
   window.__fluxLang = language;
   const overlay = new HelpOverlay(); overlay.show();
   expect(document.querySelector('.help-github-star')?.textContent).toContain('GitHub');

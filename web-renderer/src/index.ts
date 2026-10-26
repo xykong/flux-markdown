@@ -141,6 +141,7 @@ import './styles/line-numbers.css';
 import './styles/position-navigation.css';
 import './styles/finder-pane.css';
 import './styles/typst.css';
+import './styles/rtl.css';
 
 import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js/lib/core';
@@ -799,6 +800,16 @@ window.setContentsSide = function(side: string) {
     restoreReadingAnchor(anchor);
 };
 
+function applyInterfaceDirection(language?: string): boolean {
+    const effective = (language || (window as any).__fluxLang || navigator.language || 'en')
+        .split('-')[0].toLowerCase();
+    const isRtl = effective === 'ar';
+    document.documentElement.setAttribute('lang', effective);
+    if (isRtl) document.documentElement.setAttribute('dir', 'rtl');
+    else document.documentElement.removeAttribute('dir');
+    return isRtl;
+}
+
 window.renderMarkdown = async function (text: string, options: RenderOptions = {}) {
     const callId = ++renderGeneration;
     const isCurrent = () => callId === renderGeneration;
@@ -846,6 +857,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
     if (options.uiLanguage) {
         (window as any).__fluxLang = options.uiLanguage === 'system' ? undefined : options.uiLanguage;
     }
+    const interfaceIsRtl = applyInterfaceDirection();
 
     let currentTheme = options.theme || 'default';
     if (currentTheme === 'system') {
@@ -967,6 +979,9 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
 
         if (detectRtlContent(renderBody)) {
             outputDiv.setAttribute('dir', 'rtl');
+        } else if (interfaceIsRtl) {
+            // Keep the document left-to-right when only the interface is Arabic.
+            outputDiv.setAttribute('dir', 'ltr');
         } else {
             outputDiv.removeAttribute('dir');
         }
@@ -1081,6 +1096,7 @@ window.renderMarkdown = (text, options) => {
 };
 
 window.renderSource = function(text: string, theme: string, prevContent?: string) {
+    applyInterfaceDirection();
     currentRender = Promise.resolve();
     ++renderGeneration;
     searchEngine?.clear();

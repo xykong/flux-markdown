@@ -1,0 +1,87 @@
+"Search in FluxMarkdown" = "البحث في FluxMarkdown";
+"Double-click the file, then press ⌘F to search." = "انقر نقرًا مزدوجًا على الملف، ثم اضغط ⌘F للبحث.";
+
+"Contents Position" = "موضع المحتويات";
+
+"Left" = "يسار";
+
+"Right" = "يمين";
+
+"Keep contents and its button on the same side" = "أبقِ المحتويات وزرها على الجانب نفسه";
+
+"Document reloaded" = "تمت إعادة تحميل المستند";
+"Reload failed" = "فشلت إعادة التحميل";
+"Zoom reset" = "تمت إعادة ضبط التكبير";
+
+"Could not open GitHub" = "تعذّر فتح GitHub";
+"QuickLook preview does not support link navigation" = "لا تدعم معاينة نظرة سريعة التنقل عبر الروابط";
+"Double-click .md file to open in main app for full functionality" = "انقر نقرًا مزدوجًا على ملف ‎.md‎ لفتحه في التطبيق الرئيسي بكل الوظائف";
+"Preview limited to 500 KiB. Use Open with FluxMarkdown above to read the complete document." = "المعاينة محدودة بـ 500 KiB. استخدم «فتح باستخدام FluxMarkdown» أعلاه لقراءة المستند كاملًا.";
+"Some local images could not be read. Use Open with FluxMarkdown above to view the document." = "تعذّرت قراءة بعض الصور المحلية. استخدم «فتح باستخدام FluxMarkdown» أعلاه لعرض المستند.";
+"Reload File (⌘R)" = "إعادة تحميل الملف (⌘R)";
+"Zoom Out" = "تصغير";
+"Reset Zoom (⌘0)" = "إعادة ضبط التكبير (⌘0)";
+"Zoom In" = "تكبير";
+"Show Help" = "عرض المساعدة";
+"Toggle Theme" = "تبديل المظهر";
+"Toggle Source View" = "تبديل عرض المصدر";
+
+/* Contextual error recovery and feedback */
+"Update could not be completed" = "تعذّر إكمال التحديث";
+"Document could not be opened" = "تعذّر فتح المستند";
+"Document could not be reloaded" = "تعذّرت إعادة تحميل المستند";
+"Export could not be completed" = "تعذّر إكمال التصدير";
+"Document could not be displayed" = "تعذّر عرض المستند";
+"This diagram or formula could not be displayed" = "تعذّر عرض هذا المخطط أو المعادلة";
+"Search could not be completed" = "تعذّر إكمال البحث";
+"Quick Look could not complete this operation" = "تعذّرت على نظرة سريعة إكمال هذه العملية";
+"Some images could not be displayed" = "تعذّر عرض بعض الصور";
+"This preview is incomplete" = "هذه المعاينة غير مكتملة";
+"The destination could not be opened" = "تعذّر فتح الوجهة";
+"You can download the latest version and install it manually." = "يمكنك تنزيل أحدث إصدار وتثبيته يدويًا.";
+"Choose a readable UTF-8 Markdown file, or open it in your editor to check it." = "اختر ملف Markdown مقروءًا بترميز UTF-8، أو افتحه في محررك للتحقق منه.";
+"Open this document in your editor, or split it into smaller files before trying again." = "افتح هذا المستند في محررك، أو قسّمه إلى ملفات أصغر قبل المحاولة مجددًا.";
+"Try reloading again when the file is available. Your current document has not been discarded." = "جرّب إعادة التحميل عندما يكون الملف متاحًا. لم يتم التخلص من مستندك الحالي.";
+"Try exporting again and choose another writable folder." = "جرّب التصدير مجددًا واختر مجلدًا آخر قابلًا للكتابة.";
+"Try reloading the preview, or open the document in your editor." = "جرّب إعادة تحميل المعاينة، أو افتح المستند في محررك.";
+"Check the source syntax in your editor. The rest of the document is still available." = "تحقق من صياغة المصدر في محررك. بقية المستند لا تزال متاحة.";
+"Check the search expression, or open the document in FluxMarkdown and press Command-F." = "تحقق من تعبير البحث، أو افتح المستند في FluxMarkdown واضغط Command-F.";
+"Open the document in FluxMarkdown. You can also run Repair Quick Look from the Help menu." = "افتح المستند في FluxMarkdown. يمكنك أيضًا تشغيل «إصلاح نظرة سريعة» من قائمة المساعدة.";
+"Open the document in FluxMarkdown to read beyond the preview limits." = "افتح المستند في FluxMarkdown لتقرأ ما يتجاوز حدود المعاينة.";
+"Open the destination in your browser or editor. You can copy a report if this keeps happening." = "افتح الوجهة في متصفحك أو محررك. يمكنك نسخ تقرير إذا استمر حدوث ذلك.";
+"Report This Problem" = "الإبلاغ عن هذه المشكلة";
+"Include diagnostics" = "تضمين التشخيصات";
+"Review Feedback…" = "مراجعة الملاحظات…";
+"Review Last Error…" = "مراجعة آخر خطأ…";
+"Clear Error History" = "مسح سجل الأخطاء";
+"Additional details (optional)" = "تفاصيل إضافية (اختياري)";
+"Opens GitHub with this error and system information. You confirm publication there." = "يفتح GitHub مع هذا الخطأ ومعلومات النظام. أنت تؤكد النشر هناك.";
+"The feedback page could not be opened. Copy or save this report and try again later." = "تعذّر فتح صفحة الملاحظات. انسخ هذا التقرير أو احفظه وحاول لاحقًا.";
+"The feedback page could not be opened. Copy the report, then use Help → Report an Issue in FluxMarkdown." = "تعذّر فتح صفحة الملاحظات. انسخ التقرير، ثم استخدم «مساعدة» ثم «الإبلاغ عن مشكلة» في FluxMarkdown.";
+"The report is ready. GitHub requires you to confirm publication. You can reopen, copy or save it here." = "التقرير جاهز. يتطلب GitHub تأكيدك للنشر. يمكنك إعادة فتحه أو نسخه أو حفظه هنا.";
+"Open Feedback Page" = "فتح صفحة الملاحظات";
+"Copy Report" = "نسخ التقرير";
+"Save Report…" = "حفظ التقرير…";
+"Close" = "إغلاق";
+"Done" = "تم";
+"Try Again" = "إعادة المحاولة";
+"Reload" = "إعادة التحميل";
+"Export Again" = "التصدير مجددًا";
+"Choose Another Folder" = "اختيار مجلد آخر";
+"Choose Another File" = "اختيار ملف آخر";
+"Open in FluxMarkdown" = "فتح في FluxMarkdown";
+"How to Install…" = "كيفية التثبيت…";
+"Download and open FluxMarkdown.dmg, quit FluxMarkdown, then drag the app into Applications and choose Replace." = "نزّل FluxMarkdown.dmg وافتحه، وأنهِ FluxMarkdown، ثم اسحب التطبيق إلى Applications واختر «استبدال».";
+"Could not save the report. You can copy it instead." = "تعذّر حفظ التقرير. يمكنك نسخه بدلًا من ذلك.";
+"Copy Link" = "نسخ الرابط";
+"Preview could not start" = "تعذّر بدء المعاينة";
+"Download and reinstall FluxMarkdown, or open the document in your editor." = "نزّل FluxMarkdown وأعد تثبيته، أو افتح المستند في محررك.";
+
+/* Usage statistics and recovery */
+"Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again." = "أغلق FluxMarkdown ونظرة سريعة لإيقاف هذه الجلسة. تحقق من مساحة القرص المتاحة، ثم حاول إيقاف الإحصاءات مرة أخرى.";
+"Dismiss" = "إغلاق";
+"Share Usage Statistics" = "مشاركة إحصاءات الاستخدام";
+"Share system/app versions, system timezone, daily reading time and view counts. No document names or contents. Uploads occur at most hourly while in use." = "شارك إصدارات النظام والتطبيق والمنطقة الزمنية للنظام ووقت القراءة اليومي وعدد مرات العرض. لا تُجمع أسماء المستندات أو محتوياتها. تُرسل البيانات مرة واحدة في الساعة كحد أقصى أثناء الاستخدام.";
+"Turn Off Usage Statistics" = "إيقاف إحصاءات الاستخدام";
+"Usage statistics are on: system/app versions, system timezone, daily reading time and view counts. No document names or contents. You can turn this off in Settings." = "إحصاءات الاستخدام مفعّلة: إصدارات النظام والتطبيق والمنطقة الزمنية للنظام ووقت القراءة اليومي وعدد مرات العرض. لا تُجمع أسماء المستندات أو محتوياتها. يمكنك إيقافها في الإعدادات.";
+"Usage statistics preference could not be saved" = "تعذّر حفظ تفضيل إحصاءات الاستخدام";

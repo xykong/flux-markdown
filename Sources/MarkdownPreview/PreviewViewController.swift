@@ -722,7 +722,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         self.view.addSubview(button)
         self.themeButton = button
         
-        let trailing = button.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -10)
+        let trailing = button.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant: -10)
         themeTrailingConstraint = trailing
         NSLayoutConstraint.activate([
             button.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 10),
@@ -792,7 +792,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         
         NSLayoutConstraint.activate([
             button.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 10),
-            button.trailingAnchor.constraint(equalTo: themeButton.leadingAnchor, constant: -8),
+            button.rightAnchor.constraint(equalTo: themeButton.leftAnchor, constant: -8),
             button.widthAnchor.constraint(equalToConstant: 30),
             button.heightAnchor.constraint(equalToConstant: 30)
         ])
@@ -871,7 +871,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         searchButton = button
         NSLayoutConstraint.activate([
             button.topAnchor.constraint(equalTo: view.topAnchor, constant: 10),
-            button.trailingAnchor.constraint(equalTo: sourceButton.leadingAnchor, constant: -8),
+            button.rightAnchor.constraint(equalTo: sourceButton.leftAnchor, constant: -8),
             button.widthAnchor.constraint(equalToConstant: 30),
             button.heightAnchor.constraint(equalToConstant: 30)
         ])
@@ -897,7 +897,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
 
         NSLayoutConstraint.activate([
             button.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 10),
-            button.trailingAnchor.constraint(equalTo: searchButton.leadingAnchor, constant: -8),
+            button.rightAnchor.constraint(equalTo: searchButton.leftAnchor, constant: -8),
             button.widthAnchor.constraint(equalToConstant: 30),
             button.heightAnchor.constraint(equalToConstant: 30)
         ])
@@ -923,7 +923,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
 
         NSLayoutConstraint.activate([
             button.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 10),
-            button.trailingAnchor.constraint(equalTo: helpButton.leadingAnchor, constant: -8),
+            button.rightAnchor.constraint(equalTo: helpButton.leftAnchor, constant: -8),
             button.widthAnchor.constraint(equalToConstant: 30),
             button.heightAnchor.constraint(equalToConstant: 30)
         ])
@@ -945,7 +945,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
 
         NSLayoutConstraint.activate([
             button.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 10),
-            button.trailingAnchor.constraint(equalTo: resetZoomButton.leadingAnchor, constant: -8),
+            button.rightAnchor.constraint(equalTo: resetZoomButton.leftAnchor, constant: -8),
             button.widthAnchor.constraint(equalToConstant: 30),
             button.heightAnchor.constraint(equalToConstant: 30)
         ])
@@ -967,7 +967,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
 
         NSLayoutConstraint.activate([
             button.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 10),
-            button.trailingAnchor.constraint(equalTo: zoomInButton.leadingAnchor, constant: -8),
+            button.rightAnchor.constraint(equalTo: zoomInButton.leftAnchor, constant: -8),
             button.widthAnchor.constraint(equalToConstant: 30),
             button.heightAnchor.constraint(equalToConstant: 30)
         ])
@@ -989,7 +989,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
 
         NSLayoutConstraint.activate([
             button.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 10),
-            button.trailingAnchor.constraint(equalTo: zoomOutButton.leadingAnchor, constant: -8),
+            button.rightAnchor.constraint(equalTo: zoomOutButton.leftAnchor, constant: -8),
             button.widthAnchor.constraint(equalToConstant: 30),
             button.heightAnchor.constraint(equalToConstant: 30)
         ])
@@ -1009,7 +1009,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
 
         NSLayoutConstraint.activate([
             label.topAnchor.constraint(equalTo: zoomOutButton.bottomAnchor, constant: 8),
-            label.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -72)
+            label.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant: -72)
         ])
     }
 

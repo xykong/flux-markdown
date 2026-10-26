@@ -30,7 +30,7 @@ enum DiagnosticSettings {
         case "preferredAppearanceMode":
             return enumValue(raw, allowed: ["system", "light", "dark"])
         case "uiLanguage":
-            return enumValue(raw, allowed: ["system", "en", "de", "fr", "es", "zh", "zh-Hans"])
+            return enumValue(raw, allowed: ["system", "en", "de", "fr", "es", "zh", "zh-Hans", "ar"])
         case "contentsSide":
             return enumValue(raw, allowed: ["left", "right"])
         case "codeHighlightTheme":

@@ -110,7 +110,7 @@ struct ErrorIncident: Codable {
             case "macOS": return matches(value, #"^\d+\.\d+(\.\d+)?$"#)
             case "macOSBuild": return matches(value, #"^\d+[A-Z]\d+[a-z]?$"#)
             case "architecture": return ["arm64", "x86_64"].contains(value)
-            case "languagePreference": return ["system", "en", "zh-Hans", "zh", "de", "fr", "es"].contains(value)
+            case "languagePreference": return ["system", "en", "zh-Hans", "zh", "de", "fr", "es", "ar"].contains(value)
             default: return false
             }
         }
@@ -121,7 +121,7 @@ struct ErrorIncident: Codable {
             case "baseFontSize", "finderPaneFontSize": return Double(value).map { $0.isFinite && (8...72).contains($0) } ?? false
             case "enableMermaid", "enableKatex", "enableEmoji", "enableTypst", "showLineNumbers", "collapseBlockquotesByDefault": return ["true", "false"].contains(value)
             case "preferredAppearanceMode": return ["system", "light", "dark"].contains(value)
-            case "uiLanguage": return ["system", "en", "zh-Hans", "zh", "de", "fr", "es"].contains(value)
+            case "uiLanguage": return ["system", "en", "zh-Hans", "zh", "de", "fr", "es", "ar"].contains(value)
             case "contentsSide": return ["left", "right"].contains(value)
             case "codeHighlightTheme": return ["default", "github", "monokai", "atom-one-dark"].contains(value)
             default: return false

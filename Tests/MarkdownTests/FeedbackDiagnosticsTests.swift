@@ -74,6 +74,11 @@ final class FeedbackDiagnosticsTests: XCTestCase {
         XCTAssertFalse((try! String(contentsOf: file)).contains("alice"))
     }
 
+    func testArabicLanguagePreferenceSurvivesDiagnosticSanitizing() {
+        let safe = DiagnosticSettings.sanitize(["uiLanguage": "ar"])
+        XCTAssertEqual(safe["uiLanguage"], "ar")
+    }
+
     func testCorruptHistoryAndWriteFailureAreReportedWithoutThrowing() throws {
         try Data("broken".utf8).write(to: file)
         let corrupt = SettingsHistoryStore(fileURL: file)
