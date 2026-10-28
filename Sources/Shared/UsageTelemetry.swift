@@ -76,7 +76,7 @@ final class UsageTelemetry {
     }
     private func wakeUploadBroker() {
         guard !brokerPending, Date() >= nextBrokerWake,
-              transaction({ $0.enabled && Date() >= $0.nextAttempt && $0.buckets.contains { $0.sequence > $0.acknowledged } }) == true else { return }
+              transaction({ $0.enabled && Date() >= $0.nextAttempt && $0.hasPendingUpload(at: Date()) }) == true else { return }
         brokerPending = true; nextBrokerWake = Date().addingTimeInterval(60)
         SearchLaunchClient.flushUsage { _ in
             self.queue.async { self.brokerPending = false }
@@ -90,17 +90,25 @@ final class UsageTelemetry {
               let body = try? JSONEncoder().encode(upload), body.count <= 65536 else { completion(false); return }
         // Recheck after reserving the shared lease; the other process may have opted out.
         guard transaction({ $0.enabled && $0.installationID == upload.installation_id }) == true else { completion(false); return }
-        var request = URLRequest(url: URL(string: "https://t.xykong.cc/v3/snapshots")!)
+        var request = URLRequest(url: URL(string: "https://t.xykong.cc/v\(upload.schema_version)/snapshots")!)
         request.httpMethod = "POST"; request.httpBody = body
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         task = session.dataTask(with: request) { data, response, error in
             self.queue.async {
                 self.task = nil
+                if error == nil, upload.schema_version == 4,
+                   [404, 405, 501].contains((response as? HTTPURLResponse)?.statusCode ?? 0) {
+                    self.transaction { $0.markV4Unsupported(upload, at: Date()) }
+                    completion(false); return
+                }
                 guard error == nil, (response as? HTTPURLResponse)?.statusCode == 200,
                       let data, let ack = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                       let accepted = ack["accepted"] as? [String: Int],
                       upload.snapshots.allSatisfy({ accepted[$0.bucket_id] == $0.sequence }) else { completion(false); return }
-                self.transaction { $0.acknowledge(upload) }
+                self.transaction { state in
+                    state.acknowledge(upload)
+                    state.acknowledgeLifecycle(upload, acknowledgement: ack["lifecycle_ack"] as? [String: Any])
+                }
                 completion(true)
             }
         }

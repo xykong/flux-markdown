@@ -14,6 +14,7 @@ final class UsageTelemetryTests: XCTestCase {
         XCTAssertEqual(next.snapshots[0].active_seconds, 15)
         XCTAssertEqual(next.snapshots[0].documents_viewed, 2)
         state.acknowledge(next)
+        if let lifecycle = next.lifecycle { state.acknowledgeLifecycle(next, acknowledgement: ["event_id": lifecycle.event_id, "status": "accepted"]) }
         XCTAssertNil(state.prepare(at: now.addingTimeInterval(7200)))
     }
     func testDayVersionSourceAndResetAreIndependent() {
@@ -102,7 +103,7 @@ extension UsageTelemetryTests {
             let id = store.transaction { $0.installationID }!
             let delivered = expectation(description: "request \(status)")
             UsageTestProtocol.handler = { request in
-                XCTAssertEqual(request.url?.path, "/v3/snapshots")
+                XCTAssertEqual(request.url?.path, "/v4/snapshots")
                 let stream = request.httpBodyStream
                 var body = request.httpBody ?? Data()
                 if body.isEmpty, let stream {
@@ -243,7 +244,7 @@ extension UsageTelemetryTests {
         XCTAssertEqual(wire.snapshots[0].sequence, original.sequence)
         XCTAssertEqual(wire.snapshots[0].documents_viewed, 2)
         let json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(wire)) as! [String: Any]
-        XCTAssertEqual(json["schema_version"] as? Int, 3)
+        XCTAssertEqual(json["schema_version"] as? Int, 4)
     }
 }
 
@@ -298,5 +299,47 @@ extension UsageTelemetryTests {
         wait(for: [throttled], timeout: 3)
         XCTAssertEqual(requests, 1)
         XCTAssertEqual(writer.transaction { $0.buckets.first?.active_seconds }, 30)
+    }
+}
+
+extension UsageTelemetryTests {
+    func testUnsupportedV4FallsBackOnlyOnLaterLeasedAttempt() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [UsageTestProtocol.self]
+        let store = UsageTelemetry(directory: root, configuration: config)
+        let now = Date()
+        store.transaction { $0.record(source: "app", version: "1.0.0", os: "15.0", at: now, seconds: 5, views: 1) }
+        let bucket = try XCTUnwrap(store.transaction { $0.buckets.first?.bucket_id } ?? nil)
+        let lock = NSLock()
+        var requests = 0
+        UsageTestProtocol.handler = { request in
+            lock.lock(); requests += 1; lock.unlock()
+            XCTAssertEqual(request.url?.path, "/v4/snapshots")
+            return (404, Data())
+        }
+        defer { UsageTestProtocol.handler = nil }
+        let unsupported = expectation(description: "unsupported v4")
+        store.flush { success in XCTAssertFalse(success); unsupported.fulfill() }
+        wait(for: [unsupported], timeout: 3)
+        XCTAssertTrue(store.transaction { $0.v4RetryAfter > now } == true)
+        XCTAssertTrue(store.transaction { $0.hasPendingLifecycle } == true)
+        let leased = expectation(description: "hourly lease preserved")
+        store.flush { success in XCTAssertFalse(success); leased.fulfill() }
+        wait(for: [leased], timeout: 3)
+        lock.lock(); let observed = requests; lock.unlock()
+        XCTAssertEqual(observed, 1)
+        // Move only the synthetic lease in this temporary state, not the system clock.
+        store.transaction { $0.nextAttempt = .distantPast }
+        UsageTestProtocol.handler = { request in
+            XCTAssertEqual(request.url?.path, "/v3/snapshots")
+            return (200, try! JSONSerialization.data(withJSONObject: ["accepted": [bucket: 1]]))
+        }
+        let fallback = expectation(description: "later v3 fallback")
+        store.flush { success in XCTAssertTrue(success); fallback.fulfill() }
+        wait(for: [fallback], timeout: 3)
+        XCTAssertEqual(store.transaction { $0.buckets.first?.acknowledged }, 1)
+        XCTAssertTrue(store.transaction { $0.hasPendingLifecycle } == true)
     }
 }
