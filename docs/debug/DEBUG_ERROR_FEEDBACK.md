@@ -92,3 +92,16 @@ Arabic is covered in both native error/feedback bundles, including usage-statist
 ## TSV preview coverage (2026-10-28)
 
 TSV uses the existing read and renderer failure paths. Read failures remain native `ErrorIncident`/`ErrorFeedback` incidents; bounded preview truncation is an inline, non-failure notice and contains no document content in diagnostics. Renderer failures retain the existing recovery/report controls. Automated coverage includes safe TSV rendering, bounded UTF-8 decoding, native file-type registration, and 23 real WebKit cases. Host table/source UI was observed. Signed-install Finder/QuickLook feedback UI is not claimed as verified; see docs/design/TSV_PREVIEW.md.
+
+
+## Promotion source association (implementation in progress)
+
+The host's attribution URL route uses `FailureKind.attribution` and the existing
+`ErrorFeedback` recovery/report flow. Retriable network failures retry the same
+claim ID; expired/conflicting/invalid capabilities open the fixed promotion page.
+The fallback for browser-open failure offers copying that public page link.
+Codes, installation IDs and raw claim URLs are excluded from incident payloads.
+Opt-out is a normal no-submission state, not a forced settings change.
+Translations are present in all six host/Quick Look resource bundles and checked
+by `ErrorIncidentTests.testAllIncidentGuidanceHasTranslationsForBothBundles`.
+Signed-install interactive acceptance is still pending.

@@ -5,11 +5,12 @@ enum IncidentSource: String, Codable { case app, quicklook, cli }
 enum IncidentReason: String, Codable { case operationFailed, invalidInput, moduleUnavailable, resourceUnavailable }
 enum IncidentPhase: String, Codable { case started, failed, completed, timeout }
 enum FailureKind: String, Codable, CaseIterable {
-    case usageSettings, update, fileRead, fileTooLarge, reload, exportHTML, exportPDF, renderer, rendererResources, source
+    case attribution, usageSettings, update, fileRead, fileTooLarge, reload, exportHTML, exportPDF, renderer, rendererResources, source
     case mermaid, typst, graphviz, vega, math, search, quickLook, images, previewLimit, link, browser
 
     var title: String {
         switch self {
+        case .attribution: return "Promotion source could not be linked"
         case .usageSettings: return "Usage statistics preference could not be saved"
         case .update: return "Update could not be completed"
         case .fileRead, .fileTooLarge: return "Document could not be opened"
@@ -27,6 +28,7 @@ enum FailureKind: String, Codable, CaseIterable {
     }
     var guidance: String {
         switch self {
+        case .attribution: return "Source association is optional. Try again if the connection failed, or return to the promotion page for a fresh link. Your documents are unaffected."
         case .usageSettings: return "Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again."
         case .update: return "You can download the latest version and install it manually."
         case .fileRead: return "Choose a readable UTF-8 Markdown file, or open it in your editor to check it."

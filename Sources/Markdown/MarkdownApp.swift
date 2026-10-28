@@ -60,6 +60,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
+        if PromotionAttributionController.shared.receive(url) { return }
         if ErrorFeedback.receive(url) { return }
 
         guard let request = DocumentOpenRequest(url: url) else { return }

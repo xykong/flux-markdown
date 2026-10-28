@@ -90,3 +90,25 @@
 "Usage statistics preference could not be saved" = "未能保存使用统计设置";
 
 "Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again." = "关闭 FluxMarkdown 和快速查看以结束本次会话。检查磁盘可用空间，然后重试关闭使用统计。";
+
+"Promotion source could not be linked" = "未能关联推广来源";
+
+"Source association is optional. Try again if the connection failed, or return to the promotion page for a fresh link. Your documents are unaffected." = "来源关联是可选的。网络连接失败时可重试，或返回推广页面获取新链接。你的文档不受影响。";
+
+"Usage Statistics Are Off" = "使用统计已关闭";
+
+"No promotion source will be shared. You can keep using FluxMarkdown with statistics turned off." = "不会分享推广来源。关闭统计时，你仍可正常使用 FluxMarkdown。";
+
+"Share This Promotion Source?" = "分享此次推广来源？";
+
+"Link this promotion to your random installation identifier to help measure its effectiveness. No document information is sent. This is optional and does not count as reading activity." = "将此次推广与你的随机安装标识关联，帮助衡量推广效果。不会发送文档信息。这是可选操作，不会被计为阅读活动。";
+
+"Share Source" = "分享来源";
+
+"Not Now" = "暂不分享";
+
+"Promotion Source Linked" = "推广来源已关联";
+
+"Thank you. The source is linked to this installation. Effective use and return visits are measured separately when usage statistics are enabled." = "谢谢，来源已与此次安装关联。开启使用统计时，有效使用和后续回访会另行统计。";
+
+"Open Promotion Page" = "打开推广页面";

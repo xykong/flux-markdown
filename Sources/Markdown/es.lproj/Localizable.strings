@@ -233,3 +233,25 @@
 "Usage statistics preference could not be saved" = "No se pudo guardar la preferencia de estadísticas";
 
 "Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again." = "Cierra FluxMarkdown y Vista Rápida para finalizar esta sesión. Comprueba el espacio libre y vuelve a intentar desactivar las estadísticas.";
+
+"Promotion source could not be linked" = "No se pudo vincular la fuente de promoción";
+
+"Source association is optional. Try again if the connection failed, or return to the promotion page for a fresh link. Your documents are unaffected." = "La vinculación es opcional. Reintenta si falló la conexión o vuelve a la página de promoción para obtener un enlace nuevo. Tus documentos no se ven afectados.";
+
+"Usage Statistics Are Off" = "Las estadísticas de uso están desactivadas";
+
+"No promotion source will be shared. You can keep using FluxMarkdown with statistics turned off." = "No se compartirá ninguna fuente de promoción. Puedes seguir usando FluxMarkdown sin estadísticas.";
+
+"Share This Promotion Source?" = "¿Compartir esta fuente de promoción?";
+
+"Link this promotion to your random installation identifier to help measure its effectiveness. No document information is sent. This is optional and does not count as reading activity." = "Vincula esta promoción a tu identificador aleatorio de instalación para ayudar a medir su eficacia. No se envía información de documentos. Es opcional y no cuenta como actividad de lectura.";
+
+"Share Source" = "Compartir fuente";
+
+"Not Now" = "Ahora no";
+
+"Promotion Source Linked" = "Fuente de promoción vinculada";
+
+"Thank you. The source is linked to this installation. Effective use and return visits are measured separately when usage statistics are enabled." = "Gracias. La fuente está vinculada a esta instalación. El uso efectivo y las visitas posteriores se miden por separado cuando las estadísticas están activadas.";
+
+"Open Promotion Page" = "Abrir página de promoción";

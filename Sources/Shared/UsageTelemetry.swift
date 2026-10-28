@@ -6,6 +6,7 @@ import os.log
 /// Shared disk transactions coordinate host and sandboxed extension processes.
 final class UsageTelemetry {
     static let shared = UsageTelemetry()
+    static let settingsChanged = Notification.Name("FluxMarkdown.UsageStatisticsChanged")
     private let queue = DispatchQueue(label: "com.xykong.Markdown.telemetry", qos: .utility)
     private let directory: URL
     private let session: URLSession
@@ -55,6 +56,7 @@ final class UsageTelemetry {
         // Synchronous persisted opt-out prevents the other process from creating further snapshots.
         let saved = transaction { $0.setEnabled(enabled); return true } == true
         queue.async { if !enabled { self.task?.cancel(); self.task = nil } }
+        if saved { NotificationCenter.default.post(name: Self.settingsChanged, object: nil) }
         return saved
     }
     func record(source: String, seconds: Int, views: Int, installationID: String, now: Date = Date()) {

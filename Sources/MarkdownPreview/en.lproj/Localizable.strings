@@ -90,3 +90,25 @@
 "Usage statistics preference could not be saved" = "Usage statistics preference could not be saved";
 
 "Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again." = "Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again.";
+
+"Promotion source could not be linked" = "Promotion source could not be linked";
+
+"Source association is optional. Try again if the connection failed, or return to the promotion page for a fresh link. Your documents are unaffected." = "Source association is optional. Try again if the connection failed, or return to the promotion page for a fresh link. Your documents are unaffected.";
+
+"Usage Statistics Are Off" = "Usage Statistics Are Off";
+
+"No promotion source will be shared. You can keep using FluxMarkdown with statistics turned off." = "No promotion source will be shared. You can keep using FluxMarkdown with statistics turned off.";
+
+"Share This Promotion Source?" = "Share This Promotion Source?";
+
+"Link this promotion to your random installation identifier to help measure its effectiveness. No document information is sent. This is optional and does not count as reading activity." = "Link this promotion to your random installation identifier to help measure its effectiveness. No document information is sent. This is optional and does not count as reading activity.";
+
+"Share Source" = "Share Source";
+
+"Not Now" = "Not Now";
+
+"Promotion Source Linked" = "Promotion Source Linked";
+
+"Thank you. The source is linked to this installation. Effective use and return visits are measured separately when usage statistics are enabled." = "Thank you. The source is linked to this installation. Effective use and return visits are measured separately when usage statistics are enabled.";
+
+"Open Promotion Page" = "Open Promotion Page";

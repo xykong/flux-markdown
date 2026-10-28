@@ -41,3 +41,30 @@ The real Swift state encoder was also compiled and posted to an independently
 launched Rust service with a fresh temporary database. v4 ACK, lifecycle retries,
 v3 compatibility and invalid-metadata isolation all passed without increasing
 cumulative counts twice.
+
+
+## Canonical promotion endpoint and confirmation implementation
+
+The fixed production claim endpoint is `https://t.xykong.cc/v1/claims`, with the
+promotion help/download page at `https://t.xykong.cc/promo`. The existing HTTPS
+origin avoids overwriting the pre-existing `go.xykong.cc` DNS record; that hostname
+can later become a redirect-only alias without changing the native protocol.
+Only the exact attribution scheme/host and a single 64-character lowercase hex
+code are accepted. Network destinations, paths and callbacks cannot be supplied
+by the incoming URL.
+
+Host confirmation is optional and is separate from effective reading. Disabled
+statistics do not submit a claim or enable collection. The transport checks the
+installation generation before sending and again before reporting success;
+cancellation completes once even if the network replies late. HTTP redirects
+are refused, response bodies are bounded at 16 KiB, and the same claim ID is reused
+for an explicit retry. Codes remain in RAM and have a local ten-minute lifetime.
+
+Failures reuse `FailureKind.attribution` / `ErrorFeedback` with a real retry or
+fixed promotion-page recovery, contextual reporting, and six-language strings
+in both native bundles. No code or claim URL is included in diagnostics.
+
+The full selected native test run passed 50 tests with the final canonical-host
+assertion. This covers
+model/transport and shared error UI contracts, not a claimed signed-install
+browser-to-app acceptance run. That deployment gate remains pending.

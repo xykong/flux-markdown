@@ -90,3 +90,25 @@
 "Usage statistics preference could not be saved" = "Einstellung für Nutzungsstatistiken konnte nicht gespeichert werden";
 
 "Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again." = "Schließe FluxMarkdown und Quick Look, um diese Sitzung zu beenden. Prüfe den freien Speicherplatz und versuche erneut, die Statistiken zu deaktivieren.";
+
+"Promotion source could not be linked" = "Die Werbequelle konnte nicht verknüpft werden";
+
+"Source association is optional. Try again if the connection failed, or return to the promotion page for a fresh link. Your documents are unaffected." = "Die Quellenzuordnung ist optional. Versuchen Sie es bei Verbindungsproblemen erneut oder holen Sie auf der Aktionsseite einen neuen Link. Ihre Dokumente bleiben unverändert.";
+
+"Usage Statistics Are Off" = "Nutzungsstatistiken sind deaktiviert";
+
+"No promotion source will be shared. You can keep using FluxMarkdown with statistics turned off." = "Es wird keine Werbequelle übermittelt. Sie können FluxMarkdown weiterhin ohne Nutzungsstatistiken verwenden.";
+
+"Share This Promotion Source?" = "Diese Werbequelle teilen?";
+
+"Link this promotion to your random installation identifier to help measure its effectiveness. No document information is sent. This is optional and does not count as reading activity." = "Verknüpfen Sie diese Aktion mit Ihrer zufälligen Installationskennung, um ihre Wirkung zu messen. Es werden keine Dokumentinformationen gesendet. Dies ist optional und zählt nicht als Leseaktivität.";
+
+"Share Source" = "Quelle teilen";
+
+"Not Now" = "Jetzt nicht";
+
+"Promotion Source Linked" = "Werbequelle verknüpft";
+
+"Thank you. The source is linked to this installation. Effective use and return visits are measured separately when usage statistics are enabled." = "Vielen Dank. Die Quelle ist mit dieser Installation verknüpft. Tatsächliche Nutzung und spätere Besuche werden bei aktivierten Nutzungsstatistiken getrennt erfasst.";
+
+"Open Promotion Page" = "Aktionsseite öffnen";

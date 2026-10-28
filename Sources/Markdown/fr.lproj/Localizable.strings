@@ -233,3 +233,25 @@
 "Usage statistics preference could not be saved" = "Impossible d’enregistrer le réglage des statistiques";
 
 "Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again." = "Fermez FluxMarkdown et Quick Look pour arrêter cette session. Vérifiez l’espace disque disponible, puis réessayez de désactiver les statistiques.";
+
+"Promotion source could not be linked" = "La source promotionnelle n’a pas pu être associée";
+
+"Source association is optional. Try again if the connection failed, or return to the promotion page for a fresh link. Your documents are unaffected." = "L’association de la source est facultative. Réessayez en cas de problème de connexion ou retournez à la page promotionnelle pour obtenir un nouveau lien. Vos documents ne sont pas affectés.";
+
+"Usage Statistics Are Off" = "Les statistiques d’utilisation sont désactivées";
+
+"No promotion source will be shared. You can keep using FluxMarkdown with statistics turned off." = "Aucune source promotionnelle ne sera partagée. Vous pouvez continuer à utiliser FluxMarkdown sans statistiques.";
+
+"Share This Promotion Source?" = "Partager cette source promotionnelle ?";
+
+"Link this promotion to your random installation identifier to help measure its effectiveness. No document information is sent. This is optional and does not count as reading activity." = "Associez cette promotion à votre identifiant d’installation aléatoire pour aider à mesurer son efficacité. Aucune information sur les documents n’est envoyée. Cette action facultative ne compte pas comme une activité de lecture.";
+
+"Share Source" = "Partager la source";
+
+"Not Now" = "Pas maintenant";
+
+"Promotion Source Linked" = "Source promotionnelle associée";
+
+"Thank you. The source is linked to this installation. Effective use and return visits are measured separately when usage statistics are enabled." = "Merci. La source est associée à cette installation. L’utilisation effective et les retours sont mesurés séparément lorsque les statistiques sont activées.";
+
+"Open Promotion Page" = "Ouvrir la page promotionnelle";

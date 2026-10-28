@@ -49,7 +49,7 @@ enum ErrorFeedback {
         var environment = DiagnosticEnvironment.current()
         if let targetVersion { environment["targetVersion"] = targetVersion }
         let allSettings = DiagnosticSettings.sanitize(AppearancePreference.shared.diagnosticSettings)
-        let settings = [.update, .browser, .link, .fileRead, .fileTooLarge].contains(kind)
+        let settings = [.attribution, .update, .browser, .link, .fileRead, .fileTooLarge].contains(kind)
             ? allSettings.filter { $0.key == "uiLanguage" } : allSettings
         var incident = ErrorIncident(kind: kind, source: source, phase: phase, scope: scope, error: error,
                                      environment: environment, settings: settings)
