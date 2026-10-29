@@ -9,6 +9,7 @@ declare module '@iktakahiro/markdown-it-katex' {
 }
 
 interface WebkitMessageHandlers {
+    blockCopy?: { postMessage: (request: { id: string; generation: string; text: string }) => void };
     errorFeedback?: { postMessage: (event: { action: string; kind: string; generation: string; id: string; reason?: string }) => void };
     readingToolsLayout?: { postMessage: (layout: { rightInset: number }) => void };
     logger: { postMessage: (msg: string) => void };

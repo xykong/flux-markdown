@@ -141,7 +141,7 @@ export class SearchEngine {
                 acceptNode: (node) => {
                     // Skip script, style, and other non-visible elements
                     const parent = node.parentElement;
-                    if (!parent) return NodeFilter.FILTER_REJECT;
+                    if (!parent || parent.closest('.block-copy-tools')) return NodeFilter.FILTER_REJECT;
 
                     const tagName = parent.tagName.toLowerCase();
                     if (['script', 'style', 'noscript'].includes(tagName)) {

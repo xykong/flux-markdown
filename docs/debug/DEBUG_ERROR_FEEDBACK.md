@@ -92,3 +92,14 @@ Arabic is covered in both native error/feedback bundles, including usage-statist
 ## TSV preview coverage (2026-10-28)
 
 TSV uses the existing read and renderer failure paths. Read failures remain native `ErrorIncident`/`ErrorFeedback` incidents; bounded preview truncation is an inline, non-failure notice and contains no document content in diagnostics. Renderer failures retain the existing recovery/report controls. Automated coverage includes safe TSV rendering, bounded UTF-8 decoding, native file-type registration, and 23 real WebKit cases. Host table/source UI was observed. Signed-install Finder TSV preview and QuickLook-to-host search handoff subsequently passed; error-report submission was not performed. See docs/design/TSV_PREVIEW.md.
+
+## Block copy failures (Issue #65)
+
+`FailureKind.copy` uses the shared native incident registry and validated renderer
+`errorFeedback` bridge in both app and Quick Look. Inline failures offer Select
+Text, explicit reactivation of Copy, and contextual report/inspection; native
+recovery opens the editor (app) or FluxMarkdown (Quick Look). Oversize/missing
+bridge/timeout/failed writes never show success, and document text is excluded
+from diagnostics. Both native bundles and renderer controls cover all six
+languages. See `DEBUG_BLOCK_COPY.md` for clipboard readback, lifecycle, privacy,
+export and actual QuickLook acceptance evidence.

@@ -5,11 +5,12 @@ enum IncidentSource: String, Codable { case app, quicklook, cli }
 enum IncidentReason: String, Codable { case operationFailed, invalidInput, moduleUnavailable, resourceUnavailable }
 enum IncidentPhase: String, Codable { case started, failed, completed, timeout }
 enum FailureKind: String, Codable, CaseIterable {
-    case usageSettings, update, fileRead, fileTooLarge, reload, exportHTML, exportPDF, renderer, rendererResources, source
+    case copy, usageSettings, update, fileRead, fileTooLarge, reload, exportHTML, exportPDF, renderer, rendererResources, source
     case mermaid, typst, graphviz, vega, math, search, quickLook, images, previewLimit, link, browser
 
     var title: String {
         switch self {
+        case .copy: return "Text could not be copied"
         case .usageSettings: return "Usage statistics preference could not be saved"
         case .update: return "Update could not be completed"
         case .fileRead, .fileTooLarge: return "Document could not be opened"
@@ -27,6 +28,7 @@ enum FailureKind: String, Codable, CaseIterable {
     }
     var guidance: String {
         switch self {
+        case .copy: return "Select the text to copy it manually, or try the copy button again."
         case .usageSettings: return "Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again."
         case .update: return "You can download the latest version and install it manually."
         case .fileRead: return "Choose a readable UTF-8 Markdown file, or open it in your editor to check it."
@@ -119,7 +121,7 @@ struct ErrorIncident: Codable {
         values.filter { key, value in
             switch key {
             case "baseFontSize", "finderPaneFontSize": return Double(value).map { $0.isFinite && (8...72).contains($0) } ?? false
-            case "enableMermaid", "enableKatex", "enableEmoji", "enableTypst", "showLineNumbers", "collapseBlockquotesByDefault": return ["true", "false"].contains(value)
+            case "enableMermaid", "enableKatex", "enableEmoji", "enableTypst", "showLineNumbers", "showCopyButtons", "collapseBlockquotesByDefault": return ["true", "false"].contains(value)
             case "preferredAppearanceMode": return ["system", "light", "dark"].contains(value)
             case "uiLanguage": return ["system", "en", "zh-Hans", "zh", "de", "fr", "es", "ar"].contains(value)
             case "contentsSide": return ["left", "right"].contains(value)

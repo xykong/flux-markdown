@@ -233,3 +233,9 @@
 "Usage statistics preference could not be saved" = "No se pudo guardar la preferencia de estadísticas";
 
 "Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again." = "Cierra FluxMarkdown y Vista Rápida para finalizar esta sesión. Comprueba el espacio libre y vuelve a intentar desactivar las estadísticas.";
+
+/* Block copy controls */
+"Show Copy Buttons" = "Mostrar botones de copia";
+"Copy code and quotes. Reload open Quick Look previews to apply." = "Copiar código y citas. Recarga las vistas Quick Look abiertas para aplicar.";
+"Text could not be copied" = "No se pudo copiar el texto";
+"Select the text to copy it manually, or try the copy button again." = "Selecciona el texto para copiarlo manualmente o vuelve a pulsar el botón de copia.";

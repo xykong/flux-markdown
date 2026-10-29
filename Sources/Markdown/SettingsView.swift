@@ -154,9 +154,6 @@ struct AppearanceSettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            UsageTelemetrySetting()
-            StarReminderSetting()
-            Divider()
             SettingsSectionHeader(
                 title: NSLocalizedString("Theme", comment: "Theme section title"),
                 description: NSLocalizedString("Choose your preferred interface style", comment: "Theme section description")
@@ -264,6 +261,10 @@ struct AppearanceSettingsView: View {
                 }
                 .padding(.top, 6)
             }
+
+            Divider()
+            UsageTelemetrySetting()
+            StarReminderSetting()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -385,6 +386,13 @@ struct RenderingSettingsView: View {
                     icon: "list.number",
                     isOn: Binding(get: { preference.showLineNumbers }, set: { preference.showLineNumbers = $0 })
                 )
+                Divider().padding(.leading, 52)
+                FeatureToggleRow(
+                    title: NSLocalizedString("Show Copy Buttons", comment: "Block copy setting"),
+                    subtitle: NSLocalizedString("Copy code and quotes. Reload open Quick Look previews to apply.", comment: "Block copy setting description"),
+                    icon: "doc.on.doc",
+                    isOn: Binding(get: { preference.showCopyButtons }, set: { preference.showCopyButtons = $0 })
+                )
             }
             .background(Color(NSColor.controlBackgroundColor))
             .cornerRadius(8)
@@ -414,6 +422,8 @@ struct RenderingSettingsView: View {
             Spacer()
 
             Toggle("", isOn: isOn)
+                .accessibilityLabel(Text(title))
+                .accessibilityHint(Text(subtitle))
                 .toggleStyle(SwitchToggleStyle(tint: .accentColor))
                 .labelsHidden()
         }

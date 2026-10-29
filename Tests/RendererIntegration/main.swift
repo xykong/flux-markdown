@@ -5,10 +5,87 @@ let app = NSApplication.shared
 app.setActivationPolicy(.prohibited)
 final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private var webView: WKWebView!
+    private var focusWindow: NSWindow?
+    private var previousApplication: NSRunningApplication?
     private var started = false
     private var index = 0
     private var feedbackEvents: [[String: Any]] = []
     private let cases: [(String, String)] = [
+        ("block copy delayed visibility and focus", """
+        await window.renderMarkdown('```\\nhello\\n```',{context:'app',showCopyButtons:true});
+        const tools=document.querySelector('.block-copy-tools'),button=tools.querySelector('button');
+        const opacity=()=>Number(getComputedStyle(tools).opacity);
+        const hoverless=matchMedia('(hover: none)').matches;
+        const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+        await new Promise(r=>setTimeout(r,900));
+        if(!hoverless && opacity()!==0) throw new Error('Idle copy button is visible');
+        button.focus();
+        await new Promise(r=>setTimeout(r,30));
+        if(opacity()!==1) throw new Error('Keyboard focus did not reveal copy '+JSON.stringify({opacity:opacity(),active:document.activeElement?.outerHTML,focus:tools.matches(':focus-within'),hoverless}));
+        button.blur();
+        if(!hoverless && !reduced) {
+          await new Promise(r=>setTimeout(r,300));
+          if(opacity()!==1)throw new Error('Copy hid before exit delay');
+          button.focus();
+          await new Promise(r=>setTimeout(r,700));
+          if(opacity()!==1)throw new Error('Reentry did not cancel hiding');
+          button.blur();
+          await new Promise(r=>setTimeout(r,950));
+          if(opacity()!==0)throw new Error('Copy did not fade out');
+        }
+        tools.dataset.copyState='error';
+        if(opacity()!==1)throw new Error('Failure recovery is hidden');
+        delete tools.dataset.copyState;
+        await window.renderMarkdown('# Reset',{showCopyButtons:false}); return true;
+        """),
+        ("block copy contexts, accessibility, export and synthetic-event rejection", """
+        window.setFeedbackGeneration('33333333-3333-3333-3333-333333333333');
+        const sample='```sh\\n\\techo "中文 & 😀"\\n\\n```\\n\\n> Quote\\n>\\n> > Nested\\n\\n> [!NOTE]\\n> Body';
+        let writes=0;
+        const original=window.webkit.messageHandlers.blockCopy;
+        window.webkit.messageHandlers.blockCopy={postMessage:()=>{writes++}};
+        for (const context of ['app','quicklook','finder']) {
+          await window.renderMarkdown(sample,{context,showCopyButtons:true,showLineNumbers:true,uiLanguage:'en'});
+          const buttons=[...document.querySelectorAll('.block-copy-tools > button')];
+          if(context==='finder') {if(buttons.length) return false;continue;}
+          if(buttons.length!==4 || buttons.some(b=>!b.getAttribute('aria-label')||b.type!=='button')) return false;
+          buttons[0].click();
+          if(writes!==0) return false;
+          const html=new DOMParser().parseFromString(window.exportHTML(),'text/html');
+          if(html.querySelector('.block-copy-tools,.block-copy-host') || !html.querySelector('code').textContent.includes('中文')) return false;
+          const pre=document.querySelector('pre').getBoundingClientRect();
+          const toolbar=buttons[0].parentElement.getBoundingClientRect();
+          if(toolbar.bottom>pre.top+1) throw new Error('Copy toolbar overlaps code');
+        }
+        window.webkit.messageHandlers.blockCopy=original;
+        await window.renderMarkdown(sample,{context:'app',showCopyButtons:false});
+        return !document.querySelector('.block-copy-tools,.block-copy-host');
+        """),
+        ("block copy narrow RTL geometry", """
+        for(const uiLanguage of ['en','ar']) for(const theme of ['light','dark']) {
+          await window.renderMarkdown('```\\n'+'LongCode'.repeat(400)+'\\n```\\n\\n> Quote',{context:'app',showCopyButtons:true,uiLanguage,theme});
+          for(const button of document.querySelectorAll('.block-copy-tools > button')) {
+            const rect=button.getBoundingClientRect();
+            if(rect.width<20 || rect.left<0 || rect.right>window.innerWidth+1) return false;
+            if(!button.getAttribute('aria-label'))return false;
+          }
+          const pre=document.querySelector('pre');
+          if(pre.scrollWidth<=pre.clientWidth || document.documentElement.scrollWidth>window.innerWidth+1)return false;
+        }
+        await window.renderMarkdown('# Reset',{context:'app',uiLanguage:'en',theme:'light'});return true;
+        """),
+        ("block copy large document timing", """
+        const text=Array(300).fill('```sh\\n  echo hello\\n```\\n\\n> A quoted paragraph.\\n').join('\\n');
+        const samples={off:[],on:[]};
+        for(let i=0;i<3;i++) for(const enabled of [false,true]) {
+          const start=performance.now();
+          await window.renderMarkdown(text,{context:'app',showCopyButtons:enabled,showLineNumbers:false});
+          samples[enabled?'on':'off'].push(performance.now()-start);
+          if(document.querySelectorAll('.block-copy-tools').length!==(enabled?600:0))return false;
+        }
+        window.webkit.messageHandlers.logger.postMessage('COPY performance ms '+JSON.stringify(samples));
+        await window.renderMarkdown('# Reset',{showCopyButtons:false}); return true;
+        """),
         ("TSV safe bounded table and source", """
         const row=Array(100).fill('<img src=x>').join('\\t');
         const start=performance.now();
@@ -163,14 +240,26 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         guard RendererBridgePolicy.accepts(message) else { print("FAIL bridge origin"); exit(1) }
         if message.name == "errorFeedback", let body = message.body as? [String: Any] { feedbackEvents.append(body); return }
         guard let text = message.body as? String else { return }
-        if text.contains("Error") || text.contains("fallback") || text.hasPrefix("TSV 20,000") { print(text) }
+        if text.contains("Error") || text.contains("fallback") || text.hasPrefix("TSV 20,000") || text.hasPrefix("COPY performance") { print(text) }
         if text == "rendererReady" && !started { started = true; next() }
     }
     private func next() {
         if index == cases.count { print("PASS all \(cases.count) real WebKit cases"); exit(0) }
         let (name, js) = cases[index]
+        if name == "block copy delayed visibility and focus" {
+            // :focus-within requires an active WebKit page, not just activeElement
+            // in the otherwise windowless integration harness.
+            previousApplication = NSWorkspace.shared.frontmostApplication
+            app.setActivationPolicy(.accessory)
+            let window = NSWindow(contentRect: webView.frame, styleMask: [.titled], backing: .buffered, defer: false)
+            window.contentView = webView
+            window.makeKeyAndOrderFront(nil)
+            window.makeFirstResponder(webView)
+            app.activate(ignoringOtherApps: true)
+            focusWindow = window
+        }
         if name == "wide reading layout" || name == "RTL wide geometry" { webView.setFrameSize(NSSize(width: 1800, height: 900)) }
-        if name == "narrow reading layout" || name == "RTL narrow geometry" { webView.setFrameSize(NSSize(width: 600, height: 600)) }
+        if name == "narrow reading layout" || name == "RTL narrow geometry" || name == "block copy narrow RTL geometry" { webView.setFrameSize(NSSize(width: 600, height: 600)) }
         webView.callAsyncJavaScript(js, arguments: ["imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData], in: nil, in: .page) { result in
             switch result {
             case .success(let value) where value as? Bool == true:
@@ -179,6 +268,13 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
                     guard reports.count == 1, reports[0]["kind"] as? String == "mermaid",
                           reports[0]["generation"] as? String == "11111111-1111-1111-1111-111111111111",
                           !String(describing: self.feedbackEvents).contains("SAMPLE-DO-NOT-INCLUDE") else { print("FAIL feedback payload or stale action"); exit(1) }
+                }
+                if name == "block copy delayed visibility and focus" {
+                    self.focusWindow?.contentView = nil
+                    self.focusWindow?.orderOut(nil)
+                    self.focusWindow = nil
+                    self.previousApplication?.activate(options: [.activateIgnoringOtherApps])
+                    app.setActivationPolicy(.prohibited)
                 }
                 print("PASS \(name)"); self.index += 1; self.next()
             default: print("FAIL \(name): \(result)"); exit(1)

@@ -1,4 +1,6 @@
-import { installErrorFeedback, setFeedbackGeneration } from './error-feedback';
+import { installBlockCopy, blockCopyResult, CopyController } from './block-copy';
+import './styles/block-copy.css';
+import { installErrorFeedback, setFeedbackGeneration, feedbackGeneration } from './error-feedback';
 import { waitForExportReady } from './export-readiness';
 window.waitForExportReady = waitForExportReady;
 import { sanitizeDocumentHTML, sanitizeDiagramHTML } from './safe-html';
@@ -361,7 +363,7 @@ function copySourceRange(from: HTMLElement, to: HTMLElement): void {
     }
 }
 
-function buildMd(): MarkdownIt {
+function buildMd(enableTypst = true): MarkdownIt {
     const instance = new MarkdownIt({
         html: true,
         breaks: false,
@@ -371,7 +373,7 @@ function buildMd(): MarkdownIt {
             const resolvedLang = resolveLanguage(lang);
 
             // Typst math blocks — render as placeholder, post-processed async
-            if (lang === 'typst' || lang === 'typst-math') {
+            if (enableTypst && (lang === 'typst' || lang === 'typst-math')) {
                 return '<div class="typst-placeholder" data-typst-source="' +
                     str.replace(/"/g, '&quot;').replace(/\n/g, '&#10;') +
                     '"><div class="typst-loading">' + rendererLabels().typstLoading + '</div></div>';
@@ -449,7 +451,7 @@ window.waitForRenderComplete = async () => {
     await currentRender;
     if (generation !== renderGeneration) throw new Error("Document changed during export");
 };
-window.invalidateRender = () => { ++renderGeneration; };
+window.invalidateRender = () => { disposeBlockCopy(); ++renderGeneration; };
 const diffAnimator = new DiffAnimator();
 
 let toc: TableOfContents | null = null;
@@ -458,6 +460,8 @@ let readingStatus: ReadingStatus | null = null;
 let searchEngine: SearchEngine | null = null;
 let searchUI: SearchUI | null = null;
 let helpOverlay: HelpOverlay | null = null;
+let blockCopy: CopyController | null = null;
+function disposeBlockCopy(): void { blockCopy?.dispose(); blockCopy = null; }
 let blockquoteCollapse: BlockquoteCollapse | null = null;
 let mermaidInstance: typeof import('mermaid')['default'] | null = null;
 let mermaidCurrentTheme: string | null = null;
@@ -482,6 +486,7 @@ interface RenderOptions {
     collapseBlockquotes?: boolean;
     prevContent?: string;
     showLineNumbers?: boolean;
+    showCopyButtons?: boolean;
     renderVersion?: number;
     format?: 'markdown' | 'tsv';
     isTruncated?: boolean;
@@ -731,6 +736,8 @@ window.exportHTML = function(): string {
     // Ensure we clone the content so we don't modify the active DOM
     const clone = previewDiv ? (previewDiv.cloneNode(true) as HTMLElement) : document.createElement('div');
     
+    clone.querySelectorAll('.block-copy-tools').forEach(control => control.remove());
+    clone.querySelectorAll('.block-copy-host').forEach(host => host.replaceWith(...Array.from(host.childNodes)));
     clone.querySelectorAll('.error-feedback-controls').forEach(control => control.remove());
     clone.querySelectorAll<HTMLElement>('.blockquote-placeholder').forEach(placeholder => {
         const quote = placeholder.nextElementSibling as HTMLElement | null;
@@ -815,6 +822,7 @@ function applyInterfaceDirection(language?: string): boolean {
 }
 
 window.renderMarkdown = async function (text: string, options: RenderOptions = {}) {
+    disposeBlockCopy();
     const callId = ++renderGeneration;
     const isCurrent = () => callId === renderGeneration;
     logToSwift(`[renderMarkdown:${callId}] START textLen=${text.length}`);
@@ -933,7 +941,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         const sourceLineOffset = text.slice(0, text.length - body.length).split('\n').length - 1;
         const frontMatterHtml = yaml ? `<div data-source-line="1" data-source-line-end="${sourceLineOffset}">${renderFrontMatterHtml(yaml)}</div>` : '';
 
-        const parser = buildMd();
+        const parser = buildMd(options.enableTypst !== false);
         if (options.enableEmoji !== false) parser.use(emoji);
         const enableTypst = options.enableTypst !== false;
         if (options.enableKatex !== false && /\$[\s\S]+?\$/.test(body)) {
@@ -984,6 +992,10 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         if (toc) toc.render(outline);
         prepareRenderedImages(outputDiv, options);
         logToSwift(`[renderMarkdown:${callId}] DOM UPDATED successfully`);
+
+        if (options.showCopyButtons === true && currentContext !== 'finder') {
+            blockCopy = installBlockCopy(outputDiv, feedbackGeneration());
+        }
 
         if (showLineNumbers) {
             addLineNumbersToCodeBlocks(outputDiv);
@@ -1119,6 +1131,7 @@ window.renderMarkdown = (text, options) => {
 window.renderSource = function(text: string, theme: string, prevContent?: string, options: RenderOptions = {}) {
     window.__fluxLang = options.uiLanguage === "system" ? undefined : options.uiLanguage ?? window.__fluxLang;
     applyInterfaceDirection();
+    disposeBlockCopy();
     currentRender = Promise.resolve();
     ++renderGeneration;
     searchEngine?.clear();
@@ -1446,6 +1459,6 @@ window.navigateDocumentPosition = function(position: DocumentPosition): boolean 
     return true;
 };
 
-Object.assign(window, { setFeedbackGeneration });
+Object.assign(window, { blockCopyResult, setFeedbackGeneration: (value: string) => { disposeBlockCopy(); setFeedbackGeneration(value); } });
 if (document.body) installErrorFeedback(document.body);
 else document.addEventListener("DOMContentLoaded", () => installErrorFeedback(document.body), { once: true });

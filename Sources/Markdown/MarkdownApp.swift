@@ -284,6 +284,7 @@ private struct DocumentPreviewScene: View {
                 codeHighlightTheme: preference.codeHighlightTheme,
                 collapseBlockquotesByDefault: preference.collapseBlockquotesByDefault,
                 showLineNumbers: preference.showLineNumbers,
+                showCopyButtons: preference.showCopyButtons,
                 contentsSide: preference.contentsSide,
                 starReminder: starReminder
             )

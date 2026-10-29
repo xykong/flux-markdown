@@ -90,6 +90,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     var webView: InteractiveWebView!
     private var truncationNotice: NSTextField?
     private let errorRegistry = RendererErrorRegistry()
+    private let blockCopyBridge = BlockCopyBridge()
     private func showFailure(_ kind: FailureKind, error: Error? = nil) {
         let incident = errorRegistry.nativeFailure(kind, error: error)
         IncidentNotice.attach(to: view, incident: incident, recoveryTitle: "Open in FluxMarkdown", recovery: { [weak self] in
@@ -419,6 +420,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         userContentController.add(self, name: "linkClicked")
         userContentController.add(self, name: "readingToolsLayout")
         userContentController.add(self, name: "errorFeedback")
+        userContentController.add(self, name: "blockCopy")
         webConfiguration.userContentController = userContentController
         
         let schemeHandler = LocalSchemeHandler()
@@ -668,6 +670,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "linkClicked")
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "readingToolsLayout")
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "errorFeedback")
+        webView.configuration.userContentController.removeScriptMessageHandler(forName: "blockCopy")
         
         for recognizer in webView.gestureRecognizers where recognizer is NSClickGestureRecognizer {
             webView.removeGestureRecognizer(recognizer)
@@ -1426,6 +1429,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         let capturedUILanguage = AppearancePreference.shared.uiLanguage
         let capturedCollapseBlockquotes = AppearancePreference.shared.collapseBlockquotesByDefault
         let capturedContentsSide = AppearancePreference.shared.contentsSide.rawValue
+        let capturedShowCopyButtons = AppearancePreference.shared.showCopyButtons
         let capturedShowLineNumbers = AppearancePreference.shared.showLineNumbers
         let capturedPrevMarkdown = self.prevMarkdown
         let capturedPreviewMode = self.currentPreviewMode
@@ -1443,7 +1447,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
             guard let self = self else { return }
             
             let contextValue = capturedPreviewMode == .compact ? "finder" : "quicklook"
-            var options: [String: Any] = ["theme": theme, "context": contextValue, "uiLanguage": capturedUILanguage, "collapseBlockquotes": capturedCollapseBlockquotes, "showLineNumbers": capturedShowLineNumbers, "contentsSide": capturedContentsSide, "fontSize": capturedFontSize, "renderVersion": capturedRenderVersion]
+            var options: [String: Any] = ["theme": theme, "context": contextValue, "uiLanguage": capturedUILanguage, "collapseBlockquotes": capturedCollapseBlockquotes, "showLineNumbers": capturedShowLineNumbers, "showCopyButtons": capturedShowCopyButtons, "contentsSide": capturedContentsSide, "fontSize": capturedFontSize, "renderVersion": capturedRenderVersion]
             if capturedURL?.pathExtension.lowercased() == "tsv" {
                 options["format"] = "tsv"
                 options["isTruncated"] = capturedTruncated
@@ -1611,6 +1615,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard RendererBridgePolicy.accepts(message) else { return }
+        if message.name == "blockCopy" { blockCopyBridge.handle(message, generation: errorRegistry.scope.uuidString, enabled: AppearancePreference.shared.showCopyButtons && currentPreviewMode != .compact); return }
         if message.name == "errorFeedback" { errorRegistry.handle(message.body); return }
         if message.name == "logger", let body = message.body as? String {
             os_log("🟢 JS Log: %{public}@", log: logger, type: .debug, body)

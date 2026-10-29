@@ -1,0 +1,30 @@
+.block-copy-tools { -webkit-user-select: none; user-select: none; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; font: 12px system-ui; margin-block: 4px; white-space: normal; }
+.block-copy-tools button { font: inherit; color: inherit; background: transparent; border: 1px solid currentColor; border-radius: 5px; padding: 4px 8px; cursor: pointer; }
+.block-copy-tools button:focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
+.block-copy-tools button:disabled { opacity: .6; cursor: progress; }
+.block-copy-tools [role=status] { order: -1; }
+.block-copy-tools [role=status]:empty { display: none; }
+.block-copy-host { min-width: 0; }
+.block-copy-error { flex-basis: 100%; }
+/* Opacity preserves layout and Tab navigation. Invisible controls cannot intercept clicks. */
+.block-copy-tools {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 250ms ease 600ms;
+}
+.block-copy-host:hover > .block-copy-tools,
+blockquote:hover > .block-copy-tools,
+.markdown-alert:hover > .block-copy-tools,
+.block-copy-tools:focus-within,
+.block-copy-tools[data-copy-state] {
+  opacity: 1;
+  pointer-events: auto;
+  transition: none;
+}
+@media (hover: none) {
+  .block-copy-tools { opacity: 1; pointer-events: auto; transition: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .block-copy-tools { transition: none; }
+}
+@media print { .block-copy-tools { display: none !important; } }

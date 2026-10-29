@@ -233,3 +233,9 @@
 "Usage statistics preference could not be saved" = "未能保存使用统计设置";
 
 "Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again." = "关闭 FluxMarkdown 和快速查看以结束本次会话。检查磁盘可用空间，然后重试关闭使用统计。";
+
+/* Block copy controls */
+"Show Copy Buttons" = "显示复制按钮";
+"Copy code and quotes. Reload open Quick Look previews to apply." = "复制代码和引用。请重新载入已打开的快速查看预览以应用。";
+"Text could not be copied" = "无法复制文本";
+"Select the text to copy it manually, or try the copy button again." = "可以选择文本手动复制，或再次点击复制按钮。";
