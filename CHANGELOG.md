@@ -1,4 +1,7 @@
 ## [Unreleased]
+_无待发布的变更_
+
+## [1.42.645] - 2026-10-29
 ### Added
 - **Copy code and quotes**: Copy ordinary code blocks, blockquotes and GitHub alerts in FluxMarkdown and full Finder Quick Look. Preserve code indentation and line breaks, and copy quotes as readable plain text without Markdown quote markers. Thanks to [@angedell](https://github.com/angedell) for [#65](https://github.com/xykong/flux-markdown/issues/65); implemented in [#66](https://github.com/xykong/flux-markdown/pull/66).
 - **Hover copy controls**: Reveal copy buttons on hover or keyboard focus, then fade them out after a short delay. Keep copy feedback and recovery actions visible. Enabled by default, with an opt-out under Settings → Rendering; existing opt-outs are preserved. Compact Finder previews and HTML/PDF exports remain free of copy controls.
