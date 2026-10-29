@@ -105,3 +105,24 @@ test('copy failures use contextual feedback without document text', async () => 
     expect(window.getSelection()?.toString()).toContain('private document text');
     controller.dispose(); feedback();
 });
+
+test('copy lifecycle pins feedback visible until success expires, and keeps errors reachable', async () => {
+    jest.useFakeTimers();
+    const root = fixture('<pre><code>x</code></pre>');
+    let resolve!: (success: boolean) => void;
+    const controller = installBlockCopy(root, 'visibility', () => new Promise(r => { resolve = r; }));
+    const tools = root.querySelector<HTMLElement>('.block-copy-tools')!;
+    expect(tools.dataset.copyState).toBeUndefined();
+    const copying = controller.copy(root.querySelector('pre')!);
+    expect(tools.dataset.copyState).toBe('pending');
+    resolve(true); await copying;
+    expect(tools.dataset.copyState).toBe('success');
+    jest.advanceTimersByTime(2001);
+    expect(tools.dataset.copyState).toBeUndefined();
+    const failed = controller.copy(root.querySelector('pre')!);
+    resolve(false); await failed;
+    expect(tools.dataset.copyState).toBe('error');
+    jest.advanceTimersByTime(10000);
+    expect(tools.dataset.copyState).toBe('error');
+    controller.dispose(); jest.useRealTimers();
+});

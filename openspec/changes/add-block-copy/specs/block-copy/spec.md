@@ -28,3 +28,11 @@ Controls SHALL support keyboard and assistive technology, avoid covering content
 #### Scenario: Export
 - **WHEN** a document with enabled copy controls is exported or printed
 - **THEN** its content is preserved and copying controls and status messages are absent
+
+### Requirement: Contextual control visibility
+Copy controls SHALL appear when the pointer enters their code/quote region or keyboard focus enters their toolbar. On pointer/focus exit, controls SHALL wait 600 ms then fade out over 250 ms without moving document content. Reentry SHALL cancel hiding. Pending copies, brief success feedback and unresolved failures SHALL remain visible. Reduced-motion users SHALL not receive fade animations, and devices without hover SHALL retain visible controls.
+
+#### Scenario: Hover and keyboard access
+- **WHEN** the pointer leaves a block with no focused control or active feedback
+- **THEN** its copy toolbar fades after the delay, while remaining reachable through keyboard navigation
+- **AND** returning to the block or focusing its button reveals it immediately

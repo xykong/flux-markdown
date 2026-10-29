@@ -115,3 +115,34 @@ LaunchServices and pluginkit again select `/Applications/FluxMarkdown.app`
 Finder returned to Downloads with its preview pane hidden, and task-owned app/
 qlmanage processes were stopped. Test artifacts remain in the ignored evidence
 directory.
+
+## Hover visibility follow-up (2026-10-29)
+
+User requested nonpersistent controls. Toolbar opacity is now zero while idle;
+hovering its code host, quote or alert reveals it immediately. Leaving waits
+600 ms before a 250 ms fade. Returning cancels hiding. Layout space is preserved,
+so document text does not move. Hidden idle controls ignore pointer input but
+remain Tab-reachable; focus-within reveals them. Pending, success (2 seconds), and
+unresolved failure states pin the toolbar visible. Reduced-motion removes fading;
+hoverless input devices retain visible controls.
+
+Validation: 416 renderer tests passed; 27 real WebKit cases passed. A new lifecycle
+test proves pending/success/error visibility state and expiry. A new real WebKit
+case checks initial hidden opacity, focus reveal, exit delay, reentry cancellation,
+completed fade and persistent error visibility. This case activates a temporary
+native window: a windowless WKWebView can have document.activeElement while
+:focus-within remains false, so a windowless focus assertion was not valid evidence.
+The previous foreground app is restored after the focused-window case. Both app
+and extension build successfully with the explicit local macOS 12 override.
+
+The missing QuickLook buttons were independently traced to a newer DerivedData app
+running alongside the older installed extension. The installed extension assets
+contained no block-copy controls while the shared preference was enabled. This
+follow-up installs the verified current development app and its matching extension
+to /Applications/FluxMarkdown.app, superseding the prior acceptance-only restoration.
+LaunchServices/pluginkit now select that installation, and both bundled stylesheets
+contain the hover/focus/feedback rules. Strict deep signature verification passed.
+The previous app is backed up under ignored build/issue-65-hover/. QuickLook cache
+was reset; no old extension process remained. Existing app windows need an app
+restart to load the new renderer bundle. Finder's compact preview still intentionally
+excludes copy controls under the original agreed scope. No public release was made.

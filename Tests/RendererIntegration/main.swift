@@ -5,10 +5,39 @@ let app = NSApplication.shared
 app.setActivationPolicy(.prohibited)
 final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private var webView: WKWebView!
+    private var focusWindow: NSWindow?
+    private var previousApplication: NSRunningApplication?
     private var started = false
     private var index = 0
     private var feedbackEvents: [[String: Any]] = []
     private let cases: [(String, String)] = [
+        ("block copy delayed visibility and focus", """
+        await window.renderMarkdown('```\\nhello\\n```',{context:'app',showCopyButtons:true});
+        const tools=document.querySelector('.block-copy-tools'),button=tools.querySelector('button');
+        const opacity=()=>Number(getComputedStyle(tools).opacity);
+        const hoverless=matchMedia('(hover: none)').matches;
+        const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+        await new Promise(r=>setTimeout(r,900));
+        if(!hoverless && opacity()!==0) throw new Error('Idle copy button is visible');
+        button.focus();
+        await new Promise(r=>setTimeout(r,30));
+        if(opacity()!==1) throw new Error('Keyboard focus did not reveal copy '+JSON.stringify({opacity:opacity(),active:document.activeElement?.outerHTML,focus:tools.matches(':focus-within'),hoverless}));
+        button.blur();
+        if(!hoverless && !reduced) {
+          await new Promise(r=>setTimeout(r,300));
+          if(opacity()!==1)throw new Error('Copy hid before exit delay');
+          button.focus();
+          await new Promise(r=>setTimeout(r,700));
+          if(opacity()!==1)throw new Error('Reentry did not cancel hiding');
+          button.blur();
+          await new Promise(r=>setTimeout(r,950));
+          if(opacity()!==0)throw new Error('Copy did not fade out');
+        }
+        tools.dataset.copyState='error';
+        if(opacity()!==1)throw new Error('Failure recovery is hidden');
+        delete tools.dataset.copyState;
+        await window.renderMarkdown('# Reset',{showCopyButtons:false}); return true;
+        """),
         ("block copy contexts, accessibility, export and synthetic-event rejection", """
         window.setFeedbackGeneration('33333333-3333-3333-3333-333333333333');
         const sample='```sh\\n\\techo "中文 & 😀"\\n\\n```\\n\\n> Quote\\n>\\n> > Nested\\n\\n> [!NOTE]\\n> Body';
@@ -217,6 +246,18 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private func next() {
         if index == cases.count { print("PASS all \(cases.count) real WebKit cases"); exit(0) }
         let (name, js) = cases[index]
+        if name == "block copy delayed visibility and focus" {
+            // :focus-within requires an active WebKit page, not just activeElement
+            // in the otherwise windowless integration harness.
+            previousApplication = NSWorkspace.shared.frontmostApplication
+            app.setActivationPolicy(.accessory)
+            let window = NSWindow(contentRect: webView.frame, styleMask: [.titled], backing: .buffered, defer: false)
+            window.contentView = webView
+            window.makeKeyAndOrderFront(nil)
+            window.makeFirstResponder(webView)
+            app.activate(ignoringOtherApps: true)
+            focusWindow = window
+        }
         if name == "wide reading layout" || name == "RTL wide geometry" { webView.setFrameSize(NSSize(width: 1800, height: 900)) }
         if name == "narrow reading layout" || name == "RTL narrow geometry" || name == "block copy narrow RTL geometry" { webView.setFrameSize(NSSize(width: 600, height: 600)) }
         webView.callAsyncJavaScript(js, arguments: ["imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData], in: nil, in: .page) { result in
@@ -227,6 +268,13 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
                     guard reports.count == 1, reports[0]["kind"] as? String == "mermaid",
                           reports[0]["generation"] as? String == "11111111-1111-1111-1111-111111111111",
                           !String(describing: self.feedbackEvents).contains("SAMPLE-DO-NOT-INCLUDE") else { print("FAIL feedback payload or stale action"); exit(1) }
+                }
+                if name == "block copy delayed visibility and focus" {
+                    self.focusWindow?.contentView = nil
+                    self.focusWindow?.orderOut(nil)
+                    self.focusWindow = nil
+                    self.previousApplication?.activate(options: [.activateIgnoringOtherApps])
+                    app.setActivationPolicy(.prohibited)
                 }
                 print("PASS \(name)"); self.index += 1; self.next()
             default: print("FAIL \(name): \(result)"); exit(1)

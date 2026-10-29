@@ -7,3 +7,9 @@
 - [x] 2.1 Run renderer and native checks, builds and clipboard readback
 - [x] 2.2 Verify real WebKit/Quick Look, export and lifecycle
 - [x] 2.3 Record evidence, limitations and performance; commit completed work
+
+## 3. Hover follow-up
+- [x] 3.1 Add delayed visibility, keyboard focus and persistent-feedback acceptance checks
+- [x] 3.2 Implement hover/focus CSS and bounded copy feedback state
+- [x] 3.3 Verify renderer tests, active-window WebKit timing, and both native builds
+- [x] 3.4 Align installed app and QuickLook extension; verify registration and bundled assets

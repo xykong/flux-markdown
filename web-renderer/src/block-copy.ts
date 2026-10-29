@@ -67,6 +67,7 @@ export function installBlockCopy(root: HTMLElement, generation: string, send = n
             const entry = entries.get(block);
             if (disposed || !entry || !root.contains(block) || entry.busy) return;
             if (entry.timer) { clearTimeout(entry.timer); timers.delete(entry.timer); }
+            entry.tools.dataset.copyState = 'pending';
             entry.busy = true; entry.button.disabled = true; entry.status.textContent = strings[4];
             const id = String(++nextID); requestIDs.add(id);
             const text = blockPlainText(block);
@@ -79,9 +80,10 @@ export function installBlockCopy(root: HTMLElement, generation: string, send = n
             if (disposed || !root.contains(block)) return;
             entry.busy = false; entry.button.disabled = false;
             entry.tools.querySelector('.block-copy-error')?.remove();
+            entry.tools.dataset.copyState = success ? 'success' : 'error';
             entry.status.textContent = success ? strings[1] : '';
             if (success) {
-                const timer = setTimeout(() => { entry.status.textContent = ''; timers.delete(timer); }, 2000);
+                const timer = setTimeout(() => { entry.status.textContent = ''; delete entry.tools.dataset.copyState; timers.delete(timer); }, 2000);
                 entry.timer = timer; timers.add(timer);
             } else {
                 const failure = document.createElement('div'); failure.className = 'block-copy-error';

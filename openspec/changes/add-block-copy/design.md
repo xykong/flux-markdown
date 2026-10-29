@@ -7,3 +7,6 @@ App settings update through the existing observed render path. Quick Look reads 
 
 ## Verification
 Handwritten expected text fixtures; JS lifecycle/failure tests; native validation tests and clipboard readback; build both targets; run real WebKit and attempt actual Quick Look GUI verification. Record inaccessible environment checks honestly. Compare large-document installation cost with setting off/on. Never use implementation-generated expected strings.
+
+## Hover refinement (user requested 2026-10-29)
+Use CSS hover/focus-within on each code host or quote/alert and opacity transitions (600 ms exit delay, 250 ms fade). Keep layout space to avoid text movement; invisible idle controls ignore pointer events but remain keyboard-focusable. A bounded data-copy-state pins pending/success/error feedback visible. Reduced motion removes animation; non-hover inputs keep controls visible. App and QuickLook share this CSS. The observed missing QuickLook buttons came from the installed older extension while the user ran the newer DerivedData app; update the local installation consistently after validation.

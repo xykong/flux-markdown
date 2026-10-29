@@ -6,4 +6,25 @@
 .block-copy-tools [role=status]:empty { display: none; }
 .block-copy-host { min-width: 0; }
 .block-copy-error { flex-basis: 100%; }
-@media print { .block-copy-tools { -webkit-user-select: none; user-select: none; display: none !important; } }
+/* Opacity preserves layout and Tab navigation. Invisible controls cannot intercept clicks. */
+.block-copy-tools {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 250ms ease 600ms;
+}
+.block-copy-host:hover > .block-copy-tools,
+blockquote:hover > .block-copy-tools,
+.markdown-alert:hover > .block-copy-tools,
+.block-copy-tools:focus-within,
+.block-copy-tools[data-copy-state] {
+  opacity: 1;
+  pointer-events: auto;
+  transition: none;
+}
+@media (hover: none) {
+  .block-copy-tools { opacity: 1; pointer-events: auto; transition: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .block-copy-tools { transition: none; }
+}
+@media print { .block-copy-tools { display: none !important; } }
