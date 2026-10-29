@@ -3,7 +3,7 @@
 ## Scope and decisions
 
 User-approved implementation of https://github.com/xykong/flux-markdown/issues/65.
-OpenSpec: `openspec/changes/add-block-copy/`.
+OpenSpec: `openspec/changes/archive/2026-10-29-add-block-copy/`.
 
 The shared `showCopyButtons` preference defaults on. Settings → Rendering can disable
 it for app preview and full Quick Look. Previously saved opt-outs are preserved. App changes trigger its normal render;
