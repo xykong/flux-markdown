@@ -1,11 +1,12 @@
 ## ADDED Requirements
 ### Requirement: Optional block copy controls
-The application SHALL default block copying off, share the preference with Quick Look, and display accessible localized controls only in app and full Quick Look previews.
+The application SHALL default block copying on, share the preference with Quick Look, and display accessible localized controls only in app and full Quick Look previews.
 
 #### Scenario: Preference and contexts
 - **WHEN** copying is enabled
 - **THEN** app and full Quick Look display controls on ordinary code, quotes and alerts; Finder compact previews do not
 - **AND** disabling removes controls and their focus targets
+- **AND** an explicitly saved disabled preference is preserved when the default changes
 
 ### Requirement: Accurate plain text
 The renderer SHALL copy code text before line-number decoration, including its parsed trailing newline and tabs. Quotes SHALL include paragraphs separated by blank lines, list items on separate lines, nested quote contents once, link labels, image alt text, and alert titles without icons or Markdown quote markers. Rendered diagrams SHALL NOT receive code copy controls.

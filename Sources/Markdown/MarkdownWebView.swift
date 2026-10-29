@@ -23,7 +23,7 @@ struct MarkdownWebView: NSViewRepresentable {
     var codeHighlightTheme: String = "default"
     var collapseBlockquotesByDefault: Bool = false
     var showLineNumbers: Bool = true
-    var showCopyButtons: Bool = false
+    var showCopyButtons: Bool = true
     var contentsSide: ContentsSidebarSide = .right
     var starReminder: StarReminderSession? = nil
     
@@ -198,7 +198,7 @@ struct MarkdownWebView: NSViewRepresentable {
         private var lastEnableTypst: Bool = true
         private var lastCodeHighlightTheme: String = "default"
         private var lastCollapseBlockquotesByDefault: Bool = false
-        private var lastShowCopyButtons = false
+        private var lastShowCopyButtons = true
         private var lastShowLineNumbers: Bool = true
         private var lastContentsSide: ContentsSidebarSide?
         private var lastRenderedContent: String = ""
@@ -452,7 +452,7 @@ struct MarkdownWebView: NSViewRepresentable {
             }
         }
 
-        func render(webView: WKWebView, content: String, fileURL: URL?, viewMode: ViewMode, appearanceMode: AppearanceMode, baseFontSize: Double, enableMermaid: Bool, enableKatex: Bool, enableEmoji: Bool, enableTypst: Bool, codeHighlightTheme: String, collapseBlockquotesByDefault: Bool, showLineNumbers: Bool = false, showCopyButtons: Bool = false) {
+        func render(webView: WKWebView, content: String, fileURL: URL?, viewMode: ViewMode, appearanceMode: AppearanceMode, baseFontSize: Double, enableMermaid: Bool, enableKatex: Bool, enableEmoji: Bool, enableTypst: Bool, codeHighlightTheme: String, collapseBlockquotesByDefault: Bool, showLineNumbers: Bool = false, showCopyButtons: Bool = true) {
             print("🟢 Coordinator.render called with viewMode=\(viewMode)")
             let content = contentState.resolve(modelText: content, fileURL: fileURL)
             lastAppearanceMode = appearanceMode
@@ -503,7 +503,7 @@ struct MarkdownWebView: NSViewRepresentable {
             }
         }
 
-        private func executeRender(webView: WKWebView, content: String, fileURL: URL?, viewMode: ViewMode, appearanceMode: AppearanceMode, baseFontSize: Double, enableMermaid: Bool, enableKatex: Bool, enableEmoji: Bool, enableTypst: Bool, codeHighlightTheme: String, collapseBlockquotesByDefault: Bool, showLineNumbers: Bool = false, showCopyButtons: Bool = false) {
+        private func executeRender(webView: WKWebView, content: String, fileURL: URL?, viewMode: ViewMode, appearanceMode: AppearanceMode, baseFontSize: Double, enableMermaid: Bool, enableKatex: Bool, enableEmoji: Bool, enableTypst: Bool, codeHighlightTheme: String, collapseBlockquotesByDefault: Bool, showLineNumbers: Bool = false, showCopyButtons: Bool = true) {
             let features = RenderFeatureConfiguration(fontSize: baseFontSize, mermaid: enableMermaid, katex: enableKatex, emoji: enableEmoji, typst: enableTypst, codeTheme: codeHighlightTheme)
             let onlyThemeChanged = lastRenderedTruncated == (diskIsTruncated ?? modelIsTruncated) && !renderingPositionContent && lastRenderedFeatures == features && (fileURL == lastRenderedFileURL) && (content == lastRenderedContent) && (viewMode == .preview) && (viewMode == lastViewMode) && (collapseBlockquotesByDefault == lastCollapseBlockquotesByDefault) && (showLineNumbers == lastShowLineNumbers) && (showCopyButtons == lastShowCopyButtons)
             if onlyThemeChanged {

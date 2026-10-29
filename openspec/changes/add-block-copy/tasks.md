@@ -13,3 +13,7 @@
 - [x] 3.2 Implement hover/focus CSS and bounded copy feedback state
 - [x] 3.3 Verify renderer tests, active-window WebKit timing, and both native builds
 - [x] 3.4 Align installed app and QuickLook extension; verify registration and bundled assets
+
+## 4. Default-on follow-up
+- [x] 4.1 Default the shared preference and native fallbacks on while preserving saved opt-outs
+- [x] 4.2 Verify default-on/persistence and diagnostic defaults, build both targets

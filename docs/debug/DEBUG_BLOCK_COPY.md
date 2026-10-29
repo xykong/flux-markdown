@@ -5,8 +5,8 @@
 User-approved implementation of https://github.com/xykong/flux-markdown/issues/65.
 OpenSpec: `openspec/changes/add-block-copy/`.
 
-The shared `showCopyButtons` preference defaults off. Settings → Rendering enables
-it for app preview and full Quick Look. App changes trigger its normal render;
+The shared `showCopyButtons` preference defaults on. Settings → Rendering can disable
+it for app preview and full Quick Look. Previously saved opt-outs are preserved. App changes trigger its normal render;
 Quick Look reads the setting on render/open, so already-open previews need Reload.
 Finder compact previews and source/TSV views exclude the controls.
 
@@ -146,3 +146,17 @@ The previous app is backed up under ignored build/issue-65-hover/. QuickLook cac
 was reset; no old extension process remained. Existing app windows need an app
 restart to load the new renderer bundle. Finder's compact preview still intentionally
 excludes copy controls under the original agreed scope. No public release was made.
+
+## Default-on follow-up (2026-10-29)
+
+With controls now revealed only on hover/focus, the user requested enabling the
+feature by default. Missing shared preferences now resolve to true in both app
+and Quick Look; explicit saved false values remain false. Native WebView fallback
+values and diagnostic defaults agree. The low-level renderer still requires the
+host to pass the resolved preference explicitly, keeping standalone/export uses
+free of controls unless requested.
+
+The default-on/persisted-opt-out regression failed before the change, then passed
+along with the diagnostic settings suite. Both native targets build successfully
+with the explicit local macOS 12 override. The matching local app/extension build
+is installed without changing any existing user preference value.

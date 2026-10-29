@@ -2,7 +2,7 @@ import XCTest
 import AppKit
 
 final class BlockCopyBridgeTests: XCTestCase {
-    func testPreferenceDefaultsOffAndPersistsAcrossReaders() {
+    func testPreferenceDefaultsOnAndPreservesExplicitOptOut() {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
         let file = directory.appendingPathComponent("preferences.plist")
@@ -10,14 +10,14 @@ final class BlockCopyBridgeTests: XCTestCase {
         let local = UserDefaults(suiteName: suite)!
         defer { local.removePersistentDomain(forName: suite) }
         let first = AppearancePreference(sharedStore: SharedPreferenceStore(fileURL: file), localStore: local, migrateFromAppGroup: false)
-        XCTAssertFalse(first.showCopyButtons)
-        first.showCopyButtons = true
-        first.flushSharedPreferences()
-        let second = AppearancePreference(sharedStore: SharedPreferenceStore(fileURL: file, alwaysReload: true), localStore: local, migrateFromAppGroup: false)
-        XCTAssertTrue(second.showCopyButtons)
+        XCTAssertTrue(first.showCopyButtons)
         first.showCopyButtons = false
         first.flushSharedPreferences()
+        let second = AppearancePreference(sharedStore: SharedPreferenceStore(fileURL: file, alwaysReload: true), localStore: local, migrateFromAppGroup: false)
         XCTAssertFalse(second.showCopyButtons)
+        first.showCopyButtons = true
+        first.flushSharedPreferences()
+        XCTAssertTrue(second.showCopyButtons)
     }
 
     func testValidationRejectsStaleMalformedOversizedRequests() {

@@ -9,7 +9,7 @@ enum DiagnosticSettings {
         "baseFontSize": 14.0, "finderPaneFontSize": 13.0,
         "codeHighlightTheme": "default", "enableMermaid": true,
         "enableKatex": true, "enableEmoji": true, "enableTypst": true,
-        "contentsSide": "right", "collapseBlockquotesByDefault": false, "showLineNumbers": false, "showCopyButtons": false
+        "contentsSide": "right", "collapseBlockquotesByDefault": false, "showLineNumbers": false, "showCopyButtons": true
     ]
     static let sliders: Set<String> = ["baseFontSize", "finderPaneFontSize"]
 

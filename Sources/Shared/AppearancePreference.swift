@@ -283,7 +283,7 @@ public class AppearancePreference: ObservableObject {
 
     public var showCopyButtons: Bool {
         get {
-            guard sharedStore.object(forKey: showCopyButtonsKey) != nil else { return false }
+            guard sharedStore.object(forKey: showCopyButtonsKey) != nil else { return true }
             return sharedStore.bool(forKey: showCopyButtonsKey)
         }
         set {
