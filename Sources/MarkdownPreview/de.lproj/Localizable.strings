@@ -90,3 +90,7 @@
 "Usage statistics preference could not be saved" = "Einstellung für Nutzungsstatistiken konnte nicht gespeichert werden";
 
 "Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again." = "Schließe FluxMarkdown und Quick Look, um diese Sitzung zu beenden. Prüfe den freien Speicherplatz und versuche erneut, die Statistiken zu deaktivieren.";
+
+/* Block copy failures */
+"Text could not be copied" = "Text konnte nicht kopiert werden";
+"Select the text to copy it manually, or try the copy button again." = "Wähle den Text zum manuellen Kopieren aus oder versuche die Kopierschaltfläche erneut.";

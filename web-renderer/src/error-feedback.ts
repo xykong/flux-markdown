@@ -1,5 +1,6 @@
-type ErrorKind = 'renderer' | 'source' | 'mermaid' | 'typst' | 'graphviz' | 'vega' | 'math' | 'search' | 'images';
+type ErrorKind = 'renderer' | 'source' | 'mermaid' | 'typst' | 'graphviz' | 'vega' | 'math' | 'search' | 'images' | 'copy';
 let generation = '';
+export function feedbackGeneration(): string { return generation; }
 let nextID = 0;
 const groupIDs = new Map<string, string>();
 export function setFeedbackGeneration(value: string): void {
@@ -15,7 +16,7 @@ const translations: Record<string, [string, string, string, string, string]> = {
     ar: ['الإبلاغ عن هذه المشكلة', 'مراجعة الملاحظات…', 'تحقق من المصدر في محررك، أو جرّب إعادة تحميل المستند.', 'يفتح GitHub مع هذا الخطأ ومعلومات النظام. أنت تؤكد النشر هناك.', 'افتح FluxMarkdown واختر «مساعدة» ثم «الإبلاغ عن مشكلة».'],
 };
 const selectors: Array<[string, ErrorKind]> = [
-    ['.mermaid-error', 'mermaid'], ['.typst-error', 'typst'], ['.graphviz-error', 'graphviz'], ['.vega-error', 'vega'],
+    ['.block-copy-error', 'copy'], ['.mermaid-error', 'mermaid'], ['.typst-error', 'typst'], ['.graphviz-error', 'graphviz'], ['.vega-error', 'vega'],
     ['.katex-error', 'math'], ['.search-error', 'search'], ['.render-error', 'renderer'], ['.source-render-error', 'source'], ['img.image-load-failed', 'images'],
 ];
 
@@ -51,12 +52,12 @@ export function installErrorFeedback(root: HTMLElement): () => void {
                     const reloadHints: Record<string, string> = { en: 'Reload the document. If this continues, download and reinstall FluxMarkdown.', zh: '请重载文档；如果仍然失败，可以下载并重新安装 FluxMarkdown。', de: 'Lade das Dokument erneut. Falls das Problem bleibt, lade FluxMarkdown herunter und installiere es erneut.', fr: 'Rechargez le document. Si le problème persiste, téléchargez et réinstallez FluxMarkdown.', es: 'Vuelve a cargar el documento. Si el problema persiste, descarga y reinstala FluxMarkdown.', ar: 'أعد تحميل المستند. إذا استمر ذلك، نزّل FluxMarkdown وأعد تثبيته.' };
                     hint.textContent = reloadHints[(window.__fluxLang || navigator.language).split('-')[0]] || reloadHints.en;
                 }
-                controls.appendChild(hint);
+                if (kind !== 'copy') controls.appendChild(hint);
                 const post = (action: 'record' | 'report' | 'inspect' | 'recover'): void => {
                     if (generation !== eventGeneration || !root.contains(element)) return;
                     const bridge = window.webkit?.messageHandlers.errorFeedback;
                     if (bridge) bridge.postMessage({ action, kind, generation: eventGeneration, id, reason });
-                    else if (action !== 'record') hint.textContent = labels[4];
+                    else if (action !== 'record') { hint.textContent = labels[4]; if (!hint.isConnected) controls.prepend(hint); }
                 };
                 const recoveryLabels: Record<string, [string, string, string]> = {
                     en: ['Open in Editor', 'Reload', 'Edit Search'], zh: ['在编辑器中打开', '重新载入', '修改搜索'],
@@ -87,7 +88,7 @@ export function installErrorFeedback(root: HTMLElement): () => void {
                 // Native syntax errors may be inline spans or images; do not put block UI inside them.
                 if (element.tagName === 'IMG' || element.classList.contains('katex-error')) { element.insertAdjacentElement('afterend', controls); externalControls.set(element, controls); }
                 else {
-                    if (kind !== 'search') {
+                    if (kind !== 'search' && kind !== 'copy') {
                         const details = document.createElement('details');
                         details.className = 'error-technical-details';
                         const summary = document.createElement('summary');

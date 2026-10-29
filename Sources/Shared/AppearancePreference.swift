@@ -154,6 +154,7 @@ public class AppearancePreference: ObservableObject {
     private let collapseBlockquotesByDefaultKey = "collapseBlockquotesByDefault"
     private let uiLanguageKey = "uiLanguage"
     private let contentsSideKey = "contentsSide"
+    private let showCopyButtonsKey = "showCopyButtons"
     private let showLineNumbersKey = "showLineNumbers"
     private let finderPaneFontSizeKey = "finderPaneFontSize"
 
@@ -276,6 +277,19 @@ public class AppearancePreference: ObservableObject {
             objectWillChange.send()
             recordSetting(key: showLineNumbersKey, newValue: newValue, source: .settings)
             sharedStore.set(newValue, forKey: showLineNumbersKey)
+            scheduleSyncToSharedStore()
+        }
+    }
+
+    public var showCopyButtons: Bool {
+        get {
+            guard sharedStore.object(forKey: showCopyButtonsKey) != nil else { return false }
+            return sharedStore.bool(forKey: showCopyButtonsKey)
+        }
+        set {
+            objectWillChange.send()
+            recordSetting(key: showCopyButtonsKey, newValue: newValue, source: .settings)
+            sharedStore.set(newValue, forKey: showCopyButtonsKey)
             scheduleSyncToSharedStore()
         }
     }

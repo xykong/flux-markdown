@@ -339,7 +339,7 @@ final class RendererErrorRegistry {
               let generation = body["generation"] as? String, generation == scope.uuidString,
               let id = body["id"] as? String, id.utf8.count <= 32, !id.isEmpty, id.allSatisfy(\.isNumber),
               let rawKind = body["kind"] as? String, let kind = FailureKind(rawValue: rawKind),
-              [.renderer, .source, .mermaid, .typst, .graphviz, .vega, .math, .search, .images].contains(kind) else { return nil }
+              [.renderer, .source, .mermaid, .typst, .graphviz, .vega, .math, .search, .images, .copy].contains(kind) else { return nil }
         let reason: IncidentReason?
         if let raw = body["reason"] {
             guard let value = raw as? String, let parsed = IncidentReason(rawValue: value) else { return nil }

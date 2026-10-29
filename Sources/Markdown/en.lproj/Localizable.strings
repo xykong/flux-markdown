@@ -233,3 +233,9 @@
 "Usage statistics preference could not be saved" = "Usage statistics preference could not be saved";
 
 "Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again." = "Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again.";
+
+/* Block copy controls */
+"Show Copy Buttons" = "Show Copy Buttons";
+"Copy code and quotes. Reload open Quick Look previews to apply." = "Copy code and quotes. Reload open Quick Look previews to apply.";
+"Text could not be copied" = "Text could not be copied";
+"Select the text to copy it manually, or try the copy button again." = "Select the text to copy it manually, or try the copy button again.";

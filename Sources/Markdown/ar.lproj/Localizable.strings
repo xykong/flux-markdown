@@ -228,3 +228,9 @@
 "Turn Off Usage Statistics" = "إيقاف إحصاءات الاستخدام";
 "Usage statistics are on: system/app versions, system timezone, daily reading time and view counts. No document names or contents. You can turn this off in Settings." = "إحصاءات الاستخدام مفعّلة: إصدارات النظام والتطبيق والمنطقة الزمنية للنظام ووقت القراءة اليومي وعدد مرات العرض. لا تُجمع أسماء المستندات أو محتوياتها. يمكنك إيقافها في الإعدادات.";
 "Usage statistics preference could not be saved" = "تعذّر حفظ تفضيل إحصاءات الاستخدام";
+
+/* Block copy controls */
+"Show Copy Buttons" = "إظهار أزرار النسخ";
+"Copy code and quotes. Reload open Quick Look previews to apply." = "نسخ التعليمات البرمجية والاقتباسات. أعد تحميل معاينات Quick Look المفتوحة لتطبيق التغيير.";
+"Text could not be copied" = "تعذر نسخ النص";
+"Select the text to copy it manually, or try the copy button again." = "حدد النص لنسخه يدويًا، أو جرّب زر النسخ مجددًا.";

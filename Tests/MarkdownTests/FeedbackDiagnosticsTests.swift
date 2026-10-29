@@ -143,6 +143,7 @@ final class FeedbackDiagnosticsTests: XCTestCase {
         prefs.enableTypst = false
         prefs.collapseBlockquotesByDefault = true
         prefs.showLineNumbers = true
+        prefs.showCopyButtons = true
         prefs.finderPaneFontSize = 16
         prefs.contentsSide = .left
         prefs.flushSharedPreferences()
