@@ -205,3 +205,11 @@ The timeout is approximately 19.182 seconds after listener activation, consisten
 - Verification: 10 collector tests, 38 native tests and two MacPorts export tests pass; local diagnostic Release build, deep signature and entitlement checks pass. Full limits and coverage: `DEBUG_UPDATE_DIAGNOSTIC_SESSION.md`.
 - Repeated an actual official 1.38.608 → 1.42.645 upgrade from an isolated unmodified bundle on macOS 27.0.1. Confirmed replacement version, relaunch and signature; captured installer/progress job PIDs, EdDSA success and the nonterminal CDHash warning. System launchd logs were again absent, but read-only job snapshots supplied lifecycle evidence. This validates the observation approach, not a fix on macOS 26.4.1.
 - Prepared a local `FluxMarkdown-update-diagnostics-v1.zip` containing only the standalone tool and one-run Chinese instructions. No customer contact, upload, release or Sparkle version change occurred. Root-cause repair and affected-host confirmation remain pending.
+
+
+### 2026-11-02 customer follow-up delivered
+
+- User authorized requesting reporter assistance. Posted and read back the Chinese follow-up mentioning @aFakeRobot: https://github.com/xykong/flux-markdown/issues/61#issuecomment-6576960735.
+- Published only the standalone tested collector to https://gist.github.com/xykong/bfae3c0fa71532e70318973c395ab6c8; no raw logs or local artifacts were uploaded. Downloaded its immutable raw URL and compared byte-for-byte against the tested source. Script SHA-256: `afdf4cc84c1d4f1651fde6b0686500e6be781f28f9a46d9586899826dfe4e0c5`.
+- Supplied one copy/paste command to download the tool into a private desktop directory and observe for up to 300 seconds. Requested one normal update attempt and only `shareable.zip`; no separate version/time questionnaire, downgrade, sudo or security changes. Explained early completion, degraded log access and startup-failure fallback.
+- Status: awaiting this diagnostic bundle. The confirmed failure remains progress-agent connection timeout; underlying cause and fix remain unconfirmed. No release, done label or issue closure.
