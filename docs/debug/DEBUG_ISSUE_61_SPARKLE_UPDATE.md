@@ -154,3 +154,45 @@ This is a direct counterexample to **unconditional** failure caused by this pair
 - Shared exact-version successful-upgrade evidence, independent signature checks, source-level distinction between mismatch and rejection, ambiguous code 10, and the upstream progress-agent startup hypothesis.
 - Supplied a self-contained live-log command because the local collector commit is not yet published. Uses a private uniquely named desktop file, no sudo or upload; requested one attempt, time/timezone, versions, install location and reviewed/redacted relevant excerpts. Existing failure logs are acceptable; no downgrade requested.
 - Status: waiting for affected-machine evidence; issue remains open and not marked done. No claim of a confirmed fix or release.
+
+
+## 2026-11-02 reporter log: progress-agent connection timeout confirmed
+
+### Evidence and acceptance
+
+- Follow-up: https://github.com/xykong/flux-markdown/issues/61#issuecomment-6576161544.
+- Incident `824107AE-45C1-43B9-A7DB-D48182584688`: official 1.38.608 → 1.42.645, macOS 26.4.1 (25E253), arm64; report time 2026-11-02T11:33:01Z.
+- Downloaded the linked ZIP without running any attachment content. SHA-256: `51a1a39855eb0e1d0df0dff406bb869f3c9482acc4fa4aed65caa2f75010e1a5`. It contains one 510,647-byte text log plus macOS metadata. Private original evidence remains in ignored `build/issue-61-20261102/`; do not commit the raw log, which includes a user home path.
+- Acceptance for this investigation: correlate the incident timestamp, identify the exact code-10 branch, distinguish observed failure from inferred scheduling cause, and check the candidate upstream mechanism against tagged source. No product implementation selected before this audit.
+
+### Observed timeline
+
+Times below are the attachment's local clock, consistent with UTC+08:00 and the incident report.
+
+| Local time | Original log line | Observation |
+| --- | --- | --- |
+| 19:32:41.895 | 8 | amfid reports ad-hoc/unknown-chain status for Autoupdate. |
+| 19:32:41.907 | 10–11 | Autoupdate PID 77103 opens both installer and progress-agent listeners. It did execute despite the preceding signature diagnostic. |
+| 19:32:41.909 | 32 | Installer listener accepts a peer connection from the host. |
+| 19:32:41.912 | 58 | Stale download bookmark warning explicitly says processing continues. |
+| 19:32:42.759 | 142 | Archive EdDSA verification succeeds. |
+| 19:32:42.795 | 211 | Old/new code-signature identity mismatch warning. Resource/signature inspection continues afterward. |
+| 19:33:01.089 | 3927 | Autoupdate reports `Timeout: agent connection was never initiated`. |
+| 19:33:01.089 | 3928–3930 | Autoupdate cancels its connections. |
+
+The timeout is approximately 19.182 seconds after listener activation, consistent with the 18-second dispatch timer firing later. Do not describe the observed elapsed time as exactly 18 seconds. Its second matches the report's 11:33:01Z failure timestamp.
+
+### Diagnosis and limits
+
+- **Confirmed immediate failure: Updater progress-agent connection did not become established before Autoupdate's startup deadline.** Sparkle 2.8.1 `Autoupdate/AppInstaller.m`, lines 228–241, emits this exact message from the `_agentConnection.connected == NO` branch using `SPUInstallerError` (10). The installer-connection invalidation path in `Sparkle/SPUInstallerDriver.m` wraps the retained error as installation error 4005. This resolves the previously ambiguous numeric chain for this incident.
+- Autoupdate startup failure and archive EdDSA failure are contradicted by this attempt's positive evidence. The ad-hoc warning and CDHash mismatch do not establish the terminating cause; the terminal failure is the agent connection timeout. This does not prove every security check passed or exclude a separate Updater launch rejection.
+- There are **zero Updater process records and zero launchd process records** in the supplied capture. In particular, it does not contain `pending spawn, domain in on-demand-only mode`. Absence from this filtered capture is not proof the process never existed. Delayed launch, rejection, early exit and connection failure remain distinguishable underlying causes.
+- The supplied log establishes the failure stage more strongly than the earlier report; it still does not establish the underlying launchd scheduling cause or demonstrate a fix.
+
+### Concrete candidate and validation gate
+
+- Rechecked upstream discussion [#2794](https://github.com/sparkle-project/Sparkle/discussions/2794) and local tagged source. Sparkle **2.9.1** `Sparkle/SPUInstallerDriver.m`, lines 499–505, probes the status service after successful installer submission; 2.8.1 lacks this post-submission probe. This directly addresses the matching on-demand startup hypothesis. Merely adding `RunAtLoad` is not a new correction: our 2.8.1 already has it.
+- A dependency-update candidate is now well motivated by the confirmed timeout, but must be tested as a candidate, not presented as a confirmed resolution. Before changing the pin, define a controlled delayed/on-demand-agent regression case and verify the selected release's compatibility and complete install/relaunch path. The current investigation did not execute that candidate or reproduce the affected OS.
+- Affected-host discriminating evidence remains the progress job's submission/spawn/PID and any rejection/crash around this known attempt. Prefer existing retained system logs for 19:32:35–19:33:10 local time rather than asking the reporter to repeat the same capture. The supplied capture's missing launchd records must be explicitly accounted for in any further collection.
+- Migration constraint remains: installation is driven by Sparkle inside **installed 1.38.608**. Publishing a target containing newer Sparkle cannot retrofit the currently failing installer. A corrected candidate may require manual DMG installation, followed by a subsequent real in-app update to verify it on macOS 26.4.1.
+- Investigation-only change: no dependency bump, release, GitHub comment, done label or issue closure. Immediate failure is diagnosed; underlying cause and affected-host fix acceptance remain open.
