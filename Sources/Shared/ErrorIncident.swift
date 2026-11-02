@@ -68,6 +68,39 @@ struct IncidentSettingChange: Codable {
     }
 }
 
+/// Only public callback stages and recognized categories cross the feedback boundary.
+enum UpdateStage: String, Codable {
+    case observationStarted, checkStarted, appcastLoaded, updateFound, noUpdate, downloadStarted, downloadCompleted
+    case downloadFailed, cancelled, extractionStarted, extractionCompleted, installHandoff
+    case failed, cycleFinished
+}
+enum UpdateFailureCategory: String, Codable {
+    case agentConnectionTimeout, installationDataTimeout, agentInvalidated, unclassified
+}
+struct UpdateSessionEvent: Codable {
+    let stage: UpdateStage
+    let date: Date
+    let elapsed: TimeInterval
+}
+struct UpdateSessionSnapshot: Codable {
+    let id: UUID
+    var events: [UpdateSessionEvent]
+    var failure: UpdateFailureCategory?
+    var truncated: Bool
+    var isValid: Bool {
+        !events.isEmpty && events.count <= 32 && events.allSatisfy {
+            (-62135596800...253402300799).contains($0.date.timeIntervalSince1970) &&
+            $0.elapsed.isFinite && (0...604800).contains($0.elapsed)
+        } && zip(events, events.dropFirst()).allSatisfy { $0.elapsed <= $1.elapsed }
+    }
+    var report: [String] {
+        ["", "## Update session", "Session: \(id.uuidString)",
+         "Failure category: \(failure?.rawValue ?? "unclassified")", "Events truncated: \(truncated)"] + events.map {
+            "- \(ISO8601DateFormatter().string(from: $0.date)) (+\(String(format: "%.3f", $0.elapsed))s): \($0.stage.rawValue)"
+        }
+    }
+}
+
 struct ErrorIncident: Codable {
     let schema: Int
     let id: UUID
@@ -85,6 +118,7 @@ struct ErrorIncident: Codable {
     var historyUnavailable: Bool?
     var reason: IncidentReason?
     var quickLookCheck: IncidentQuickLookCheck?
+    var updateSession: UpdateSessionSnapshot?
 
     init(kind: FailureKind, source: IncidentSource, phase: IncidentPhase = .failed, scope: UUID? = nil,
          error: Error? = nil, environment: [String: String] = [:], settings: [String: String] = [:]) {
@@ -132,7 +166,7 @@ struct ErrorIncident: Codable {
     }
     var isValid: Bool {
         schema == 1 && (-62135596800...253402300799).contains(date.timeIntervalSince1970) && codes.count <= 8 && steps.count <= 12 &&
-        (quickLookCheck?.isValid ?? true) && settingChanges.count <= 5 && settingChanges.allSatisfy(\.isValid) &&
+        (quickLookCheck?.isValid ?? true) && (updateSession?.isValid ?? true) && settingChanges.count <= 5 && settingChanges.allSatisfy(\.isValid) &&
         (previewTest == nil || ["rendered", "unconfirmed", "not-run"].contains(previewTest!)) &&
         codes.allSatisfy { IncidentCode.domains.contains($0.domain) } &&
         steps.allSatisfy { (-62135596800...253402300799).contains($0.date.timeIntervalSince1970) } &&
@@ -151,6 +185,7 @@ struct ErrorIncident: Codable {
         lines += ["", "## Environment at failure"] + environment.keys.sorted().map { "- \($0): \(environment[$0]!)" }
         lines += ["", "## Settings at failure"] + settings.keys.sorted().map { "- \($0): \(settings[$0]!)" }
         lines += ["", "## Related operation events"] + steps.map { "- \(formatter.string(from: $0.date)): \($0.kind.rawValue) / \($0.phase.rawValue)" }
+        if let updateSession { lines += updateSession.report }
         if let reason { lines += ["Failure category: \(reason.rawValue)"] }
         if historyUnavailable == true { lines += ["", "Some diagnostic information is unavailable. This report includes the current incident."] }
         if let previewTest { lines += ["", "Last explicit preview test (historical, not proof of current rendering): \(previewTest)"] }

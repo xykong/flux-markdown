@@ -1,6 +1,67 @@
 import XCTest
 
 final class UpdateDiagnosticsTests: XCTestCase {
+    func testSessionSnapshotIsFrozenBoundedAndSurvivesRestart() throws {
+        let suite = "UpdateSessionTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let diagnostics = UpdateDiagnostics(defaults: defaults)
+        diagnostics.beginSession()
+        diagnostics.event(.downloadStarted)
+        diagnostics.event(.downloadCompleted)
+        let error = NSError(domain: "SUSparkleErrorDomain", code: 10,
+                            userInfo: [NSLocalizedDescriptionKey: "Timeout: agent connection was never initiated"])
+        let frozen = diagnostics.freeze(error: error)
+        XCTAssertEqual(frozen.events.last?.stage, .failed)
+        XCTAssertEqual(frozen.failure, .agentConnectionTimeout)
+        diagnostics.event(.cycleFinished)
+        XCTAssertEqual(diagnostics.freeze(error: error).events.count, frozen.events.count)
+        XCTAssertEqual(UpdateDiagnostics(defaults: defaults).latestSession?.id, frozen.id)
+        diagnostics.beginSession()
+        for _ in 0..<100 { diagnostics.event(.downloadStarted) }
+        let next = diagnostics.freeze(error: error)
+        XCTAssertNotEqual(next.id, frozen.id)
+        XCTAssertLessThanOrEqual(next.events.count, 32)
+        XCTAssertTrue(next.truncated)
+        XCTAssertTrue(next.isValid)
+        XCTAssertEqual(frozen.events.map(\.stage), [.checkStarted, .downloadStarted, .downloadCompleted, .failed])
+    }
+
+    func testSessionDoesNotPersistRawErrorAndUnknownTextIsNotClassified() throws {
+        let suite = "UpdateSessionTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let diagnostics = UpdateDiagnostics(defaults: defaults)
+        let error = NSError(domain: "SUSparkleErrorDomain", code: 10,
+                            userInfo: [NSLocalizedDescriptionKey: "Timeout: agent connection was never initiated /Users/private/token"])
+        let snapshot = diagnostics.freeze(error: error)
+        XCTAssertEqual(snapshot.failure, .unclassified)
+        let text = String(decoding: try JSONEncoder().encode(snapshot), as: UTF8.self)
+        XCTAssertFalse(text.contains("private"))
+        var incident = ErrorIncident(kind: .update, source: .app)
+        incident.updateSession = snapshot
+        XCTAssertTrue(incident.isValid)
+        XCTAssertEqual(ErrorIncident.decode(try incident.encoded())?.updateSession?.id, snapshot.id)
+    }
+
+    func testOnlyThreeSessionsPersistAndInvalidHistoryIsIgnored() throws {
+        let suite = "UpdateSessionTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let diagnostics = UpdateDiagnostics(defaults: defaults)
+        for _ in 0..<5 { diagnostics.beginSession(); diagnostics.event(.cancelled) }
+        let data = try XCTUnwrap(defaults.data(forKey: "updateSessions.v1"))
+        let saved = try JSONDecoder().decode([UpdateSessionSnapshot].self, from: data)
+        XCTAssertEqual(saved.count, 3)
+        var invalid = saved[0]
+        invalid.events = [UpdateSessionEvent(stage: .checkStarted, date: Date(), elapsed: -1)]
+        defaults.set(try JSONEncoder().encode([invalid]), forKey: "updateSessions.v1")
+        XCTAssertNil(diagnostics.latestSession)
+        var incident = ErrorIncident(kind: .update, source: .app)
+        incident.updateSession = invalid
+        XCTAssertNil(ErrorIncident.decode(try incident.encoded()))
+    }
+
     func testNonSandboxedHostDoesNotEnableSandboxInstaller() throws {
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         let info = try XCTUnwrap(PropertyListSerialization.propertyList(from: Data(contentsOf: root.appendingPathComponent("Sources/Markdown/Info.plist")), format: nil) as? [String: Any])

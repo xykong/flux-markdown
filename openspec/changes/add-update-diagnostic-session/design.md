@@ -50,3 +50,7 @@ For future builds, persist minimal safe events during normal updates. Use existi
 ## Diagnosis boundary
 
 One session should distinguish failure stages and collect evidence for all identified hypotheses. It cannot guarantee access to system-private events or establish causality when the OS withholds evidence. If instrumentation is inadequate in local verification, fix the tool before contacting the customer. If the single customer run still has inaccessible evidence, state the exact gap rather than automatically requesting another identical attempt.
+
+## Implementation refinements verified locally
+
+The external tool uses Bash SECONDS for elapsed observations, not a guaranteed monotonic clock; native history uses system uptime. Observation is bounded separately from final checks, each with a five-second deadline. Slow job queries reduce the sample rate and are recorded. The default raw threshold is 18,000 KiB with headroom under 20 MiB, using 32 KiB command outputs and an 8 MiB stream cap. Error-incident JSON is read through stock macOS JXA with an explicit allowlist. Recent scoped archive hashes are candidate observations, never a claim of download completeness. No new diagnostic UI is needed: the existing contextual report includes frozen native stages; deeper collection is the standalone tool for this version.

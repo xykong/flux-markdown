@@ -53,6 +53,9 @@ enum ErrorFeedback {
             ? allSettings.filter { $0.key == "uiLanguage" } : allSettings
         var incident = ErrorIncident(kind: kind, source: source, phase: phase, scope: scope, error: error,
                                      environment: environment, settings: settings)
+        if kind == .update, let error {
+            incident.updateSession = UpdateDiagnostics.shared.freeze(error: error)
+        }
         incident.reason = reason
         incident.historyUnavailable = store.unavailable
         let contextKeys = Set(incident.settings.keys)

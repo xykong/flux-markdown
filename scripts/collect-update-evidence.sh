@@ -2,9 +2,16 @@
 # Read-only, local-only Sparkle investigation. Never uploads diagnostics.
 set -eu
 umask 077
+if [ "${1:-}" = "--live" ]; then
+  shift
+  exec /bin/bash "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/diagnose-update.sh" "$@"
+fi
 if [ "${1:-}" = "--help" ]; then
   cat <<'HELP'
 Usage: bash scripts/collect-update-evidence.sh [APP_PATH] [OUTPUT_PARENT]
+       bash scripts/collect-update-evidence.sh --live [--duration 180] [--app APP_PATH] [--output DIR]
+For ONE new reproduction, prefer --live: observation starts before the attempt and
+creates an allowlisted shareable.zip, with raw evidence kept separate locally.
 Run immediately after ONE failed in-app update, before reinstalling or clearing caches.
 Defaults: /Applications/FluxMarkdown.app and the current directory.
 Creates a private, uniquely named directory; reads the last 10 minutes of logs.

@@ -103,3 +103,10 @@ bridge/timeout/failed writes never show success, and document text is excluded
 from diagnostics. Both native bundles and renderer controls cover all six
 languages. See `DEBUG_BLOCK_COPY.md` for clipboard readback, lifecycle, privacy,
 export and actual QuickLook acceptance evidence.
+
+## Update diagnostic sessions (2026-11-02)
+
+- Update failures now freeze a typed session in the existing ErrorIncident before the error UI is shown. The public Sparkle check/appcast/download/extraction/install/abort/cycle callbacks record safe stages through os_log and a bounded persisted history (32 events/session, three sessions). Unknown error descriptions are not exported; recognized code-10 descriptions map through an exact allowlist.
+- The user-driver and abort callback share an idempotent frozen snapshot. A later check gets a new session; error dialogs retain their original context. Startup errors without a check callback use `observationStarted`, not an invented check event. The existing recovery/report/dismiss UI and diagnostic opt-out remain unchanged.
+- Coverage: real Sparkle selector tests, before-acknowledgement capture, repeated real failed checks, persistence/restart, history limits, invalid decoded history and private error rejection. Existing incident/feedback tests and MacPorts export are included.
+- Old installed versions can be observed with `scripts/diagnose-update.sh`; `collect-update-evidence.sh --live` forwards to it. System evidence remains outside the normal automatic report, with an allowlisted local ZIP and a separately private raw directory. See `docs/debug/DEBUG_UPDATE_DIAGNOSTIC_SESSION.md` for operating instructions and limits.
