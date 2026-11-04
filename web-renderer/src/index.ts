@@ -5,6 +5,7 @@ import { waitForExportReady } from './export-readiness';
 window.waitForExportReady = waitForExportReady;
 import { sanitizeDocumentHTML, sanitizeDiagramHTML } from './safe-html';
 import { renderTSVTable } from './tsv';
+import { installMathSyntax } from './math-syntax';
 import './styles/tsv.css';
 /**
  * Escapes colons inside Gantt task labels when the metadata delimiter is
@@ -465,7 +466,7 @@ function disposeBlockCopy(): void { blockCopy?.dispose(); blockCopy = null; }
 let blockquoteCollapse: BlockquoteCollapse | null = null;
 let mermaidInstance: typeof import('mermaid')['default'] | null = null;
 let mermaidCurrentTheme: string | null = null;
-let katexPlugin: ((md: MarkdownIt) => void) | null = null;
+
 let graphvizInstance: { dot: (src: string) => string } | null = null;
 let lastShowLineNumbers: boolean = false;
 
@@ -944,14 +945,8 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         const parser = buildMd(options.enableTypst !== false);
         if (options.enableEmoji !== false) parser.use(emoji);
         const enableTypst = options.enableTypst !== false;
-        if (options.enableKatex !== false && /\$[\s\S]+?\$/.test(body)) {
-            if (!katexPlugin) {
-                const m = await import('@iktakahiro/markdown-it-katex');
-                if (!isCurrent()) return;
-                katexPlugin = m.default;
-            }
-            parser.use(katexPlugin);
-        }
+        const mathNamespace = `fxeq-${callId}-${Array.from(crypto.getRandomValues(new Uint32Array(2))).join('-')}`;
+        const mathSources = installMathSyntax(parser, mathNamespace);
 
         const renderBody = body;
 
@@ -967,6 +962,33 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
 
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = sanitizeDocumentHTML(frontMatterHtml + html);
+
+        if (options.enableKatex !== false && mathSources.length) {
+            const placeholders = new Map(mathSources.map(source => {
+                const nodes = tempDiv.querySelectorAll(`[data-math-id="${source.id}"]`);
+                return [source.id, nodes.length === 1 ? nodes[0] : null] as const;
+            }));
+            try {
+                const { renderMathSources } = await import('./math-engine');
+                if (!isCurrent()) return;
+                const result = await renderMathSources(mathSources, mathNamespace);
+                if (!isCurrent()) return;
+                let style = document.getElementById('flux-math-styles');
+                if (!style) { style = document.createElement('style'); style.id = 'flux-math-styles'; document.head.appendChild(style); }
+                style.textContent = result.css;
+                for (const item of result.items) {
+                    const target = placeholders.get(item.id);
+                    if (!target) continue;
+                    target.innerHTML = item.html;
+                    target.classList.add('flux-math');
+                    if (result.errors.some(error => error.sourceId === item.id)) target.classList.add('math-error');
+                }
+            } catch (error) {
+                if (!isCurrent()) return;
+                logToSwift('Math module/render failed: ' + String(error));
+                for (const target of placeholders.values()) target?.classList.add('math-error', 'module-load-error');
+            }
+        }
 
         const enableMermaid = options.enableMermaid !== false;
         const mermaidBlocks = enableMermaid

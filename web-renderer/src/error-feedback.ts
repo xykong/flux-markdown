@@ -17,7 +17,7 @@ const translations: Record<string, [string, string, string, string, string]> = {
 };
 const selectors: Array<[string, ErrorKind]> = [
     ['.block-copy-error', 'copy'], ['.mermaid-error', 'mermaid'], ['.typst-error', 'typst'], ['.graphviz-error', 'graphviz'], ['.vega-error', 'vega'],
-    ['.katex-error', 'math'], ['.search-error', 'search'], ['.render-error', 'renderer'], ['.source-render-error', 'source'], ['img.image-load-failed', 'images'],
+    ['.math-error', 'math'], ['.katex-error', 'math'], ['.search-error', 'search'], ['.render-error', 'renderer'], ['.source-render-error', 'source'], ['img.image-load-failed', 'images'],
 ];
 
 export function installErrorFeedback(root: HTMLElement): () => void {
@@ -86,7 +86,7 @@ export function installErrorFeedback(root: HTMLElement): () => void {
                 }
                 const disclosure = document.createElement('small'); disclosure.textContent = labels[3]; disclosure.style.width = '100%'; controls.appendChild(disclosure);
                 // Native syntax errors may be inline spans or images; do not put block UI inside them.
-                if (element.tagName === 'IMG' || element.classList.contains('katex-error')) { element.insertAdjacentElement('afterend', controls); externalControls.set(element, controls); }
+                if (element.tagName === 'IMG' || element.classList.contains('katex-error') || element.classList.contains('math-error')) { element.insertAdjacentElement('afterend', controls); externalControls.set(element, controls); }
                 else {
                     if (kind !== 'search' && kind !== 'copy') {
                         const details = document.createElement('details');

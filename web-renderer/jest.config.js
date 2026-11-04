@@ -2,6 +2,7 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jest-environment-jsdom',
   moduleNameMapper: {
+    '^\\./math-font-loader$': '<rootDir>/test/mathFontLoaderMock.js',
     '^#default-font/(.*)$': '<rootDir>/node_modules/@mathjax/mathjax-newcm-font/cjs/$1',
     '^@mathjax/src/mjs/(.*)$': '<rootDir>/node_modules/@mathjax/src/cjs/$1',
     '(?:\\.(?:wasm|otf)|/wasm)\\?url$': '<rootDir>/test/assetMock.js',

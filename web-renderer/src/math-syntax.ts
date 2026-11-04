@@ -17,10 +17,20 @@ function escaped(source: string, position: number): boolean {
 }
 
 /** Recognize math before Markdown escapes, leaving TeX interpretation to the engine. */
-export function installMathSyntax(md: MarkdownIt): MathSource[] {
+export function installMathSyntax(md: MarkdownIt, namespace = 'math'): MathSource[] {
     const sources: MathSource[] = [];
     md.inline.ruler.before('escape', 'flux_math_inline', (state, silent) => {
         const start = state.pos;
+        const reference = /^\\(?:eqref|ref)\{[^{}\n]+\}/.exec(state.src.slice(start));
+        if (reference) {
+            if (!silent) {
+                const token = state.push('flux_math_inline', 'math', 0);
+                token.meta = { raw: reference[0], payload: reference[0], display: false,
+                    localLine: state.src.slice(0, start).split('\n').length - 1 } satisfies MathMeta;
+            }
+            state.pos += reference[0].length;
+            return true;
+        }
         const open = state.src.startsWith('\\(', start) ? '\\(' : state.src[start] === '$' ? '$' : '';
         if (!open || (open === '$' && (state.src[start + 1] === '$' || /\s/.test(state.src[start + 1] || ' ')))) return false;
         const close = open === '$' ? '$' : '\\)';
@@ -44,9 +54,10 @@ export function installMathSyntax(md: MarkdownIt): MathSource[] {
     md.block.ruler.before('fence', 'flux_math_block', (state, start, end, silent) => {
         if (state.sCount[start] - state.blkIndent >= 4) return false;
         const line = state.src.slice(state.bMarks[start] + state.tShift[start], state.eMarks[start]).trim();
-        const open = line.startsWith('$$') ? '$$' : line.startsWith('\\[') ? '\\[' : '';
+        const environment = /^\\begin\{((?:equation|align|gather)\*?)\}/.exec(line);
+        const open = environment ? environment[0] : line.startsWith('$$') ? '$$' : line.startsWith('\\[') ? '\\[' : '';
         if (!open) return false;
-        const close = open === '$$' ? '$$' : '\\]';
+        const close = environment ? `\\end{${environment[1]}}` : open === '$$' ? '$$' : '\\]';
         let last = start;
         let payload: string;
         if (line.length > open.length && line.endsWith(close)) {
@@ -61,6 +72,7 @@ export function installMathSyntax(md: MarkdownIt): MathSource[] {
             payload = state.getLines(start + 1, last, state.blkIndent, false);
         }
         if (silent) return true;
+        if (environment) payload = state.getLines(start, last + 1, state.blkIndent, false);
         const token = state.push('flux_math_block', 'math', 0);
         token.block = true;
         token.map = [start, last + 1];
@@ -80,8 +92,8 @@ export function installMathSyntax(md: MarkdownIt): MathSource[] {
             for (const child of token.type === 'inline' ? token.children || [] : [token]) {
                 if (!child.type.startsWith('flux_math_')) continue;
                 const meta = child.meta as MathMeta;
-                const firstLine = (token.map?.[0] || 0) + (meta.localLine || 0) + 1;
-                const source: MathSource = { id: `math-${sources.length}`, raw: meta.raw, payload: meta.payload,
+                const firstLine = (token.map?.[0] || 0) + (meta.localLine || 0) + 1 + Number(state.env.sourceLineOffset || 0);
+                const source: MathSource = { id: `${namespace}-${sources.length}`, raw: meta.raw, payload: meta.payload,
                     display: meta.display, firstLine, lastLine: firstLine + meta.raw.split('\n').length - 1 };
                 meta.source = source;
                 sources.push(source);
