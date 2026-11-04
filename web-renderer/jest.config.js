@@ -15,7 +15,10 @@ module.exports = {
   ],
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
-      tsconfig: { module: 'commonjs', moduleResolution: 'node' }
+      tsconfig: { module: 'commonjs', moduleResolution: 'node', baseUrl: '.', paths: {
+        '@mathjax/src/js/*': ['node_modules/@mathjax/src/cjs/*'],
+        '@mathjax/mathjax-newcm-font/js/*': ['node_modules/@mathjax/mathjax-newcm-font/cjs/*']
+      } }
     }],
     'node_modules/tex2typst/.+\\.js$': ['ts-jest', {
       tsconfig: { module: 'commonjs', moduleResolution: 'node' }
