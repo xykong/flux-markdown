@@ -9,6 +9,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private var previousApplication: NSRunningApplication?
     private let mathPasteboard = NSPasteboard.withUniqueName()
     private let mathCopyBridge = BlockCopyBridge()
+    private var failNextMathCopy = false
     private var started = false
     private var index = 0
     private var feedbackEvents: [[String: Any]] = []
@@ -144,6 +145,37 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         const scrollDeadline=performance.now()+3000;
         while(scrolling.scrollLeft===0 && performance.now()<scrollDeadline)await new Promise(r=>setTimeout(r,30));
         if(!(scrolling.scrollLeft>0 && window.scrollX===0))throw new Error(JSON.stringify({scrollLeft:scrolling.scrollLeft,width:scrolling.clientWidth,scrollWidth:scrolling.scrollWidth,windowX:window.scrollX,active:document.activeElement?.className,tabIndex:scrolling.tabIndex}));
+        window.webkit.messageHandlers.nativeMathKey.postMessage('narrow');
+        const narrowDeadline=performance.now()+3000;
+        while(window.innerWidth>160 && performance.now()<narrowDeadline)await new Promise(r=>setTimeout(r,30));
+        if(window.innerWidth>160)throw new Error('Native narrow zoom did not settle');
+        for(const uiLanguage of ['en','de','ar']) for(const failedSource of [source, '$$'+String.fromCharCode(10)+String.raw`\\frac{x}{2}`+String.fromCharCode(10)+'$$']) {
+          await window.renderMarkdown(failedSource,{context:'app',showCopyButtons:true,uiLanguage});
+          document.querySelector('.math-copy-host .block-copy-tools > button').focus();
+          window.webkit.messageHandlers.nativeMathKey.postMessage('failed-space');
+          const failureDeadline=performance.now()+3000;
+          while(!document.querySelector('.math-copy-source') && performance.now()<failureDeadline)await new Promise(r=>setTimeout(r,30));
+          const recovery=document.querySelector('.math-copy-source');
+          if(!recovery || recovery.value!==failedSource || !recovery.readOnly)throw new Error('Copy failure lost original formula');
+          if(document.documentElement.scrollWidth>window.innerWidth+1)throw new Error('Copy failure causes whole-page horizontal overflow: '+uiLanguage);
+          for(const control of document.querySelectorAll('.block-copy-error button,.math-copy-source')) {
+            const rect=control.getBoundingClientRect();
+            if(rect.width<=0 || rect.left< -1 || rect.right>innerWidth+1)throw new Error('Copy recovery control escapes the viewport');
+          }
+          const select=document.querySelector('.block-copy-error > button');
+          select.focus();window.webkit.messageHandlers.nativeMathKey.postMessage('enter');
+          const selectionDeadline=performance.now()+3000;
+          while((document.activeElement!==recovery || recovery.selectionStart!==0 || recovery.selectionEnd!==failedSource.length) && performance.now()<selectionDeadline)await new Promise(r=>setTimeout(r,30));
+          if(document.activeElement!==recovery || recovery.selectionStart!==0 || recovery.selectionEnd!==failedSource.length)throw new Error('Native select-source recovery failed');
+          await window.waitForExportReady();
+          const exported=new DOMParser().parseFromString(window.exportHTML(),'text/html');
+          if(exported.querySelector('.math-copy-source,.block-copy-error,.error-feedback-controls,.math-copy-host') || exported.querySelectorAll('mjx-container').length!==1)throw new Error('Copy failure polluted mathematical export');
+        }
+        window.webkit.messageHandlers.nativeMathKey.postMessage('restore-size');
+        const restoreDeadline=performance.now()+3000;
+        while(window.innerWidth<800 && performance.now()<restoreDeadline)await new Promise(r=>setTimeout(r,30));
+        if(window.innerWidth<800)throw new Error('Native view size was not restored');
+        await window.renderMarkdown('# Restored',{context:'app',uiLanguage:'en',showCopyButtons:false});
         return true;
         """),
         ("math baseline API compatibility and reference export", """
@@ -292,13 +324,27 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
         guard RendererBridgePolicy.accepts(message) else { print("FAIL bridge origin"); exit(1) }
         if message.name == "blockCopy" {
+            if failNextMathCopy, let body = message.body as? [String: Any],
+               let id = body["id"] as? String, let generation = body["generation"] as? String {
+                failNextMathCopy = false
+                webView.callAsyncJavaScript("window.blockCopyResult(id, generation, false)", arguments: ["id":id,"generation":generation], in: nil, in: .page) { _ in }
+                return
+            }
             mathCopyBridge.handle(message, generation: "math-keyboard", enabled: true, pasteboard: mathPasteboard)
             return
         }
         if message.name == "nativeMathKey", let key = message.body as? String, let window = focusWindow {
-            guard ["space", "enter", "right"].contains(key) else { exit(1) }
-            let characters = key == "space" ? " " : key == "right" ? "\u{F703}" : "\r"
-            let code: UInt16 = key == "space" ? 49 : key == "right" ? 124 : 36
+            if key == "narrow" || key == "restore-size" {
+                let narrow = key == "narrow"
+                window.setContentSize(NSSize(width: narrow ? 320 : 800, height: 600))
+                webView.pageZoom = narrow ? 2 : 1
+                return
+            }
+            guard ["space", "enter", "right", "failed-space"].contains(key) else { exit(1) }
+            if key == "failed-space" { failNextMathCopy = true }
+            let space = key == "space" || key == "failed-space"
+            let characters = space ? " " : key == "right" ? "\u{F703}" : "\r"
+            let code: UInt16 = space ? 49 : key == "right" ? 124 : 36
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 for type in [NSEvent.EventType.keyDown, .keyUp] {
                     if let event = NSEvent.keyEvent(with: type, location: .zero, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: window.windowNumber, context: nil, characters: characters, charactersIgnoringModifiers: characters, isARepeat: false, keyCode: code) {

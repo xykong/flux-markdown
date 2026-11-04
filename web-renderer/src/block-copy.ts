@@ -134,6 +134,7 @@ export function installBlockCopy(root: HTMLElement, generation: string, send = n
         let wrapper: HTMLElement | undefined;
         if (block.tagName === 'PRE' || math !== undefined) {
             wrapper = document.createElement(inlineMath ? 'span' : 'div'); wrapper.className = 'block-copy-host';
+            if (math !== undefined) wrapper.classList.add('math-copy-host');
             if (inlineMath) wrapper.classList.add('math-copy-inline');
             block.before(wrapper);
             if (inlineMath) wrapper.append(block, tools); else wrapper.append(tools, block);

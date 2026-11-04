@@ -42,11 +42,26 @@ span.math-inline-overflow {
     margin-inline-start: 4px;
     vertical-align: middle;
 }
+.math-copy-host > .block-copy-tools[data-copy-state="error"] {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    margin-inline-start: 0;
+}
+.math-copy-host .block-copy-error,
+.math-copy-host .block-copy-error button {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+}
 .math-copy-source {
     display: block;
     box-sizing: border-box;
     width: 100%;
-    min-width: 10em;
+    min-width: 0;
     max-width: 100%;
     font: 12px ui-monospace, monospace;
     direction: ltr;

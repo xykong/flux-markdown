@@ -1,12 +1,12 @@
 {
-  "sourceCommit": "33ece8804067eb58afd613747ecf6659e20731a1",
+  "sourceCommit": "a66c080c5534dd333872a6faf3bd6ea8ddeabf76",
   "fixture": "valid-original-syntax.md",
   "fixtureSha256": "51fcf97c86e8adb51b148975e13c4fe214ed50fe56623bcb3ba04e52c87e767d",
   "pdf": "output/pdf/issue64-valid-original-syntax.pdf",
-  "pdfSha256": "38d7f323f00e3a64ed5a7af95fc2ca06af262d170c4ea45b932e45ea59d54f22",
+  "pdfSha256": "4de8528fcef3d007cc16d019d5631b0bd3b40df3a180b007c563328726696358",
   "pages": 2,
   "host": "actual Debug FluxMarkdown CLI, macOS 27.0.1 arm64, local target override 12.0",
-  "visualReview": "After inline-overflow changes, both freshly rendered PDF page PNGs match the previously inspected product-export-verified pages byte-for-byte; ordinary print layout and equation-link geometry are unchanged.",
+  "visualReview": "After mathematical copy-recovery changes, both current product PDF page PNGs exactly match the previously visually reviewed pages. No new print layout difference.",
   "linkInspection": {
     "tool": "PDFKit",
     "annotations": 1,
@@ -28,7 +28,7 @@
     "not a tagged PDF",
     "PDF viewer mouse/VoiceOver interactions not covered by annotation inspection"
   ],
-  "bundleIndexSha256": "1b3ee2dca4c023cef86490216c49db8cb4c2a7e14ef5f30f5089b69504f324e9",
+  "bundleIndexSha256": "5a2ff775a058082c9012ff11b7bfc254e7ca00b51361196362f7c412927c44cc",
   "productRunner": "scripts/test-issue64-product-export.sh",
   "productRunnerEvidence": "product-export-runner-report.json",
   "rasterSha256": {
@@ -36,8 +36,7 @@
     "page-2.png": "aaab996b5beeb650e9c4acfb494c2bc8ab280d2817c5ca5755ceb32bf9a5992c"
   },
   "pendingSourceAtRun": {
-    "web-renderer/src/math-layout.ts": "a9666386946bbe27e9c4650e562ee22f8ddd294d0e75d1e4d4075e2d7c63ddbb",
-    "web-renderer/src/styles/math.css": "80e825a9db4d226a454a89100ff6a78ebe22095d64bea6859bbdd50d64e46c0c",
-    "web-renderer/src/index.ts": "1d0a01f8737dca39c70ebc6b1f7e3cca83125e868b68f79f1118ed25b0e86e4a"
+    "web-renderer/src/block-copy.ts": "82cd0316c9ba324945e6bb46ad53b355765595fee6d031a7fbf84090352f45fe",
+    "web-renderer/src/styles/math.css": "fb2255934c63ede4a805933290e23e8f7d1095976ad03ec16ab62bac50ef2a71"
   }
 }

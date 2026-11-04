@@ -1,0 +1,50 @@
+{
+  "baseCommit": "a66c080",
+  "nativeTestSourceSha256": "c32cfb5328387835656bff76fd5d5476cdf0f4eed0368eab15cea0fb3cfc231b",
+  "nativeCase": "math native keyboard copy and reference",
+  "scenarios": [
+    {
+      "language": "en",
+      "kind": "inline"
+    },
+    {
+      "language": "en",
+      "kind": "display"
+    },
+    {
+      "language": "de",
+      "kind": "inline"
+    },
+    {
+      "language": "de",
+      "kind": "display"
+    },
+    {
+      "language": "ar",
+      "kind": "inline"
+    },
+    {
+      "language": "ar",
+      "kind": "display"
+    }
+  ],
+  "viewportPoints": 320,
+  "pageZoom": 2,
+  "checks": [
+    "native Space activation",
+    "injected negative bridge reply without clipboard write",
+    "original source retained in readonly textarea",
+    "no whole-page horizontal overflow",
+    "recovery controls inside viewport",
+    "native Enter selects complete source",
+    "valid mathematical export excludes failure UI",
+    "native viewport restored",
+    "isolated pasteboard retains earlier successful source"
+  ],
+  "fullRunnerEvidence": "production-e2e-report.json",
+  "focusedFinalRunLog": "/tmp/flux-issue64-copy-recovery-final.log",
+  "limitations": [
+    "negative acknowledgement is injected by the test receiver, not an OS clipboard denial",
+    "does not execute actual native feedback or open an editor"
+  ]
+}
