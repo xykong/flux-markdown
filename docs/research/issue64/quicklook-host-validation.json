@@ -5,9 +5,10 @@
   "artifacts": {
     "candidate": {
       "path": "build/issue64-host-validation/candidate.app",
-      "appExecutableSha256": "b6695ad7d518e8acc526a7cf669817fffc100ec3eb4bd7c03587a110954f75cb",
-      "extensionExecutableSha256": "4530e49d24bf7a2ee718a6c45e263c2419469b8cf69ad3c8360fcff80a9a7dc5",
-      "signature": "codesign --verify --deep --strict passed"
+      "appExecutableSha256": "04bfebb8983fce1561055364f06cdd6f7943677a0bc3de09d20e06053e09c459",
+      "extensionExecutableSha256": "74ca12ce3927e8cddaee087285f94a5075e023704bd735c229a88307d06edf8b",
+      "signature": "codesign --verify --deep --strict passed",
+      "rendererIndexSha256": "4c0d9ddd96307ba09a66743bc6e8193617a6256933f637663a7fd49db6e97eed"
     },
     "installedBackup": {
       "path": "build/issue64-host-validation/installed-backup.app",
@@ -15,5 +16,6 @@
       "extensionExecutableSha256": "7a616ebb95231d50895cad5d4a8bc526335e918c3407f5c150861d9acb024574",
       "signature": "codesign --verify --deep --strict passed"
     }
-  }
+  },
+  "lastVerification": "Candidate refreshed from current built app; index hash matches production dist; original backup preserved. Default PlugInKit match still /Applications old installation. No authorization reply received."
 }
