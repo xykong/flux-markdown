@@ -167,3 +167,11 @@ Rebuilt the actual application and exported the same 12-item valid corpus again.
 Two reversible-print tests pass; full Jest **58 suites / 491 tests** and native/renderer builds pass. The reference PDF remains separate from this actual product PDF.
 
 PDFKit annotation inspection found no Link annotations in the current Quartz/AppKit print output. Equation reference text is visible, but clickable PDF navigation is not preserved by this path; standalone HTML reference navigation remains a separate requirement. This limitation must remain explicit in the final acceptance report.
+
+## Standalone HTML offline reopening
+
+Exported the actual production renderer's valid 12-item corpus to HTML, then reopened it in a fresh WKWebView under a restrictive test CSP: no scripts, fonts or network; inline styles and data images only. The first reopening retained formulas but revealed unused KaTeX font-face URLs trying to load application-relative files. Added a failing export test and omitted webfont rules when the exported document contains no KaTeX output (Typst's KaTeX path remains separate).
+
+After rebuilding and re-exporting, the fresh offline page loads only its HTML file with zero CSP violations: 12 SVG mathematical outputs, 12 assistive trees, nonzero geometry for every formula, zero missing local glyph targets, one valid equation-link target, no scripts and no copy/feedback controls. Results/hash are stored in `standalone-html-checkpoint.json`. This demonstrates offline structural and geometry readiness; actual link activation/keyboard/VoiceOver and cross-browser visual comparison remain separate checks.
+
+Full Jest **58 suites / 492 tests**, typecheck/build pass. The font-face omission intentionally applies only when no KaTeX output exists; mixed Typst/KaTeX standalone resource handling still needs its own regression acceptance.

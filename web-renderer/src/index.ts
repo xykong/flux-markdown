@@ -735,12 +735,13 @@ async function renderGraphvizDiagrams(container: HTMLElement, isCurrent: () => b
 
 let cachedCssText = '';
 
-function collectStylesheetRules(): string {
+function collectStylesheetRules(includeWebFonts = true): string {
     let css = '';
     for (const sheet of Array.from(document.styleSheets)) {
         try {
             if (sheet.cssRules) {
                 for (const rule of Array.from(sheet.cssRules)) {
+                    if (!includeWebFonts && rule.type === CSSRule.FONT_FACE_RULE) continue;
                     if (!css.includes(rule.cssText)) {
                         css += rule.cssText + '\n';
                     }
@@ -759,7 +760,9 @@ function preloadStylesheets() {
 setTimeout(preloadStylesheets, 500);
 
 window.exportHTML = function(): string {
-    let cssText = collectStylesheetRules();
+    // SVG mathematics contains its glyph definitions. Unused application font
+    // faces otherwise leave broken app-relative requests in standalone HTML.
+    let cssText = collectStylesheetRules(!!document.querySelector('#markdown-preview .katex'));
 
     // Get the core rendered markdown content
     const previewDiv = document.getElementById('markdown-preview');
