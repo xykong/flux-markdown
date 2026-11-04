@@ -5,7 +5,7 @@ import { waitForExportReady } from './export-readiness';
 import { sanitizeDocumentHTML, sanitizeDiagramHTML } from './safe-html';
 import { renderTSVTable } from './tsv';
 import { installMathSyntax } from './math-syntax';
-import { rememberMathSource } from './math-source-store';
+import { rememberMathSource, uniqueMathTargets } from './math-source-store';
 import { prepareMathPrint } from './math-print';
 import { separateMathLinks } from './math-reference-links';
 import './styles/math.css';
@@ -1016,10 +1016,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         }
 
         if (options.enableKatex !== false && mathSources.length) {
-            const placeholders = new Map(mathSources.map(source => {
-                const nodes = tempDiv.querySelectorAll(`[data-math-id="${source.id}"]`);
-                return [source.id, nodes.length === 1 ? nodes[0] : null] as const;
-            }));
+            const placeholders = uniqueMathTargets(tempDiv, mathSources.map(source => source.id));
             try {
                 const { renderMathSources } = await import('./math-engine');
                 if (!isCurrent()) return;
@@ -1072,9 +1069,10 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         const renderedFragment = document.createDocumentFragment();
         while (tempDiv.firstChild) renderedFragment.appendChild(tempDiv.firstChild);
         outputDiv.replaceChildren(renderedFragment);
+        const sourceTargets = uniqueMathTargets(outputDiv, mathSources.map(source => source.id));
         for (const source of mathSources) {
-            const nodes = outputDiv.querySelectorAll(`[data-math-id="${source.id}"]`);
-            if (nodes.length === 1) rememberMathSource(nodes[0], source.raw);
+            const target = sourceTargets.get(source.id);
+            if (target) rememberMathSource(target, source.raw);
         }
         if (toc) toc.render(outline);
         prepareRenderedImages(outputDiv, options);
