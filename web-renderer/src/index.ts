@@ -408,6 +408,7 @@ function buildMd(enableTypst = true): MarkdownIt {
     instance.use(sup);
     instance.use(anchor, {
         permalink: false,
+        getTokensText: (tokens: Array<{type:string;content:string}>) => tokens.filter(token => ['text', 'code_inline', 'flux_math_inline'].includes(token.type)).map(token => token.content).join(''),
         slugify: (s: string) => s.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-').replace(/^-+|-+$/g, '')
     });
     instance.use(githubAlerts);

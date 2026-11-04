@@ -121,4 +121,11 @@ describe('Issue 64 mathematical input contracts', () => {
         await render('$x=1$');
         await expect(window.waitForExportReady()).resolves.toBeUndefined();
     });
+    test('math-only headings have meaningful distinct navigation anchors',async()=>{
+        await render('# $x^2$\n\n# $y^2$');
+        const headings=Array.from(preview().querySelectorAll('h1'));
+        expect(headings[0].id).toContain('x');
+        expect(headings[1].id).toContain('y');
+        expect(headings[0].id).not.toBe(headings[1].id);
+    });
 });

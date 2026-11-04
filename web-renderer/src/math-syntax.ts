@@ -22,10 +22,23 @@ export function installMathSyntax(md: MarkdownIt, namespace = 'math'): MathSourc
     const sources: MathSource[] = [];
     md.inline.ruler.before('escape', 'flux_math_inline', (state, silent) => {
         const start = state.pos;
+        // Raw HTML code containers are separate html_inline tokens. Respect
+        // their boundaries before accepting delimiters inside their text.
+        const protectedTags: string[] = [];
+        for (const token of state.tokens) {
+            if (token.type !== 'html_inline') continue;
+            const tag = /^<\s*(\/?)\s*(code|pre|script|style|textarea)\b[^>]*>/i.exec(token.content);
+            if (!tag) continue;
+            const name = tag[2].toLowerCase();
+            if (tag[1]) { const index = protectedTags.lastIndexOf(name); if (index >= 0) protectedTags.splice(index); }
+            else if (!/\/\s*>$/.test(tag[0])) protectedTags.push(name);
+        }
+        if (protectedTags.length) return false;
         const reference = /^\\(?:eqref|ref)\{[^{}\n]+\}/.exec(state.src.slice(start));
         if (reference) {
             if (!silent) {
                 const token = state.push('flux_math_inline', 'math', 0);
+                token.content = reference[0];
                 token.meta = { raw: reference[0], payload: reference[0], display: false,
                     localLine: state.src.slice(0, start).split('\n').length - 1 } satisfies MathMeta;
             }
@@ -33,7 +46,7 @@ export function installMathSyntax(md: MarkdownIt, namespace = 'math'): MathSourc
             return true;
         }
         const open = state.src.startsWith('\\(', start) ? '\\(' : state.src[start] === '$' ? '$' : '';
-        if (!open || (open === '$' && (state.src[start + 1] === '$' || /\s/.test(state.src[start + 1] || ' ')))) return false;
+        if (!open || (open === '$' && (state.src[start - 1] === '$' || state.src[start + 1] === '$' || /\s/.test(state.src[start + 1] || ' ')))) return false;
         const close = open === '$' ? '$' : '\\)';
         let end = start + open.length;
         while ((end = state.src.indexOf(close, end)) >= 0) {
@@ -45,6 +58,7 @@ export function installMathSyntax(md: MarkdownIt, namespace = 'math'): MathSourc
         if (!payload || /\n\s*\n/.test(payload)) return false;
         if (!silent) {
             const token = state.push('flux_math_inline', 'math', 0);
+            token.content = payload;
             token.meta = { raw: state.src.slice(start, end + close.length), payload, display: false,
                 localLine: state.src.slice(0, start).split('\n').length - 1 } satisfies MathMeta;
         }
