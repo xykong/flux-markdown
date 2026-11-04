@@ -29,6 +29,13 @@ test('only processes its own stage, leaving other document mathematics untouched
         expect(outside.querySelector('mjx-container')).toBeNull();
     } finally {outside.remove();}
 });
+test('returns owned CSS without leaving a second engine stylesheet in the page',async()=>{
+    document.querySelectorAll('#MJX-SVG-styles').forEach(node=>node.remove());
+    const result=await renderMathSources([source('x','x=1')],'style-owner');
+    expect(result.css).toContain('mjx-container');
+    expect(result.css).toContain('mjx-assistive-mml');
+    expect(document.querySelector('#MJX-SVG-styles')).toBeNull();
+});
 test('equation references remain document-local when the host sets a resource base URL', async () => {
     const base=document.createElement('base');base.href='file:///tmp/documents/';document.head.append(base);
     try {

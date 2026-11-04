@@ -86,6 +86,11 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
             css: adaptor.textContent(svg.styleSheet(doc)),
         };
     } finally {
+        // HTMLDocument installs the output stylesheet in the shared document.
+        // The caller publishes the returned CSS only after its generation check.
+        // Remove this exact session's sheet, never a newer session's replacement.
+        const sheet = svg.styleSheet(doc);
+        if (sheet.parentNode) sheet.remove();
         doc.clear();
         stage.remove();
     }

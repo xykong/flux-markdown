@@ -193,3 +193,11 @@ Observed 100 items p50/p95 **94/101 ms**, DOM 615,017 bytes; 1000 items **1714/1
 One late WebContent RSS sample was 2,774,704 KiB (about 2.65 GiB) during repeated large-document rendering. It does not establish peak or retained memory, but warrants explicit cleanup/recovery measurement before acceptance. No memory gate is marked passed from this run.
 
 Raw samples/environment are saved in `production-benchmark.json`. The same source workload is now in `scripts/research/issue64-math/benchmark-production.js` with a bounded native runner script; shell syntax checked. Remaining work includes memory recovery, cold/no-math baseline and per-host/platform budgets.
+
+## Session stylesheet ownership
+
+Repeated native rendering of a small mathematical document shows stable DOM counts and zero remaining measurement trees, followed by zero mathematical outputs after switching to plain text. It nevertheless exposed a duplicate engine-owned `MJX-SVG-styles` element in the shared head in addition to the generation-controlled application stylesheet.
+
+Added a failing real-engine test and removed only the exact session-owned stylesheet during cleanup, retaining returned CSS for publication by the current generation. This avoids an obsolete engine session leaving or publishing its global CSS. It does not remove another session's replacement node.
+
+After rebuilding, five actual WebKit rerenders each report 203 nodes, two styles and zero engine-owned SVG styles/stages; plain-text switching leaves no math. Full Jest **58 suites / 494 tests**, typecheck/build pass. This verifies DOM/style cleanup, not recovery of the previously observed large-workload RSS; that memory investigation remains open.
