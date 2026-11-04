@@ -8,7 +8,7 @@ import { MathML } from '@mathjax/src/js/input/mathml.js';
 import { STATE } from '@mathjax/src/js/core/MathItem.js';
 import { createMathInput } from './math-identity';
 import { installMathFontLoader } from './math-font-loader';
-import { sanitizeMathHTML } from './safe-html';
+import { sanitizeMathHTML, sanitizeMathOutput } from './safe-html';
 import type { MathSource } from './math-syntax';
 import { partitionMathSources } from './math-limits';
 
@@ -116,8 +116,43 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
         nodes.forEach((node, index) => {
             if (outputFailed.has(node)) node.textContent = sources[index].raw;
         });
+        const cleaned = nodes.map((node, index) => {
+            const result = sanitizeMathOutput(node.innerHTML);
+            if (result.paths !== node.querySelectorAll('svg path').length || result.formulas !== node.querySelectorAll('mjx-container').length) {
+                errors.push({sourceId:sources[index].id, code:'output'});
+            }
+            return result;
+        });
+        const targets = new Map<string, string[]>();
+        cleaned.forEach((item,index)=>item.ids.forEach(id=>targets.set(id,[...(targets.get(id)||[]),sources[index].id])));
+        const dependants = new Map<string, Set<string>>();
+        const invalid = new Set(errors.map(error=>error.sourceId));
+        const unresolved = (sourceId: string) => {
+            if (invalid.has(sourceId)) return;
+            invalid.add(sourceId);errors.push({sourceId,code:'unresolved-reference'});
+        };
+        cleaned.forEach((item,index)=>item.links.forEach(href=>{
+            let id='';try {id=decodeURIComponent(href.slice(1));} catch {unresolved(sources[index].id);return;}
+            const owners=targets.get(id);
+            if (!owners || owners.length!==1) {unresolved(sources[index].id);return;}
+            const refs=dependants.get(owners[0]) || new Set<string>();
+            refs.add(sources[index].id);dependants.set(owners[0],refs);
+        }));
+        const queue=Array.from(invalid);
+        for (let index=0; index<queue.length; index++) {
+            for (const sourceId of dependants.get(queue[index]) || []) {
+                if (!invalid.has(sourceId)) {unresolved(sourceId);queue.push(sourceId);}
+            }
+        }
+
         return {
-            items: nodes.map((node, index) => ({ id: sources[index].id, html: sanitizeMathHTML(node.innerHTML) })),
+            items: cleaned.map((item,index)=>{
+                if (errors.some(error=>error.sourceId===sources[index].id && (error.code==='output'||error.code==='unresolved-reference'))) {
+                    const text=document.createElement('span');text.textContent=sources[index].raw;
+                    return {id:sources[index].id,html:text.innerHTML};
+                }
+                return {id:sources[index].id,html:item.html};
+            }),
             errors,
             css: adaptor.textContent(svg.styleSheet(doc)),
         };

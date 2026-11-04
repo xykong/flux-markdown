@@ -1,6 +1,10 @@
 import DOMPurify from 'dompurify';
 
 export function sanitizeMathHTML(html: string): string {
+    return sanitizeMathOutput(html).html;
+}
+
+export function sanitizeMathOutput(html: string): { html: string; ids: string[]; links: string[]; paths: number; formulas: number } {
     const fragment = DOMPurify.sanitize(html, {
         USE_PROFILES: { html: true, svg: true, mathMl: true },
         ADD_TAGS: ['mjx-container', 'mjx-assistive-mml', 'use'],
@@ -33,9 +37,13 @@ export function sanitizeMathHTML(html: string): string {
     fragment.querySelectorAll('[style]').forEach(node => {
         if (/url\s*\(|@import|expression\s*\(/i.test(node.getAttribute('style') || '')) node.removeAttribute('style');
     });
+    const ids = Array.from(fragment.querySelectorAll('[id]')).map(node => node.id);
+    const links = Array.from(fragment.querySelectorAll('a[href]')).map(node => node.getAttribute('href')!);
+    const paths = fragment.querySelectorAll('svg path').length;
+    const formulas = fragment.querySelectorAll('mjx-container').length;
     const container = document.createElement('div');
     container.appendChild(fragment);
-    return container.innerHTML;
+    return { html: container.innerHTML, ids, links, paths, formulas };
 }
 
 /** Documents may contain presentation HTML, never executable page content. */

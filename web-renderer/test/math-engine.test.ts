@@ -1,6 +1,7 @@
 import { renderMathSources } from '../src/math-engine';
 import type { MathSource } from '../src/math-syntax';
 import { SVG } from '@mathjax/src/js/output/svg.js';
+import * as safeMath from '../src/safe-html';
 
 function source(id: string, payload: string, display = true): MathSource {
     return { id, payload, display, raw: payload, firstLine: 1, lastLine: 1 };
@@ -45,6 +46,40 @@ test('output failures preserve source and do not masquerade as successfully rend
 test('initialization failure does not leave a measurement root',async()=>{
     await expect(renderMathSources([source('x','x=1')],'invalid namespace')).rejects.toThrow();
     expect(document.querySelector('[data-math-measurement]')).toBeNull();
+});
+test('detects a glyph lost during sanitization instead of reporting a complete formula',async()=>{
+    const original=safeMath.sanitizeMathOutput;
+    const spy=jest.spyOn(safeMath,'sanitizeMathOutput').mockImplementationOnce(html=>{
+        const result=original(html);const root=document.createElement('div');root.innerHTML=result.html;
+        root.querySelector('path')!.remove();
+        return {...result,html:root.innerHTML,paths:result.paths-1};
+    });
+    try {
+        const result=await renderMathSources([source('x','x=1')],'lost-glyph');
+        expect(result.errors).toContainEqual({sourceId:'x',code:'output'});
+        expect(result.items[0].html).toBe('x=1');
+    } finally {spy.mockRestore();}
+});
+test('revalidates reference targets after sanitization',async()=>{
+    const original=safeMath.sanitizeMathOutput;
+    const spy=jest.spyOn(safeMath,'sanitizeMathOutput').mockImplementationOnce(html=>{
+        const result=original(html);const root=document.createElement('div');root.innerHTML=result.html;
+        root.querySelectorAll('[id]').forEach(node=>node.removeAttribute('id'));
+        return {...result,html:root.innerHTML,ids:[]};
+    });
+    try {
+        const result=await renderMathSources([source('x',String.raw`x=1\tag{A}\label{x}`),source('ref',String.raw`\eqref{x}`,false)],'lost-target');
+        expect(result.errors).toContainEqual({sourceId:'ref',code:'unresolved-reference'});
+        expect(result.items[1].html).not.toContain('href=');
+    } finally {spy.mockRestore();}
+});
+test('propagates invalid targets through forward reference chains',async()=>{
+    const result=await renderMathSources([
+        source('a',String.raw`\eqref{b}\tag{A}\label{a}`),
+        source('b',String.raw`\eqref{missing}\tag{B}\label{b}`),
+    ],'invalid-chain');
+    expect(result.errors.map(error=>error.sourceId)).toEqual(expect.arrayContaining(['a','b']));
+    expect(result.items.every(item=>!item.html.includes('href='))).toBe(true);
 });
 test('a superseded session stops before constructing mathematical output',async()=>{
     const spy=jest.spyOn(SVG.prototype,'typeset');

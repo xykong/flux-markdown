@@ -361,3 +361,11 @@ The remaining-source audit found multiline inline mathematics still normalized C
 Rechecked the available platform: macOS 27.0.1 arm64; repository CI targets macOS 15, not the minimum macOS 11/Intel runtime. Asked for an available older-system/Intel machine or an execution contact rather than treating syntax transpilation/current-machine tests as minimum-platform evidence. The earlier temporary QuickLook-install maintenance authorization also remains pending. Neither request is treated as answered by automatic goal continuations.
 
 The goal remains incomplete: actual new-extension QuickLook/Finder selection, actual VoiceOver reading, independent human review, minimum-platform validation, and the measured native-memory cost are not proven complete. Existing local test/benchmark/PDF/HTML evidence must not be expanded to claim those gates.
+
+## Post-sanitization integrity audit
+
+The engine previously validated reference targets before sanitization only. Added mathematical sanitizer metadata (IDs, links, glyph-path count and formula count) gathered from its already-created fragment, avoiding another parse for validation. Lost paths/formula containers now classify as output failures with preserved source; cleaned reference targets are revalidated, and invalid target status propagates through forward reference chains before publication.
+
+Fault-injection tests delete an output path or a target ID from the sanitizer result and verify the affected formula/reference cannot report success or retain a broken href. A chain test verifies an earlier reference cannot survive when its later target is itself unresolved and falls back to source. These checks address the design's explicit damaged-output detection requirement.
+
+All **59 suites / 521 tests**, typecheck and production build pass. Independent host, minimum-system, VoiceOver and native-memory gates remain outstanding; no installed app or pending permission state changed.
