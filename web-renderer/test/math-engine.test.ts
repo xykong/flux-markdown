@@ -42,6 +42,7 @@ test('multi-formula output preserves every source boundary and its own local gly
     for(const item of result.items){
         const root=document.createElement('div');root.innerHTML=item.html;
         expect(root.querySelectorAll('mjx-container')).toHaveLength(1);
+        expect(root.querySelectorAll('path').length).toBeGreaterThan(0);
         for(const use of root.querySelectorAll('use')){
             const id=(use.getAttribute('href')||use.getAttribute('xlink:href')||'').slice(1);
             expect(Array.from(root.querySelectorAll('defs [id]')).some(node=>node.id===id)).toBe(true);

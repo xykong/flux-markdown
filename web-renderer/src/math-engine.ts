@@ -55,7 +55,9 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
         return node;
     });
     document.body.appendChild(stage);
-    const svg = new SVG<HTMLElement, Text, Document>({ fontCache: 'local', linebreaks: { inline: false }, displayOverflow: 'scroll' });
+    // Direct paths avoid WebKit's additional SVG <use> shadow trees. The
+    // resulting standalone SVG is larger; the 1000-item DOM budget is tested.
+    const svg = new SVG<HTMLElement, Text, Document>({ fontCache: 'none', linebreaks: { inline: false }, displayOverflow: 'scroll' });
     const doc = mathjax.document(document, { InputJax: [createMathInput(namespace), new MathML()], OutputJax: svg,
         enableAssistiveMml: true });
     try {

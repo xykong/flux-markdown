@@ -10,7 +10,7 @@
 | 决策 | 具体选择 | 依据与代价 |
 | --- | --- | --- |
 | 正文数学引擎 | MathJax 4.1.3，整文档语义，版本锁定 | 原文有效项、前向引用和 AMS 语义已通过隔离引擎实验 |
-| 输出 | SVG，`fontCache: local`，不做行内自动拆分 | 自足导出、可控 glyph 定义；DOM 比 CHTML 大，必须限制预算并测内存 |
+| 输出 | SVG，`fontCache: none`，不做行内自动拆分 | 实施阶段直接 path 对照降低 SVG use/shadow-tree 成本；1000 项 DOM 约 8.4 MiB，仍低于 10 MiB 门槛；内存总体仍待验收 |
 | 辅助语义 | 显式加载 assistive MathML；不加载运行时语音/盲文/Explorer Worker | 两个原生输出实验均生成 13 份辅助 MathML，worker-src none 可完成；真实 VoiceOver 是发布门槛 |
 | 加载方式 | Vite 静态打包显式源码模块，运行时按需 import；字体动态数据本地化 | 不直接把完整 CDN bundle 或 node_modules 拷入产品；不新增 Worker 权限 |
 | TeX 包 | base、ams、newcommand、textmacros；一个只处理身份/诊断的本地适配包 | 支持所需公式与受限宏；不启用 autoload、require、noundefined、texhtml、任意 HTML 宏 |

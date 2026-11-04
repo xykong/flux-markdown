@@ -241,3 +241,11 @@ Used `heap -s --noContent` on the identified test WebContent process during rend
 Nevertheless, the cleared heap still reports approximately 156k SVGGElement, 103k SVGUseElement, 53k SVGPathElement and 68k MathMLTokenElement objects while the live document is plain text. These are specific native-tree objects warranting further attribution, not merely empty reserved address space. Heap inspection can perturb execution; this run is not used as a timing benchmark.
 
 Saved samples/selected content-free heap summaries in `memory-separate-calls.json`, plus the separate-call probe/workload source. The probe source is compiled as `main.swift` with the shared bundle handler, and the workload is passed as the JS argument. Next hypothesis: SVG use shadow-tree allocation versus direct glyph paths, with output/size validation retained. No unverified optimization adopted.
+
+## Direct glyph paths
+
+Tested MathJax SVG `fontCache: none`, replacing glyph use references/shadow trees with direct paths. Same 3-cycle workload post-clear RSS: **2039 / 2309 / 2332 MiB**, versus original **2361 / 2452 / 2631 MiB**. This is a modest reduction, not a resolved memory gate. The early size probe overlapped only startup, not the post-clear comparison intervals.
+
+1000-item output has exactly 1000 formulas, 13,780 paths, zero uses and 8,808,288 serialized bytes (within the frozen 10 MiB limit). Live DOM count drops from roughly 67k to 59k. All **495 tests** and production build pass; strengthened the multi-formula test to require actual paths so an empty use loop cannot pass vacuously.
+
+Retained direct paths and updated the design's output-cache decision with this measured tradeoff. Raw samples/output counts are in `memory-direct-path-experiment.json`. Final PDF/HTML visual and timing checks must be repeated on the finalized implementation; physical-footprint/heap recovery and actual hosts remain outstanding.
