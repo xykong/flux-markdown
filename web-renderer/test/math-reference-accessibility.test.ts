@@ -23,3 +23,14 @@ test('a formula inside an ordinary Markdown link does not create nested anchors'
     const href=reference!.getAttribute('href')!;
     expect(document.getElementById(decodeURIComponent(href.slice(1)))).not.toBeNull();
 });
+test('keeps the external destination when the enclosing link contains only a formula',async()=>{
+    await window.renderMarkdown(String.raw`[$\eqref{x}$](https://example.com)`+'\n\n'+String.raw`\[x=1\tag{A}\label{x}\]`,{showCopyButtons:false});
+    expect(document.querySelector('#markdown-preview a[href="https://example.com"]')).not.toBeNull();
+    expect(document.querySelector('#markdown-preview a[href^="#"]')).not.toBeNull();
+});
+test('complex formulas expose each distinct reference outside the hidden SVG',async()=>{
+    await window.renderMarkdown(String.raw`\(\eqref{x}+\eqref{y}\)`+'\n\n'+String.raw`\[x=1\tag{A}\label{x}\]`+'\n\n'+String.raw`\[y=2\tag{B}\label{y}\]`,{showCopyButtons:false});
+    const links=Array.from(document.querySelectorAll('#markdown-preview .math-reference-links a'));
+    expect(links.map(link=>link.textContent)).toEqual(['(A)','(B)']);
+    expect(links.every(link=>!link.closest('[aria-hidden="true"]'))).toBe(true);
+});

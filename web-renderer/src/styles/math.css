@@ -18,6 +18,11 @@ div.flux-math-source {
     outline: 2px solid currentColor;
     outline-offset: 3px;
 }
+.math-reference-links {
+    display: inline-flex;
+    gap: .5em;
+    margin-inline-start: .5em;
+}
 .math-search-highlight {
     outline: 2px solid #d4a017;
     outline-offset: 2px;

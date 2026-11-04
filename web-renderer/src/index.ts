@@ -7,6 +7,7 @@ import { renderTSVTable } from './tsv';
 import { installMathSyntax } from './math-syntax';
 import { rememberMathSource } from './math-source-store';
 import { prepareMathPrint } from './math-print';
+import { separateMathLinks } from './math-reference-links';
 import './styles/math.css';
 let restoreMathPrint: (() => void) | undefined;
 window.addEventListener('beforeprint', () => {
@@ -1032,6 +1033,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
                     if (!target) continue;
                     target.innerHTML = item.html;
                     target.classList.add('flux-math');
+                    separateMathLinks(target);
                     const failure = result.errors.find(error => error.sourceId === item.id);
                     if (failure) {
                         target.classList.add('math-error');

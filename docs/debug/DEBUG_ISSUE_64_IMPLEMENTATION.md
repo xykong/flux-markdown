@@ -269,3 +269,11 @@ The original failing CRLF copy case now passes, along with a quoted CRLF formula
 Actual WebKit inspection of `[See $\eqref{x}$](https://example.com)` confirms an SVG fragment anchor nested inside the ordinary HTML link. The fragment anchor has tabindex 0 but no accessible name and sits under the SVG's aria-hidden=true visual subtree. A valid target alone therefore did not prove keyboard/assistive usability.
 
 Added two production-entry regression tests that fail on these exact behaviors: require a named keyboard link outside hidden output (also in exported HTML), and require preserving both external/link-reference destinations without nested anchors. These are intentional red acceptance tests; fixing the reference interaction layer is the next work item. No reference-accessibility completion is claimed from the earlier structural checks.
+
+## HTML reference navigation layer
+
+Moved mathematical navigation out of aria-hidden SVG. A standalone ref/eqref wraps its complete output in a named HTML fragment link; complex formulas expose distinct reference links next to the mathematical output. Visual SVG anchors become groups, retaining their glyphs without a hidden tab stop. Link labels come from the semantic reference text.
+
+When the formula lies inside a normal Markdown link, split the outer link around the formula to avoid nested anchors. If that outer link contained only the formula, keep its external destination as a separate visible URL link rather than dropping it. Preserve any explicit outer anchor identity once.
+
+The two prior red tests now pass, plus tests for multiple references and formula-only external links. Real production WebKit inspection confirms separate external and fragment links, no parent-link nesting, and the reference's accessible name `(A)`. Full Jest **59 suites / 504 tests**, typecheck/build pass. Actual trusted keyboard activation and VoiceOver speech remain to be exercised; valid DOM is not claimed as a screen-reader result.

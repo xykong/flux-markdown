@@ -69,6 +69,7 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
         nodes.forEach((node, index) => {
             if (failed.has(node)) errors.push({ sourceId: sources[index].id, code: outputFailed.has(node) ? 'output' : 'syntax' });
             let unresolved = false;
+            const references: Array<{href:string;label:string}> = [];
             node.querySelectorAll('a').forEach(link => {
                 const href = link.getAttribute('href') || link.getAttribute('data-mjx-href') || '';
                 let id = '';
@@ -77,10 +78,30 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
                 if (!id || targets.length !== 1 || Array.from(failed).some(container => container.contains(targets[0]))) {
                     link.removeAttribute('href'); link.removeAttribute('data-mjx-href'); unresolved = true;
                 } else {
-                    link.setAttribute('href', '#'+encodeURIComponent(id));
-                    link.setAttribute('tabindex', '0');
+                    const localHref = '#'+encodeURIComponent(id);
+                    const semantic = Array.from(node.querySelectorAll('mjx-assistive-mml [href]')).find(item => item.getAttribute('href') === href);
+                    references.push({href:localHref,label:semantic?.textContent?.trim() || sources[index].payload});
+                    // Visual SVG stays aria-hidden. Navigation is exposed as an
+                    // ordinary HTML link outside that hidden subtree below.
+                    const group = document.createElementNS('http://www.w3.org/2000/svg','g');
+                    for (const attr of Array.from(link.attributes)) {
+                        if (!['href','data-mjx-href','tabindex'].includes(attr.name)) group.setAttribute(attr.name,attr.value);
+                    }
+                    group.append(...Array.from(link.childNodes));link.replaceWith(group);
                 }
             });
+            if (references.length) {
+                const unique = references.filter((ref,i)=>references.findIndex(other=>other.href===ref.href)===i);
+                const standalone = unique.length === 1 && /^\\(?:eqref|ref)\{[^{}]+\}$/.test(sources[index].payload.trim());
+                if (standalone) {
+                    const link = document.createElement('a');link.href=unique[0].href;link.setAttribute('aria-label',unique[0].label);
+                    link.className='math-reference-link';link.append(...Array.from(node.childNodes));node.append(link);
+                } else {
+                    const links = document.createElement('span');links.className='math-reference-links';
+                    for (const ref of unique) { const link=document.createElement('a');link.href=ref.href;link.textContent=ref.label;links.append(link); }
+                    node.append(links);
+                }
+            }
             if (unresolved) errors.push({ sourceId: sources[index].id, code: 'unresolved-reference' });
         });
         nodes.forEach((node, index) => {
