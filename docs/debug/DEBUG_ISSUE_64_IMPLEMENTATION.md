@@ -249,3 +249,11 @@ Tested MathJax SVG `fontCache: none`, replacing glyph use references/shadow tree
 1000-item output has exactly 1000 formulas, 13,780 paths, zero uses and 8,808,288 serialized bytes (within the frozen 10 MiB limit). Live DOM count drops from roughly 67k to 59k. All **495 tests** and production build pass; strengthened the multi-formula test to require actual paths so an empty use loop cannot pass vacuously.
 
 Retained direct paths and updated the design's output-cache decision with this measured tradeoff. Raw samples/output counts are in `memory-direct-path-experiment.json`. Final PDF/HTML visual and timing checks must be repeated on the finalized implementation; physical-footprint/heap recovery and actual hosts remain outstanding.
+
+## Output-error and initialization fault injection
+
+Injected an SVG typesetting failure and an initialization failure. Before the correction, output-error nodes were not classified as failed mathematics and initialization after attaching the measurement root could leak that root (also contaminating a later layout test). The tests produced three failures including the downstream contamination.
+
+The engine now attaches the measurement root only after initialization succeeds, recognizes MathJax output-error nodes, retains failed output's original source, and rejects references to failed targets while continuing later valid formulas. Failure diagnostics return through the same production mathematical-error path, so export gating remains effective.
+
+All ten engine tests pass, including the injected failures and cleanup check. Full Jest **58 suites / 497 tests**, typecheck and production build pass. This resolves concrete fault paths but does not claim that the large-workload memory or native interaction gates are complete.

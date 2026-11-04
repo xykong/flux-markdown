@@ -17,7 +17,7 @@ installMathFontLoader();
 
 export interface MathEngineResult {
     items: Array<{ id: string; html: string }>;
-    errors: Array<{ sourceId: string; code: 'syntax' | 'unresolved-reference' | 'input-limit' }>;
+    errors: Array<{ sourceId: string; code: 'syntax' | 'output' | 'unresolved-reference' | 'input-limit' }>;
     css: string;
 }
 
@@ -54,19 +54,20 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
         stage.appendChild(node);
         return node;
     });
-    document.body.appendChild(stage);
     // Direct paths avoid WebKit's additional SVG <use> shadow trees. The
     // resulting standalone SVG is larger; the 1000-item DOM budget is tested.
     const svg = new SVG<HTMLElement, Text, Document>({ fontCache: 'none', linebreaks: { inline: false }, displayOverflow: 'scroll' });
     const doc = mathjax.document(document, { InputJax: [createMathInput(namespace), new MathML()], OutputJax: svg,
         enableAssistiveMml: true });
+    document.body.appendChild(stage);
     try {
         doc.findMath({ elements: [stage] });
         await doc.renderPromise();
-        const failed = new Set(nodes.filter(node => node.querySelector('[data-mml-node="merror"], merror')));
+        const outputFailed = new Set(nodes.filter(node => node.querySelector('.mjx-output-error')));
+        const failed = new Set(nodes.filter(node => outputFailed.has(node) || node.querySelector('[data-mml-node="merror"], merror')));
         const errors: MathEngineResult['errors'] = [];
         nodes.forEach((node, index) => {
-            if (failed.has(node)) errors.push({ sourceId: sources[index].id, code: 'syntax' });
+            if (failed.has(node)) errors.push({ sourceId: sources[index].id, code: outputFailed.has(node) ? 'output' : 'syntax' });
             let unresolved = false;
             node.querySelectorAll('a').forEach(link => {
                 const href = link.getAttribute('href') || link.getAttribute('data-mjx-href') || '';
@@ -81,6 +82,9 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
                 }
             });
             if (unresolved) errors.push({ sourceId: sources[index].id, code: 'unresolved-reference' });
+        });
+        nodes.forEach((node, index) => {
+            if (outputFailed.has(node)) node.textContent = sources[index].raw;
         });
         return {
             items: nodes.map((node, index) => ({ id: sources[index].id, html: sanitizeMathHTML(node.innerHTML) })),

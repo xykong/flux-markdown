@@ -1,5 +1,6 @@
 import { renderMathSources } from '../src/math-engine';
 import type { MathSource } from '../src/math-syntax';
+import { SVG } from '@mathjax/src/js/output/svg.js';
 
 function source(id: string, payload: string, display = true): MathSource {
     return { id, payload, display, raw: payload, firstLine: 1, lastLine: 1 };
@@ -20,6 +21,21 @@ test('flags unresolved references and preserves valid following formulas', async
     const result = await renderMathSources([source('bad',String.raw`\eqref{absent}`,false), source('good','x=1')], 'engine-two');
     expect(result.errors.map(error => error.sourceId)).toEqual(['bad']);
     expect(result.items.find(item => item.id === 'good')?.html).toContain('<svg');
+});
+test('output failures preserve source and do not masquerade as successfully rendered mathematics',async()=>{
+    const broken=source('broken',String.raw`\frac{x}{2}`);
+    const spy=jest.spyOn(SVG.prototype,'typeset').mockImplementationOnce(()=>{throw new Error('Injected output failure');});
+    try {
+        const result=await renderMathSources([broken,source('good','y=1')],'output-failure');
+        expect(result.errors).toContainEqual({sourceId:'broken',code:'output'});
+        expect(result.items[0].html).toContain(broken.raw);
+        expect(result.items[1].html).toContain('<svg');
+        expect(document.querySelector('[data-math-measurement]')).toBeNull();
+    } finally {spy.mockRestore();}
+});
+test('initialization failure does not leave a measurement root',async()=>{
+    await expect(renderMathSources([source('x','x=1')],'invalid namespace')).rejects.toThrow();
+    expect(document.querySelector('[data-math-measurement]')).toBeNull();
 });
 test('only processes its own stage, leaving other document mathematics untouched',async()=>{
     const outside=document.createElement('div');outside.textContent=String.raw`\(outside\)`;document.body.append(outside);
