@@ -45,6 +45,11 @@ div.flux-math-source {
 @media print {
     div.flux-math-source {
         break-inside: avoid;
-        overflow: visible;
+        page-break-inside: avoid;
+        overflow: visible !important;
+    }
+    .flux-math mjx-container,
+    .flux-math mjx-container > svg {
+        overflow: visible !important;
     }
 }

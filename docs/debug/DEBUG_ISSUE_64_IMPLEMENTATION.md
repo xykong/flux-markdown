@@ -151,3 +151,9 @@ Rendered all three pages of the actual CLI PDF with Poppler and inspected each. 
 The independent native probe confirmed that both cases rows exist in semantic output and SVG DOM. The next investigation must distinguish SVG clipping/print overflow from mathematical parsing; simply increasing semantic item counts will not address this failure.
 
 Separately ran the actual app CLI on the intentional unknown-command control. It exits nonzero with actionable export feedback and does not create the requested invalid.pdf. Evidence summary and valid-PDF hash are in `docs/research/issue64/product-pdf-checkpoint.json`. PDF links/tagging and full corrected visual output remain unverified.
+
+## Print clipping fix
+
+Overrode overflow for mathematical wrappers, MathJax containers and SVG in print, with explicit page-break-inside avoidance. Suppressed source-line pseudo-elements in print. Rebuilt the real application, exported the same valid corpus, rendered all three pages with Poppler and inspected them: M08 now visibly contains both cases rows, including `−x, x < 0`; line-number text is gone. The original failure and new PDF hashes are retained in the checkpoint record.
+
+Remaining visible defects: M05's heading still separates from its formula across pages, and the source gutter border/spacing remains due to style precedence. These are not hidden by the clipping fix and still require correction. This PDF is therefore not the final validated deliverable.

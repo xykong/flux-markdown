@@ -1,4 +1,11 @@
 @media print {
+  html[data-line-numbers="true"] #markdown-preview:not(.source-mode) {
+    padding-left: 0 !important;
+    border-left: none;
+  }
+  html[data-line-numbers="true"] #markdown-preview:not(.source-mode) > [data-source-line]::before {
+    display: none !important;
+  }
   .error-feedback-controls { display: none !important; }
   @page {
     margin: 15mm 15mm 15mm 15mm;

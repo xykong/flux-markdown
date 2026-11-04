@@ -19,5 +19,20 @@
     "exit": "nonzero",
     "outputFileCreated": false
   },
-  "next": "inspect print overflow and SVG layout; remove source gutter from print; repeat actual CLI output and all-page review"
+  "next": "inspect print overflow and SVG layout; remove source gutter from print; repeat actual CLI output and all-page review",
+  "printOverflowFix": {
+    "pdfSha256": "4d0fc76e0c9190429d4209019bf791c0b01bc76203d1b20dffa74e720006fa50",
+    "bytes": 111765,
+    "pagesReviewed": 3,
+    "passed": [
+      "M08 cases second row now visible, including minus x and x less than zero",
+      "source line numbers absent",
+      "all 12 valid mathematical cases present"
+    ],
+    "remaining": [
+      "M05 heading and formula separated across pages",
+      "source gutter border/space remains",
+      "PDF link/tagged accessibility inspection"
+    ]
+  }
 }
