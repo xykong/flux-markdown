@@ -74,22 +74,33 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
         checkCurrent();
         const outputFailed = new Set(nodes.filter(node => node.querySelector('.mjx-output-error')));
         const failed = new Set(nodes.filter(node => outputFailed.has(node) || node.querySelector('[data-mml-node="merror"], merror')));
+        const stageTargets = new Map<string, { count: number; failed: boolean }>();
+        for (const node of nodes) {
+            for (const target of node.querySelectorAll('[id]')) {
+                const previous = stageTargets.get(target.id);
+                stageTargets.set(target.id, { count: (previous?.count || 0) + 1, failed: failed.has(node) || previous?.failed === true });
+            }
+        }
         const errors: MathEngineResult['errors'] = [];
         nodes.forEach((node, index) => {
             if (failed.has(node)) errors.push({ sourceId: sources[index].id, code: outputFailed.has(node) ? 'output' : 'syntax' });
             let unresolved = false;
             const references: Array<{href:string;label:string}> = [];
+            const referenceLabels = new Map<string, string>();
+            node.querySelectorAll('mjx-assistive-mml [href]').forEach(item => {
+                const href = item.getAttribute('href')!;
+                if (!referenceLabels.has(href)) referenceLabels.set(href, item.textContent?.trim() || sources[index].payload);
+            });
             node.querySelectorAll('a').forEach(link => {
                 const href = link.getAttribute('href') || link.getAttribute('data-mjx-href') || '';
                 let id = '';
                 try { if (href.startsWith('#')) id = decodeURIComponent(href.slice(1)); } catch { /* invalid fragment */ }
-                const targets = Array.from(stage.querySelectorAll('[id]')).filter(target => target.id === id);
-                if (!id || targets.length !== 1 || Array.from(failed).some(container => container.contains(targets[0]))) {
+                const target = stageTargets.get(id);
+                if (!id || target?.count !== 1 || target.failed) {
                     link.removeAttribute('href'); link.removeAttribute('data-mjx-href'); unresolved = true;
                 } else {
                     const localHref = '#'+encodeURIComponent(id);
-                    const semantic = Array.from(node.querySelectorAll('mjx-assistive-mml [href]')).find(item => item.getAttribute('href') === href);
-                    references.push({href:localHref,label:semantic?.textContent?.trim() || sources[index].payload});
+                    references.push({href:localHref,label:referenceLabels.get(href) || sources[index].payload});
                     // Visual SVG stays aria-hidden. Navigation is exposed as an
                     // ordinary HTML link outside that hidden subtree below.
                     const group = document.createElementNS('http://www.w3.org/2000/svg','g');
@@ -100,7 +111,8 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
                 }
             });
             if (references.length) {
-                const unique = references.filter((ref,i)=>references.findIndex(other=>other.href===ref.href)===i);
+                const seen = new Set<string>();
+                const unique = references.filter(ref => { if (seen.has(ref.href)) return false; seen.add(ref.href); return true; });
                 const standalone = unique.length === 1 && /^\\(?:eqref|ref)\{[^{}]+\}$/.test(sources[index].payload.trim());
                 if (standalone) {
                     const link = document.createElement('a');link.href=unique[0].href;link.setAttribute('aria-label',unique[0].label);
@@ -145,9 +157,10 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
             }
         }
 
+        const fallbackSources = new Set(errors.filter(error=>error.code==='output'||error.code==='unresolved-reference').map(error=>error.sourceId));
         return {
             items: cleaned.map((item,index)=>{
-                if (errors.some(error=>error.sourceId===sources[index].id && (error.code==='output'||error.code==='unresolved-reference'))) {
+                if (fallbackSources.has(sources[index].id)) {
                     const text=document.createElement('span');text.textContent=sources[index].raw;
                     return {id:sources[index].id,html:text.innerHTML};
                 }

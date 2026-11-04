@@ -429,3 +429,11 @@ The first refreshed PDF exposed a short explanatory paragraph ending at a page b
 PDFKit now finds one internal GoTo annotation from the `(1)` reference to the numbered equation on page 2. Its destination coordinate agrees with the inspected formula-number position. This supersedes the earlier no-PDF-links observation after the reference layer moved to HTML. It is annotation evidence, not a claim of tested mouse/VoiceOver navigation in every PDF viewer.
 
 Saved `output/pdf/issue64-valid-original-syntax.pdf`, the exact derived source, hashes and `current-product-pdf-validation.json`. Full Jest **59 suites / 530 tests**, current renderer/native build and actual CLI export pass. Minimum-platform, actual extension/Finder, VoiceOver and memory acceptance remain separate ongoing items.
+
+## Linear reference-target lookup
+
+Added an 80-reference forward-link integrity case and measured a production workload with 200 references plus 200 target equations before changing lookup. Replaced each reference's full-stage ID scan/failed-container scan with one document target index; semantic labels are indexed once per source, repeated href deduplication uses a Set, and fallback-source lookup avoids repeated error-array scans. Duplicate/failed-target behavior is preserved.
+
+Same native workload after five warmups/ten samples: p50/p95 **218/228 ms before**, **201/205 ms after**, with exact item/link counts and zero math errors in each sample. Saved raw samples and reusable workload in `reference-index-benchmark.json` and `benchmark-references.js`. This is a targeted comparison, not a new substitute acceptance threshold.
+
+Full Jest **59 suites / 531 tests**, typecheck/build pass. Overall memory/platform/actual host acceptance remains open; the measured lookup improvement does not claim to fix those independent gates.

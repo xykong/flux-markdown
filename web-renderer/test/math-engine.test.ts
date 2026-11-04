@@ -81,6 +81,22 @@ test('propagates invalid targets through forward reference chains',async()=>{
     expect(result.errors.map(error=>error.sourceId)).toEqual(expect.arrayContaining(['a','b']));
     expect(result.items.every(item=>!item.html.includes('href='))).toBe(true);
 });
+test('many document references retain unique targets and labels',async()=>{
+    const sources:Array<MathSource>=[];
+    for(let i=0;i<80;i++)sources.push(source('ref-'+i,`\\eqref{eq:${i}}`,false));
+    for(let i=0;i<80;i++)sources.push(source('eq-'+i,`x=${i}\\tag{${i}}\\label{eq:${i}}`));
+    const result=await renderMathSources(sources,'many-refs');
+    expect(result.errors).toHaveLength(0);
+    const root=document.createElement('div');root.innerHTML=result.items.map(item=>item.html).join('');
+    const links=Array.from(root.querySelectorAll('a.math-reference-link'));
+    expect(links).toHaveLength(80);
+    expect(new Set(links.map(link=>link.getAttribute('href'))).size).toBe(80);
+    links.forEach((link,index)=>{
+        expect(link.getAttribute('aria-label')).toBe(`(${index})`);
+        const id=decodeURIComponent(link.getAttribute('href')!.slice(1));
+        expect(Array.from(root.querySelectorAll('[id]')).filter(node=>node.id===id)).toHaveLength(1);
+    });
+});
 test('a superseded session stops before constructing mathematical output',async()=>{
     const spy=jest.spyOn(SVG.prototype,'typeset');
     try {

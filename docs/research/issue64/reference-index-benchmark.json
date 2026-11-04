@@ -1,0 +1,42 @@
+{
+  "method": "200 forward references plus 200 explicitly tagged target equations; five warmups then ten measured renders; production WKWebView, same machine/viewport/options; output counts/errors verified each sample",
+  "before": {
+    "count": 200,
+    "items": 400,
+    "samples": [
+      228,
+      223,
+      214,
+      220,
+      215,
+      221,
+      215,
+      221,
+      211,
+      218
+    ]
+  },
+  "after": {
+    "count": 200,
+    "items": 400,
+    "samples": [
+      203,
+      200,
+      201,
+      201,
+      198,
+      203,
+      193,
+      205,
+      195,
+      203
+    ]
+  },
+  "summary": {
+    "beforeP50Ms": 218,
+    "beforeP95Ms": 228,
+    "afterP50Ms": 201,
+    "afterP95Ms": 205
+  },
+  "limitation": "targeted local comparison, not a replacement for the frozen 100/1000 general workload or minimum-host performance gates"
+}
