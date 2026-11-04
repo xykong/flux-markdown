@@ -165,3 +165,5 @@ Added reversible beforeprint/afterprint grouping of adjacent headings with displ
 Rebuilt the actual application and exported the same 12-item valid corpus again. All three pages were rendered and visually inspected: M05/M09 headings now remain with their formulas, every mathematical item is complete, both cases rows and Chinese text are visible, and the source gutter/numbers are absent. Saved the product output as `output/pdf/issue64-product-math.pdf` and recorded its hash in the checkpoint. This passes this corpus's current-system CLI visual check, not the entire goal's platform/interaction matrix.
 
 Two reversible-print tests pass; full Jest **58 suites / 491 tests** and native/renderer builds pass. The reference PDF remains separate from this actual product PDF.
+
+PDFKit annotation inspection found no Link annotations in the current Quartz/AppKit print output. Equation reference text is visible, but clickable PDF navigation is not preserved by this path; standalone HTML reference navigation remains a separate requirement. This limitation must remain explicit in the final acceptance report.
