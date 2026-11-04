@@ -307,3 +307,11 @@ While host replacement authorization remains pending, added a direct comparison 
 Added label-renaming variants including spaces, underscores, inherited-looking names and supplementary Unicode; equation/reference reordering and unrelated-prose insertion preserve explicit values. Real output tests confirm references to unnumbered or failed declarations remain unresolved and do not leave href targets.
 
 All 28 focused identity/engine tests pass; full Jest **59 suites / 514 tests** and OpenSpec strict validation pass. These strengthen semantic evidence, but do not replace the pending human reviewer, minimum-platform, VoiceOver, memory and actual QuickLook/Finder gates.
+
+## Current output performance and DOM publication
+
+Re-ran the production benchmark after switching to direct SVG paths: 100-item p50/p95 **81/93 ms**, 1000-item **1273/1416 ms**, 1000-item DOM 8,809,288 bytes. All output counts/error checks passed. Saved samples in `production-direct-path-benchmark.json`; these meet the frozen current-reference-machine warm thresholds but not cold/no-math/minimum-host acceptance.
+
+Removed an additional full serialization/reparse when publishing the already-sanitized staged DOM. Nodes now move through a DocumentFragment into the preview; generation checks and sanitization remain before publication. This avoids constructing a duplicate live SVG tree from the same HTML. Full 514 tests and three native math keyboard/reference/option cases pass; build/typecheck pass.
+
+Repeated the same memory recovery workload after this change; raw data is in `memory-dom-move-experiment.json`. The process remained correctly identified throughout, and DOM/math/staging cleanup checks stayed stable. This is another bounded reduction in allocation work, not a declaration that high native RSS or the final memory gate is solved. Host-install authorization remains pending and no installation was replaced.

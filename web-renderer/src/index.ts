@@ -1067,7 +1067,11 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         logToSwift(`[renderMarkdown:${callId}] UPDATING DOM innerHTML`);
         if (!isCurrent()) return;
         searchEngine?.clear();
-        outputDiv.innerHTML = tempDiv.innerHTML;
+        // The staged tree is already sanitized. Move it into the live preview
+        // rather than serializing/reparsing thousands of mathematical SVG nodes.
+        const renderedFragment = document.createDocumentFragment();
+        while (tempDiv.firstChild) renderedFragment.appendChild(tempDiv.firstChild);
+        outputDiv.replaceChildren(renderedFragment);
         for (const source of mathSources) {
             const nodes = outputDiv.querySelectorAll(`[data-math-id="${source.id}"]`);
             if (nodes.length === 1) rememberMathSource(nodes[0], source.raw);
