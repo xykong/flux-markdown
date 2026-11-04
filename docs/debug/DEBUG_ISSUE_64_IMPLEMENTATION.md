@@ -285,3 +285,11 @@ Added a real-window WKWebView integration case that focuses the formula copy but
 The same native case focuses the named HTML formula-reference link, sends Return, and verifies the below-viewport target moves into view. This proves native activation reaches the real navigation code, not merely target existence. The isolated pasteboard is released afterward and the prior foreground application restored.
 
 The selected case passes, followed by the complete `scripts/test-renderer-webkit.sh` run: **all 29 real WebKit cases pass**. This validates shared native renderer/bridge behavior; full App/QuickLook/Finder UI and VoiceOver speech/platform coverage remain explicit outstanding gates.
+
+## Actual App document window observation
+
+Rebuilt Debug with the documented local target override and opened the derived valid corpus in the actual application. Used the computer-use skill's version-matched Orca guide/capabilities and targeted the exact new process/window. The native tree exposes the mathematical semantic containers, copy controls and named `(1)` reference. After TOC M08 activation, a fresh settled observation shows breadcrumb M08, position 72%, and the screenshot displays the complete matrix and both cases rows.
+
+Saved the test-document-only tree, screenshot and scope in `docs/research/issue64/app-window/`. These are actual App observations, unlike the earlier standalone WKWebView probes. They do not prove VoiceOver speech.
+
+Background AXPress and one coordinate retry on the numbered reference did not establish navigation to the equation. A foreground observation attempt found the test window gone; fresh window inventory showed an unrelated document. No contents or controls of that unrelated window were accessed. Actual App reference activation therefore remains unverified; do not replace it with the passing native test-harness result.
