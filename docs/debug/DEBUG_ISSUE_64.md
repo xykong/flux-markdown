@@ -83,3 +83,9 @@ GitHub 最新发布为 [v1.42.645](https://github.com/xykong/flux-markdown/relea
 - 相关既有测试：`extended-syntax`、`renderer`、`safe-html`、`yaml-frontmatter`、`github-alerts`，5 个套件、62 个测试通过。
 - Jest 的 GitHub alerts 插件及图表模块存在 mock；不据此声称 Obsidian callout 或真实图表兼容。
 - 未构建或安装 App，未测真实 QuickLook/Finder/WebKit、网络与本地资源加载、窄屏/深色/打印/PDF；没有修改 GitHub issue、标签或发布状态。
+
+## 后续：完整数学能力设计（2026-11-04）
+
+用户进一步要求全面分析、设计完整数学/标签方案及改写实施任务。新设计见 [完整数学渲染方案](../design/ISSUE_64_MATH_RENDERING.md)、[改写后的任务要求](../design/ISSUE_64_TASK_REQUIREMENTS.md) 和 `openspec/changes/add-complete-math-rendering/`。
+
+该扩大目标下推荐验证文档级 MathJax 4 方案，取代本调查最初“先补 KaTeX 输入、以后再讨论引用”的分阶段建议。已新增固定原始语料、Node 与真实本地 scheme WKWebView 的隔离引擎证据；完整产品实现、独立 LaTeX 裁判及实际 QuickLook/Finder/导出验收仍待进行。以上早期调查结果作为历史基线保留。

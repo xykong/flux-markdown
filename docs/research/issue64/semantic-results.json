@@ -1,0 +1,174 @@
+{
+  "engine": "MathJax 4.1.3",
+  "full": {
+    "errors": [
+      "Undefined control sequence \\unknownMarkdownPreviewCommand"
+    ],
+    "math": [
+      {
+        "source": "E = mc^2",
+        "display": false,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"E = mc^2\">\n  <mi data-latex=\"E\">E</mi>\n  <mo data-latex=\"=\">=</mo>\n  <mi data-latex=\"m\">m</mi>\n  <msup data-latex=\"c^2\">\n    <mi data-latex=\"c\">c</mi>\n    <mn data-latex=\"2\">2</mn>\n  </msup>\n</math>"
+      },
+      {
+        "source": "x > 0",
+        "display": false,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"x &gt; 0\">\n  <mi data-latex=\"x\">x</mi>\n  <mo data-latex=\"&gt;\">&gt;</mo>\n  <mn data-latex=\"0\">0</mn>\n</math>"
+      },
+      {
+        "source": "\\sqrt{x^2} = x",
+        "display": false,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\sqrt{x^2} = x\">\n  <msqrt data-latex=\"\\sqrt{x^2}\">\n    <msup data-latex=\"x^2\">\n      <mi data-latex=\"x\">x</mi>\n      <mn data-latex=\"2\">2</mn>\n    </msup>\n  </msqrt>\n  <mo data-latex=\"=\">=</mo>\n  <mi data-latex=\"x\">x</mi>\n</math>"
+      },
+      {
+        "source": "a^2 + b^2 = c^2",
+        "display": false,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"a^2 + b^2 = c^2\">\n  <msup data-latex=\"a^2\">\n    <mi data-latex=\"a\">a</mi>\n    <mn data-latex=\"2\">2</mn>\n  </msup>\n  <mo data-latex=\"+\">+</mo>\n  <msup data-latex=\"b^2\">\n    <mi data-latex=\"b\">b</mi>\n    <mn data-latex=\"2\">2</mn>\n  </msup>\n  <mo data-latex=\"=\">=</mo>\n  <msup data-latex=\"c^2\">\n    <mi data-latex=\"c\">c</mi>\n    <mn data-latex=\"2\">2</mn>\n  </msup>\n</math>"
+      },
+      {
+        "source": "\\int_{-\\infty}^{\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}",
+        "display": true,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\int_{-\\infty}^{\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}\" display=\"block\">\n  <msubsup data-latex=\"\\int_{-\\infty}^{\\infty}\">\n    <mo data-latex=\"\\int\">&#x222B;</mo>\n    <mrow data-mjx-texclass=\"ORD\" data-latex=\"{-\\infty}\">\n      <mo data-latex=\"-\">&#x2212;</mo>\n      <mi mathvariant=\"normal\" data-latex=\"\\infty\">&#x221E;</mi>\n    </mrow>\n    <mrow data-mjx-texclass=\"ORD\" data-latex=\"{\\infty}\">\n      <mi mathvariant=\"normal\" data-latex=\"\\infty\">&#x221E;</mi>\n    </mrow>\n  </msubsup>\n  <msup data-latex=\"e^{-x^2}\">\n    <mi data-latex=\"e\">e</mi>\n    <mrow data-mjx-texclass=\"ORD\" data-latex=\"{-x^2}\">\n      <mo data-latex=\"-\">&#x2212;</mo>\n      <msup data-latex=\"x^2\">\n        <mi data-latex=\"x\">x</mi>\n        <mn data-latex=\"2\">2</mn>\n      </msup>\n    </mrow>\n  </msup>\n  <mspace width=\"0.167em\" data-latex=\"\\,\"></mspace>\n  <mi data-latex=\"d\">d</mi>\n  <mi data-latex=\"x\">x</mi>\n  <mo data-latex=\"=\">=</mo>\n  <msqrt data-latex=\"\\sqrt{\\pi}\">\n    <mi data-latex=\"\\pi\">&#x3C0;</mi>\n  </msqrt>\n</math>"
+      },
+      {
+        "source": "\\sum_{k=1}^{n} k = \\frac{n(n+1)}{2}",
+        "display": true,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\sum_{k=1}^{n} k = \\frac{n(n+1)}{2}\" display=\"block\">\n  <munderover data-latex=\"\\sum_{k=1}^{n}\">\n    <mo data-latex=\"\\sum\">&#x2211;</mo>\n    <mrow data-mjx-texclass=\"ORD\" data-latex=\"{k=1}\">\n      <mi data-latex=\"k\">k</mi>\n      <mo data-latex=\"=\">=</mo>\n      <mn data-latex=\"1\">1</mn>\n    </mrow>\n    <mrow data-mjx-texclass=\"ORD\" data-latex=\"{n}\">\n      <mi data-latex=\"n\">n</mi>\n    </mrow>\n  </munderover>\n  <mi data-latex=\"k\">k</mi>\n  <mo data-latex=\"=\">=</mo>\n  <mfrac data-latex=\"\\frac{n(n+1)}{2}\">\n    <mrow data-latex=\"n(n+1)\">\n      <mi data-latex=\"n\">n</mi>\n      <mo data-latex=\"(\" stretchy=\"false\">(</mo>\n      <mi data-latex=\"n\">n</mi>\n      <mo data-latex=\"+\">+</mo>\n      <mn data-latex=\"1\">1</mn>\n      <mo data-latex=\")\" stretchy=\"false\">)</mo>\n    </mrow>\n    <mn data-latex=\"2\">2</mn>\n  </mfrac>\n</math>"
+      },
+      {
+        "source": "\\begin{aligned}\nf(x) &= \\frac{x^2 + 1}{x - 1} \\\\\n\\lim_{n\\to\\infty}\\left(1+\\frac{1}{n}\\right)^n &= e \\\\\nP(A\\mid B) &= \\frac{P(B\\mid A)P(A)}{P(B)} \\quad \\text{条件概率}\n\\end{aligned}",
+        "display": true,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\begin{aligned}\nf(x) &amp;= \\frac{x^2 + 1}{x - 1} \\\\\n\\lim_{n\\to\\infty}\\left(1+\\frac{1}{n}\\right)^n &amp;= e \\\\\nP(A\\mid B) &amp;= \\frac{P(B\\mid A)P(A)}{P(B)} \\quad \\text{&#x6761;&#x4EF6;&#x6982;&#x7387;}\n\\end{aligned}\" display=\"block\">\n  <mtable displaystyle=\"true\" columnalign=\"right left\" columnspacing=\"0em\" rowspacing=\"3pt\" data-break-align=\"bottom top\" data-latex=\"\\begin{aligned}\nf(x) &amp;= \\frac{x^2 + 1}{x - 1} \\\\\n\\lim_{n\\to\\infty}\\left(1+\\frac{1}{n}\\right)^n &amp;= e \\\\\nP(A\\mid B) &amp;= \\frac{P(B\\mid A)P(A)}{P(B)} \\quad \\text{&#x6761;&#x4EF6;&#x6982;&#x7387;}\n\\end{aligned}\">\n    <mtr data-latex=\"\n\">\n      <mtd>\n        <mi data-latex=\"f\">f</mi>\n        <mo data-latex=\"(\" stretchy=\"false\">(</mo>\n        <mi data-latex=\"x\">x</mi>\n        <mo data-latex=\")\" stretchy=\"false\">)</mo>\n      </mtd>\n      <mtd>\n        <mstyle indentshift=\"2em\">\n          <mi></mi>\n          <mo data-latex=\"=\">=</mo>\n          <mfrac data-latex=\"\\frac{x^2 + 1}{x - 1}\">\n            <mrow data-latex=\"x^2  + 1\">\n              <msup data-latex=\"x^2\">\n                <mi data-latex=\"x\">x</mi>\n                <mn data-latex=\"2\">2</mn>\n              </msup>\n              <mo data-latex=\"+\">+</mo>\n              <mn data-latex=\"1\">1</mn>\n            </mrow>\n            <mrow data-latex=\"x - 1\">\n              <mi data-latex=\"x\">x</mi>\n              <mo data-latex=\"-\">&#x2212;</mo>\n              <mn data-latex=\"1\">1</mn>\n            </mrow>\n          </mfrac>\n        </mstyle>\n      </mtd>\n    </mtr>\n    <mtr data-latex=\"\n\">\n      <mtd>\n        <munder data-latex=\"\\lim_{n\\to\\infty}\">\n          <mo data-mjx-texclass=\"OP\" movablelimits=\"true\" data-latex=\"\\lim\">lim</mo>\n          <mrow data-mjx-texclass=\"ORD\" data-latex=\"{n\\to\\infty}\">\n            <mi data-latex=\"n\">n</mi>\n            <mo accent=\"false\" stretchy=\"false\" data-latex=\"\\to\">&#x2192;</mo>\n            <mi mathvariant=\"normal\" data-latex=\"\\infty\">&#x221E;</mi>\n          </mrow>\n        </munder>\n        <msup data-latex=\"\\left(1+\\frac{1}{n}\\right)^n\">\n          <mrow data-mjx-texclass=\"INNER\" data-latex=\"\\left(1+\\frac{1}{n}\\right)\">\n            <mo data-mjx-texclass=\"OPEN\" data-latex=\"\\left(\">(</mo>\n            <mn data-latex=\"1\">1</mn>\n            <mo data-latex=\"+\">+</mo>\n            <mfrac data-latex=\"\\frac{1}{n}\">\n              <mn data-latex=\"1\">1</mn>\n              <mi data-latex=\"n\">n</mi>\n            </mfrac>\n            <mo data-mjx-texclass=\"CLOSE\" data-latex=\"\\right)\">)</mo>\n          </mrow>\n          <mi data-latex=\"n\">n</mi>\n        </msup>\n      </mtd>\n      <mtd>\n        <mstyle indentshift=\"2em\">\n          <mi></mi>\n          <mo data-latex=\"=\">=</mo>\n          <mi data-latex=\"e\">e</mi>\n        </mstyle>\n      </mtd>\n    </mtr>\n    <mtr data-latex=\"\n\">\n      <mtd>\n        <mi data-latex=\"P\">P</mi>\n        <mo data-latex=\"(\" stretchy=\"false\">(</mo>\n        <mi data-latex=\"A\">A</mi>\n        <mo data-latex=\"\\mid\">&#x2223;</mo>\n        <mi data-latex=\"B\">B</mi>\n        <mo data-latex=\")\" stretchy=\"false\">)</mo>\n      </mtd>\n      <mtd>\n        <mstyle indentshift=\"2em\">\n          <mi></mi>\n          <mo data-latex=\"=\">=</mo>\n          <mfrac data-latex=\"\\frac{P(B\\mid A)P(A)}{P(B)}\">\n            <mrow data-latex=\"P(B\\mid A)P(A)\">\n              <mi data-latex=\"P\">P</mi>\n              <mo data-latex=\"(\" stretchy=\"false\">(</mo>\n              <mi data-latex=\"B\">B</mi>\n              <mo data-latex=\"\\mid\">&#x2223;</mo>\n              <mi data-latex=\"A\">A</mi>\n              <mo data-latex=\")\" stretchy=\"false\">)</mo>\n              <mi data-latex=\"P\">P</mi>\n              <mo data-latex=\"(\" stretchy=\"false\">(</mo>\n              <mi data-latex=\"A\">A</mi>\n              <mo data-latex=\")\" stretchy=\"false\">)</mo>\n            </mrow>\n            <mrow data-latex=\"P(B)\">\n              <mi data-latex=\"P\">P</mi>\n              <mo data-latex=\"(\" stretchy=\"false\">(</mo>\n              <mi data-latex=\"B\">B</mi>\n              <mo data-latex=\")\" stretchy=\"false\">)</mo>\n            </mrow>\n          </mfrac>\n          <mspace width=\"1em\" data-latex=\"\\quad\"></mspace>\n          <mtext data-latex=\"\\text{&#x6761;&#x4EF6;&#x6982;&#x7387;}\">&#x6761;&#x4EF6;&#x6982;&#x7387;</mtext>\n        </mstyle>\n      </mtd>\n    </mtr>\n  </mtable>\n</math>"
+      },
+      {
+        "source": "A = \\begin{bmatrix}1 & 2 \\\\ 3 & 4\\end{bmatrix},\\qquad\ng(x) = \\begin{cases}x^2, & x \\ge 0 \\\\ -x, & x < 0\\end{cases}",
+        "display": true,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"A = \\begin{bmatrix}1 &amp; 2 \\\\ 3 &amp; 4\\end{bmatrix},\\qquad\ng(x) = \\begin{cases}x^2, &amp; x \\ge 0 \\\\ -x, &amp; x &lt; 0\\end{cases}\" display=\"block\">\n  <mi data-latex=\"A\">A</mi>\n  <mo data-latex=\"=\">=</mo>\n  <mrow data-mjx-texclass=\"INNER\" data-latex=\"{bmatrix}\">\n    <mo data-mjx-texclass=\"OPEN\">[</mo>\n    <mtable columnspacing=\"1em\" rowspacing=\"4pt\">\n      <mtr>\n        <mtd>\n          <mn data-latex=\"1\">1</mn>\n        </mtd>\n        <mtd>\n          <mn data-latex=\"2\">2</mn>\n        </mtd>\n      </mtr>\n      <mtr>\n        <mtd>\n          <mn data-latex=\"3\">3</mn>\n        </mtd>\n        <mtd>\n          <mn data-latex=\"4\">4</mn>\n        </mtd>\n      </mtr>\n    </mtable>\n    <mo data-mjx-texclass=\"CLOSE\">]</mo>\n  </mrow>\n  <mo data-latex=\",\">,</mo>\n  <mspace width=\"2em\" data-latex=\"\\qquad\"></mspace>\n  <mi data-latex=\"g\">g</mi>\n  <mo data-latex=\"(\" stretchy=\"false\">(</mo>\n  <mi data-latex=\"x\">x</mi>\n  <mo data-latex=\")\" stretchy=\"false\">)</mo>\n  <mo data-latex=\"=\">=</mo>\n  <mrow data-mjx-texclass=\"INNER\" data-latex=\"{cases}\">\n    <mo data-mjx-texclass=\"OPEN\">{</mo>\n    <mtable columnspacing=\"1em\" rowspacing=\".2em\" columnalign=\"left left\">\n      <mtr>\n        <mtd>\n          <msup data-latex=\"x^2\">\n            <mi data-latex=\"x\">x</mi>\n            <mn data-latex=\"2\">2</mn>\n          </msup>\n          <mo data-latex=\",\">,</mo>\n        </mtd>\n        <mtd>\n          <mi data-latex=\"x\">x</mi>\n          <mo data-latex=\"\\ge\">&#x2265;</mo>\n          <mn data-latex=\"0\">0</mn>\n        </mtd>\n      </mtr>\n      <mtr>\n        <mtd>\n          <mo data-latex=\"-\">&#x2212;</mo>\n          <mi data-latex=\"x\">x</mi>\n          <mo data-latex=\",\">,</mo>\n        </mtd>\n        <mtd>\n          <mi data-latex=\"x\">x</mi>\n          <mo data-latex=\"&lt;\">&lt;</mo>\n          <mn data-latex=\"0\">0</mn>\n        </mtd>\n      </mtr>\n    </mtable>\n    <mo data-mjx-texclass=\"CLOSE\" fence=\"true\" stretchy=\"true\" symmetric=\"true\"></mo>\n  </mrow>\n</math>"
+      },
+      {
+        "source": "a^2 + b^2 = c^2 \\tag{1}\\label{eq:pythagoras}",
+        "display": true,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"a^2 + b^2 = c^2 \\tag{1}\\label{eq:pythagoras}\" display=\"block\">\n  <mtable displaystyle=\"true\" data-latex=\"a^2  + b^2  = c^2  \\tag{1}\\label{eq:pythagoras}\">\n    <mlabeledtr>\n      <mtd id=\"mjx-eqn:eq:pythagoras\">\n        <mtext data-latex=\"\\text{(}\">(</mtext>\n        <mtext data-latex=\"\\text{1}\">1</mtext>\n        <mtext data-latex=\"\\text{)}\">)</mtext>\n      </mtd>\n      <mtd>\n        <msup data-latex=\"a^2\">\n          <mi data-latex=\"a\">a</mi>\n          <mn data-latex=\"2\">2</mn>\n        </msup>\n        <mo data-latex=\"+\">+</mo>\n        <msup data-latex=\"b^2\">\n          <mi data-latex=\"b\">b</mi>\n          <mn data-latex=\"2\">2</mn>\n        </msup>\n        <mo data-latex=\"=\">=</mo>\n        <msup data-latex=\"c^2\">\n          <mi data-latex=\"c\">c</mi>\n          <mn data-latex=\"2\">2</mn>\n        </msup>\n      </mtd>\n    </mlabeledtr>\n  </mtable>\n</math>"
+      },
+      {
+        "source": "\\eqref{eq:pythagoras}",
+        "display": false,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\eqref{eq:pythagoras}\">\n  <mrow href=\"#mjx-eqn%3Aeq%3Apythagoras\" class=\"MathJax_ref\" data-latex=\"\\eqref{eq:pythagoras}\">\n    <mtext>(1)</mtext>\n  </mrow>\n</math>"
+      },
+      {
+        "source": "\\nabla \\cdot \\mathbf{E} = \\frac{\\rho}{\\varepsilon_0}",
+        "display": true,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\nabla \\cdot \\mathbf{E} = \\frac{\\rho}{\\varepsilon_0}\" display=\"block\">\n  <mi mathvariant=\"normal\" data-latex=\"\\nabla\">&#x2207;</mi>\n  <mo data-latex=\"\\cdot\">&#x22C5;</mo>\n  <mrow data-mjx-texclass=\"ORD\" data-latex=\"\\mathbf{E}\">\n    <mi mathvariant=\"bold\" data-latex=\"E\">E</mi>\n  </mrow>\n  <mo data-latex=\"=\">=</mo>\n  <mfrac data-latex=\"\\frac{\\rho}{\\varepsilon_0}\">\n    <mi data-latex=\"\\rho\">&#x3C1;</mi>\n    <msub data-latex=\"\\varepsilon_0\">\n      <mi data-latex=\"\\varepsilon\">&#x3B5;</mi>\n      <mn data-latex=\"0\">0</mn>\n    </msub>\n  </mfrac>\n</math>"
+      },
+      {
+        "source": "\\unknownMarkdownPreviewCommand{x}",
+        "display": false,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\unknownMarkdownPreviewCommand{x}\">\n  <merror data-mjx-error=\"Undefined control sequence \\unknownMarkdownPreviewCommand\">\n    <mtext>Undefined control sequence \\unknownMarkdownPreviewCommand</mtext>\n  </merror>\n</math>"
+      },
+      {
+        "source": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><msup><mi>y</mi><mn>2</mn></msup><mo>=</mo><msup><mi>z</mi><mn>2</mn></msup></mrow></math>",
+        "display": false,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\">\n  <mrow>\n    <msup>\n      <mi>x</mi>\n      <mn>2</mn>\n    </msup>\n    <mo>+</mo>\n    <msup>\n      <mi>y</mi>\n      <mn>2</mn>\n    </msup>\n    <mo>=</mo>\n    <msup>\n      <mi>z</mi>\n      <mn>2</mn>\n    </msup>\n  </mrow>\n</math>"
+      }
+    ]
+  },
+  "edge": {
+    "errors": [
+      "Label 'eq:f' multiply defined"
+    ],
+    "math": [
+      {
+        "source": "\\eqref{eq:f}",
+        "display": false,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\eqref{eq:f}\">\n  <mrow href=\"#mjx-eqn%3Aeq%3Af\" class=\"MathJax_ref\" data-latex=\"\\eqref{eq:f}\">\n    <mtext>(A)</mtext>\n  </mrow>\n</math>"
+      },
+      {
+        "source": "y=x+1\\tag{A}\\label{eq:f}",
+        "display": true,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"y=x+1\\tag{A}\\label{eq:f}\" display=\"block\">\n  <mtable displaystyle=\"true\" data-latex=\"y=x+1\\tag{A}\\label{eq:f}\">\n    <mlabeledtr>\n      <mtd id=\"mjx-eqn:eq:f\">\n        <mtext data-latex=\"\\text{(}\">(</mtext>\n        <mtext data-latex=\"\\text{A}\">A</mtext>\n        <mtext data-latex=\"\\text{)}\">)</mtext>\n      </mtd>\n      <mtd>\n        <mi data-latex=\"y\">y</mi>\n        <mo data-latex=\"=\">=</mo>\n        <mi data-latex=\"x\">x</mi>\n        <mo data-latex=\"+\">+</mo>\n        <mn data-latex=\"\\label{eq:f}\">1</mn>\n      </mtd>\n    </mlabeledtr>\n  </mtable>\n</math>"
+      },
+      {
+        "source": "y=x+2\\tag{B}\\label{eq:f}",
+        "display": true,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"y=x+2\\tag{B}\\label{eq:f}\" display=\"block\">\n  <merror data-mjx-error=\"Label 'eq:f' multiply defined\">\n    <mtext>Label 'eq:f' multiply defined</mtext>\n  </merror>\n</math>"
+      },
+      {
+        "source": "\\eqref{eq:absent}",
+        "display": false,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\eqref{eq:absent}\">\n  <mrow href=\"#\" class=\"MathJax_ref\" data-latex=\"\\eqref{eq:absent}\">\n    <mtext>(???)</mtext>\n  </mrow>\n</math>"
+      }
+    ]
+  },
+  "repeat": {
+    "errors": [
+      "Undefined control sequence \\unknownMarkdownPreviewCommand"
+    ],
+    "math": [
+      {
+        "source": "E = mc^2",
+        "display": false,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"E = mc^2\">\n  <mi data-latex=\"E\">E</mi>\n  <mo data-latex=\"=\">=</mo>\n  <mi data-latex=\"m\">m</mi>\n  <msup data-latex=\"c^2\">\n    <mi data-latex=\"c\">c</mi>\n    <mn data-latex=\"2\">2</mn>\n  </msup>\n</math>"
+      },
+      {
+        "source": "x > 0",
+        "display": false,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"x &gt; 0\">\n  <mi data-latex=\"x\">x</mi>\n  <mo data-latex=\"&gt;\">&gt;</mo>\n  <mn data-latex=\"0\">0</mn>\n</math>"
+      },
+      {
+        "source": "\\sqrt{x^2} = x",
+        "display": false,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\sqrt{x^2} = x\">\n  <msqrt data-latex=\"\\sqrt{x^2}\">\n    <msup data-latex=\"x^2\">\n      <mi data-latex=\"x\">x</mi>\n      <mn data-latex=\"2\">2</mn>\n    </msup>\n  </msqrt>\n  <mo data-latex=\"=\">=</mo>\n  <mi data-latex=\"x\">x</mi>\n</math>"
+      },
+      {
+        "source": "a^2 + b^2 = c^2",
+        "display": false,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"a^2 + b^2 = c^2\">\n  <msup data-latex=\"a^2\">\n    <mi data-latex=\"a\">a</mi>\n    <mn data-latex=\"2\">2</mn>\n  </msup>\n  <mo data-latex=\"+\">+</mo>\n  <msup data-latex=\"b^2\">\n    <mi data-latex=\"b\">b</mi>\n    <mn data-latex=\"2\">2</mn>\n  </msup>\n  <mo data-latex=\"=\">=</mo>\n  <msup data-latex=\"c^2\">\n    <mi data-latex=\"c\">c</mi>\n    <mn data-latex=\"2\">2</mn>\n  </msup>\n</math>"
+      },
+      {
+        "source": "\\int_{-\\infty}^{\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}",
+        "display": true,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\int_{-\\infty}^{\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}\" display=\"block\">\n  <msubsup data-latex=\"\\int_{-\\infty}^{\\infty}\">\n    <mo data-latex=\"\\int\">&#x222B;</mo>\n    <mrow data-mjx-texclass=\"ORD\" data-latex=\"{-\\infty}\">\n      <mo data-latex=\"-\">&#x2212;</mo>\n      <mi mathvariant=\"normal\" data-latex=\"\\infty\">&#x221E;</mi>\n    </mrow>\n    <mrow data-mjx-texclass=\"ORD\" data-latex=\"{\\infty}\">\n      <mi mathvariant=\"normal\" data-latex=\"\\infty\">&#x221E;</mi>\n    </mrow>\n  </msubsup>\n  <msup data-latex=\"e^{-x^2}\">\n    <mi data-latex=\"e\">e</mi>\n    <mrow data-mjx-texclass=\"ORD\" data-latex=\"{-x^2}\">\n      <mo data-latex=\"-\">&#x2212;</mo>\n      <msup data-latex=\"x^2\">\n        <mi data-latex=\"x\">x</mi>\n        <mn data-latex=\"2\">2</mn>\n      </msup>\n    </mrow>\n  </msup>\n  <mspace width=\"0.167em\" data-latex=\"\\,\"></mspace>\n  <mi data-latex=\"d\">d</mi>\n  <mi data-latex=\"x\">x</mi>\n  <mo data-latex=\"=\">=</mo>\n  <msqrt data-latex=\"\\sqrt{\\pi}\">\n    <mi data-latex=\"\\pi\">&#x3C0;</mi>\n  </msqrt>\n</math>"
+      },
+      {
+        "source": "\\sum_{k=1}^{n} k = \\frac{n(n+1)}{2}",
+        "display": true,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\sum_{k=1}^{n} k = \\frac{n(n+1)}{2}\" display=\"block\">\n  <munderover data-latex=\"\\sum_{k=1}^{n}\">\n    <mo data-latex=\"\\sum\">&#x2211;</mo>\n    <mrow data-mjx-texclass=\"ORD\" data-latex=\"{k=1}\">\n      <mi data-latex=\"k\">k</mi>\n      <mo data-latex=\"=\">=</mo>\n      <mn data-latex=\"1\">1</mn>\n    </mrow>\n    <mrow data-mjx-texclass=\"ORD\" data-latex=\"{n}\">\n      <mi data-latex=\"n\">n</mi>\n    </mrow>\n  </munderover>\n  <mi data-latex=\"k\">k</mi>\n  <mo data-latex=\"=\">=</mo>\n  <mfrac data-latex=\"\\frac{n(n+1)}{2}\">\n    <mrow data-latex=\"n(n+1)\">\n      <mi data-latex=\"n\">n</mi>\n      <mo data-latex=\"(\" stretchy=\"false\">(</mo>\n      <mi data-latex=\"n\">n</mi>\n      <mo data-latex=\"+\">+</mo>\n      <mn data-latex=\"1\">1</mn>\n      <mo data-latex=\")\" stretchy=\"false\">)</mo>\n    </mrow>\n    <mn data-latex=\"2\">2</mn>\n  </mfrac>\n</math>"
+      },
+      {
+        "source": "\\begin{aligned}\nf(x) &= \\frac{x^2 + 1}{x - 1} \\\\\n\\lim_{n\\to\\infty}\\left(1+\\frac{1}{n}\\right)^n &= e \\\\\nP(A\\mid B) &= \\frac{P(B\\mid A)P(A)}{P(B)} \\quad \\text{条件概率}\n\\end{aligned}",
+        "display": true,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\begin{aligned}\nf(x) &amp;= \\frac{x^2 + 1}{x - 1} \\\\\n\\lim_{n\\to\\infty}\\left(1+\\frac{1}{n}\\right)^n &amp;= e \\\\\nP(A\\mid B) &amp;= \\frac{P(B\\mid A)P(A)}{P(B)} \\quad \\text{&#x6761;&#x4EF6;&#x6982;&#x7387;}\n\\end{aligned}\" display=\"block\">\n  <mtable displaystyle=\"true\" columnalign=\"right left\" columnspacing=\"0em\" rowspacing=\"3pt\" data-break-align=\"bottom top\" data-latex=\"\\begin{aligned}\nf(x) &amp;= \\frac{x^2 + 1}{x - 1} \\\\\n\\lim_{n\\to\\infty}\\left(1+\\frac{1}{n}\\right)^n &amp;= e \\\\\nP(A\\mid B) &amp;= \\frac{P(B\\mid A)P(A)}{P(B)} \\quad \\text{&#x6761;&#x4EF6;&#x6982;&#x7387;}\n\\end{aligned}\">\n    <mtr data-latex=\"\n\">\n      <mtd>\n        <mi data-latex=\"f\">f</mi>\n        <mo data-latex=\"(\" stretchy=\"false\">(</mo>\n        <mi data-latex=\"x\">x</mi>\n        <mo data-latex=\")\" stretchy=\"false\">)</mo>\n      </mtd>\n      <mtd>\n        <mstyle indentshift=\"2em\">\n          <mi></mi>\n          <mo data-latex=\"=\">=</mo>\n          <mfrac data-latex=\"\\frac{x^2 + 1}{x - 1}\">\n            <mrow data-latex=\"x^2  + 1\">\n              <msup data-latex=\"x^2\">\n                <mi data-latex=\"x\">x</mi>\n                <mn data-latex=\"2\">2</mn>\n              </msup>\n              <mo data-latex=\"+\">+</mo>\n              <mn data-latex=\"1\">1</mn>\n            </mrow>\n            <mrow data-latex=\"x - 1\">\n              <mi data-latex=\"x\">x</mi>\n              <mo data-latex=\"-\">&#x2212;</mo>\n              <mn data-latex=\"1\">1</mn>\n            </mrow>\n          </mfrac>\n        </mstyle>\n      </mtd>\n    </mtr>\n    <mtr data-latex=\"\n\">\n      <mtd>\n        <munder data-latex=\"\\lim_{n\\to\\infty}\">\n          <mo data-mjx-texclass=\"OP\" movablelimits=\"true\" data-latex=\"\\lim\">lim</mo>\n          <mrow data-mjx-texclass=\"ORD\" data-latex=\"{n\\to\\infty}\">\n            <mi data-latex=\"n\">n</mi>\n            <mo accent=\"false\" stretchy=\"false\" data-latex=\"\\to\">&#x2192;</mo>\n            <mi mathvariant=\"normal\" data-latex=\"\\infty\">&#x221E;</mi>\n          </mrow>\n        </munder>\n        <msup data-latex=\"\\left(1+\\frac{1}{n}\\right)^n\">\n          <mrow data-mjx-texclass=\"INNER\" data-latex=\"\\left(1+\\frac{1}{n}\\right)\">\n            <mo data-mjx-texclass=\"OPEN\" data-latex=\"\\left(\">(</mo>\n            <mn data-latex=\"1\">1</mn>\n            <mo data-latex=\"+\">+</mo>\n            <mfrac data-latex=\"\\frac{1}{n}\">\n              <mn data-latex=\"1\">1</mn>\n              <mi data-latex=\"n\">n</mi>\n            </mfrac>\n            <mo data-mjx-texclass=\"CLOSE\" data-latex=\"\\right)\">)</mo>\n          </mrow>\n          <mi data-latex=\"n\">n</mi>\n        </msup>\n      </mtd>\n      <mtd>\n        <mstyle indentshift=\"2em\">\n          <mi></mi>\n          <mo data-latex=\"=\">=</mo>\n          <mi data-latex=\"e\">e</mi>\n        </mstyle>\n      </mtd>\n    </mtr>\n    <mtr data-latex=\"\n\">\n      <mtd>\n        <mi data-latex=\"P\">P</mi>\n        <mo data-latex=\"(\" stretchy=\"false\">(</mo>\n        <mi data-latex=\"A\">A</mi>\n        <mo data-latex=\"\\mid\">&#x2223;</mo>\n        <mi data-latex=\"B\">B</mi>\n        <mo data-latex=\")\" stretchy=\"false\">)</mo>\n      </mtd>\n      <mtd>\n        <mstyle indentshift=\"2em\">\n          <mi></mi>\n          <mo data-latex=\"=\">=</mo>\n          <mfrac data-latex=\"\\frac{P(B\\mid A)P(A)}{P(B)}\">\n            <mrow data-latex=\"P(B\\mid A)P(A)\">\n              <mi data-latex=\"P\">P</mi>\n              <mo data-latex=\"(\" stretchy=\"false\">(</mo>\n              <mi data-latex=\"B\">B</mi>\n              <mo data-latex=\"\\mid\">&#x2223;</mo>\n              <mi data-latex=\"A\">A</mi>\n              <mo data-latex=\")\" stretchy=\"false\">)</mo>\n              <mi data-latex=\"P\">P</mi>\n              <mo data-latex=\"(\" stretchy=\"false\">(</mo>\n              <mi data-latex=\"A\">A</mi>\n              <mo data-latex=\")\" stretchy=\"false\">)</mo>\n            </mrow>\n            <mrow data-latex=\"P(B)\">\n              <mi data-latex=\"P\">P</mi>\n              <mo data-latex=\"(\" stretchy=\"false\">(</mo>\n              <mi data-latex=\"B\">B</mi>\n              <mo data-latex=\")\" stretchy=\"false\">)</mo>\n            </mrow>\n          </mfrac>\n          <mspace width=\"1em\" data-latex=\"\\quad\"></mspace>\n          <mtext data-latex=\"\\text{&#x6761;&#x4EF6;&#x6982;&#x7387;}\">&#x6761;&#x4EF6;&#x6982;&#x7387;</mtext>\n        </mstyle>\n      </mtd>\n    </mtr>\n  </mtable>\n</math>"
+      },
+      {
+        "source": "A = \\begin{bmatrix}1 & 2 \\\\ 3 & 4\\end{bmatrix},\\qquad\ng(x) = \\begin{cases}x^2, & x \\ge 0 \\\\ -x, & x < 0\\end{cases}",
+        "display": true,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"A = \\begin{bmatrix}1 &amp; 2 \\\\ 3 &amp; 4\\end{bmatrix},\\qquad\ng(x) = \\begin{cases}x^2, &amp; x \\ge 0 \\\\ -x, &amp; x &lt; 0\\end{cases}\" display=\"block\">\n  <mi data-latex=\"A\">A</mi>\n  <mo data-latex=\"=\">=</mo>\n  <mrow data-mjx-texclass=\"INNER\" data-latex=\"{bmatrix}\">\n    <mo data-mjx-texclass=\"OPEN\">[</mo>\n    <mtable columnspacing=\"1em\" rowspacing=\"4pt\">\n      <mtr>\n        <mtd>\n          <mn data-latex=\"1\">1</mn>\n        </mtd>\n        <mtd>\n          <mn data-latex=\"2\">2</mn>\n        </mtd>\n      </mtr>\n      <mtr>\n        <mtd>\n          <mn data-latex=\"3\">3</mn>\n        </mtd>\n        <mtd>\n          <mn data-latex=\"4\">4</mn>\n        </mtd>\n      </mtr>\n    </mtable>\n    <mo data-mjx-texclass=\"CLOSE\">]</mo>\n  </mrow>\n  <mo data-latex=\",\">,</mo>\n  <mspace width=\"2em\" data-latex=\"\\qquad\"></mspace>\n  <mi data-latex=\"g\">g</mi>\n  <mo data-latex=\"(\" stretchy=\"false\">(</mo>\n  <mi data-latex=\"x\">x</mi>\n  <mo data-latex=\")\" stretchy=\"false\">)</mo>\n  <mo data-latex=\"=\">=</mo>\n  <mrow data-mjx-texclass=\"INNER\" data-latex=\"{cases}\">\n    <mo data-mjx-texclass=\"OPEN\">{</mo>\n    <mtable columnspacing=\"1em\" rowspacing=\".2em\" columnalign=\"left left\">\n      <mtr>\n        <mtd>\n          <msup data-latex=\"x^2\">\n            <mi data-latex=\"x\">x</mi>\n            <mn data-latex=\"2\">2</mn>\n          </msup>\n          <mo data-latex=\",\">,</mo>\n        </mtd>\n        <mtd>\n          <mi data-latex=\"x\">x</mi>\n          <mo data-latex=\"\\ge\">&#x2265;</mo>\n          <mn data-latex=\"0\">0</mn>\n        </mtd>\n      </mtr>\n      <mtr>\n        <mtd>\n          <mo data-latex=\"-\">&#x2212;</mo>\n          <mi data-latex=\"x\">x</mi>\n          <mo data-latex=\",\">,</mo>\n        </mtd>\n        <mtd>\n          <mi data-latex=\"x\">x</mi>\n          <mo data-latex=\"&lt;\">&lt;</mo>\n          <mn data-latex=\"0\">0</mn>\n        </mtd>\n      </mtr>\n    </mtable>\n    <mo data-mjx-texclass=\"CLOSE\" fence=\"true\" stretchy=\"true\" symmetric=\"true\"></mo>\n  </mrow>\n</math>"
+      },
+      {
+        "source": "a^2 + b^2 = c^2 \\tag{1}\\label{eq:pythagoras}",
+        "display": true,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"a^2 + b^2 = c^2 \\tag{1}\\label{eq:pythagoras}\" display=\"block\">\n  <mtable displaystyle=\"true\" data-latex=\"a^2  + b^2  = c^2  \\tag{1}\\label{eq:pythagoras}\">\n    <mlabeledtr>\n      <mtd id=\"mjx-eqn:eq:pythagoras\">\n        <mtext data-latex=\"\\text{(}\">(</mtext>\n        <mtext data-latex=\"\\text{1}\">1</mtext>\n        <mtext data-latex=\"\\text{)}\">)</mtext>\n      </mtd>\n      <mtd>\n        <msup data-latex=\"a^2\">\n          <mi data-latex=\"a\">a</mi>\n          <mn data-latex=\"2\">2</mn>\n        </msup>\n        <mo data-latex=\"+\">+</mo>\n        <msup data-latex=\"b^2\">\n          <mi data-latex=\"b\">b</mi>\n          <mn data-latex=\"2\">2</mn>\n        </msup>\n        <mo data-latex=\"=\">=</mo>\n        <msup data-latex=\"c^2\">\n          <mi data-latex=\"c\">c</mi>\n          <mn data-latex=\"2\">2</mn>\n        </msup>\n      </mtd>\n    </mlabeledtr>\n  </mtable>\n</math>"
+      },
+      {
+        "source": "\\eqref{eq:pythagoras}",
+        "display": false,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\eqref{eq:pythagoras}\">\n  <mrow href=\"#mjx-eqn%3Aeq%3Apythagoras\" class=\"MathJax_ref\" data-latex=\"\\eqref{eq:pythagoras}\">\n    <mtext>(1)</mtext>\n  </mrow>\n</math>"
+      },
+      {
+        "source": "\\nabla \\cdot \\mathbf{E} = \\frac{\\rho}{\\varepsilon_0}",
+        "display": true,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\nabla \\cdot \\mathbf{E} = \\frac{\\rho}{\\varepsilon_0}\" display=\"block\">\n  <mi mathvariant=\"normal\" data-latex=\"\\nabla\">&#x2207;</mi>\n  <mo data-latex=\"\\cdot\">&#x22C5;</mo>\n  <mrow data-mjx-texclass=\"ORD\" data-latex=\"\\mathbf{E}\">\n    <mi mathvariant=\"bold\" data-latex=\"E\">E</mi>\n  </mrow>\n  <mo data-latex=\"=\">=</mo>\n  <mfrac data-latex=\"\\frac{\\rho}{\\varepsilon_0}\">\n    <mi data-latex=\"\\rho\">&#x3C1;</mi>\n    <msub data-latex=\"\\varepsilon_0\">\n      <mi data-latex=\"\\varepsilon\">&#x3B5;</mi>\n      <mn data-latex=\"0\">0</mn>\n    </msub>\n  </mfrac>\n</math>"
+      },
+      {
+        "source": "\\unknownMarkdownPreviewCommand{x}",
+        "display": false,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\unknownMarkdownPreviewCommand{x}\">\n  <merror data-mjx-error=\"Undefined control sequence \\unknownMarkdownPreviewCommand\">\n    <mtext>Undefined control sequence \\unknownMarkdownPreviewCommand</mtext>\n  </merror>\n</math>"
+      },
+      {
+        "source": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><msup><mi>y</mi><mn>2</mn></msup><mo>=</mo><msup><mi>z</mi><mn>2</mn></msup></mrow></math>",
+        "display": false,
+        "mml": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\">\n  <mrow>\n    <msup>\n      <mi>x</mi>\n      <mn>2</mn>\n    </msup>\n    <mo>+</mo>\n    <msup>\n      <mi>y</mi>\n      <mn>2</mn>\n    </msup>\n    <mo>=</mo>\n    <msup>\n      <mi>z</mi>\n      <mn>2</mn>\n    </msup>\n  </mrow>\n</math>"
+      }
+    ]
+  }
+}

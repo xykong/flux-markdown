@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="320" viewBox="0 0 640 320" role="img" aria-labelledby="title desc">
+  <title id="title">Markdown 本地图片测试</title>
+  <desc id="desc">渐变色圆角矩形、彩色几何图形及中英文文字。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef2ff"/>
+      <stop offset="1" stop-color="#e0f2fe"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="624" height="304" rx="24" fill="url(#bg)" stroke="#6366f1" stroke-width="2"/>
+  <circle cx="84" cy="88" r="32" fill="#6366f1"/>
+  <rect x="140" y="56" width="64" height="64" rx="12" fill="#06b6d4"/>
+  <path d="M260 56 296 120 224 120Z" fill="#f59e0b"/>
+  <text x="48" y="188" fill="#0f172a" font-size="32" font-family="system-ui, sans-serif">Markdown 图片测试</text>
+  <text x="48" y="234" fill="#475569" font-size="22" font-family="system-ui, sans-serif">Local SVG · 640 × 320 · 中文 / English</text>
+  <text x="48" y="274" fill="#475569" font-size="16" font-family="system-ui, sans-serif">Check scaling, transparency, colors and relative paths.</text>
+</svg>

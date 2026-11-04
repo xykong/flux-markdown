@@ -1,0 +1,31 @@
+import fs from 'node:fs';
+import {mathjax} from '@mathjax/src/js/mathjax.js';
+import {TeX} from '@mathjax/src/js/input/tex.js';
+import {MathML} from '@mathjax/src/js/input/mathml.js';
+import {SVG} from '@mathjax/src/js/output/svg.js';
+import {liteAdaptor} from '@mathjax/src/js/adaptors/liteAdaptor.js';
+import {RegisterHTMLHandler} from '@mathjax/src/js/handlers/html.js';
+import '@mathjax/src/js/util/asyncLoad/esm.js';
+import '@mathjax/src/js/input/tex/base/BaseConfiguration.js';
+import '@mathjax/src/js/input/tex/ams/AmsConfiguration.js';
+import {SerializedMmlVisitor} from '@mathjax/src/js/core/MmlTree/SerializedMmlVisitor.js';
+const adaptor=liteAdaptor(); RegisterHTMLHandler(adaptor);
+const escape=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const cases=JSON.parse(fs.readFileSync(new URL('cases.json',import.meta.url),'utf8'));
+async function render(cases){
+  const errors=[];
+  const tex=new TeX({packages:['base','ams'],tags:'ams',formatError(jax,e){errors.push(e.message);return jax.formatError(e);}});
+  const svg=new SVG({fontCache:'local'});
+  const input=cases.map(c=>`<section id="${c.id}">${c.kind==='mathml'?c.tex:escape((c.display?'\\[':'\\(')+c.tex+(c.display?'\\]':'\\)'))}</section>`).join('\n');
+  const doc=mathjax.document(input,{InputJax:[tex,new MathML()],OutputJax:svg});
+  await doc.renderPromise();
+  const visitor=new SerializedMmlVisitor();
+  return {errors,html:adaptor.outerHTML(adaptor.root(doc.document)),math:Array.from(doc.math).map(m=>({source:m.math,display:m.display,mml:visitor.visitTree(m.root)}))};
+}
+const full=await render(cases);
+fs.writeFileSync(new URL('semantic-output.html',import.meta.url),full.html);
+const edge=await render([{id:'forward',tex:'\\eqref{eq:f}',display:false},{id:'def',tex:'y=x+1\\tag{A}\\label{eq:f}',display:true},{id:'duplicate',tex:'y=x+2\\tag{B}\\label{eq:f}',display:true},{id:'missing',tex:'\\eqref{eq:absent}',display:false}]);
+const repeat=await render(cases);
+const stripHTML=({html,...rest})=>rest;
+fs.writeFileSync(new URL('semantic-results.json',import.meta.url),JSON.stringify({engine:'MathJax 4.1.3',full:stripHTML(full),edge:stripHTML(edge),repeat:stripHTML(repeat)},null,2));
+console.log(JSON.stringify({fullCount:full.math.length,fullErrors:full.errors,edgeErrors:edge.errors,repeatErrors:repeat.errors}));
