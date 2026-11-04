@@ -1,6 +1,6 @@
 """Sample physical footprint after the fixed workload clears its document.
 
-Usage: python3 profile-footprint.py PROBE_EXECUTABLE OUTPUT_DIRECTORY BUNDLE
+Usage: python3 profile-footprint.py PROBE_EXECUTABLE OUTPUT_DIRECTORY BUNDLE [WORKLOAD]
 The output directory must be new. Only the monitor's newly selected WebContent
 process is inspected. Raw diagnostics omit allocation content and stack traces.
 """
@@ -15,7 +15,8 @@ here = Path(__file__).resolve().parent
 out = Path(sys.argv[2]).resolve()
 out.mkdir(parents=True, exist_ok=False)
 with (out / 'monitor.log').open('w') as log:
-    monitor = subprocess.Popen([sys.executable, str(here / 'monitor-memory.py'), sys.argv[1], str(out), sys.argv[3], str(here / 'memory-footprint.js')], stdout=log, stderr=log)
+    workload = sys.argv[4] if len(sys.argv) > 4 else str(here / 'memory-footprint.js')
+    monitor = subprocess.Popen([sys.executable, str(here / 'monitor-memory.py'), sys.argv[1], str(out), sys.argv[3], workload], stdout=log, stderr=log)
     try:
         deadline = time.monotonic() + 120
         while time.monotonic() < deadline:

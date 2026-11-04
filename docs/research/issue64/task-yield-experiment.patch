@@ -1,0 +1,107 @@
+diff --git a/Tests/RendererIntegration/main.swift b/Tests/RendererIntegration/main.swift
+index 1dad851..458f660 100644
+--- a/Tests/RendererIntegration/main.swift
++++ b/Tests/RendererIntegration/main.swift
+@@ -119,6 +119,16 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
+         """),
+         ("passive HTML", "await window.renderMarkdown('<img src=\"missing.png\" onerror=\"window.pwned=true\"><details><summary>ok</summary></details>'); return !document.querySelector('[onerror]') && !window.pwned && !!document.querySelector('details');"),
+         ("new render wins", "const a=window.renderMarkdown('# OLD\\n\\n$x$'); const b=window.renderMarkdown('# NEW',{enableKatex:false}); await Promise.all([a,b]); return document.querySelector('h1').textContent==='NEW';"),
++        ("large math task yield and supersession", """
++        await window.renderMarkdown('$x$');
++        const large=Array(100).fill('$x$').join(String.fromCharCode(10,10));
++        const pending=window.renderMarkdown(large);
++        for(let i=0;i<8;i++) await Promise.resolve();
++        if(document.querySelector('[data-math-measurement]')) throw new Error('Large math allocated before task yield');
++        const replacement=window.renderMarkdown('# Replacement',{enableKatex:false});
++        await Promise.all([pending,replacement]);
++        return document.querySelector('h1')?.textContent==='Replacement' && !document.querySelector('[data-math-measurement],#markdown-preview mjx-container');
++        """),
+         ("math native keyboard copy and reference", """
+         window.setFeedbackGeneration('math-keyboard');
+         const source=String.raw`\\(\\frac{x}{2}\\)`;
+diff --git a/web-renderer/src/math-engine.ts b/web-renderer/src/math-engine.ts
+index 8355f51..a40f9d7 100644
+--- a/web-renderer/src/math-engine.ts
++++ b/web-renderer/src/math-engine.ts
+@@ -11,6 +11,7 @@ import { installMathFontLoader } from './math-font-loader';
+ import { sanitizeMathHTML, sanitizeMathOutput } from './safe-html';
+ import type { MathSource } from './math-syntax';
+ import { partitionMathSources } from './math-limits';
++import { yieldMathTask } from './math-scheduler';
+ 
+ const adaptor = browserAdaptor();
+ AssistiveMmlHandler(RegisterHTMLHandler(adaptor));
+@@ -39,6 +40,10 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
+         return { items: sources.map(source => ({ id: source.id, html: rendered.get(source.id)! })),
+             errors: [...rejected.map(source => ({sourceId:source.id,code:'input-limit' as const})), ...result.errors], css: result.css };
+     }
++    if (sources.length >= 100) {
++        await yieldMathTask();
++        checkCurrent();
++    }
+     const stage = document.createElement('div');
+     const style = host ? getComputedStyle(host) : null;
+     const padding = style ? (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0) : 0;
+diff --git a/web-renderer/test/math-engine.test.ts b/web-renderer/test/math-engine.test.ts
+index 64f60bb..b7c08ef 100644
+--- a/web-renderer/test/math-engine.test.ts
++++ b/web-renderer/test/math-engine.test.ts
+@@ -189,3 +189,14 @@ test('measures using the current content width and text font, then removes the s
+     host.remove();
+ });
+ jest.mock('../src/math-font-loader', () => ({ installMathFontLoader: () => {} }));
++
++test('large documents yield before allocating a stage and honor supersession during that yield', async () => {
++    let current = true;
++    const pending = renderMathSources(Array.from({length:100}, (_, index) => source('yield-'+index, 'x=1')), 'yield-cancel', undefined, () => current);
++    const rejected = expect(pending).rejects.toThrow('superseded');
++    const allocatedBeforeYield = !!document.querySelector('[data-math-measurement]');
++    current = false;
++    await rejected;
++    expect(allocatedBeforeYield).toBe(false);
++    expect(document.querySelector('[data-math-measurement]')).toBeNull();
++});
+diff --git a/web-renderer/src/math-scheduler.ts b/web-renderer/src/math-scheduler.ts
+new file mode 100644
+--- /dev/null
++++ b/web-renderer/src/math-scheduler.ts
+@@ -0,0 +1,20 @@
++/** Let the browser process pending work between large mathematical documents.
++ * MessageChannel avoids background-window timer throttling in native WebKit.
++ * This yields once; it does not interrupt synchronous MathJax compilation.
++ */
++export function yieldMathTask(): Promise<void> {
++    return new Promise(resolve => {
++        if (typeof MessageChannel === 'undefined') {
++            setTimeout(resolve, 0);
++            return;
++        }
++        const channel = new MessageChannel();
++        channel.port1.onmessage = () => {
++            channel.port1.onmessage = null;
++            channel.port1.close();
++            channel.port2.close();
++            resolve();
++        };
++        channel.port2.postMessage(null);
++    });
++}
+diff --git a/web-renderer/test/math-scheduler.test.ts b/web-renderer/test/math-scheduler.test.ts
+new file mode 100644
+--- /dev/null
++++ b/web-renderer/test/math-scheduler.test.ts
+@@ -0,0 +1,14 @@
++import { yieldMathTask } from '../src/math-scheduler';
++
++afterEach(() => jest.useRealTimers());
++
++test('yields to a task rather than resolving in the current microtask queue', async () => {
++    jest.useFakeTimers();
++    let completed = false;
++    const pending = yieldMathTask().then(() => { completed = true; });
++    await Promise.resolve();
++    expect(completed).toBe(false);
++    jest.runOnlyPendingTimers();
++    await pending;
++    expect(completed).toBe(true);
++});
