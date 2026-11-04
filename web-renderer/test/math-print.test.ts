@@ -16,3 +16,11 @@ test('does not join unrelated paragraphs or inline formulas',()=>{
     const restore=prepareMathPrint(root);
     expect(root.querySelector('.math-print-group')).toBeNull();restore();
 });
+test('keeps a short colon-ended formula introduction with its display block',()=>{
+    document.body.innerHTML='<div id="markdown-preview"><p>对齐、分式、上下标与文字：</p><div class="flux-math-source">Formula</div><p>Ordinary paragraph.</p><div class="flux-math-source">Other</div></div>';
+    const root=document.getElementById('markdown-preview')!;
+    const before=root.innerHTML;const restore=prepareMathPrint(root);
+    expect(root.querySelectorAll('.math-print-group')).toHaveLength(1);
+    expect(root.querySelector('.math-print-group p')?.textContent).toContain('文字：');
+    restore();expect(root.innerHTML).toBe(before);
+});

@@ -419,3 +419,13 @@ Added `scripts/test-issue64-math.sh` and its documented production/offline check
 The complete run passes: **529 tests, 29 native cases**, original 14 mathematical items/one intentional error, eight Mermaid + one Graphviz + one Vega, final text marker, 12 valid dedicated mathematical items, and script-free offline HTML with all semantic trees and a valid accessible reference target. The report explicitly lists what it does not cover. Saved `production-e2e-report.json` and script hashes; logs/export artifacts remain in the printed evidence directory.
 
 Marked implementation-level parsing/session/sanitizer tasks complete based on their source/tests and current production run. Final host/platform/VoiceOver/memory and refreshed PDF acceptance remain open; this does not mark the overall goal complete.
+
+## Refreshed original-syntax product PDF
+
+Rebuilt the actual app and exported the original valid mathematical section, retaining its dollar/parenthesis/bracket delimiters and math fence, plus original MathML. Only the intentional invalid-command line was excluded; that command was tested separately through the actual CLI and again rejected with nonzero exit and no created output.
+
+The first refreshed PDF exposed a short explanatory paragraph ending at a page boundary before its display formula. Extended reversible print grouping to short colon-ended introductions (ordinary prose/inline math excluded), with a red-before/green-after test. Rebuilt/exported and visually inspected both resulting pages: all 12 valid items, Chinese text, full matrix/cases, tag/reference, currency/code and introductions are intact with no clipping/gutter.
+
+PDFKit now finds one internal GoTo annotation from the `(1)` reference to the numbered equation on page 2. Its destination coordinate agrees with the inspected formula-number position. This supersedes the earlier no-PDF-links observation after the reference layer moved to HTML. It is annotation evidence, not a claim of tested mouse/VoiceOver navigation in every PDF viewer.
+
+Saved `output/pdf/issue64-valid-original-syntax.pdf`, the exact derived source, hashes and `current-product-pdf-validation.json`. Full Jest **59 suites / 530 tests**, current renderer/native build and actual CLI export pass. Minimum-platform, actual extension/Finder, VoiceOver and memory acceptance remain separate ongoing items.

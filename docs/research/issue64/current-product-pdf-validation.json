@@ -1,0 +1,35 @@
+{
+  "sourceCommit": "d2b3ddcb3897112ccaebd2a5c66e856809ddb895",
+  "fixture": "valid-original-syntax.md",
+  "fixtureSha256": "51fcf97c86e8adb51b148975e13c4fe214ed50fe56623bcb3ba04e52c87e767d",
+  "pdf": "output/pdf/issue64-valid-original-syntax.pdf",
+  "pdfSha256": "18c807d787594a19a9aae920b60fad8bfc996fbed6b13f1acccb0c345bf5145d",
+  "pages": 2,
+  "host": "actual Debug FluxMarkdown CLI, macOS 27.0.1 arm64, local target override 12.0",
+  "visualReview": "Both Poppler-rendered pages inspected: 12 valid original math items, full matrix/cases rows, Chinese text, display/inline delimiters, math fence, tag/reference, currency/code preservation; short introduction stays with following display formula.",
+  "linkInspection": {
+    "tool": "PDFKit",
+    "annotations": 1,
+    "type": "internal GoTo",
+    "sourcePage": 2,
+    "destinationPage": 2,
+    "destinationPoint": [
+      514.8738,
+      401.624
+    ],
+    "target": "numbered equation (1), position corresponds to inspected raster"
+  },
+  "invalidExport": {
+    "exitCode": 1,
+    "outputCreated": false
+  },
+  "limitations": [
+    "current platform only",
+    "not a tagged PDF",
+    "PDF viewer mouse/VoiceOver interactions not covered by annotation inspection"
+  ],
+  "pendingSourceAtRun": {
+    "web-renderer/src/math-print.ts": "39a8c5499ab4b40bca690e9768e2d6e2ceed20abc8f66c752dd9a8c79891aa89"
+  },
+  "bundleIndexSha256": "c1576bb67886416c3287f3b818cc37139e9a7585c92c61df34c3a532ed106d83"
+}
