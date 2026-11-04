@@ -6,8 +6,8 @@ const wide = '$$\n' + Array.from({length:40},(_,i)=>'x_{'+i+'}').join('+') + '\n
 const results = [];
 window.setFeedbackGeneration("issue64-layout");
 const theme = probeTheme === 'system' ? 'light' : probeTheme;
-for (const uiLanguage of ['en','ar']) {
-    await window.renderMarkdown(input.valid + '\n\n' + wide, {context:'app',uiLanguage,theme,showCopyButtons:true});
+for (const context of ['app','quicklook','finder']) for (const uiLanguage of ['en','ar']) {
+    await window.renderMarkdown(input.valid + '\n\n' + wide, {context,uiLanguage,theme,showCopyButtons:true});
     root.setAttribute('dir',uiLanguage==='ar'?'rtl':'ltr');
     await window.waitForExportReady();
     const background=getComputedStyle(root).backgroundColor;
@@ -30,8 +30,8 @@ for (const uiLanguage of ['en','ar']) {
     }
     const firstWidth=formulas[0].querySelector('svg').getBoundingClientRect().width;
     const buttons=[...root.querySelectorAll('.block-copy-tools > button')];
-    assert(buttons.length===13,'Mathematical copy controls missing');
+    assert(buttons.length===(context==='finder'?0:13),'Incorrect mathematical copy controls for '+context);
     for(const button of buttons){button.focus();const rect=button.getBoundingClientRect();assert(rect.width>=20 && rect.left>=-1 && rect.right<=innerWidth+1,'Copy action escaped the viewport');}
-    results.push({width:innerWidth,uiLanguage,theme,zoom:probeZoom,formulas:13,localScroll:true,referenceValid:true,copyControls:buttons.length,firstFormulaWidth:firstWidth,documentDirection:root.dir});
+    results.push({context,viewportPoints:innerWidth*probeZoom,width:innerWidth,uiLanguage,theme,zoom:probeZoom,formulas:13,localScroll:true,referenceValid:true,copyControls:buttons.length,firstFormulaWidth:firstWidth,documentDirection:root.dir});
 }
 return {cases:results};

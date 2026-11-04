@@ -24,7 +24,7 @@ payload={'original':original,'valid':valid,'invalid':r'$\unknownMarkdownPreviewC
 PY
 npm test --prefix web-renderer -- --runInBand --silent > "$ISSUE64_RUN/jest.log" 2>&1
 npm run --prefix web-renderer build > "$ISSUE64_RUN/build.log" 2>&1
-scripts/test-renderer-webkit.sh > "$ISSUE64_RUN/native-suite.log" 2>&1
+env -u FLUX_WEBKIT_CASE_FILTER scripts/test-renderer-webkit.sh > "$ISSUE64_RUN/native-suite.log" 2>&1
 swiftc Sources/Shared/RendererBundleSchemeHandler.swift scripts/research/issue64-math/main.swift -o "$ISSUE64_RUN/probe"
 "$ISSUE64_RUN/probe" 'flux-renderer://bundle/index.html' "$PROJECT_ROOT/web-renderer/dist" "$PROJECT_ROOT/scripts/issue64/math-resource-boundary.js" "$ISSUE64_RUN/input.json" 45 > "$ISSUE64_RUN/math-resource-boundary.json" 2> "$ISSUE64_RUN/math-resource-boundary.log"
 if rg -q 'FORBIDDEN_MATH_RESOURCE_REQUEST' "$ISSUE64_RUN/math-resource-boundary.log"; then
@@ -32,7 +32,7 @@ if rg -q 'FORBIDDEN_MATH_RESOURCE_REQUEST' "$ISSUE64_RUN/math-resource-boundary.
     exit 1
 fi
 python3 scripts/issue64/verify-math-resource-http.py "$ISSUE64_RUN/probe" "$PROJECT_ROOT/web-renderer/dist" "$ISSUE64_RUN/http-resource-boundary" > "$ISSUE64_RUN/http-resource-boundary-run.log" 2>&1
-for ISSUE64_WIDTH in 320 960; do
+for ISSUE64_WIDTH in 320 600 960; do
     for ISSUE64_ZOOM in 1 2; do
         for ISSUE64_THEME in light dark; do
             FLUX_MATH_PROBE_WIDTH="$ISSUE64_WIDTH" FLUX_MATH_PROBE_ZOOM="$ISSUE64_ZOOM" FLUX_MATH_PROBE_THEME="$ISSUE64_THEME" "$ISSUE64_RUN/probe" 'flux-renderer://bundle/index.html' "$PROJECT_ROOT/web-renderer/dist" "$PROJECT_ROOT/scripts/issue64/math-layout.js" "$ISSUE64_RUN/input.json" 45 > "$ISSUE64_RUN/layout-$ISSUE64_WIDTH-$ISSUE64_ZOOM-$ISSUE64_THEME.json" 2> "$ISSUE64_RUN/layout-$ISSUE64_WIDTH-$ISSUE64_ZOOM-$ISSUE64_THEME.log"

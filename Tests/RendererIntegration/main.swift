@@ -16,6 +16,9 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private var cases: [(String, String)] = [
         ("block copy delayed visibility and focus", """
         await window.renderMarkdown('```\\nhello\\n```',{context:'app',showCopyButtons:true});
+        const nativeFocusDeadline=performance.now()+4000;
+        while(!document.hasFocus() && performance.now()<nativeFocusDeadline)await new Promise(r=>setTimeout(r,50));
+        if(!document.hasFocus())throw new Error('Environment: native test window did not become active');
         const tools=document.querySelector('.block-copy-tools'),button=tools.querySelector('button');
         const opacity=()=>Number(getComputedStyle(tools).opacity);
         const hoverless=matchMedia('(hover: none)').matches;
@@ -124,6 +127,9 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         window.setFeedbackGeneration('math-keyboard');
         const source=String.raw`\\(\\frac{x}{2}\\)`;
         await window.renderMarkdown(source+'\\n\\n'+String.raw`\\(\\eqref{x}\\)`+'\\n\\n'+Array(60).fill('Spacer paragraph.').join('\\n\\n')+'\\n\\n'+String.raw`\\[x=1\\tag{A}\\label{x}\\]`,{context:'app',showCopyButtons:true});
+        const nativeFocusDeadline=performance.now()+4000;
+        while(!document.hasFocus() && performance.now()<nativeFocusDeadline)await new Promise(r=>setTimeout(r,50));
+        if(!document.hasFocus())throw new Error('Environment: native test window did not become active');
         const button=document.querySelector('.math-copy-inline .block-copy-tools > button');
         button.focus();
         window.webkit.messageHandlers.nativeMathKey.postMessage('space');

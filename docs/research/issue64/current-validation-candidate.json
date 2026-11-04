@@ -42,5 +42,6 @@
     "contentDifferences": 0
   },
   "providerSelectionExplicitlyModified": false,
-  "actualProviderSelectionRevalidated": false
+  "actualProviderSelectionRevalidated": true,
+  "actualProviderEvidence": "current-host-revalidation.json"
 }
