@@ -24,6 +24,7 @@ Date: 2026-11-04. Implementation source: `e457b87`; later commits record validat
 ## Ready work and required external steps
 
 1. The current candidate and untouched original installation backup are prepared under `build/issue64-host-validation/`; both pass strict signature verification. Candidate renderer index matches current production dist. Replacement has **not** been performed. After a maintenance window is authorized, revalidate the hashes, test the actual selected extension/App/Finder, then restore the original installation.
+   Refresh verification caught stale resources from overlay-copying into the previous candidate. The overlay was isolated, a fresh empty-directory copy was made, and both the source app and fresh candidate passed deep strict verification. Only task-owned staging directories changed.
 2. Obtain an available macOS 11/Intel execution environment or a person who can run the supplied checks. This request is pending; automatic goal continuations are not answers.
 3. Schedule actual VoiceOver/host interaction verification and independent review of the expectation manifest/TeX reference. Do not mark them passed from DOM structure alone.
 4. Resolve the measured memory tradeoff with an explicit reviewed budget or an approved further architectural change, then repeat the fixed workload. Do not retroactively loosen a limit merely to pass.
