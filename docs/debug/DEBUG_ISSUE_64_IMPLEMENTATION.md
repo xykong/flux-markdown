@@ -465,3 +465,11 @@ The probe supplies the feedback generation that actual native hosts provide. Its
 Initial repeated probes timed out after the second document had already rendered, while waiting on unconditional background setTimeout polling. Replacing polling with ordered Swift receiver acknowledgements made the entire matrix complete in approximately half a second. This was a probe synchronization issue; no rendering change was made to mask it. The first attempt also omitted the native generation setup and therefore correctly lacked feedback controls; the final fixture includes that required host contract.
 
 The integrated runner passed with the final localized-label assertions: 531 Jest tests, 29 native cases, 18 resource-failure cases and existing production/offline-export checks. Latest machine-readable evidence replaces `production-e2e-report.json`; raw run directory is `/var/folders/31/2k2kp17n2f7blhy25xr06r9h0000gn/T/flux-issue64-e2e.sVe82q`. Production rendering logic was unchanged in this work item.
+
+### Rejected explicit sanitizer-fragment teardown experiment
+
+Revisited the open memory gate using the unchanged common 1000-formula corpus and fresh sequential WebKit processes. Source inspection found no global MathJax document registry holding past sessions; this is a limited code observation, not a heap reachability proof. Tested one hypothesis: explicitly clear each sanitizer serialization container and its identity map before returning, to break transient native SVG descendant graphs earlier.
+
+Both runs completed all 30 renders and three clear/idle periods with zero remaining math/measurement roots. Control post-clear RSS: 2030.3 / 2069.0 / 2164.2 MiB. Experimental teardown: 2056.0 / 2113.8 / 2175.1 MiB. The related 23 tests passed, but the change improved none of the three memory observations, so it was reverted. The control production bundle was not overwritten during its run; the experiment used a separate output directory. Evidence/protocol/workload hash: `docs/research/issue64/sanitizer-cleanup-memory-experiment.json`.
+
+This rejects an unhelpful production change; it does not resolve the memory gate or establish that RSS equals retained live heap. Further work needs a stronger reachability/physical-footprint explanation or a justified architectural change, rather than additional cosmetic cleanup calls.
