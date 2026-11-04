@@ -11,7 +11,9 @@ with (out/'stdout.json').open('w') as stdout,(out/'stderr.log').open('w') as std
  while p.poll() is None:
   procs=processes()
   candidates=[pid for pid,data in procs.items() if pid not in before and 'com.apple.WebKit.WebContent.xpc/Contents/MacOS/com.apple.WebKit.WebContent' in data['command']]
-  if webpid is None and len(candidates)==1:webpid=candidates[0]
+  if webpid is None and len(candidates)==1:
+   webpid=candidates[0]
+   (out/'process-identity.json').write_text(json.dumps({'probePid':p.pid,'webContentPid':webpid,'selectedFromNewProcesses':True}))
   lines=(out/'stderr.log').read_text().splitlines();phases=[line for line in lines if 'MEMPHASE' in line]
   if webpid is not None:samples.append({'seconds':round(time.monotonic()-start,2),'rssKiB':procs[webpid]['rssKiB'] if webpid in procs else 0,'processExists':webpid in procs,'phase':phases[-1] if phases else 'startup'})
   time.sleep(1)

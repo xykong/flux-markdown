@@ -1,0 +1,54 @@
+{
+  "sourceCommit": "0403cc7f3dc2b96a17ae4b08df835545f041eb5f",
+  "baselineTag": "v1.42.645",
+  "baselineCommit": "4844b1505e7116cc7b16e2a0cbe891c600d00180",
+  "baselineSourceMatchesTag": {
+    "package.json": true,
+    "package-lock.json": true,
+    "src/index.ts": true
+  },
+  "platform": "macOS 27.0.1 arm64",
+  "workload": "scripts/research/issue64-math/memory-footprint.js",
+  "workloadSha256": "18496e5c804c0fea4e10e243dbcab11daffb7a707aedb1b37064535fd7ca7c3a",
+  "method": "Fresh WebKit processes, identical 10 renders of 1000 dollar-delimited formulas, clear to text, vmmap -summary and leaks --noContent --nostacks during 60-second idle. Current inspected about 12 seconds after clear; baseline about 10 seconds after clear. No production code changed.",
+  "runs": {
+    "current": {
+      "Physical footprint": "58.0M",
+      "Physical footprint (peak)": "1.6G",
+      "webContentPid": 15993,
+      "leakCount": 4,
+      "leakedBytes": 1664,
+      "rawDirectory": "/tmp/flux-issue64-footprint-current",
+      "regionSummary": [
+        "JS VM Reservations               490.0M    78.5M    1632K       0K       0K       0K       0K        3 ",
+        "JS VM Reservations (reserved)     67.5G       0K       0K       0K       0K       0K       0K        3         reserved VM address space (unallocated)",
+        "WebKit Malloc                      1.9G     1.8G    45.0M       0K       0K       0K       0K       79 ",
+        "WebKit Malloc metadata           191.5M    50.4M    3696K       0K       0K       0K       0K        8 ",
+        "TOTAL                            459.5G     2.9G    64.7M       0K       0K      64K       0K     3796 ",
+        "TOTAL                                        2.7G       1.8G      57.4M         0K     115851      30.9M      26.4M     47%     546"
+      ],
+      "completed": true,
+      "bundleIndexSha256": "03bf9e619a20b4cbbbbbc3d118b53eba13950ef987d67857bb91d2a392de7e29"
+    },
+    "release": {
+      "Physical footprint": "77.7M",
+      "Physical footprint (peak)": "1.1G",
+      "webContentPid": 17080,
+      "leakCount": 4,
+      "leakedBytes": 1664,
+      "rawDirectory": "/tmp/flux-issue64-footprint-release",
+      "regionSummary": [
+        "JS VM Reservations                 1.4G    1072K    1040K       0K       0K       0K       0K        3 ",
+        "JS VM Reservations (reserved)     66.6G       0K       0K       0K       0K       0K       0K        3         reserved VM address space (unallocated)",
+        "WebKit Malloc                      1.4G     1.3G    69.3M       0K       0K       0K       0K       57 ",
+        "WebKit Malloc (reserved)          16.0M       0K       0K       0K       0K       0K       0K        1         reserved VM address space (unallocated)",
+        "WebKit Malloc metadata           200.8M    54.0M    2208K       0K       0K       0K       0K        6 ",
+        "TOTAL                            459.0G     2.3G    88.5M       0K       0K      64K       0K     3791 ",
+        "TOTAL                                        2.2G       1.2G      82.0M         0K     206029      44.6M      37.3M     46%     543"
+      ],
+      "completed": true,
+      "bundleIndexSha256": "57009b842b96722b90b3faa98bca63ad7305694832b4274028accba030e82476"
+    }
+  },
+  "interpretation": "Current post-clear footprint is lower in this sample, but rounded peak is higher. High RSS is not evidence of a multi-GiB live-object leak. Both processes report the same small leak count/size; no attribution to product code is established. This one-process-per-version diagnostic does not freeze a memory budget or complete memory acceptance."
+}
