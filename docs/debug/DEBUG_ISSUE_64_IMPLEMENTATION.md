@@ -339,3 +339,11 @@ Added a real-engine test retaining a temporary typeset-root handle: before clean
 The new test fails before and passes after; full Jest **59 suites / 517 tests** and build/typecheck pass. Same three-cycle memory experiment yields roughly **2035 / 2072 / 2074 MiB** post-clear, versus **2042 / 2096 / 2160 MiB** for DOM-move alone. The late cycles are flatter, but the residual footprint remains high and no hard memory-success claim is made.
 
 Raw data is in `memory-tree-cleanup-experiment.json`. Retained the explicit lifecycle cleanup for its directly tested ownership guarantee. Next comparison should render identical dollar-delimited formula payloads on the release baseline and current engine; the original bracket-only stress input cannot serve as a fair old-engine memory baseline.
+
+## Same-corpus release memory comparison
+
+Changed the diagnostic workload to dollar display delimiters supported by both versions, preserving the identical 1000 fraction/root payloads, three rounds of ten renders, count verification, plain-text clearing and ten-second idle intervals. Ran release `v1.42.645` and current builds sequentially in fresh native processes.
+
+Post-clear RSS in MiB: release **1361 / 1516 / 1520**, current **2022 / 2031 / 2131**. Third-cycle difference is **612 MiB** (about 40%). The existing version also retains substantial process memory, but that does not erase the added cost of the new implementation. This remains an unresolved memory regression/tradeoff for acceptance, not a pass.
+
+Saved raw samples and method in `memory-release-comparison.json`; added `memory-common-corpus.js` and optional bundle/workload arguments to the monitor so the comparison is reproducible. Both native runs exit 0 with all 1000 formulas each render. These are RSS observations, not identical physical-footprint/retained-heap measurements; final older-platform and resource-budget decisions still require evidence.
