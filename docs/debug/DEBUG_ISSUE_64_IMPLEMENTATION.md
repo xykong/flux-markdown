@@ -211,3 +211,9 @@ Process RSS during each post-clear idle interval remained about **2361 / 2452 / 
 Saved raw one-second RSS samples, phase events and environment in `memory-cycle.json`, and the workload/monitor scripts under `scripts/research/issue64-math/`. The phase field is the last logged marker (therefore an `idle` marker can also precede the next workload); analyze explicit cleared intervals for recovery rather than treating every marker-group sample as idle. Monitor syntax checked; the executed source workload and equivalent temporary monitor produced exit 0.
 
 Next required work: attribute retained state/caches and test cleanup or bounded reuse, then repeat this same recovery workload without relaxing the scope or declaring completion from short-run timing alone.
+
+## Font-sharing hypothesis rejected
+
+Tested a single shared SVG font-data instance while retaining document-local input/output objects. All 494 unit tests passed, but the identical three-cycle workload retained roughly **2455 / 2513 / 2636 MiB** after clearing, comparable to the original implementation. This is not evidence of a useful memory fix, so the production source experiment was reverted; observations are retained in `memory-font-experiment.json`.
+
+A vmmap sample during the experiment attributes about 1.7 GiB allocated / 2.3 GiB resident to WebKit Malloc, with about 13.7 million allocations. This directs the next experiment toward DOM/tree allocation and cleanup rather than assuming font tables alone explain the footprint. Sampling occurred during the workload and is not a retained-heap proof. The goal remains incomplete; memory acceptance is still open.
