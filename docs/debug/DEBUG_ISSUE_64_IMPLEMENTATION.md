@@ -183,3 +183,13 @@ Rendered the unmodified original attachment with actual Mermaid/Graphviz/Vega en
 An additional `mathbb{abcxyz}` native test exercises a dynamically imported local double-struck glyph chunk (41,733 bytes) and yields one formula/six glyph uses without errors. This also exposed an invalid MathJax constructor `elements` option warning. A new test demonstrated unintended processing of unrelated DOM math. Fixed discovery by calling `doc.findMath({elements:[stage]})` before rendering, instead of passing the scope as an unsupported constructor option.
 
 The new isolation test fails before and passes after the correction. Full Jest **58 suites / 493 tests**, typecheck/build pass; the native dynamic-font probe now completes without the invalid-option warning. Remaining full-host/image/interaction/performance gates are unchanged.
+
+## Production warm benchmark
+
+Ran the actual production bundle in current-system WKWebView at 960×900 with QuickLook render options, copy controls/line numbers disabled. For each 100/1000-item fixed fraction/root corpus: five warmups followed by 30 measured renders, awaiting export readiness and checking the exact formula count plus zero math errors every time.
+
+Observed 100 items p50/p95 **94/101 ms**, DOM 615,017 bytes; 1000 items **1714/1988 ms**, DOM 6,705,445 bytes. These meet the frozen reference-machine p95/DOM limits, with little time margin at 1000. This is the integrated renderer, not the actual QuickLook process or a minimum-system benchmark.
+
+One late WebContent RSS sample was 2,774,704 KiB (about 2.65 GiB) during repeated large-document rendering. It does not establish peak or retained memory, but warrants explicit cleanup/recovery measurement before acceptance. No memory gate is marked passed from this run.
+
+Raw samples/environment are saved in `production-benchmark.json`. The same source workload is now in `scripts/research/issue64-math/benchmark-production.js` with a bounded native runner script; shell syntax checked. Remaining work includes memory recovery, cold/no-math baseline and per-host/platform budgets.
