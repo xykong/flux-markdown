@@ -11,6 +11,9 @@ final class Probe: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         let config = WKWebViewConfiguration()
         config.websiteDataStore = .nonPersistent()
         config.userContentController.add(self, name: "trace")
+        if ProcessInfo.processInfo.environment["FLUX_MATH_PROBE_FEEDBACK_RECORDING"] == "1" {
+            config.userContentController.add(self, name: "errorFeedback")
+        }
         config.userContentController.addUserScript(WKUserScript(source: "window.addEventListener('error',e=>window.webkit.messageHandlers.trace.postMessage(String(e.message)));window.addEventListener('securitypolicyviolation',e=>window.webkit.messageHandlers.trace.postMessage('CSP '+e.blockedURI+' '+e.violatedDirective));window.addEventListener('unhandledrejection',e=>window.webkit.messageHandlers.trace.postMessage(String(e.reason)));console.warn=console.error=(...x)=>window.webkit.messageHandlers.trace.postMessage(x.map(String).join(' '));", injectionTime: .atDocumentStart, forMainFrameOnly: true))
         config.setURLSchemeHandler(RendererBundleSchemeHandler(rootDirectory: URL(fileURLWithPath: CommandLine.arguments[2])), forURLScheme: "flux-renderer")
         view = WKWebView(frame: NSRect(x: 0, y: 0, width: 960, height: 900), configuration: config)
@@ -26,7 +29,18 @@ final class Probe: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         let timeout = CommandLine.arguments.count > 5 ? Double(CommandLine.arguments[5]) ?? 45 : 45
         DispatchQueue.main.asyncAfter(deadline: .now() + timeout) { fputs("Probe timeout\n", stderr); exit(2) }
     }
-    func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) { fputs("JS: \(message.body)\n",stderr) }
+    func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
+        if message.name == "errorFeedback" {
+            // Test-only recorder: never execute recovery, open a browser or send a report.
+            guard let body = message.body as? [String: String],
+                  Set(body.keys) == Set(["action", "kind", "generation", "id", "reason"]),
+                  let data = try? JSONSerialization.data(withJSONObject: body),
+                  let json = String(data: data, encoding: .utf8) else { exit(3) }
+            view.evaluateJavaScript("window.__issue64FeedbackMessages.push(\(json))")
+            return
+        }
+        fputs("JS: \(message.body)\n",stderr)
+    }
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         fputs("Page loaded\n",stderr)
         webView.callAsyncJavaScript(script, arguments: ["source":source], in: nil, in: .page) { result in

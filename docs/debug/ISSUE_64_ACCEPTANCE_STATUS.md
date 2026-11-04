@@ -1,6 +1,6 @@
 # Issue 64 acceptance status
 
-Date: 2026-11-04. Latest complete renderer regression uses base commit `58b0944` plus the recorded asset-closure verification changes; earlier evidence retains its own source revision. **The requested full objective is not complete.**
+Date: 2026-11-04. Latest complete renderer regression uses base commit `47cef39` plus the recorded resource-failure transport verification changes; earlier evidence retains its own source revision. **The requested full objective is not complete.**
 
 Update after user resumption: the user explicitly requested continued improvement and set the goal active. The blocking audit below records the earlier stop; it is not the current execution status. Continue available implementation/profiling/validation work while preserving unresolved external gates.
 
@@ -14,7 +14,7 @@ Update after user resumption: the user explicitly requested continued improvemen
 | Session isolation and cancellation | generation/source-mode regression tests, engine cancellation/cleanup tests, native new-render-wins | Cooperative cancellation and DOM cleanup checked; synchronous execution cannot be preempted by a Promise timer. |
 | Safe/offline mathematical output | shared math sanitizer tests, dynamic glyph native probe, restricted-CSP HTML reopening | Required corpus/glyph path verified locally; this does not substitute for every supported platform's resource closure. |
 | Reading/search/copy/navigation | math-search/copy/reference tests; native keyboard/pasteboard case; actual App screenshot/tree | Current native renderer keyboard and clipboard verified. Actual App background numbered-link activation was not proven; test window disappeared before retry. |
-| Shared feedback and preferences | error-feedback integration/inventory, six validated locales, Swift bridge/store tests | Code integrated; actual math error recovery/report activation in all hosts/languages not fully witnessed. |
+| Shared feedback and preferences | error-feedback integration/inventory, Swift bridge/store tests, production-e2e-report.json resourceFailure | 18 native WebKit cases verify six-language actions across three renderer contexts, fixed diagnostic transport, incident identity, stale-control rejection and recovery. Actual native host recovery/report execution and VoiceOver remain unproven. |
 | Export | actual CLI valid/invalid export, three-page reviewed PDF, standalone HTML offline reopening, readiness/race tests | Specified corpus visually checked; final refreshed full-host matrix still needed. Current refreshed PDF has an internal GoTo annotation to the numbered equation; viewer interaction still needs its own check. |
 | Current-machine regression | 531 Jest tests, 29 native WebKit cases; production-e2e-report.json. Earlier 22 targeted Swift tests: current-native-validation.json | Passed within recorded scopes on macOS 27.0.1 arm64, local native target override 12.0 for the app build. |
 | Production module/resource closure | production-e2e-report.json, scripts/issue64/asset-closure.* | All 165 Vite manifest entries checked; all 40 SVG dynamic glyph modules loaded by native WebKit; deliberately deleted double-struck module rejected by static and native checks; bundled attribution hashes match. Does not prove every glyph's visual correctness or older platforms. |

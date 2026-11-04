@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "58b094472442ed07838341bd904955250605f31a",
+  "sourceCommit": "47cef3982536b4fd2ee02a2197be7b0fe550bc46",
   "platform": "27.0.1",
   "architecture": "arm64",
   "bundleIndexSha256": "03bf9e619a20b4cbbbbbc3d118b53eba13950ef987d67857bb91d2a392de7e29",
@@ -90,12 +90,164 @@
       "native": true
     }
   },
+  "resourceFailure": {
+    "actualNativeRecoveryOrReporting": false,
+    "cases": [
+      {
+        "context": "app",
+        "exportRejected": true,
+        "feedbackSeamValidated": true,
+        "recovered": true,
+        "sourcePreserved": true,
+        "uiLanguage": "en"
+      },
+      {
+        "context": "app",
+        "exportRejected": true,
+        "feedbackSeamValidated": true,
+        "recovered": true,
+        "sourcePreserved": true,
+        "uiLanguage": "zh-Hans"
+      },
+      {
+        "context": "app",
+        "exportRejected": true,
+        "feedbackSeamValidated": true,
+        "recovered": true,
+        "sourcePreserved": true,
+        "uiLanguage": "de"
+      },
+      {
+        "context": "app",
+        "exportRejected": true,
+        "feedbackSeamValidated": true,
+        "recovered": true,
+        "sourcePreserved": true,
+        "uiLanguage": "fr"
+      },
+      {
+        "context": "app",
+        "exportRejected": true,
+        "feedbackSeamValidated": true,
+        "recovered": true,
+        "sourcePreserved": true,
+        "uiLanguage": "es"
+      },
+      {
+        "context": "app",
+        "exportRejected": true,
+        "feedbackSeamValidated": true,
+        "recovered": true,
+        "sourcePreserved": true,
+        "uiLanguage": "ar"
+      },
+      {
+        "context": "quicklook",
+        "exportRejected": true,
+        "feedbackSeamValidated": true,
+        "recovered": true,
+        "sourcePreserved": true,
+        "uiLanguage": "en"
+      },
+      {
+        "context": "quicklook",
+        "exportRejected": true,
+        "feedbackSeamValidated": true,
+        "recovered": true,
+        "sourcePreserved": true,
+        "uiLanguage": "zh-Hans"
+      },
+      {
+        "context": "quicklook",
+        "exportRejected": true,
+        "feedbackSeamValidated": true,
+        "recovered": true,
+        "sourcePreserved": true,
+        "uiLanguage": "de"
+      },
+      {
+        "context": "quicklook",
+        "exportRejected": true,
+        "feedbackSeamValidated": true,
+        "recovered": true,
+        "sourcePreserved": true,
+        "uiLanguage": "fr"
+      },
+      {
+        "context": "quicklook",
+        "exportRejected": true,
+        "feedbackSeamValidated": true,
+        "recovered": true,
+        "sourcePreserved": true,
+        "uiLanguage": "es"
+      },
+      {
+        "context": "quicklook",
+        "exportRejected": true,
+        "feedbackSeamValidated": true,
+        "recovered": true,
+        "sourcePreserved": true,
+        "uiLanguage": "ar"
+      },
+      {
+        "context": "finder",
+        "exportRejected": true,
+        "feedbackSeamValidated": true,
+        "recovered": true,
+        "sourcePreserved": true,
+        "uiLanguage": "en"
+      },
+      {
+        "context": "finder",
+        "exportRejected": true,
+        "feedbackSeamValidated": true,
+        "recovered": true,
+        "sourcePreserved": true,
+        "uiLanguage": "zh-Hans"
+      },
+      {
+        "context": "finder",
+        "exportRejected": true,
+        "feedbackSeamValidated": true,
+        "recovered": true,
+        "sourcePreserved": true,
+        "uiLanguage": "de"
+      },
+      {
+        "context": "finder",
+        "exportRejected": true,
+        "feedbackSeamValidated": true,
+        "recovered": true,
+        "sourcePreserved": true,
+        "uiLanguage": "fr"
+      },
+      {
+        "context": "finder",
+        "exportRejected": true,
+        "feedbackSeamValidated": true,
+        "recovered": true,
+        "sourcePreserved": true,
+        "uiLanguage": "es"
+      },
+      {
+        "context": "finder",
+        "exportRejected": true,
+        "feedbackSeamValidated": true,
+        "recovered": true,
+        "sourcePreserved": true,
+        "uiLanguage": "ar"
+      }
+    ],
+    "privateContentExcluded": true,
+    "staleFeedbackRejected": true
+  },
   "worktreeDirty": true,
   "validationSourceHashes": {
-    "scripts/test-issue64-math.sh": "809497c9eb6eac1d07036307c9e233d512bb93b5cd7a398f2a8301d60d2103d6",
+    "scripts/test-issue64-math.sh": "a9c51292b5a96c8d9816f94809f938e92fd62e07006acdbcd07881ccfea868f8",
     "scripts/issue64/asset-closure.py": "4f50b008d17614375a03c3efe2c535e5a3e387f4cf8b9c985b02392e0bbed094",
     "scripts/issue64/asset-closure.js": "02b1e1f9fe93accf0a5e8ab158532db5e6b7e0fb40ddf86fe43ffc65752ce325",
+    "scripts/issue64/resource-failure.js": "93340e256abfd5abc1847883057554be49e0e916a40e3051179b780a0222a26d",
+    "scripts/research/issue64-math/main.swift": "2a7345378630397aae28e0aa28a2e6798790cc5bcb0c906da32fbf4cbeebb510",
     "web-renderer/vite.config.ts": "26ec6fa3f5aaf1d5fd34983d52031c3f27feb0a9bca53ca04335a8b8f8088afb"
-  },
-  "evidenceNote": "Validation ran before commit. Reporting-only metadata was added afterward; runtime test assertions and production files were unchanged."
+  }
 }

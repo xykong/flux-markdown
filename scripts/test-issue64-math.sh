@@ -48,6 +48,7 @@ if ! rg -qi 'Importing a module script failed|Failed to fetch dynamically import
     printf 'Native glyph fault failed for an unexpected reason\n' >&2
     exit 1
 fi
+FLUX_MATH_PROBE_FEEDBACK_RECORDING=1 "$ISSUE64_RUN/probe" 'flux-renderer://bundle/index.html' "$ISSUE64_RUN/missing-glyph-bundle" "$PROJECT_ROOT/scripts/issue64/resource-failure.js" "$ISSUE64_RUN/asset-closure.json" 30 > "$ISSUE64_RUN/resource-failure.json" 2> "$ISSUE64_RUN/resource-failure.log"
 "$ISSUE64_RUN/probe" 'flux-renderer://bundle/index.html' "$PROJECT_ROOT/web-renderer/dist" "$PROJECT_ROOT/scripts/issue64/production-corpus.js" "$ISSUE64_RUN/input.json" 90 > "$ISSUE64_RUN/production.json" 2> "$ISSUE64_RUN/production.log"
 python3 - "$ISSUE64_RUN" <<'PY'
 from pathlib import Path
@@ -65,8 +66,9 @@ import json,sys,subprocess,hashlib
 out=Path(sys.argv[1]);assert 'CSP ' not in (out/'offline.log').read_text(),'Offline export requested blocked resources'
 report={'sourceCommit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'platform':subprocess.check_output(['sw_vers','-productVersion'],text=True).strip(),'architecture':subprocess.check_output(['uname','-m'],text=True).strip(),'bundleIndexSha256':hashlib.sha256(Path('web-renderer/dist/index.html').read_bytes()).hexdigest(),'production':json.loads((out/'production-summary.json').read_text()),'offline':json.loads((out/'offline.json').read_text()),'notCovered':['actual selected App/QuickLook/Finder UI','minimum macOS/Intel','VoiceOver speech','PDF visual inspection','memory acceptance','independent reviewer sign-off']}
 report['assetClosure']={'static':json.loads((out/'asset-closure.json').read_text()),'native':json.loads((out/'asset-runtime.json').read_text()),'missingGlyphDetected':{'static':True,'native':True}}
+report['resourceFailure']=json.loads((out/'resource-failure.json').read_text())
 report['worktreeDirty']=bool(subprocess.check_output(['git','status','--porcelain'],text=True).strip())
-report['validationSourceHashes']={name:hashlib.sha256(Path(name).read_bytes()).hexdigest() for name in ['scripts/test-issue64-math.sh','scripts/issue64/asset-closure.py','scripts/issue64/asset-closure.js','web-renderer/vite.config.ts']}
+report['validationSourceHashes']={name:hashlib.sha256(Path(name).read_bytes()).hexdigest() for name in ['scripts/test-issue64-math.sh','scripts/issue64/asset-closure.py','scripts/issue64/asset-closure.js','scripts/issue64/resource-failure.js','scripts/research/issue64-math/main.swift','web-renderer/vite.config.ts']}
 (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
 print('PASS current-machine renderer and standalone-HTML end-to-end checks')
 print('Evidence:',out)
