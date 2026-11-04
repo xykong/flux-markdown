@@ -353,3 +353,11 @@ Saved raw samples and method in `memory-release-comparison.json`; added `memory-
 Tested DOMPurify IN_PLACE on detached generated math wrappers using the same allowlist/reference validation, instead of serializing each wrapper into an additional sanitizer document. Safety-equivalence tests and the full 518-test experimental suite passed. The same common-corpus memory workload worsened post-clear RSS to approximately **2440 / 2607 / 2799 MiB**, compared with **2022 / 2031 / 2131 MiB** on the retained implementation.
 
 Reverted the experimental implementation and its specific API test, and rebuilt the retained source. The experiment is preserved only as `memory-inplace-experiment.json`; no safety bypass or unproven optimization is adopted. This is another concrete negative result against equating fewer parser calls with lower retained WebKit memory. The accepted source test count remains 517 (the extra experimental test was removed).
+
+## Inline source newline and external acceptance audit
+
+The remaining-source audit found multiline inline mathematics still normalized CRLF when copied. A regression test failed; inline raw source now restores each original newline sequence from its source-line mapping while keeping the normalized mathematical payload for parsing. Full Jest **59 suites / 518 tests**, typecheck/build pass.
+
+Rechecked the available platform: macOS 27.0.1 arm64; repository CI targets macOS 15, not the minimum macOS 11/Intel runtime. Asked for an available older-system/Intel machine or an execution contact rather than treating syntax transpilation/current-machine tests as minimum-platform evidence. The earlier temporary QuickLook-install maintenance authorization also remains pending. Neither request is treated as answered by automatic goal continuations.
+
+The goal remains incomplete: actual new-extension QuickLook/Finder selection, actual VoiceOver reading, independent human review, minimum-platform validation, and the measured native-memory cost are not proven complete. Existing local test/benchmark/PDF/HTML evidence must not be expanded to claim those gates.

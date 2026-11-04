@@ -115,6 +115,11 @@ export function installMathSyntax(md: MarkdownIt, namespace = 'math'): MathSourc
                     // Markdown-it normalizes CRLF before parsing. Recover the
                     // exact original block for copy/fallback from its source map.
                     meta.raw = originalLines.slice(token.map[0], token.map[1]).join('').replace(/(?:\r\n|\r|\n)$/, '');
+                } else if (meta.raw.includes('\n') && token.map) {
+                    const first = token.map[0] + (meta.localLine || 0);
+                    const lines = meta.raw.split('\n');
+                    meta.raw = lines.map((line, index) => line + (index === lines.length - 1 ? '' :
+                        originalLines[first + index]?.match(/(\r\n|\r|\n)$/)?.[0] || '\n')).join('');
                 }
                 const firstLine = (token.map?.[0] || 0) + (meta.localLine || 0) + 1 + Number(state.env.sourceLineOffset || 0);
                 const source: MathSource = { id: `${namespace}-${sources.length}`, raw: meta.raw, payload: meta.payload,

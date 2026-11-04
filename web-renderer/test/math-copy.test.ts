@@ -46,3 +46,8 @@ test('nested formula copies the original container prefixes',async()=>{
     await window.renderMarkdown(block,{showCopyButtons:false});
     expect(blockPlainText(document.querySelector('.flux-math-source')!)).toBe(block);
 });
+test('multiline inline mathematics retains its original CRLF sequence',async()=>{
+    const formula='\\(x +\r\ny\\)';
+    await window.renderMarkdown('Prefix '+formula+' suffix',{showCopyButtons:false});
+    expect(blockPlainText(document.querySelector('.flux-math-source')!)).toBe(formula);
+});
