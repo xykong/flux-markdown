@@ -1,4 +1,5 @@
 /** Plain-text copying. Document contents stay in memory, never in diagnostic messages. */
+import { originalMathSource } from './math-source-store';
 export interface CopyRequest { id: string; generation: string; text: string }
 export interface CopyController { copy(block: HTMLElement): Promise<void>; dispose(): void }
 const snapshots = new WeakMap<Element, string>();
@@ -17,6 +18,8 @@ export function blockPlainText(element: Element): string {
     function read(node: Node): string {
         if (node.nodeType === Node.TEXT_NODE) return node.textContent || '';
         if (!(node instanceof Element) || node.matches(ignored)) return '';
+        const math = originalMathSource(node);
+        if (math !== undefined) return math;
         if (node.tagName === 'PRE') return snapshots.get(node) ?? node.querySelector('code')?.textContent ?? node.textContent ?? '';
         if (node.tagName === 'IMG') return node.getAttribute('alt') || '';
         if (node.tagName === 'BR') return '\n';
@@ -86,16 +89,25 @@ export function installBlockCopy(root: HTMLElement, generation: string, send = n
                 const timer = setTimeout(() => { entry.status.textContent = ''; delete entry.tools.dataset.copyState; timers.delete(timer); }, 2000);
                 entry.timer = timer; timers.add(timer);
             } else {
-                const failure = document.createElement('div'); failure.className = 'block-copy-error';
+                const failure = document.createElement(originalMathSource(block) !== undefined && block.tagName === 'SPAN' ? 'span' : 'div'); failure.className = 'block-copy-error';
                 const message = document.createElement('span'); message.textContent = strings[2];
                 const select = document.createElement('button'); select.type = 'button'; select.textContent = strings[3];
                 select.addEventListener('click', event => {
                     event.preventDefault(); event.stopPropagation();
+                    const source = failure.querySelector<HTMLTextAreaElement>('.math-copy-source');
+                    if (source) { source.focus(); source.select(); return; }
                     const range = document.createRange(); range.selectNodeContents(block.tagName === 'PRE' ? block.querySelector('code') || block : block);
                     if (block.firstChild === entry.tools && entry.tools.nextSibling) range.setStartBefore(entry.tools.nextSibling);
                     const selection = window.getSelection(); selection?.removeAllRanges(); selection?.addRange(range);
                 });
-                failure.append(message, select); entry.tools.append(failure);
+                failure.append(message, select);
+                if (originalMathSource(block) !== undefined) {
+                    const source = document.createElement('textarea');
+                    source.className = 'math-copy-source'; source.readOnly = true; source.value = text;
+                    source.setAttribute('aria-label', strings[3]);
+                    failure.append(source);
+                }
+                entry.tools.append(failure);
             }
         },
         dispose() {
@@ -109,17 +121,22 @@ export function installBlockCopy(root: HTMLElement, generation: string, send = n
             entries.clear();
         },
     };
-    root.querySelectorAll<HTMLElement>('pre, blockquote, .markdown-alert').forEach(block => {
+    root.querySelectorAll<HTMLElement>('pre, blockquote, .markdown-alert, .flux-math-source').forEach(block => {
+        const math = originalMathSource(block);
+        if (block.classList.contains('flux-math-source') && math === undefined) return;
         if (block.tagName === 'PRE' && (!block.querySelector('code') || block.querySelector('.typst-placeholder, .language-vega, .language-vega-lite, .language-dot, .language-graphviz'))) return;
-        const tools = document.createElement('div'); tools.className = 'block-copy-tools';
+        const inlineMath = math !== undefined && block.tagName === 'SPAN';
+        const tools = document.createElement(inlineMath ? 'span' : 'div'); tools.className = 'block-copy-tools';
         const button = document.createElement('button'); button.type = 'button'; button.textContent = '⧉';
         button.title = strings[0]; button.setAttribute('aria-label', strings[0]);
         const status = document.createElement('span'); status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
         tools.append(button, status);
         let wrapper: HTMLElement | undefined;
-        if (block.tagName === 'PRE') {
-            wrapper = document.createElement('div'); wrapper.className = 'block-copy-host';
-            block.before(wrapper); wrapper.append(tools, block);
+        if (block.tagName === 'PRE' || math !== undefined) {
+            wrapper = document.createElement(inlineMath ? 'span' : 'div'); wrapper.className = 'block-copy-host';
+            if (inlineMath) wrapper.classList.add('math-copy-inline');
+            block.before(wrapper);
+            if (inlineMath) wrapper.append(block, tools); else wrapper.append(tools, block);
         } else block.prepend(tools);
         entries.set(block, { tools, button, status, wrapper, busy: false });
         button.addEventListener('click', event => {

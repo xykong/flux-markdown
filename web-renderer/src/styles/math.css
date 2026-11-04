@@ -26,6 +26,22 @@ div.flux-math-source {
     outline-width: 3px;
     outline-color: #bf8700;
 }
+.math-copy-inline > .block-copy-tools {
+    display: inline-flex;
+    margin-inline-start: 4px;
+    vertical-align: middle;
+}
+.math-copy-source {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 10em;
+    max-width: 100%;
+    font: 12px ui-monospace, monospace;
+    direction: ltr;
+    -webkit-user-select: text;
+    user-select: text;
+}
 @media print {
     div.flux-math-source {
         break-inside: avoid;
