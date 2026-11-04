@@ -1,0 +1,26 @@
+/* Mathematical order is independent of the surrounding document's direction. */
+.flux-math-source {
+    direction: ltr;
+    unicode-bidi: isolate;
+}
+div.flux-math-source {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    text-align: center;
+}
+.flux-math mjx-container {
+    direction: ltr;
+    color: inherit;
+}
+.flux-math a:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+}
+@media print {
+    div.flux-math-source {
+        break-inside: avoid;
+        overflow: visible;
+    }
+}

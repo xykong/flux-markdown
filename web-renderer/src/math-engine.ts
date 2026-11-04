@@ -20,9 +20,17 @@ export interface MathEngineResult {
 }
 
 /** One isolated semantic document; the caller owns publication/generation checks. */
-export async function renderMathSources(sources: readonly MathSource[], namespace: string): Promise<MathEngineResult> {
+export async function renderMathSources(sources: readonly MathSource[], namespace: string, host?: HTMLElement): Promise<MathEngineResult> {
     const stage = document.createElement('div');
-    stage.style.cssText = 'position:absolute;left:-100000px;width:800px;visibility:hidden;font-size:18px;';
+    const style = host ? getComputedStyle(host) : null;
+    const padding = style ? (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0) : 0;
+    const width = Math.max(1, (host?.clientWidth || document.documentElement.clientWidth || 800) - padding);
+    stage.style.cssText = 'position:absolute;left:-100000px;visibility:hidden;pointer-events:none;direction:ltr;';
+    stage.dataset.mathMeasurement = namespace;
+    stage.style.width = `${width}px`;
+    stage.style.fontSize = style?.fontSize || '18px';
+    stage.style.fontFamily = style?.fontFamily || 'system-ui';
+    stage.style.fontWeight = style?.fontWeight || 'normal';
     stage.setAttribute('aria-hidden', 'true');
     const nodes = sources.map(source => {
         const node = document.createElement(source.display ? 'div' : 'span');

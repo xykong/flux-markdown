@@ -5,6 +5,7 @@ import { waitForExportReady } from './export-readiness';
 import { sanitizeDocumentHTML, sanitizeDiagramHTML } from './safe-html';
 import { renderTSVTable } from './tsv';
 import { installMathSyntax } from './math-syntax';
+import './styles/math.css';
 import './styles/tsv.css';
 /**
  * Escapes colons inside Gantt task labels when the metadata delimiter is
@@ -1006,7 +1007,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
             try {
                 const { renderMathSources } = await import('./math-engine');
                 if (!isCurrent()) return;
-                const result = await renderMathSources(mathSources, mathNamespace);
+                const result = await renderMathSources(mathSources, mathNamespace, outputDiv);
                 if (!isCurrent()) return;
                 let style = document.getElementById('flux-math-styles');
                 if (!style) { style = document.createElement('style'); style.id = 'flux-math-styles'; document.head.appendChild(style); }

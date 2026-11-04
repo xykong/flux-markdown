@@ -21,4 +21,19 @@ test('flags unresolved references and preserves valid following formulas', async
     expect(result.errors.map(error => error.sourceId)).toEqual(['bad']);
     expect(result.items.find(item => item.id === 'good')?.html).toContain('<svg');
 });
+test('measures using the current content width and text font, then removes the stage', async () => {
+    const host = document.createElement('div');
+    host.style.cssText = 'font-size:24px;font-family:serif;padding:10px;';
+    Object.defineProperty(host, 'clientWidth', { value: 340 });
+    document.body.appendChild(host);
+    const pending = renderMathSources([source('x','x=1')], 'metrics', host);
+    const stage = document.querySelector<HTMLElement>('[data-math-measurement]')!;
+    expect(stage).not.toBeNull();
+    expect(stage.style.width).toBe('320px');
+    expect(stage.style.fontSize).toBe('24px');
+    expect(stage.getAttribute('aria-hidden')).toBe('true');
+    await pending;
+    expect(document.querySelector('[data-math-measurement]')).toBeNull();
+    host.remove();
+});
 jest.mock('../src/math-font-loader', () => ({ installMathFontLoader: () => {} }));
