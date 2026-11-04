@@ -57,8 +57,9 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
     document.body.appendChild(stage);
     const svg = new SVG<HTMLElement, Text, Document>({ fontCache: 'local', linebreaks: { inline: false }, displayOverflow: 'scroll' });
     const doc = mathjax.document(document, { InputJax: [createMathInput(namespace), new MathML()], OutputJax: svg,
-        elements: [stage], enableAssistiveMml: true });
+        enableAssistiveMml: true });
     try {
+        doc.findMath({ elements: [stage] });
         await doc.renderPromise();
         const failed = new Set(nodes.filter(node => node.querySelector('[data-mml-node="merror"], merror')));
         const errors: MathEngineResult['errors'] = [];

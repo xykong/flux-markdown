@@ -21,6 +21,14 @@ test('flags unresolved references and preserves valid following formulas', async
     expect(result.errors.map(error => error.sourceId)).toEqual(['bad']);
     expect(result.items.find(item => item.id === 'good')?.html).toContain('<svg');
 });
+test('only processes its own stage, leaving other document mathematics untouched',async()=>{
+    const outside=document.createElement('div');outside.textContent=String.raw`\(outside\)`;document.body.append(outside);
+    try {
+        await renderMathSources([source('inside','x=1')],'scoped');
+        expect(outside.textContent).toBe(String.raw`\(outside\)`);
+        expect(outside.querySelector('mjx-container')).toBeNull();
+    } finally {outside.remove();}
+});
 test('equation references remain document-local when the host sets a resource base URL', async () => {
     const base=document.createElement('base');base.href='file:///tmp/documents/';document.head.append(base);
     try {

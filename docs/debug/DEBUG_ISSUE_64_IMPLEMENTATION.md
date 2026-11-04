@@ -175,3 +175,11 @@ Exported the actual production renderer's valid 12-item corpus to HTML, then reo
 After rebuilding and re-exporting, the fresh offline page loads only its HTML file with zero CSP violations: 12 SVG mathematical outputs, 12 assistive trees, nonzero geometry for every formula, zero missing local glyph targets, one valid equation-link target, no scripts and no copy/feedback controls. Results/hash are stored in `standalone-html-checkpoint.json`. This demonstrates offline structural and geometry readiness; actual link activation/keyboard/VoiceOver and cross-browser visual comparison remain separate checks.
 
 Full Jest **58 suites / 492 tests**, typecheck/build pass. The font-face omission intentionally applies only when no KaTeX output exists; mixed Typst/KaTeX standalone resource handling still needs its own regression acceptance.
+
+## Whole attachment and scoped discovery
+
+Rendered the unmodified original attachment with actual Mermaid/Graphviz/Vega engines in WebKit: eight Mermaid diagrams, one Graphviz, one Vega, document-end marker present, and only the intentional unknown-command mathematical error. Whole-document math count is 14, because line 132's escaped-parenthesis example has exactly the same syntax as enabled parenthesis math. This ambiguity is recorded explicitly in `full-document-checkpoint.json`; it is not added to the original 13-item dedicated math acceptance count. Image loading was not verified in this run.
+
+An additional `mathbb{abcxyz}` native test exercises a dynamically imported local double-struck glyph chunk (41,733 bytes) and yields one formula/six glyph uses without errors. This also exposed an invalid MathJax constructor `elements` option warning. A new test demonstrated unintended processing of unrelated DOM math. Fixed discovery by calling `doc.findMath({elements:[stage]})` before rendering, instead of passing the scope as an unsupported constructor option.
+
+The new isolation test fails before and passes after the correction. Full Jest **58 suites / 493 tests**, typecheck/build pass; the native dynamic-font probe now completes without the invalid-option warning. Remaining full-host/image/interaction/performance gates are unchanged.

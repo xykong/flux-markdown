@@ -1,0 +1,73 @@
+{
+  "endVisible": true,
+  "graphviz": 1,
+  "math": 14,
+  "mathErrors": 1,
+  "mathErrorsText": [
+    "Undefined control sequence \\unknownMarkdownPreviewCommandUndefined control sequence \\unknownMarkdownPreviewCommand"
+  ],
+  "mathSources": [
+    {
+      "line": "132",
+      "tex": "圆括号"
+    },
+    {
+      "line": "664",
+      "tex": null
+    },
+    {
+      "line": "677",
+      "tex": "E = mc^2"
+    },
+    {
+      "line": "677",
+      "tex": "x > 0"
+    },
+    {
+      "line": "677",
+      "tex": "\\sqrt{x^2} = x"
+    },
+    {
+      "line": "679",
+      "tex": "a^2 + b^2 = c^2"
+    },
+    {
+      "line": "683",
+      "tex": "\\int_{-\\infty}^{\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}"
+    },
+    {
+      "line": "689",
+      "tex": "\\sum_{k=1}^{n} k = \\frac{n(n+1)}{2}"
+    },
+    {
+      "line": "695",
+      "tex": "\\begin{aligned}f(x) &= \\frac{x^2 + 1}{x - 1} \\\\\\lim_{n\\to\\infty}\\left(1+\\frac{1}{n}\\right)^n &= e \\\\P(A\\mid B) &= \\frac{P(B\\mid A)P(A)}{P(B)} \\quad \\text{条件概率}\\end{aligned}"
+    },
+    {
+      "line": "705",
+      "tex": "A = \\begin{bmatrix}1 & 2 \\\\ 3 & 4\\end{bmatrix},\\qquadg(x) = \\begin{cases}x^2, & x \\ge 0 \\\\ -x, & x < 0\\end{cases}"
+    },
+    {
+      "line": "712",
+      "tex": "a^2 + b^2 = c^2 \\tag{1}\\label{eq:pythagoras}"
+    },
+    {
+      "line": "716",
+      "tex": "\\eqref{eq:pythagoras}"
+    },
+    {
+      "line": "720",
+      "tex": "\\nabla \\cdot \\mathbf{E} = \\frac{\\rho}{\\varepsilon_0}"
+    },
+    {
+      "line": "726",
+      "tex": "\\unknownMarkdownPreviewCommand{x}"
+    }
+  ],
+  "mermaid": 8,
+  "mermaidErrors": 0,
+  "otherErrors": [],
+  "vega": 1,
+  "scope": "unmodified original attachment, actual production WKWebView; resource images not verified",
+  "syntaxAmbiguity": "Line 132 escaped parentheses use the exact same delimiters as enabled parenthesized math; this adds one valid mathematical item outside the 13-item primary math corpus."
+}
