@@ -263,3 +263,9 @@ All ten engine tests pass, including the injected failures and cleanup check. Fu
 Added CRLF/frontmatter source-navigation and copy tests. Navigation already retained the correct original 7–9 line range, but the copied math fence normalized CRLF to LF. Capture original source lines before markdown-it normalization and recover display-math/fence raw blocks from token source ranges, preserving exact newline sequences and container prefixes. Mathematical payload parsing remains normalized as before.
 
 The original failing CRLF copy case now passes, along with a quoted CRLF formula that verifies the original `>` prefixes are retained. Full Jest **58 suites / 500 tests**, typecheck and production build pass. Multiline inline math's exact line-ending preservation, nested-link semantics and remaining broad acceptance items are not inferred from these block-source tests.
+
+## Reference interaction red checkpoint
+
+Actual WebKit inspection of `[See $\eqref{x}$](https://example.com)` confirms an SVG fragment anchor nested inside the ordinary HTML link. The fragment anchor has tabindex 0 but no accessible name and sits under the SVG's aria-hidden=true visual subtree. A valid target alone therefore did not prove keyboard/assistive usability.
+
+Added two production-entry regression tests that fail on these exact behaviors: require a named keyboard link outside hidden output (also in exported HTML), and require preserving both external/link-reference destinations without nested anchors. These are intentional red acceptance tests; fixing the reference interaction layer is the next work item. No reference-accessibility completion is claimed from the earlier structural checks.
