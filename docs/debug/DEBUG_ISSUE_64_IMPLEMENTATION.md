@@ -217,3 +217,9 @@ Next required work: attribute retained state/caches and test cleanup or bounded 
 Tested a single shared SVG font-data instance while retaining document-local input/output objects. All 494 unit tests passed, but the identical three-cycle workload retained roughly **2455 / 2513 / 2636 MiB** after clearing, comparable to the original implementation. This is not evidence of a useful memory fix, so the production source experiment was reverted; observations are retained in `memory-font-experiment.json`.
 
 A vmmap sample during the experiment attributes about 1.7 GiB allocated / 2.3 GiB resident to WebKit Malloc, with about 13.7 million allocations. This directs the next experiment toward DOM/tree allocation and cleanup rather than assuming font tables alone explain the footprint. Sampling occurred during the workload and is not a retained-heap proof. The goal remains incomplete; memory acceptance is still open.
+
+## Batch-sanitization hypothesis rejected
+
+Tested sanitizing the entire stage in one DOMPurify pass, then redistributing sanitized children by source order, keeping the same allowlist and glyph checks. All 495 tests passed, including a new multi-formula local-glyph integrity test. However, the identical recovery workload retained roughly **3100 / 3102 / 3104 MiB**, worse than the per-formula implementation. The batch implementation was reverted and the normal build restored; raw evidence is in `memory-batch-experiment.json`.
+
+Retained the independent multi-formula test, which also passes with the original implementation. The experiment suggests reducing the number of parser calls alone does not resolve the native-memory footprint and can increase simultaneous tree allocation. No production performance claim or memory completion is made; further heap/allocator attribution is required.

@@ -36,6 +36,18 @@ test('returns owned CSS without leaving a second engine stylesheet in the page',
     expect(result.css).toContain('mjx-assistive-mml');
     expect(document.querySelector('#MJX-SVG-styles')).toBeNull();
 });
+test('multi-formula output preserves every source boundary and its own local glyphs',async()=>{
+    const result=await renderMathSources(Array.from({length:12},(_,i)=>source('item-'+i,`x_${i}=1`)), 'batch');
+    expect(result.items.map(item=>item.id)).toEqual(Array.from({length:12},(_,i)=>'item-'+i));
+    for(const item of result.items){
+        const root=document.createElement('div');root.innerHTML=item.html;
+        expect(root.querySelectorAll('mjx-container')).toHaveLength(1);
+        for(const use of root.querySelectorAll('use')){
+            const id=(use.getAttribute('href')||use.getAttribute('xlink:href')||'').slice(1);
+            expect(Array.from(root.querySelectorAll('defs [id]')).some(node=>node.id===id)).toBe(true);
+        }
+    }
+});
 test('equation references remain document-local when the host sets a resource base URL', async () => {
     const base=document.createElement('base');base.href='file:///tmp/documents/';document.head.append(base);
     try {
