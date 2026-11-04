@@ -1,7 +1,7 @@
 # Issue #64 数学渲染详细设计
 
-日期：2026-11-04。状态：详细设计交付，产品实现尚未开始。
-用户已确认按既定要求执行方案设计。本文件将总体方案中的方向细化为接口、语义、集成顺序和可验收工作项。
+日期：2026-11-04。状态：主要功能已实现，独立验收仍在进行，尚未达到完整发布门槛。
+用户已确认方案并授权实现及端到端验证。本文件保留设计契约与实施决策；实际证据和未完成项以 `docs/debug/ISSUE_64_ACCEPTANCE_STATUS.md` 及 OpenSpec 任务清单为准。
 
 总体范围与原文逐章盘点见 [总体方案](ISSUE_64_MATH_RENDERING.md)，固定语料与实验见 `docs/research/issue64/`。
 
@@ -42,15 +42,15 @@ flowchart TD
 | 模块 | 责任 | 不承担 |
 | --- | --- | --- |
 | `math-syntax.ts`（新增） | delimiters、fence、指定 AMS 环境、原文范围、token 元数据 | TeX 命令解释、全局字符串替换 |
-| `math-model.ts`（新增） | 源项、会话结果、诊断、引用契约 | DOM 或原生 bridge |
+| `math-syntax.ts` / `math-engine.ts` 的导出类型 | 源项、会话结果与诊断契约；实现未单设 math-model 文件 | 原生 bridge |
 | `math-engine.ts`（新增） | 延迟加载、独立 TeX/MathDocument、AMS 适配、MathML/SVG 输出 | 私自写当前预览 DOM |
-| `math-document.ts`（新增） | generation、顺序、引用核对、展示/失败/清理生命周期 | 共享可变数学全局状态 |
+| `index.ts` / `math-engine.ts` | generation、顺序、引用核对、展示/失败/清理生命周期；实现未单设 math-document 文件 | 共享可变数学会话状态 |
 | `safe-html.ts` | document/diagram/math 三种明确输入策略 | 放行所有自定义元素或任意 URI |
 | `index.ts` | 现有入口调用、开关兼容、导航、目录、源码及渲染完成承诺 | 内嵌整套数学实现 |
 | `export-readiness.ts` | 当前会话终态、数学错误、布局/字体/图像就绪 | 根据“Promise resolved”推断没有数学错误 |
 | `error-feedback.ts` / 原生 ErrorIncident | 安全事件、恢复与反馈、六种语言 | 上传数学源码或标签文字 |
 
-计划接口如下，属于设计契约，不是本轮新增生产代码：
+下列伪接口保留原始设计意图，不是可直接导入的生产 API。实际类型分别为 `MathSource`、`MathEngineResult`；generation 与发布控制由 `index.ts` 持有，输入预算由 `math-limits.ts` 执行。实现采用协作式失效检查，不声称能用 Promise 超时中断同步排版。
 
 ```ts
 type MathInputKind = 'tex-inline' | 'tex-display' | 'mathml';

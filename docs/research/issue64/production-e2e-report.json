@@ -1,8 +1,8 @@
 {
-  "sourceCommit": "8dec521ab98c16fd753cca151c84215e19ff038f",
+  "sourceCommit": "58b094472442ed07838341bd904955250605f31a",
   "platform": "27.0.1",
   "architecture": "arm64",
-  "bundleIndexSha256": "f0fa4b36ebbc06a6d9541d337c6e9e251e2358310d6ee69e7eb8c0e2b6aefbe0",
+  "bundleIndexSha256": "03bf9e619a20b4cbbbbbc3d118b53eba13950ef987d67857bb91d2a392de7e29",
   "production": {
     "invalidExportRejected": true,
     "original": {
@@ -30,16 +30,72 @@
     "memory acceptance",
     "independent reviewer sign-off"
   ],
-  "jestSummary": [
-    "",
-    "Test Suites: 59 passed, 59 total",
-    "Tests:       529 passed, 529 total",
-    "Snapshots:   0 total",
-    "Time:        5.093 s, estimated 7 s"
-  ],
-  "nativeSummary": "PASS all 29 real WebKit cases",
-  "verificationScripts": {
-    "scripts/issue64/production-corpus.js": "1e748a6e0bd522991b848fd28319b20c59b2d74f8f845783ba3c21e216a9392b",
-    "scripts/issue64/offline-export.js": "62d6b06f430e436e1ea551f6a192e622d382cec31b6eec6122eda115739fd33e"
-  }
+  "assetClosure": {
+    "static": {
+      "modules": [
+        "assets/PUA-C65Vq0rR.js",
+        "assets/accents-b-i-PuEfMCGA.js",
+        "assets/accents-DfCXWDmz.js",
+        "assets/arabic-CikkUuoG.js",
+        "assets/arrows-LjBGPh0t.js",
+        "assets/braille-d--sg1gnPh.js",
+        "assets/braille-DNY2oHpo.js",
+        "assets/calligraphic-BPZ8dkI5.js",
+        "assets/cherokee-BZEAQuol.js",
+        "assets/cyrillic-ss-Bj8tlpgq.js",
+        "assets/cyrillic-BDO0zFaz.js",
+        "assets/devanagari-DMnVfnC4.js",
+        "assets/double-struck-52Lxh5H-.js",
+        "assets/fraktur-DfA5TEcN.js",
+        "assets/greek-ss-BoGg_wK5.js",
+        "assets/greek-Pqy0LiZF.js",
+        "assets/hebrew-Do6VcOHP.js",
+        "assets/latin-b-CoGizFzx.js",
+        "assets/latin-bi-uSuW2fyp.js",
+        "assets/latin-i-j3Lapw0X.js",
+        "assets/latin-6-TnFIiW.js",
+        "assets/marrows-HsekLayb.js",
+        "assets/math-C0j5tof3.js",
+        "assets/monospace-ex-DMOR0CpS.js",
+        "assets/monospace-l-CuY85NAh.js",
+        "assets/monospace-BvIocWFA.js",
+        "assets/mshapes-BZuvmtEj.js",
+        "assets/phonetics-ss-B9HkOSzW.js",
+        "assets/phonetics-BnT9glOP.js",
+        "assets/sans-serif-b-C3VpRV2-.js",
+        "assets/sans-serif-bi-BCqAgGT_.js",
+        "assets/sans-serif-ex-v90YPCmh.js",
+        "assets/sans-serif-i-C5rhE1zx.js",
+        "assets/sans-serif-r-DmRHQKek.js",
+        "assets/sans-serif-FTYpPg7Y.js",
+        "assets/script-CxQCsX_8.js",
+        "assets/shapes-BIDXMxG5.js",
+        "assets/symbols-b-i-C50RO1DG.js",
+        "assets/symbols-CMnmZ6n7.js",
+        "assets/variants-CHqCp9wb.js"
+      ],
+      "manifestEntries": 165,
+      "licenses": {
+        "MathJax-Apache-2.0.txt": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "MathJax-NOTICE.txt": "8e244275e8265a832655438aabcd97cf1471a918764ecbbd5e6291b0703785f8",
+        "NewComputerModern.txt": "49ea6cb9257bbee0a3979c48a774cd221550ac1c20c95549efe45fc99cc18050"
+      }
+    },
+    "native": {
+      "loadedModules": 40,
+      "renderedAfterImports": true
+    },
+    "missingGlyphDetected": {
+      "static": true,
+      "native": true
+    }
+  },
+  "worktreeDirty": true,
+  "validationSourceHashes": {
+    "scripts/test-issue64-math.sh": "809497c9eb6eac1d07036307c9e233d512bb93b5cd7a398f2a8301d60d2103d6",
+    "scripts/issue64/asset-closure.py": "4f50b008d17614375a03c3efe2c535e5a3e387f4cf8b9c985b02392e0bbed094",
+    "scripts/issue64/asset-closure.js": "02b1e1f9fe93accf0a5e8ab158532db5e6b7e0fb40ddf86fe43ffc65752ce325",
+    "web-renderer/vite.config.ts": "26ec6fa3f5aaf1d5fd34983d52031c3f27feb0a9bca53ca04335a8b8f8088afb"
+  },
+  "evidenceNote": "Validation ran before commit. Reporting-only metadata was added afterward; runtime test assertions and production files were unchanged."
 }

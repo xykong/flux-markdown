@@ -26,6 +26,28 @@ npm test --prefix web-renderer -- --runInBand --silent > "$ISSUE64_RUN/jest.log"
 npm run --prefix web-renderer build > "$ISSUE64_RUN/build.log" 2>&1
 scripts/test-renderer-webkit.sh > "$ISSUE64_RUN/native-suite.log" 2>&1
 swiftc Sources/Shared/RendererBundleSchemeHandler.swift scripts/research/issue64-math/main.swift -o "$ISSUE64_RUN/probe"
+python3 scripts/issue64/asset-closure.py > "$ISSUE64_RUN/asset-closure.json"
+"$ISSUE64_RUN/probe" 'flux-renderer://bundle/index.html' "$PROJECT_ROOT/web-renderer/dist" "$PROJECT_ROOT/scripts/issue64/asset-closure.js" "$ISSUE64_RUN/asset-closure.json" 60 > "$ISSUE64_RUN/asset-runtime.json" 2> "$ISSUE64_RUN/asset-runtime.log"
+python3 - "$ISSUE64_RUN" <<'PY'
+from pathlib import Path
+import json, shutil, subprocess, sys
+out=Path(sys.argv[1]);fault=out/'missing-glyph-bundle'
+shutil.copytree('web-renderer/dist',fault)
+modules=json.loads((out/'asset-closure.json').read_text())['modules']
+missing=next(name for name in modules if Path(name).name.startswith('double-struck-'))
+(fault/missing).unlink()
+result=subprocess.run([sys.executable,'scripts/issue64/asset-closure.py',str(fault)],capture_output=True,text=True)
+assert result.returncode and 'Missing or escaping bundled resource' in result.stderr,'Missing glyph escaped static verification'
+(out/'asset-fault-static.log').write_text(result.stderr)
+PY
+if "$ISSUE64_RUN/probe" 'flux-renderer://bundle/index.html' "$ISSUE64_RUN/missing-glyph-bundle" "$PROJECT_ROOT/scripts/issue64/asset-closure.js" "$ISSUE64_RUN/asset-closure.json" 30 > "$ISSUE64_RUN/asset-fault-runtime.json" 2> "$ISSUE64_RUN/asset-fault-runtime.log"; then
+    printf 'Missing glyph escaped native module verification\n' >&2
+    exit 1
+fi
+if ! rg -qi 'Importing a module script failed|Failed to fetch dynamically imported module|error loading dynamically imported module' "$ISSUE64_RUN/asset-fault-runtime.log"; then
+    printf 'Native glyph fault failed for an unexpected reason\n' >&2
+    exit 1
+fi
 "$ISSUE64_RUN/probe" 'flux-renderer://bundle/index.html' "$PROJECT_ROOT/web-renderer/dist" "$PROJECT_ROOT/scripts/issue64/production-corpus.js" "$ISSUE64_RUN/input.json" 90 > "$ISSUE64_RUN/production.json" 2> "$ISSUE64_RUN/production.log"
 python3 - "$ISSUE64_RUN" <<'PY'
 from pathlib import Path
@@ -42,6 +64,9 @@ from pathlib import Path
 import json,sys,subprocess,hashlib
 out=Path(sys.argv[1]);assert 'CSP ' not in (out/'offline.log').read_text(),'Offline export requested blocked resources'
 report={'sourceCommit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'platform':subprocess.check_output(['sw_vers','-productVersion'],text=True).strip(),'architecture':subprocess.check_output(['uname','-m'],text=True).strip(),'bundleIndexSha256':hashlib.sha256(Path('web-renderer/dist/index.html').read_bytes()).hexdigest(),'production':json.loads((out/'production-summary.json').read_text()),'offline':json.loads((out/'offline.json').read_text()),'notCovered':['actual selected App/QuickLook/Finder UI','minimum macOS/Intel','VoiceOver speech','PDF visual inspection','memory acceptance','independent reviewer sign-off']}
+report['assetClosure']={'static':json.loads((out/'asset-closure.json').read_text()),'native':json.loads((out/'asset-runtime.json').read_text()),'missingGlyphDetected':{'static':True,'native':True}}
+report['worktreeDirty']=bool(subprocess.check_output(['git','status','--porcelain'],text=True).strip())
+report['validationSourceHashes']={name:hashlib.sha256(Path(name).read_bytes()).hexdigest() for name in ['scripts/test-issue64-math.sh','scripts/issue64/asset-closure.py','scripts/issue64/asset-closure.js','web-renderer/vite.config.ts']}
 (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
 print('PASS current-machine renderer and standalone-HTML end-to-end checks')
 print('Evidence:',out)

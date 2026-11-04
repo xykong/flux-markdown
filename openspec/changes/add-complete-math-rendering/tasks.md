@@ -15,7 +15,7 @@
 - [x] 2.4 Select exact engine/font versions, package profile, SVG output, assistive MathML and no-Worker policy in the design.
 - [ ] 2.5 Obtain independent reviewer sign-off of the expectation manifest and reference.
 - [ ] 2.6 Validate minimum-system/Intel APIs, actual VoiceOver and WebContent memory; freeze environment-specific limits.
-- [ ] 2.7 Verify the production modular build and full runtime asset closure; the combined-bundle research is not that acceptance.
+- [x] 2.7 Verify the production modular build and full runtime asset closure: current WebKit loads all 40 SVG glyph modules; Vite manifest/resource/license checks and missing-glyph fault injection pass. Minimum-platform compatibility remains in 2.6.
 
 ## 3. Parsing and document semantics
 - [x] 3.1 Add failing tests for all delimiters/math fences and protected source regions.

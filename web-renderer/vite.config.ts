@@ -8,6 +8,7 @@ export default defineConfig({
     transformIndexHtml: { order: 'post', handler: (html) => html.replace(/\s+crossorigin(?:="[^"]*")?/g, '') },
   }],
   build: {
+    manifest: true,
     target: 'safari14',
     outDir: 'dist',
     assetsDir: 'assets',
