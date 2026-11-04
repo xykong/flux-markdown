@@ -1,0 +1,532 @@
+{
+  "exit": 0,
+  "webpid": 70315,
+  "samples": [
+    {
+      "seconds": 1.1,
+      "rssKiB": 278384,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-0"
+    },
+    {
+      "seconds": 2.16,
+      "rssKiB": 901344,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-0"
+    },
+    {
+      "seconds": 3.21,
+      "rssKiB": 1079376,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-1"
+    },
+    {
+      "seconds": 4.27,
+      "rssKiB": 1321824,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-1"
+    },
+    {
+      "seconds": 5.32,
+      "rssKiB": 1471360,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-2"
+    },
+    {
+      "seconds": 6.37,
+      "rssKiB": 1649440,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-2"
+    },
+    {
+      "seconds": 7.43,
+      "rssKiB": 1702928,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-3"
+    },
+    {
+      "seconds": 8.48,
+      "rssKiB": 1716384,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-3"
+    },
+    {
+      "seconds": 9.54,
+      "rssKiB": 1749312,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-4"
+    },
+    {
+      "seconds": 10.6,
+      "rssKiB": 1773472,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-4"
+    },
+    {
+      "seconds": 11.65,
+      "rssKiB": 1793664,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-5"
+    },
+    {
+      "seconds": 12.7,
+      "rssKiB": 1794288,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-5"
+    },
+    {
+      "seconds": 13.75,
+      "rssKiB": 1808976,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-6"
+    },
+    {
+      "seconds": 14.81,
+      "rssKiB": 1832544,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-7"
+    },
+    {
+      "seconds": 15.87,
+      "rssKiB": 1833008,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-7"
+    },
+    {
+      "seconds": 16.92,
+      "rssKiB": 1833984,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-8"
+    },
+    {
+      "seconds": 17.97,
+      "rssKiB": 1842112,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-8"
+    },
+    {
+      "seconds": 19.02,
+      "rssKiB": 1842912,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-9"
+    },
+    {
+      "seconds": 20.07,
+      "rssKiB": 1842944,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-9"
+    },
+    {
+      "seconds": 21.12,
+      "rssKiB": 1844048,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-10"
+    },
+    {
+      "seconds": 22.17,
+      "rssKiB": 1847552,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-11"
+    },
+    {
+      "seconds": 23.23,
+      "rssKiB": 1847984,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-11"
+    },
+    {
+      "seconds": 24.28,
+      "rssKiB": 1849344,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-12"
+    },
+    {
+      "seconds": 25.34,
+      "rssKiB": 1849520,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-12"
+    },
+    {
+      "seconds": 26.39,
+      "rssKiB": 1849760,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-13"
+    },
+    {
+      "seconds": 27.44,
+      "rssKiB": 1849888,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-13"
+    },
+    {
+      "seconds": 28.5,
+      "rssKiB": 1849888,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-13"
+    },
+    {
+      "seconds": 29.55,
+      "rssKiB": 1849888,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-13"
+    },
+    {
+      "seconds": 30.61,
+      "rssKiB": 1849888,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-13"
+    },
+    {
+      "seconds": 31.66,
+      "rssKiB": 1849888,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-13"
+    },
+    {
+      "seconds": 32.71,
+      "rssKiB": 1849792,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-13"
+    },
+    {
+      "seconds": 33.76,
+      "rssKiB": 1853648,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-14"
+    },
+    {
+      "seconds": 34.81,
+      "rssKiB": 1890192,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-14"
+    },
+    {
+      "seconds": 35.86,
+      "rssKiB": 1892544,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-15"
+    },
+    {
+      "seconds": 36.91,
+      "rssKiB": 1892672,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-16"
+    },
+    {
+      "seconds": 37.97,
+      "rssKiB": 1893360,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-16"
+    },
+    {
+      "seconds": 39.02,
+      "rssKiB": 1893728,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-17"
+    },
+    {
+      "seconds": 40.07,
+      "rssKiB": 1910672,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-17"
+    },
+    {
+      "seconds": 41.12,
+      "rssKiB": 1925456,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-18"
+    },
+    {
+      "seconds": 42.17,
+      "rssKiB": 1925744,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-18"
+    },
+    {
+      "seconds": 43.22,
+      "rssKiB": 1925840,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-19"
+    },
+    {
+      "seconds": 44.27,
+      "rssKiB": 1925856,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-20"
+    },
+    {
+      "seconds": 45.33,
+      "rssKiB": 1925920,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-20"
+    },
+    {
+      "seconds": 46.38,
+      "rssKiB": 1926224,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-21"
+    },
+    {
+      "seconds": 47.44,
+      "rssKiB": 1926352,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-21"
+    },
+    {
+      "seconds": 48.51,
+      "rssKiB": 1927056,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-21"
+    },
+    {
+      "seconds": 49.56,
+      "rssKiB": 1927200,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-22"
+    },
+    {
+      "seconds": 50.63,
+      "rssKiB": 1927200,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-22"
+    },
+    {
+      "seconds": 51.68,
+      "rssKiB": 1933360,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-23"
+    },
+    {
+      "seconds": 52.74,
+      "rssKiB": 1933360,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-23"
+    },
+    {
+      "seconds": 53.79,
+      "rssKiB": 1933808,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-24"
+    },
+    {
+      "seconds": 54.85,
+      "rssKiB": 1934000,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-24"
+    },
+    {
+      "seconds": 55.9,
+      "rssKiB": 1934096,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-25"
+    },
+    {
+      "seconds": 56.96,
+      "rssKiB": 1934096,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-25"
+    },
+    {
+      "seconds": 58.01,
+      "rssKiB": 1946000,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-26"
+    },
+    {
+      "seconds": 59.06,
+      "rssKiB": 1945968,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-27"
+    },
+    {
+      "seconds": 60.12,
+      "rssKiB": 1946032,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-27"
+    },
+    {
+      "seconds": 61.18,
+      "rssKiB": 1945984,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-28"
+    },
+    {
+      "seconds": 62.24,
+      "rssKiB": 1946192,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-28"
+    },
+    {
+      "seconds": 63.29,
+      "rssKiB": 1946160,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-29"
+    },
+    {
+      "seconds": 64.35,
+      "rssKiB": 1946240,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-29"
+    },
+    {
+      "seconds": 65.4,
+      "rssKiB": 1946464,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-31"
+    },
+    {
+      "seconds": 66.44,
+      "rssKiB": 1946464,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-31"
+    },
+    {
+      "seconds": 67.49,
+      "rssKiB": 1946464,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-31"
+    },
+    {
+      "seconds": 68.54,
+      "rssKiB": 1946464,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-31"
+    },
+    {
+      "seconds": 69.59,
+      "rssKiB": 1946464,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-31"
+    },
+    {
+      "seconds": 70.65,
+      "rssKiB": 1946464,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-31"
+    },
+    {
+      "seconds": 71.73,
+      "rssKiB": 1946464,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-31"
+    },
+    {
+      "seconds": 72.8,
+      "rssKiB": 1946464,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-31"
+    },
+    {
+      "seconds": 73.85,
+      "rssKiB": 1946464,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-31"
+    },
+    {
+      "seconds": 74.92,
+      "rssKiB": 1946464,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-31"
+    },
+    {
+      "seconds": 76.0,
+      "rssKiB": 1946464,
+      "processExists": true,
+      "phase": "JS: MEMPHASE native-completed-31"
+    }
+  ],
+  "method": "30 independent native callAsyncJavaScript invocations, each rendering 1000 formulas; plain text clear followed by 10s idle. heap --noContent samples during and after workload (may perturb scheduling).",
+  "heapSummaries": {
+    "heap.txt": [
+      "Process:         com.apple.WebKit.WebContent [70315]",
+      "Path:            /System/Volumes/Preboot/Cryptexes/OS/System/Library/Frameworks/WebKit.framework/Versions/A/XPCServices/com.apple.WebKit.WebContent.xpc/Contents/MacOS/com.apple.WebKit.WebContent",
+      "Load Address:    0x104f00000",
+      "Identifier:      com.apple.WebKit.WebContent",
+      "Version:         22625 (22625.1.29.11.28)",
+      "Code Type:       ARM64E",
+      "Platform:        macOS",
+      "Parent Process:  launchd [1]",
+      "Target Type:     live task (MTE Enabled)",
+      "",
+      "Date/Time:       2026-11-04 20:37:03.295 +0800",
+      "Launch Time:     2026-11-04 20:36:36.980 +0800",
+      "OS Version:      macOS 27.0.1 (26A434)",
+      "Report Version:  7",
+      "Analysis Tool:   /usr/bin/heap",
+      "",
+      "Physical footprint:         856.4M",
+      "Physical footprint (peak):  1.1G",
+      "Idle exit:                  clean",
+      "----",
+      "",
+      "Process 70315: 4 zones",
+      "-----------------------------------------------------------------------",
+      "All zones: 8517256 nodes (1233841952 bytes)",
+      "",
+      "   COUNT      BYTES       AVG   CLASS_NAME                                        TYPE    BINARY",
+      "   =====      =====       ===   ==========                                        ====    ======",
+      " 3286620  767455152     233.5   non-object                                                ",
+      "  186605   53742240     288.0   WebCore::SVGGElement                              C++     WebCore",
+      "  122585   45111280     368.0   WebCore::SVGUseElement                            C++     WebCore",
+      "  632752   40496128      64.0   WebCore::SVGAnimatedValueProperty<WebCore::SVGLength>  C++     WebCore",
+      "  632752   40496128      64.0   WebCore::SVGLength                                C++     WebCore",
+      "  530429   33947456      64.0   WebCore::SVGAnimatedString                        C++     WebCore",
+      "  407844   26102016      64.0   WebCore::SVGAnimatedPropertyList<WebCore::SVGTransformList>  C++     WebCore",
+      "  407844   26102016      64.0   WebCore::SVGTransformList                         C++     WebCore",
+      "  530429   25460592      48.0   WebCore::SVGSharedPrimitiveProperty<WTF::String>  C++     WebCore",
+      "   63052   19167808     304.0   WebCore::SVGPathElement                           C++     WebCore",
+      "  128953   18569232     144.0   WebCore::Attr                                     C++     WebCore",
+      "  167086   13366880      80.0   WebCore::SVGMatrix                                C++     WebCore",
+      "  167086   13366880      80.0   WebCore::SVGTransform                             C++     WebCore",
+      "   41341   11906208     288.0   WebCore::ShadowRoot                               C++     WebCore",
+      "   79943   11511792     144.0   WebCore::MathMLTokenElement                       C++     WebCore",
+      "   99941   11193392     112.0   WebCore::Text                                     C++     WebCore"
+    ],
+    "heap-cleared.txt": [
+      "Process:         com.apple.WebKit.WebContent [70315]",
+      "Path:            /System/Volumes/Preboot/Cryptexes/OS/System/Library/Frameworks/WebKit.framework/Versions/A/XPCServices/com.apple.WebKit.WebContent.xpc/Contents/MacOS/com.apple.WebKit.WebContent",
+      "Load Address:    0x104f00000",
+      "Identifier:      com.apple.WebKit.WebContent",
+      "Version:         22625 (22625.1.29.11.28)",
+      "Code Type:       ARM64E",
+      "Platform:        macOS",
+      "Parent Process:  launchd [1]",
+      "Target Type:     live task (MTE Enabled)",
+      "",
+      "Date/Time:       2026-11-04 20:37:41.929 +0800",
+      "Launch Time:     2026-11-04 20:36:36.980 +0800",
+      "OS Version:      macOS 27.0.1 (26A434)",
+      "Report Version:  7",
+      "Analysis Tool:   /usr/bin/heap",
+      "",
+      "Physical footprint:         678.5M",
+      "Physical footprint (peak):  1.1G",
+      "Idle exit:                  clean",
+      "----",
+      "",
+      "Process 70315: 4 zones",
+      "-----------------------------------------------------------------------",
+      "All zones: 7363022 nodes (918026912 bytes)",
+      "",
+      "   COUNT      BYTES       AVG   CLASS_NAME                                        TYPE    BINARY",
+      "   =====      =====       ===   ==========                                        ====    ======",
+      " 2832179  506395792     178.8   non-object                                                ",
+      "  156169   44976672     288.0   WebCore::SVGGElement                              C++     WebCore",
+      "  102876   37858368     368.0   WebCore::SVGUseElement                            C++     WebCore",
+      "  238594   34357536     144.0   WebCore::Attr                                     C++     WebCore",
+      "  529796   33906944      64.0   WebCore::SVGAnimatedValueProperty<WebCore::SVGLength>  C++     WebCore",
+      "  529796   33906944      64.0   WebCore::SVGLength                                C++     WebCore",
+      "  444180   28427520      64.0   WebCore::SVGAnimatedString                        C++     WebCore",
+      "  341304   21843456      64.0   WebCore::SVGAnimatedPropertyList<WebCore::SVGTransformList>  C++     WebCore",
+      "  341304   21843456      64.0   WebCore::SVGTransformList                         C++     WebCore",
+      "  444180   21320640      48.0   WebCore::SVGSharedPrimitiveProperty<WTF::String>  C++     WebCore",
+      "   52901   16081904     304.0   WebCore::SVGPathElement                           C++     WebCore",
+      "   41341   11906208     288.0   WebCore::ShadowRoot                               C++     WebCore",
+      "  139974   11197920      80.0   WebCore::SVGMatrix                                C++     WebCore",
+      "  139974   11197920      80.0   WebCore::SVGTransform                             C++     WebCore",
+      "   67853    9770832     144.0   WebCore::MathMLTokenElement                       C++     WebCore",
+      "   84720    9488640     112.0   WebCore::Text                                     C++     WebCore"
+    ]
+  },
+  "interpretation": "Independent calls do not eliminate elevated memory. Cleared heap still contains many SVG and MathML native objects; RSS is not identical to physical footprint. No specific root retaining these objects identified yet."
+}

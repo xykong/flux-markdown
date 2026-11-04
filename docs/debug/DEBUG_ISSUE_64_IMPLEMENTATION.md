@@ -231,3 +231,13 @@ Extended the research probe with opt-in native-window attachment and post-comple
 After removing the script handler/delegate, detaching and releasing the probe-owned view/window, observed another 15 seconds. The same WebContent process stayed near 2623 MiB; it disappeared after the probe process exited. This is evidence against a solely windowless-test cause, not proof of specific framework cache or object retention. No private GC/memory-pressure API was used and no production lifecycle behavior was changed.
 
 Raw data and scope are saved in `memory-window-experiment.json`. The monitor now records process disappearance explicitly rather than silently skipping absent samples. Probe source compiles and monitor syntax checks pass; the release log's literal newline in this experimental binary was corrected in the saved script. Memory acceptance remains unresolved; next work must distinguish render-call lifetime, framework process cache and actual retained DOM/JS objects.
+
+## Separate native calls and heap attribution
+
+Repeated the large workload through 30 distinct native `callAsyncJavaScript` invocations (each completion returned before the next call), then cleared to plain text and idled for ten seconds. This did not eliminate high process memory, ruling out one long JavaScript promise as a sufficient explanation.
+
+Used `heap -s --noContent` on the identified test WebContent process during rendering and after clearing. During sample: physical footprint 856.4 MiB, peak 1.1 GiB; post-clear sample: footprint 678.5 MiB. RSS is therefore not the same as the system's physical-footprint metric and must not be described as exclusively retained application memory.
+
+Nevertheless, the cleared heap still reports approximately 156k SVGGElement, 103k SVGUseElement, 53k SVGPathElement and 68k MathMLTokenElement objects while the live document is plain text. These are specific native-tree objects warranting further attribution, not merely empty reserved address space. Heap inspection can perturb execution; this run is not used as a timing benchmark.
+
+Saved samples/selected content-free heap summaries in `memory-separate-calls.json`, plus the separate-call probe/workload source. The probe source is compiled as `main.swift` with the shared bundle handler, and the workload is passed as the JS argument. Next hypothesis: SVG use shadow-tree allocation versus direct glyph paths, with output/size validation retained. No unverified optimization adopted.
