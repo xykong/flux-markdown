@@ -1,0 +1,45 @@
+{
+  "sourceCommit": "8dec521ab98c16fd753cca151c84215e19ff038f",
+  "platform": "27.0.1",
+  "architecture": "arm64",
+  "bundleIndexSha256": "f0fa4b36ebbc06a6d9541d337c6e9e251e2358310d6ee69e7eb8c0e2b6aefbe0",
+  "production": {
+    "invalidExportRejected": true,
+    "original": {
+      "end": true,
+      "errors": 1,
+      "graphviz": 1,
+      "math": 14,
+      "mermaid": 8,
+      "vega": 1
+    },
+    "recovery": true,
+    "validMath": 12
+  },
+  "offline": {
+    "assistive": 12,
+    "formulas": 12,
+    "scripts": 0,
+    "validReferenceTargets": 1
+  },
+  "notCovered": [
+    "actual selected App/QuickLook/Finder UI",
+    "minimum macOS/Intel",
+    "VoiceOver speech",
+    "PDF visual inspection",
+    "memory acceptance",
+    "independent reviewer sign-off"
+  ],
+  "jestSummary": [
+    "",
+    "Test Suites: 59 passed, 59 total",
+    "Tests:       529 passed, 529 total",
+    "Snapshots:   0 total",
+    "Time:        5.093 s, estimated 7 s"
+  ],
+  "nativeSummary": "PASS all 29 real WebKit cases",
+  "verificationScripts": {
+    "scripts/issue64/production-corpus.js": "1e748a6e0bd522991b848fd28319b20c59b2d74f8f845783ba3c21e216a9392b",
+    "scripts/issue64/offline-export.js": "62d6b06f430e436e1ea551f6a192e622d382cec31b6eec6122eda115739fd33e"
+  }
+}

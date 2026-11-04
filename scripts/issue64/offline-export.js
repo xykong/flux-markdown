@@ -1,0 +1,11 @@
+const assert=(condition,message)=>{if(!condition)throw new Error(message);};
+const root=document.querySelector('.markdown-body');
+assert(root,'Standalone document root missing');root.getBoundingClientRect();await document.fonts.ready;
+const formulas=[...root.querySelectorAll('mjx-container')];
+assert(formulas.length===12 && root.querySelectorAll('mjx-assistive-mml math').length===12,'Offline mathematics/semantics missing');
+assert(formulas.every(node=>{const r=node.querySelector('svg')?.getBoundingClientRect();return r&&r.width>0&&r.height>0;}),'Offline formula has empty geometry');
+assert(!document.querySelector('script,.block-copy-tools,.error-feedback-controls'),'Runtime/UI controls leaked into export');
+const links=[...root.querySelectorAll('a[href^="#"]')];
+assert(links.length===1 && links.every(link=>document.getElementById(decodeURIComponent(link.getAttribute('href').slice(1)))),'Offline reference target missing');
+assert(links.every(link=>!link.closest('[aria-hidden="true"]')),'Offline navigation hidden from accessibility');
+return {formulas:formulas.length,assistive:12,validReferenceTargets:links.length,scripts:document.scripts.length};

@@ -411,3 +411,11 @@ Stopped VoiceOver and the owned test probe, restored the scripting checkbox to 0
 Added a document with an unmatched bracket display opener followed by a heading and a separate valid bracket formula. It reproduced an unwanted match to the later formula's closing delimiter, consuming the heading into failed mathematics. The block rule now rejects nesting a fresh explicit opener before its matching close, allowing normal Markdown recovery and later independent mathematics. Dollar-delimiter behavior is unchanged because the same delimiter is both opener and closer.
 
 Also covered an unmatched opener inside a quote followed by a top-level closer; the existing container boundary remains intact. Full Jest **59 suites / 529 tests**, typecheck/build pass. Production WebKit independently reports heading `Following`, exactly one valid mathematical output and the final text marker, confirming the original swallowing behavior is fixed in the built renderer.
+
+## Reproducible production end-to-end runner
+
+Added `scripts/test-issue64-math.sh` and its documented production/offline checks. One execution validates all attachment hashes, runs all renderer tests/build and the full native WebKit suite, renders the unmodified original corpus with real diagram engines, checks matrix/cases semantic rows and Chinese text, verifies valid export and intentional-error rejection/recovery, then reopens exported HTML in a fresh process with scripts/network/fonts blocked.
+
+The complete run passes: **529 tests, 29 native cases**, original 14 mathematical items/one intentional error, eight Mermaid + one Graphviz + one Vega, final text marker, 12 valid dedicated mathematical items, and script-free offline HTML with all semantic trees and a valid accessible reference target. The report explicitly lists what it does not cover. Saved `production-e2e-report.json` and script hashes; logs/export artifacts remain in the printed evidence directory.
+
+Marked implementation-level parsing/session/sanitizer tasks complete based on their source/tests and current production run. Final host/platform/VoiceOver/memory and refreshed PDF acceptance remain open; this does not mark the overall goal complete.

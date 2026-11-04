@@ -18,13 +18,13 @@
 - [ ] 2.7 Verify the production modular build and full runtime asset closure; the combined-bundle research is not that acceptance.
 
 ## 3. Parsing and document semantics
-- [ ] 3.1 Add failing tests for all delimiters/math fences and protected source regions.
-- [ ] 3.2 Implement source-preserving math tokens and lazy module activation, including MathML and selected AMS environments.
-- [ ] 3.3 Add failing tests for tags, references, forward/duplicate/missing targets, macros and render-generation isolation.
-- [ ] 3.4 Implement one document-scoped engine session, reference validation, unique IDs and stale-work disposal.
+- [x] 3.1 Add failing tests for all delimiters/math fences and protected source regions.
+- [x] 3.2 Implement source-preserving math tokens and lazy module activation, including MathML and selected AMS environments.
+- [x] 3.3 Add failing tests for tags, references, forward/duplicate/missing targets, macros and render-generation isolation.
+- [x] 3.4 Implement one document-scoped engine session, reference validation, unique IDs and stale-work disposal (native-memory acceptance remains in 2.6/5.5).
 
 ## 4. Product integration
-- [ ] 4.1 Verify and integrate output sanitization, local SVG definitions and standard accessible reference links.
+- [x] 4.1 Verify and integrate output sanitization, self-contained SVG glyph paths and standard accessible reference links (actual VoiceOver remains in 5.3).
 - [ ] 4.2 Implement math styling, RTL isolation, narrow/zoom behavior, source copy and search/outline integration.
 - [x] 4.3 Preserve the stored math toggle; update supported language labels and shared contextual error feedback inventory (native activation acceptance remains in 5.2/5.3).
 - [ ] 4.4 Await math and resources for App/CLI export; produce offline standalone HTML and verify PDF/print behavior.
