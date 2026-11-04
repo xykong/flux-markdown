@@ -6,7 +6,7 @@
 - [x] 1.5 Write implementation design, independent verification strategy and rewritten task.
 - [x] 1.6 Confirm the design requirements and proceed with detailed design (user instruction, 2026-11-04).
 - [x] 1.7 Specify module interfaces, parser/label/session contracts, output policy and implementation batches.
-- [ ] 1.8 Review the detailed design before product implementation.
+- [x] 1.8 Review the detailed design before product implementation (user authorized implementation and end-to-end verification as the active goal).
 
 ## 2. Freeze acceptance and engine integration
 - [x] 2.1 Author source-based expectations and create/visually inspect an independent Tectonic/XeTeX + amsmath reference, including an offline two-pass rebuild.
