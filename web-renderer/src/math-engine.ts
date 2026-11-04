@@ -1,4 +1,4 @@
-import './math-compat';
+import { ensureMathCompatibility } from './math-compat';
 import { mathjax } from '@mathjax/src/js/mathjax.js';
 import { browserAdaptor } from '@mathjax/src/js/adaptors/browserAdaptor.js';
 import { RegisterHTMLHandler } from '@mathjax/src/js/handlers/html.js';
@@ -23,6 +23,7 @@ export interface MathEngineResult {
 
 /** One isolated semantic document; the caller owns publication/generation checks. */
 export async function renderMathSources(sources: readonly MathSource[], namespace: string, host?: HTMLElement): Promise<MathEngineResult> {
+    ensureMathCompatibility();
     const { accepted, rejected } = partitionMathSources(sources);
     if (rejected.length) {
         const result = accepted.length ? await renderMathSources(accepted, namespace, host) : { items: [], errors: [], css: '' } satisfies MathEngineResult;

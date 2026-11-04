@@ -17,8 +17,12 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         const opacity=()=>Number(getComputedStyle(tools).opacity);
         const hoverless=matchMedia('(hover: none)').matches;
         const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-        await new Promise(r=>setTimeout(r,900));
-        if(!hoverless && opacity()!==0) throw new Error('Idle copy button is visible');
+        const waitForOpacity=async expected=>{
+          const deadline=performance.now()+4000;
+          while(Math.abs(opacity()-expected)>0.001 && performance.now()<deadline)await new Promise(r=>setTimeout(r,50));
+        };
+        await waitForOpacity(0);
+        if(!hoverless && opacity()!==0) throw new Error('Idle copy button is visible '+JSON.stringify({opacity:opacity(),active:document.activeElement?.outerHTML,hover:tools.parentElement.matches(':hover'),focus:tools.matches(':focus-within'),state:tools.dataset.copyState,hoverless,reduced}));
         button.focus();
         await new Promise(r=>setTimeout(r,30));
         if(opacity()!==1) throw new Error('Keyboard focus did not reveal copy '+JSON.stringify({opacity:opacity(),active:document.activeElement?.outerHTML,focus:tools.matches(':focus-within'),hoverless}));
@@ -30,7 +34,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
           await new Promise(r=>setTimeout(r,700));
           if(opacity()!==1)throw new Error('Reentry did not cancel hiding');
           button.blur();
-          await new Promise(r=>setTimeout(r,950));
+          await waitForOpacity(0);
           if(opacity()!==0)throw new Error('Copy did not fade out');
         }
         tools.dataset.copyState='error';
