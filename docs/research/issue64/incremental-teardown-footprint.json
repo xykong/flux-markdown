@@ -1,0 +1,33 @@
+{
+  "sourceCommit": "2ebc765343a089372c427576ff9eb5a9105a3631",
+  "experiment": "Clear each original MathJax node immediately after its sanitizer metadata is captured; retain normal finally cleanup.",
+  "protocol": "Identical memory-footprint.js, fresh native processes, automated snapshot 10 seconds after clear marker. Experiment render finished before control render started; experiment idle tail overlapped the start of the control process.",
+  "runs": {
+    "control": {
+      "directory": "/tmp/flux-issue64-incremental-control",
+      "pid": 22935,
+      "completed": true,
+      "physicalFootprint": "235.1M",
+      "physicalPeak": "1.6G",
+      "diagnosticExit": {
+        "vmmap": 0,
+        "leaks": 1
+      },
+      "laterPhysicalFootprint": "234.7M"
+    },
+    "experiment": {
+      "directory": "/tmp/flux-issue64-incremental-footprint",
+      "pid": 21670,
+      "completed": true,
+      "physicalFootprint": "198.9M",
+      "physicalPeak": "1.6G",
+      "diagnosticExit": {
+        "vmmap": 0,
+        "leaks": 1
+      }
+    }
+  },
+  "semanticTestsPassed": 50,
+  "decision": "Reverted: no demonstrated reduction in rounded 1.6G physical peak. Idle snapshots vary substantially across fresh runs (prior current 58.0M; this control 235.1M), so one pair cannot establish a stable memory benefit or budget.",
+  "retainedWork": "Automated task-owned process selection and physical-footprint/leak collection script. No production rendering changes."
+}
