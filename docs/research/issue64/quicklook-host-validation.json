@@ -1,0 +1,19 @@
+{
+  "status": "prepared, installation not changed, awaiting explicit maintenance-window authorization",
+  "reason": "Actual qlmanage selection remained /Applications/FluxMarkdown.app after refreshing Debug extension registration",
+  "restorePolicy": "Restore the verified original installation after authorized host validation",
+  "artifacts": {
+    "candidate": {
+      "path": "build/issue64-host-validation/candidate.app",
+      "appExecutableSha256": "b6695ad7d518e8acc526a7cf669817fffc100ec3eb4bd7c03587a110954f75cb",
+      "extensionExecutableSha256": "4530e49d24bf7a2ee718a6c45e263c2419469b8cf69ad3c8360fcff80a9a7dc5",
+      "signature": "codesign --verify --deep --strict passed"
+    },
+    "installedBackup": {
+      "path": "build/issue64-host-validation/installed-backup.app",
+      "appExecutableSha256": "e45dbd67acd99a9dd82ad146ea9bf2da92a412fcf53efc60884e9a38bcc4f9d5",
+      "extensionExecutableSha256": "7a616ebb95231d50895cad5d4a8bc526335e918c3407f5c150861d9acb024574",
+      "signature": "codesign --verify --deep --strict passed"
+    }
+  }
+}

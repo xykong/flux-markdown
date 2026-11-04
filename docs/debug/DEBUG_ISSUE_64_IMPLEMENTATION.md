@@ -293,3 +293,9 @@ Rebuilt Debug with the documented local target override and opened the derived v
 Saved the test-document-only tree, screenshot and scope in `docs/research/issue64/app-window/`. These are actual App observations, unlike the earlier standalone WKWebView probes. They do not prove VoiceOver speech.
 
 Background AXPress and one coordinate retry on the numbered reference did not establish navigation to the equation. A foreground observation attempt found the test window gone; fresh window inventory showed an unrelated document. No contents or controls of that unrelated window were accessed. Actual App reference activation therefore remains unverified; do not replace it with the passing native test-harness result.
+
+## Real QuickLook provider selection
+
+Launched qlmanage preview for the test corpus and inspected the actual extension process executable: the system selected `/Applications/FluxMarkdown.app` (the existing installation), not the current Debug bundle. Refreshed the already-known Debug extension with pluginkit -a and repeated; default match and launched process still selected the installed bundle. Closed only the qlmanage preview processes launched for these tests. This is not a new-feature QuickLook pass.
+
+Prepared `build/issue64-host-validation/candidate.app` and `installed-backup.app` with ditto; both pass deep strict code-sign verification. Executable hashes and pending state are recorded in `quicklook-host-validation.json`. No installed app, file association or user election was replaced. Asked asynchronously for a maintenance window/authorization to temporarily replace the user's active installation and restore it after actual QuickLook/Finder validation. This affects the app the user is actively using, so dependent replacement waits for their response; other implementation/verification work is still possible.
