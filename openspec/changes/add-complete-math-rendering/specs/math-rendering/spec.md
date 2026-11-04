@@ -41,6 +41,11 @@ The renderer SHALL provide document-scoped AMS numbering, explicit tag/tag-star,
 - **AND** duplicate declarations do not silently overwrite the first valid target
 - **AND** a placeholder or link to the document top is not presented as a successful resolved reference
 
+#### Scenario: Distinct and inherited-looking label keys
+- **WHEN** distinct labels such as `a b`, `a_b`, `constructor`, `__proto__` or Unicode keys are used
+- **THEN** valid declarations have distinct safe targets using exact label identity
+- **AND** inherited object properties do not create false duplicate declarations or change object prototypes
+
 ### Requirement: Render-session state isolation
 The renderer SHALL isolate mutable TeX macros, counters, labels and DOM work by document render session and discard obsolete asynchronous results.
 
@@ -91,6 +96,11 @@ The renderer SHALL include mathematical processing, reference resolution and res
 - **WHEN** a valid math document is exported and opened outside the app with networking disabled
 - **THEN** formulas, glyph definitions, styles and equation tags are complete
 - **AND** HTML references resolve using standard fragment links without runtime handlers
+
+#### Scenario: Font requests start after layout
+- **WHEN** inserting mathematical output triggers font requests only after layout
+- **THEN** export waits for those required fonts and stable mathematical geometry
+- **AND** a fonts-ready promise obtained before those requests is insufficient to declare completion
 
 #### Scenario: Pending or failed mathematical output
 - **WHEN** export is requested while math is pending or an equation/reference has failed

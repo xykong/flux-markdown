@@ -1,0 +1,136 @@
+[
+  {
+    "name": "automatic-and-explicit",
+    "input": "\\[x=1\\tag{1}\\label{explicit}\\]\\begin{equation}y=2\\label{auto}\\end{equation}\\(\\eqref{explicit}+\\eqref{auto}\\)",
+    "errors": [],
+    "labels": {
+      "explicit": {
+        "tag": "1",
+        "id": "mjx-eqn:explicit"
+      },
+      "auto": {
+        "tag": "1",
+        "id": "mjx-eqn:auto"
+      }
+    },
+    "mml": [
+      "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"x=1\\tag{1}\\label{explicit}\" display=\"block\">\n  <mtable displaystyle=\"true\" data-latex=\"x=1\\tag{1}\\label{explicit}\">\n    <mlabeledtr>\n      <mtd id=\"mjx-eqn:explicit\">\n        <mtext data-latex=\"\\text{(}\">(</mtext>\n        <mtext data-latex=\"\\text{1}\">1</mtext>\n        <mtext data-latex=\"\\text{)}\">)</mtext>\n      </mtd>\n      <mtd>\n        <mi data-latex=\"x\">x</mi>\n        <mo data-latex=\"=\">=</mo>\n        <mn data-latex=\"\\label{explicit}\">1</mn>\n      </mtd>\n    </mlabeledtr>\n  </mtable>\n</math>",
+      "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\begin{equation}y=2\\label{auto}\\end{equation}\" display=\"block\">\n  <mtable displaystyle=\"true\" data-latex=\"\\begin{equation}y=2\\label{auto}\\end{equation}\">\n    <mlabeledtr>\n      <mtd id=\"mjx-eqn:auto\">\n        <mtext data-latex=\"\\text{(}\">(</mtext>\n        <mtext data-latex=\"\\text{1}\">1</mtext>\n        <mtext data-latex=\"\\text{)}\">)</mtext>\n      </mtd>\n      <mtd>\n        <mi data-latex=\"y\">y</mi>\n        <mo data-latex=\"=\">=</mo>\n        <mn data-latex=\"\\label{auto}\">2</mn>\n      </mtd>\n    </mlabeledtr>\n  </mtable>\n</math>",
+      "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\eqref{explicit}+\\eqref{auto}\">\n  <mrow href=\"#mjx-eqn%3Aexplicit\" class=\"MathJax_ref\" data-latex=\"\\eqref{explicit}\">\n    <mtext>(1)</mtext>\n  </mrow>\n  <mo data-latex=\"+\">+</mo>\n  <mrow href=\"#mjx-eqn%3Aauto\" class=\"MathJax_ref\" data-latex=\"\\eqref{auto}\">\n    <mtext>(1)</mtext>\n  </mrow>\n</math>"
+    ]
+  },
+  {
+    "name": "untagged-label",
+    "input": "\\[x=1\\label{untagged}\\]\\(\\eqref{untagged}\\)",
+    "errors": [],
+    "labels": {
+      "untagged": {
+        "tag": "???",
+        "id": ""
+      }
+    },
+    "mml": [
+      "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"x=1\\label{untagged}\" display=\"block\">\n  <mi data-latex=\"x\">x</mi>\n  <mo data-latex=\"=\">=</mo>\n  <mn data-latex=\"\\label{untagged}\">1</mn>\n</math>",
+      "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\eqref{untagged}\">\n  <mrow href=\"#\" class=\"MathJax_ref\" data-latex=\"\\eqref{untagged}\">\n    <mtext>(???)</mtext>\n  </mrow>\n</math>"
+    ]
+  },
+  {
+    "name": "failed-target",
+    "input": "\\[x=1\\tag{A}\\label{failed}\\unknownCommand\\]\\(\\eqref{failed}\\)",
+    "errors": [
+      "Undefined control sequence \\unknownCommand"
+    ],
+    "labels": {
+      "failed": {
+        "tag": "???",
+        "id": ""
+      }
+    },
+    "mml": [
+      "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"x=1\\tag{A}\\label{failed}\\unknownCommand\" display=\"block\">\n  <merror data-mjx-error=\"Undefined control sequence \\unknownCommand\">\n    <mtext>Undefined control sequence \\unknownCommand</mtext>\n  </merror>\n</math>",
+      "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\eqref{failed}\">\n  <mrow href=\"#\" class=\"MathJax_ref\" data-latex=\"\\eqref{failed}\">\n    <mtext>(???)</mtext>\n  </mrow>\n</math>"
+    ]
+  },
+  {
+    "name": "labels-with-spaces",
+    "input": "\\[x=1\\tag{A}\\label{a b}\\]\\[x=2\\tag{B}\\label{a_b}\\]\\(\\eqref{a b}+\\eqref{a_b}\\)",
+    "errors": [],
+    "labels": {
+      "a b": {
+        "tag": "A",
+        "id": "mjx-eqn:a_b"
+      },
+      "a_b": {
+        "tag": "B",
+        "id": "mjx-eqn:a_b"
+      }
+    },
+    "mml": [
+      "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"x=1\\tag{A}\\label{a b}\" display=\"block\">\n  <mtable displaystyle=\"true\" data-latex=\"x=1\\tag{A}\\label{a b}\">\n    <mlabeledtr>\n      <mtd id=\"mjx-eqn:a_b\">\n        <mtext data-latex=\"\\text{(}\">(</mtext>\n        <mtext data-latex=\"\\text{A}\">A</mtext>\n        <mtext data-latex=\"\\text{)}\">)</mtext>\n      </mtd>\n      <mtd>\n        <mi data-latex=\"x\">x</mi>\n        <mo data-latex=\"=\">=</mo>\n        <mn data-latex=\"\\label{a b}\">1</mn>\n      </mtd>\n    </mlabeledtr>\n  </mtable>\n</math>",
+      "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"x=2\\tag{B}\\label{a_b}\" display=\"block\">\n  <mtable displaystyle=\"true\" data-latex=\"x=2\\tag{B}\\label{a_b}\">\n    <mlabeledtr>\n      <mtd id=\"mjx-eqn:a_b\">\n        <mtext data-latex=\"\\text{(}\">(</mtext>\n        <mtext data-latex=\"\\text{B}\">B</mtext>\n        <mtext data-latex=\"\\text{)}\">)</mtext>\n      </mtd>\n      <mtd>\n        <mi data-latex=\"x\">x</mi>\n        <mo data-latex=\"=\">=</mo>\n        <mn data-latex=\"\\label{a_b}\">2</mn>\n      </mtd>\n    </mlabeledtr>\n  </mtable>\n</math>",
+      "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\eqref{a b}+\\eqref{a_b}\">\n  <mrow href=\"#mjx-eqn%3Aa_b\" class=\"MathJax_ref\" data-latex=\"\\eqref{a b}\">\n    <mtext>(A)</mtext>\n  </mrow>\n  <mo data-latex=\"+\">+</mo>\n  <mrow href=\"#mjx-eqn%3Aa_b\" class=\"MathJax_ref\" data-latex=\"\\eqref{a_b}\">\n    <mtext>(B)</mtext>\n  </mrow>\n</math>"
+    ]
+  },
+  {
+    "name": "prototype-labels",
+    "input": "\\[x=1\\tag{A}\\label{constructor}\\]\\(\\eqref{constructor}\\)",
+    "errors": [
+      "Label 'constructor' multiply defined"
+    ],
+    "labels": {},
+    "mml": [
+      "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"x=1\\tag{A}\\label{constructor}\" display=\"block\">\n  <merror data-mjx-error=\"Label 'constructor' multiply defined\">\n    <mtext>Label 'constructor' multiply defined</mtext>\n  </merror>\n</math>",
+      "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\eqref{constructor}\">\n  <mrow href=\"#undefined\" class=\"MathJax_ref\" data-latex=\"\\eqref{constructor}\">\n    <mtext>()</mtext>\n  </mrow>\n</math>"
+    ]
+  },
+  {
+    "name": "unicode-labels",
+    "input": "\\[x=1\\tag{A}\\label{公式:α/1%}\\]\\(\\eqref{公式:α/1%}\\)",
+    "errors": [],
+    "labels": {
+      "公式:α/1%": {
+        "tag": "A",
+        "id": "mjx-eqn:公式:α/1%"
+      }
+    },
+    "mml": [
+      "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"x=1\\tag{A}\\label{&#x516C;&#x5F0F;:&#x3B1;/1%}\" display=\"block\">\n  <mtable displaystyle=\"true\" data-latex=\"x=1\\tag{A}\\label{&#x516C;&#x5F0F;:&#x3B1;/1%}\">\n    <mlabeledtr>\n      <mtd id=\"mjx-eqn:&#x516C;&#x5F0F;:&#x3B1;/1%\">\n        <mtext data-latex=\"\\text{(}\">(</mtext>\n        <mtext data-latex=\"\\text{A}\">A</mtext>\n        <mtext data-latex=\"\\text{)}\">)</mtext>\n      </mtd>\n      <mtd>\n        <mi data-latex=\"x\">x</mi>\n        <mo data-latex=\"=\">=</mo>\n        <mn data-latex=\"\\label{&#x516C;&#x5F0F;:&#x3B1;/1%}\">1</mn>\n      </mtd>\n    </mlabeledtr>\n  </mtable>\n</math>",
+      "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\eqref{&#x516C;&#x5F0F;:&#x3B1;/1%}\">\n  <mrow href=\"#mjx-eqn%3A%E5%85%AC%E5%BC%8F%3A%CE%B1%2F1%25\" class=\"MathJax_ref\" data-latex=\"\\eqref{&#x516C;&#x5F0F;:&#x3B1;/1%}\">\n    <mtext>(A)</mtext>\n  </mrow>\n</math>"
+    ]
+  },
+  {
+    "name": "tag-star",
+    "input": "\\[x=1\\tag*{B}\\label{star}\\]\\(\\ref{star}+\\eqref{star}\\)",
+    "errors": [],
+    "labels": {
+      "star": {
+        "tag": "B",
+        "id": "mjx-eqn:star"
+      }
+    },
+    "mml": [
+      "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"x=1\\tag*{B}\\label{star}\" display=\"block\">\n  <mtable displaystyle=\"true\" data-latex=\"x=1\\tag*{B}\\label{star}\">\n    <mlabeledtr>\n      <mtd id=\"mjx-eqn:star\">\n        <mtext data-latex=\"\\text{B}\">B</mtext>\n      </mtd>\n      <mtd>\n        <mi data-latex=\"x\">x</mi>\n        <mo data-latex=\"=\">=</mo>\n        <mn data-latex=\"\\label{star}\">1</mn>\n      </mtd>\n    </mlabeledtr>\n  </mtable>\n</math>",
+      "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\ref{star}+\\eqref{star}\">\n  <mrow href=\"#mjx-eqn%3Astar\" class=\"MathJax_ref\" data-latex=\"\\ref{star}\">\n    <mtext>B</mtext>\n  </mrow>\n  <mo data-latex=\"+\">+</mo>\n  <mrow href=\"#mjx-eqn%3Astar\" class=\"MathJax_ref\" data-latex=\"\\eqref{star}\">\n    <mtext>(B)</mtext>\n  </mrow>\n</math>"
+    ]
+  },
+  {
+    "name": "macro-definition",
+    "input": "\\(\\newcommand{\\shared}{42}\\shared\\)",
+    "errors": [],
+    "labels": {},
+    "mml": [
+      "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\newcommand{\\shared}{42}\\shared\">\n  <mn data-latex=\"42\">42</mn>\n</math>"
+    ]
+  },
+  {
+    "name": "macro-fresh-document",
+    "input": "\\(\\shared\\)",
+    "errors": [
+      "Undefined control sequence \\shared"
+    ],
+    "labels": {},
+    "mml": [
+      "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" data-latex=\"\\shared\">\n  <merror data-mjx-error=\"Undefined control sequence \\shared\">\n    <mtext>Undefined control sequence \\shared</mtext>\n  </merror>\n</math>"
+    ]
+  }
+]

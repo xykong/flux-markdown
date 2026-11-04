@@ -1,0 +1,26 @@
+{
+  "source": {
+    "containers": 13,
+    "svgs": 20,
+    "uses": 152,
+    "paths": 102,
+    "refs": 1,
+    "styles": 1
+  },
+  "document": {
+    "containers": 0,
+    "svgs": 20,
+    "uses": 0,
+    "paths": 102,
+    "refs": 1,
+    "styles": 0
+  },
+  "diagram": {
+    "containers": 0,
+    "svgs": 20,
+    "uses": 152,
+    "paths": 102,
+    "refs": 1,
+    "styles": 0
+  }
+}

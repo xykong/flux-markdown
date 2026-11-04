@@ -4,13 +4,18 @@
 - [x] 1.3 Evaluate the suggested page's pinned source and current engine alternatives.
 - [x] 1.4 Run isolated real MathJax Node and local-scheme WKWebView probes; record limitations.
 - [x] 1.5 Write implementation design, independent verification strategy and rewritten task.
-- [ ] 1.6 Review and approve the proposal before product implementation.
+- [x] 1.6 Confirm the design requirements and proceed with detailed design (user instruction, 2026-11-04).
+- [x] 1.7 Specify module interfaces, parser/label/session contracts, output policy and implementation batches.
+- [ ] 1.8 Review the detailed design before product implementation.
 
 ## 2. Freeze acceptance and engine integration
-- [ ] 2.1 Hand-review semantic/label/negative expectations and create an independent LuaLaTeX/amsmath reference.
-- [ ] 2.2 Compare SVG/CHTML and explicit accessibility components on minimum/current supported WebKit with local assets.
-- [ ] 2.3 Measure cold/warm/large-document baselines; freeze time, memory and package-size budgets before implementation.
-- [ ] 2.4 Select and lock runtime packages/fonts, allowed extensions and Worker/CSP policy; verify zero remote dependencies.
+- [x] 2.1 Author source-based expectations and create/visually inspect an independent Tectonic/XeTeX + amsmath reference, including an offline two-pass rebuild.
+- [x] 2.2 Compare SVG/CHTML with the same assistive-MathML profile on current native WebKit and local assets.
+- [x] 2.3 Measure 20 fresh-process and 30 warm samples; freeze reference-hardware time, asset and DOM budgets.
+- [x] 2.4 Select exact engine/font versions, package profile, SVG output, assistive MathML and no-Worker policy in the design.
+- [ ] 2.5 Obtain independent reviewer sign-off of the expectation manifest and reference.
+- [ ] 2.6 Validate minimum-system/Intel APIs, actual VoiceOver and WebContent memory; freeze environment-specific limits.
+- [ ] 2.7 Verify the production modular build and full runtime asset closure; the combined-bundle research is not that acceptance.
 
 ## 3. Parsing and document semantics
 - [ ] 3.1 Add failing tests for all delimiters/math fences and protected source regions.

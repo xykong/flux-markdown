@@ -15,7 +15,8 @@ final class Probe: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         view = WKWebView(frame: NSRect(x: 0, y: 0, width: 960, height: 900), configuration: config)
         view.navigationDelegate = self
         view.load(URLRequest(url: URL(string: CommandLine.arguments[1])!))
-        DispatchQueue.main.asyncAfter(deadline: .now() + 45) { fputs("Probe timeout\n", stderr); exit(2) }
+        let timeout = CommandLine.arguments.count > 5 ? Double(CommandLine.arguments[5]) ?? 45 : 45
+        DispatchQueue.main.asyncAfter(deadline: .now() + timeout) { fputs("Probe timeout\n", stderr); exit(2) }
     }
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) { fputs("JS: \(message.body)\n",stderr) }
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {

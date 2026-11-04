@@ -22,4 +22,4 @@ Issue #64 supplies a mixed Markdown corpus whose valid math includes parenthesis
 
 ## Review Status
 
-Draft for review. The user requested comprehensive analysis, an implementation design and a rewritten task; this proposal does not record approval to implement it.
+Detailed design prepared for implementation review. On 2026-11-04 the user confirmed the requirements and requested execution of the design work. This authorizes the design/prototypes delivered here; product implementation has not started.

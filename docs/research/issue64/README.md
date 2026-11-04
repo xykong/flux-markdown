@@ -2,6 +2,8 @@
 
 日期：2026-11-04。生产基线 1.42.645 / e3dd17e；研究引擎 MathJax 4.1.3。
 
+详细设计阶段新增 [设计验证报告](design-validation.md)、`acceptance-expectations.json`、`design-comparison.json`、`contract-results.json`、`sanitizer-results.json` 和 `oracle/`。已完成独立 Tectonic/XeTeX 参照、两页 PDF 检查及相同辅助配置下 SVG/CHTML 冷暖对比；下文旧的“尚待”列表描述第一阶段，当前状态以设计验证报告为准。
+
 ## 输入与结果
 
 - `manifest.json`：GitHub 来源、建议页固定提交及附件逐文件 SHA-256。

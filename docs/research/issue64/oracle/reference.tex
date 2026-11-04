@@ -1,0 +1,91 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=24mm]{geometry}
+\usepackage{amsmath,amssymb,fontspec}
+\setmainfont{Songti SC}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\begin{document}
+\section*{Issue 64: independent mathematical reference}
+Tectonic (XeTeX) with amsmath. Original mathematics M01-M11.
+M12 is intentionally invalid; M13 is checked as MathML separately.
+\bigskip
+
+\textbf{M01} (source line 677)
+
+\(E = mc^2\)
+
+\textbf{M02} (source line 677)
+
+\(x > 0\)
+
+\textbf{M03} (source line 677)
+
+\(\sqrt{x^2} = x\)
+
+\textbf{M04} (source line 679)
+
+\(a^2 + b^2 = c^2\)
+
+\textbf{M05} (source line 684)
+
+\[
+\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}
+\]
+
+\textbf{M06} (source line 690)
+
+\[
+\sum_{k=1}^{n} k = \frac{n(n+1)}{2}
+\]
+
+\textbf{M07} (source line 696)
+
+\[
+\begin{aligned}
+f(x) &= \frac{x^2 + 1}{x - 1} \\
+\lim_{n\to\infty}\left(1+\frac{1}{n}\right)^n &= e \\
+P(A\mid B) &= \frac{P(B\mid A)P(A)}{P(B)} \quad \text{条件概率}
+\end{aligned}
+\]
+
+\textbf{M08} (source line 706)
+
+\[
+A = \begin{bmatrix}1 & 2 \\ 3 & 4\end{bmatrix},\qquad
+g(x) = \begin{cases}x^2, & x \ge 0 \\ -x, & x < 0\end{cases}
+\]
+
+\textbf{M09} (source line 713)
+
+\[
+a^2 + b^2 = c^2 \tag{1}\label{eq:pythagoras}
+\]
+
+\textbf{M10} (source line 716)
+
+\(\eqref{eq:pythagoras}\)
+
+\textbf{M11} (source line 721)
+
+\[
+\nabla \cdot \mathbf{E} = \frac{\rho}{\varepsilon_0}
+\]
+
+
+\newpage
+\section*{Numbering and references: additional contracts}
+Forward reference: \eqref{oracle:forward}; expected (A).
+\begin{equation}x=y\tag{A}\label{oracle:forward}\end{equation}
+Backward ref: \ref{oracle:forward}; expected A.
+\begin{equation}a=b\label{oracle:auto}\end{equation}
+Automatic equation reference: \eqref{oracle:auto}; expected (1).
+\begin{equation*}c=d\end{equation*}
+\begin{align}
+x&=1\label{oracle:row}\\
+y&=2\notag
+\end{align}
+First numbered row: \eqref{oracle:row}; expected (2).
+\[z=3\tag*{B}\label{oracle:tagstar}\]
+Tag-star ref: \ref{oracle:tagstar}; expected B.
+Tag-star eqref: \eqref{oracle:tagstar}; expected (B).
+\end{document}
