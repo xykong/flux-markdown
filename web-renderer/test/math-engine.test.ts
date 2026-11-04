@@ -21,6 +21,14 @@ test('flags unresolved references and preserves valid following formulas', async
     expect(result.errors.map(error => error.sourceId)).toEqual(['bad']);
     expect(result.items.find(item => item.id === 'good')?.html).toContain('<svg');
 });
+test('equation references remain document-local when the host sets a resource base URL', async () => {
+    const base=document.createElement('base');base.href='file:///tmp/documents/';document.head.append(base);
+    try {
+        const result=await renderMathSources([source('eq',String.raw`x=1\tag{1}\label{x}`),source('ref',String.raw`\eqref{x}`,false)],'base-url');
+        expect(result.errors).toHaveLength(0);
+        expect(result.items[1].html).toContain('href="#');
+    } finally {base.remove();}
+});
 test('oversized input is preserved without entering the TeX engine', async () => {
     const oversized=source('large','x'.repeat(65537));
     const result=await renderMathSources([oversized,source('good','y=1')],'bounded');

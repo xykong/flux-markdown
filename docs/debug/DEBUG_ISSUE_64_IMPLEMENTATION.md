@@ -135,3 +135,11 @@ Renamed the visible rendering option from KaTeX Math to Mathematical Formulas ac
 `make app LOCAL_DEPLOYMENT_TARGET=12.0 CONFIGURATION=Debug` completed successfully with the current Xcode toolchain, including a clean dependency install, renderer build, generated Xcode project and native application/embedded extension compilation. This is the documented temporary local target override, not a change to the macOS 11 product requirement or proof of its runtime compatibility. No installation, release or file-association change occurred.
 
 Prepared `/tmp/flux-issue64-valid-export.md` from the fixed source cases (12 valid items, M12 intentionally excluded and still covered by error tests) for the actual App CLI/PDF acceptance next.
+
+## Actual CLI reference-base fix
+
+Running the built application's `--export-pdf` on that valid corpus initially failed after rendering: export readiness found a mathematical reference error. The same bundle succeeded in the independent scheme probe, demonstrating why the real host path was necessary. Native diagnostic capture isolated the failing readiness check; temporary verbose error instrumentation was removed.
+
+The CLI sets a resource base URL, which affected MathJax's default reference URL construction. Explicitly setting TeX `baseURL: ''` keeps formula references as same-document fragments. The rebuilt real application now reports successful PDF export to `/tmp/flux-issue64-product-pdf/valid.pdf`. Five focused real-engine tests and the renderer/native rebuild pass. Added a base-element unit case, although JSDOM did not reproduce the native default-URL difference; the native failing-then-successful CLI run is the actual regression evidence.
+
+PDF visual inspection, metadata/link inspection and invalid-input export rejection remain pending; file creation alone is not final PDF acceptance.

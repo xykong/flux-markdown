@@ -68,6 +68,7 @@ export function createMathInput(namespace: string): TeX<unknown, unknown, unknow
     return new TeX({
         packages: ['base', 'ams', 'newcommand', 'textmacros', 'flux-math-identity'],
         tags: 'flux-ams', fluxMathNamespace: namespace,
+        baseURL: '',
         maxBuffer: 64 * 1024, maxMacros: 1000,
         processEnvironments: true, processRefs: true,
     });
