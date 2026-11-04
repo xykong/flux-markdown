@@ -22,6 +22,15 @@ test('flags unresolved references and preserves valid following formulas', async
     expect(result.errors.map(error => error.sourceId)).toEqual(['bad']);
     expect(result.items.find(item => item.id === 'good')?.html).toContain('<svg');
 });
+test.each([
+    String.raw`x=1\label{x}`,
+    String.raw`x=1\tag{A}\label{x}\unknownCommand`,
+])('references to unnumbered or failed declarations remain unresolved',async payload=>{
+    const result=await renderMathSources([source('target',payload),source('ref',String.raw`\eqref{x}`,false)],'invalid-target');
+    expect(result.errors).toContainEqual({sourceId:'ref',code:'unresolved-reference'});
+    const root=document.createElement('div');root.innerHTML=result.items[1].html;
+    expect(root.querySelector('a[href]')).toBeNull();
+});
 test('output failures preserve source and do not masquerade as successfully rendered mathematics',async()=>{
     const broken=source('broken',String.raw`\frac{x}{2}`);
     const spy=jest.spyOn(SVG.prototype,'typeset').mockImplementationOnce(()=>{throw new Error('Injected output failure');});

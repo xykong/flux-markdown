@@ -299,3 +299,11 @@ Background AXPress and one coordinate retry on the numbered reference did not es
 Launched qlmanage preview for the test corpus and inspected the actual extension process executable: the system selected `/Applications/FluxMarkdown.app` (the existing installation), not the current Debug bundle. Refreshed the already-known Debug extension with pluginkit -a and repeated; default match and launched process still selected the installed bundle. Closed only the qlmanage preview processes launched for these tests. This is not a new-feature QuickLook pass.
 
 Prepared `build/issue64-host-validation/candidate.app` and `installed-backup.app` with ditto; both pass deep strict code-sign verification. Executable hashes and pending state are recorded in `quicklook-host-validation.json`. No installed app, file association or user election was replaced. Asked asynchronously for a maintenance window/authorization to temporarily replace the user's active installation and restore it after actual QuickLook/Finder validation. This affects the app the user is actively using, so dependent replacement waits for their response; other implementation/verification work is still possible.
+
+## Independent numbering and metamorphic checks
+
+While host replacement authorization remains pending, added a direct comparison between the actual TeX input engine's label table and the previously independently compiled Tectonic/amsmath oracle manifest. Covers explicit tag 1, forward tag A, automatic 1, align row 2 with notag, starred environment and tag-star B. The expected values come from the independent artifact, not from the current engine output.
+
+Added label-renaming variants including spaces, underscores, inherited-looking names and supplementary Unicode; equation/reference reordering and unrelated-prose insertion preserve explicit values. Real output tests confirm references to unnumbered or failed declarations remain unresolved and do not leave href targets.
+
+All 28 focused identity/engine tests pass; full Jest **59 suites / 514 tests** and OpenSpec strict validation pass. These strengthen semantic evidence, but do not replace the pending human reviewer, minimum-platform, VoiceOver, memory and actual QuickLook/Finder gates.

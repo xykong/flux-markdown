@@ -3,6 +3,8 @@ import { liteAdaptor } from '@mathjax/src/js/adaptors/liteAdaptor.js';
 import { RegisterHTMLHandler } from '@mathjax/src/js/handlers/html.js';
 import { SerializedMmlVisitor } from '@mathjax/src/js/core/MmlTree/SerializedMmlVisitor.js';
 import { createMathInput } from '../src/math-identity';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 
 RegisterHTMLHandler(liteAdaptor());
 function compile(source: string, namespace = 'test') {
@@ -39,5 +41,41 @@ describe('document-scoped equation identity', () => {
         const next = compile(String.raw`\(\shared\)`, 'next');
         expect(next.output).toContain('Undefined control sequence');
         expect(Object.keys(next.labels)).toHaveLength(0);
+    });
+
+    test('matches the independently compiled TeX reference numbering', () => {
+        const expected = JSON.parse(readFileSync(resolve(__dirname, '../../docs/research/issue64/oracle/manifest.json'), 'utf8')).labelsExpected;
+        const result = compile(String.raw`
+        \[a^2+b^2=c^2\tag{1}\label{eq:pythagoras}\]
+        Forward \eqref{oracle:forward}.
+        \begin{equation}x=y\tag{A}\label{oracle:forward}\end{equation}
+        \begin{equation}a=b\label{oracle:auto}\end{equation}
+        \begin{equation*}c=d\end{equation*}
+        \begin{align}x&=1\label{oracle:row}\\y&=2\notag\end{align}
+        \[z=3\tag*{B}\label{oracle:tagstar}\]
+        \(\ref{oracle:tagstar},\eqref{oracle:tagstar}\)`);
+        expect(Object.fromEntries(Object.entries(result.labels).map(([key,value])=>[key,value.tag]))).toEqual(expected);
+        expect(result.output).not.toContain('merror');
+        expect(result.output).toContain('(A)');
+        expect(result.output).toContain('(B)');
+    });
+
+    test.each(['a b','a_b','constructor','__proto__','公式:α','𝛼:一'])('consistent label rename preserves tag and distinct identity: %s', label => {
+        const result=compile(`\\(\\eqref{${label}}\\)\\[x=1\\tag{A}\\label{${label}}\\]`);
+        expect(result.labels[label].tag).toBe('A');
+        expect(result.labels[label].id).toMatch(/^test-l-[0-9a-f]+$/);
+        expect(result.output).toContain('(A)');
+        expect(result.output).not.toContain('merror');
+    });
+
+    test('moving an explicitly tagged equation across its reference preserves the resolved value', () => {
+        const equation=String.raw`\[x=1\tag{A}\label{x}\]`;
+        const ref=String.raw`\(\eqref{x}\)`;
+        for (const input of [ref+equation,equation+ref,'Unrelated paragraph.\n\n'+ref+equation]) {
+            const result=compile(input);
+            expect(result.labels.x.tag).toBe('A');
+            expect(result.output).toContain('(A)');
+            expect(result.output).not.toContain('???');
+        }
     });
 });
