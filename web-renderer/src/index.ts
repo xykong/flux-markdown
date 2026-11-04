@@ -1023,7 +1023,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
             try {
                 const { renderMathSources } = await import('./math-engine');
                 if (!isCurrent()) return;
-                const result = await renderMathSources(mathSources, mathNamespace, outputDiv);
+                const result = await renderMathSources(mathSources, mathNamespace, outputDiv, isCurrent);
                 if (!isCurrent()) return;
                 let style = document.getElementById('flux-math-styles');
                 if (!style) { style = document.createElement('style'); style.id = 'flux-math-styles'; document.head.appendChild(style); }

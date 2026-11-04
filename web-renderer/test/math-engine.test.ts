@@ -46,6 +46,25 @@ test('initialization failure does not leave a measurement root',async()=>{
     await expect(renderMathSources([source('x','x=1')],'invalid namespace')).rejects.toThrow();
     expect(document.querySelector('[data-math-measurement]')).toBeNull();
 });
+test('a superseded session stops before constructing mathematical output',async()=>{
+    const spy=jest.spyOn(SVG.prototype,'typeset');
+    try {
+        await expect(renderMathSources([source('x','x=1')],'cancelled',undefined,()=>false)).rejects.toThrow('superseded');
+        expect(spy).not.toHaveBeenCalled();
+        expect(document.querySelector('[data-math-measurement]')).toBeNull();
+    } finally {spy.mockRestore();}
+});
+test('supersession during compilation prevents typesetting and removes the stage',async()=>{
+    let active=true;
+    const original=SVG.prototype.getMetrics;
+    const metrics=jest.spyOn(SVG.prototype,'getMetrics').mockImplementation(function(doc){active=false;return original.call(this,doc);});
+    const spy=jest.spyOn(SVG.prototype,'typeset');
+    try {
+        await expect(renderMathSources([source('x','x=1')],'cancelled-later',undefined,()=>active)).rejects.toThrow('superseded');
+        expect(spy).not.toHaveBeenCalled();
+        expect(document.querySelector('[data-math-measurement]')).toBeNull();
+    } finally {spy.mockRestore();metrics.mockRestore();}
+});
 test('only processes its own stage, leaving other document mathematics untouched',async()=>{
     const outside=document.createElement('div');outside.textContent=String.raw`\(outside\)`;document.body.append(outside);
     try {

@@ -5,6 +5,7 @@ import { RegisterHTMLHandler } from '@mathjax/src/js/handlers/html.js';
 import { AssistiveMmlHandler } from '@mathjax/src/js/a11y/assistive-mml.js';
 import { SVG } from '@mathjax/src/js/output/svg.js';
 import { MathML } from '@mathjax/src/js/input/mathml.js';
+import { STATE } from '@mathjax/src/js/core/MathItem.js';
 import { createMathInput } from './math-identity';
 import { installMathFontLoader } from './math-font-loader';
 import { sanitizeMathHTML } from './safe-html';
@@ -22,11 +23,13 @@ export interface MathEngineResult {
 }
 
 /** One isolated semantic document; the caller owns publication/generation checks. */
-export async function renderMathSources(sources: readonly MathSource[], namespace: string, host?: HTMLElement): Promise<MathEngineResult> {
+export async function renderMathSources(sources: readonly MathSource[], namespace: string, host?: HTMLElement, isCurrent: () => boolean = () => true): Promise<MathEngineResult> {
+    const checkCurrent = () => { if (!isCurrent()) throw new Error('Mathematical render superseded'); };
+    checkCurrent();
     ensureMathCompatibility();
     const { accepted, rejected } = partitionMathSources(sources);
     if (rejected.length) {
-        const result = accepted.length ? await renderMathSources(accepted, namespace, host) : { items: [], errors: [], css: '' } satisfies MathEngineResult;
+        const result = accepted.length ? await renderMathSources(accepted, namespace, host, isCurrent) : { items: [], errors: [], css: '' } satisfies MathEngineResult;
         const rendered = new Map(result.items.map(item => [item.id, item.html]));
         for (const source of rejected) {
             const text = document.createElement('span');
@@ -58,11 +61,17 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
     // resulting standalone SVG is larger; the 1000-item DOM budget is tested.
     const svg = new SVG<HTMLElement, Text, Document>({ fontCache: 'none', linebreaks: { inline: false }, displayOverflow: 'scroll' });
     const doc = mathjax.document(document, { InputJax: [createMathInput(namespace), new MathML()], OutputJax: svg,
-        enableAssistiveMml: true });
+        enableAssistiveMml: true,
+        renderActions: {
+            currentBeforeCompile: [STATE.COMPILED - 1, () => { checkCurrent(); return false; }, '', false],
+            currentBeforeTypeset: [STATE.TYPESET - 1, () => { checkCurrent(); return false; }, '', false],
+        },
+    });
     document.body.appendChild(stage);
     try {
         doc.findMath({ elements: [stage] });
         await doc.renderPromise();
+        checkCurrent();
         const outputFailed = new Set(nodes.filter(node => node.querySelector('.mjx-output-error')));
         const failed = new Set(nodes.filter(node => outputFailed.has(node) || node.querySelector('[data-mml-node="merror"], merror')));
         const errors: MathEngineResult['errors'] = [];

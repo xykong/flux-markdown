@@ -315,3 +315,11 @@ Re-ran the production benchmark after switching to direct SVG paths: 100-item p5
 Removed an additional full serialization/reparse when publishing the already-sanitized staged DOM. Nodes now move through a DocumentFragment into the preview; generation checks and sanitization remain before publication. This avoids constructing a duplicate live SVG tree from the same HTML. Full 514 tests and three native math keyboard/reference/option cases pass; build/typecheck pass.
 
 Repeated the same memory recovery workload after this change; raw data is in `memory-dom-move-experiment.json`. The process remained correctly identified throughout, and DOM/math/staging cleanup checks stayed stable. This is another bounded reduction in allocation work, not a declaration that high native RSS or the final memory gate is solved. Host-install authorization remains pending and no installation was replaced.
+
+## Cooperative stale-session cancellation
+
+Passed the existing render-generation predicate into the mathematical engine. It now checks before allocating a stage, before compilation, before typesetting (including asynchronous retry passes), and after the render promise. Superseded work rejects internally and cleans up; the existing current-generation catch prevents publishing an old error into the new document.
+
+Added tests for an already-invalid session and supersession during metrics/compilation. Both assert no SVG typesetting call and no residual measurement root. This is cooperative phase cancellation, not an interrupt for synchronous TeX work already executing; input/expansion limits remain necessary.
+
+Full Jest **59 suites / 516 tests**, typecheck/build pass. This improves stale-work behavior without treating it as a fix for the separate repeated-document memory observations. Native installation authorization and external/platform acceptance remain pending.
