@@ -618,3 +618,10 @@ Shared ErrorIncident retains exportHTML/exportPDF as the failed operation and ad
 Validation: 61 Jest suites / 554 tests pass; 28 selected native tests pass, including strict bridge decoding, Codable compatibility, invalid incident combinations and programmatic notice recovery/feedback availability. Real WKWebView renders the original full corpus, returns the exact mathematical-blocker payload for invalid input, then returns ready after correction. Actual Debug App PDF checks pass (two pages, one internal link to page two; invalid input produces no file). Raw evidence: `/tmp/flux-issue64-export-gate-{all-tests.log,native.log,corpus.json,product}`. The product build targets macOS 12 with the available SDK; no minimum-system claim follows.
 
 The notice test invokes its supplied recovery closure programmatically; it does not prove actual editor launch, report activation or VoiceOver. These remain pending under the locked desktop. The previously staged candidate-startup-compat.app predates this native change; use the rebuilt Debug app for this evidence and refresh the staged candidate before future interactive validation. Installed application and original fixture remain untouched.
+
+
+### Candidate refreshed after export recovery
+
+Created a new, separate `build/issue64-host-validation/candidate-031cc65.app` from the rebuilt Debug app. Deep strict signatures pass for candidate, installation and preserved backup; both candidate bundles exactly match all 173 current renderer files. Installed executable/resource signatures still match the original backup. The previous candidate is retained but is explicitly stale in the acceptance status. Version/build numbers are unchanged; this is a local arm64/macOS-12-target validation artifact, not a release.
+
+A fresh allowlisted CGSession query still reports screenLocked=1. No GUI retry, permission change, application replacement or provider election was attempted. This turn refreshed the authoritative candidate and requirement audit; it does not resolve actual-host, VoiceOver, minimum-platform, independently reviewed memory budget or human sign-off gates.
