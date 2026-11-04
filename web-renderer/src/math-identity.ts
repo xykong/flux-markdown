@@ -1,3 +1,4 @@
+import './math-compat';
 import { TeX } from '@mathjax/src/js/input/tex.js';
 import { AmsTags } from '@mathjax/src/js/input/tex/ams/AmsConfiguration.js';
 import { Configuration } from '@mathjax/src/js/input/tex/Configuration.js';

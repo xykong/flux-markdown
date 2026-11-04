@@ -10,7 +10,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private var started = false
     private var index = 0
     private var feedbackEvents: [[String: Any]] = []
-    private let cases: [(String, String)] = [
+    private var cases: [(String, String)] = [
         ("block copy delayed visibility and focus", """
         await window.renderMarkdown('```\\nhello\\n```',{context:'app',showCopyButtons:true});
         const tools=document.querySelector('.block-copy-tools'),button=tools.querySelector('button');
@@ -113,6 +113,20 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         """),
         ("passive HTML", "await window.renderMarkdown('<img src=\"missing.png\" onerror=\"window.pwned=true\"><details><summary>ok</summary></details>'); return !document.querySelector('[onerror]') && !window.pwned && !!document.querySelector('details');"),
         ("new render wins", "const a=window.renderMarkdown('# OLD\\n\\n$x$'); const b=window.renderMarkdown('# NEW',{enableKatex:false}); await Promise.all([a,b]); return document.querySelector('h1').textContent==='NEW';"),
+        ("math baseline API compatibility and reference export", """
+        const descriptor=Object.getOwnPropertyDescriptor(Object,'hasOwn');
+        Reflect.deleteProperty(Object,'hasOwn');
+        try {
+          const source=String.raw`\\[x^2\\tag{A}\\label{constructor}\\]`+'\\n\\n'+String.raw`\\(\\eqref{constructor}\\)`;
+          const rendering=window.renderMarkdown(source,{context:'quicklook'});
+          await window.waitForExportReady();await rendering;
+          const root=document.getElementById('markdown-preview');
+          if(root.querySelectorAll('mjx-container').length!==2 || root.querySelector('.math-error'))return false;
+          const html=new DOMParser().parseFromString(window.exportHTML(),'text/html');
+          const link=html.querySelector('a[href^="#"]');
+          return typeof Object.hasOwn==='function' && !!link && !!html.getElementById(decodeURIComponent(link.getAttribute('href').slice(1))) && !html.querySelector('script');
+        } finally {if(descriptor)Object.defineProperty(Object,'hasOwn',descriptor);}
+        """),
         ("math and emoji", "await window.renderMarkdown('$x$ :smile:'); await window.renderMarkdown(':smile:',{enableKatex:false}); return !document.getElementById('markdown-preview').textContent.includes(':smile:');"),
         ("native Typst offline", "const oldFetch=window.fetch; window.fetch=(url,...args)=>{if(/^https?:/.test(String(url))) throw new Error('Unexpected network font/package request'); return oldFetch(url,...args)}; await window.renderMarkdown('```typst\\nsum_(i=1)^n i\\n```',{context:'app'}); window.fetch=oldFetch; return !!document.querySelector('.typst-native svg use') && !document.querySelector('.typst-native style') && !document.querySelector('pre .typst-native');"),
         ("Mermaid", "await window.renderMarkdown('```mermaid\\ngraph TD; A-->B\\n```'); return !!document.querySelector('.mermaid svg') && !document.querySelector('.mermaid-error');"),
@@ -131,7 +145,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         return true;
         """),
         ("local image", "await window.renderMarkdown('![Image](pixel.png)',{baseUrl:imageBase}); await window.waitForExportReady(); return document.querySelector('#markdown-preview img').naturalWidth===1;"),
-        ("export ready", "await window.renderMarkdown('# Export\\n\\n$\\\\frac{a}{b}$'); await window.waitForExportReady(5000); return !!document.querySelector('.katex');"),
+        ("export ready", "await window.renderMarkdown('# Export\\n\\n$\\\\frac{a}{b}$'); await window.waitForExportReady(5000); return !!document.querySelector('mjx-container svg') && !!document.querySelector('mjx-assistive-mml mfrac');"),
         ("search and refresh", "await window.renderMarkdown('# Search\\n\\nAlpha Alpha',{context:'app'});window.showSearch(); const input=document.querySelector('.search-input');input.value='Alpha';input.dispatchEvent(new Event('input',{bubbles:true}));if(!document.querySelector('.search-match-counter').textContent.includes('/2'))return false; await window.renderMarkdown('# Search\\n\\nAlpha Alpha Alpha',{context:'app'});const ok=input.value==='Alpha'&&document.querySelector('.search-match-counter').textContent.includes('/3');window.hideSearch();return ok;"),
         ("outline and positioned source", "await window.renderMarkdown('---\\ntitle: Test\\n---\\n# One\\n\\n## Two',{context:'app'});if(!document.querySelector('#toc-container a[href=\"#two\"]'))return false;if(!window.navigateDocumentPosition({line:6}))return false;window.renderSource('# One\\n\\n## Two','light');return document.getElementById('markdown-preview').classList.contains('source-mode') && window.navigateDocumentPosition({line:3});"),
         ("theme font zoom and RTL", "await window.renderMarkdown('# مرحبا بالعالم\\n\\nهذا نص عربي لاختبار اتجاه القراءة',{context:'app',theme:'dark'});window.setFontSize(18);window.setZoomLevel(1.25);const root=document.getElementById('markdown-preview');const ok=root.getAttribute('dir')==='rtl'&&document.documentElement.dataset.theme==='dark'&&root.style.fontSize==='18px';window.setZoomLevel(1);return ok;"),
@@ -215,6 +229,10 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     """
     var svgImageData: [String: String] = [:]
     func run() {
+        if let filter = ProcessInfo.processInfo.environment["FLUX_WEBKIT_CASE_FILTER"] {
+            cases = cases.filter { $0.0.localizedCaseInsensitiveContains(filter) }
+            guard !cases.isEmpty else { fputs("FAIL no matching integration cases\n", stderr); exit(1) }
+        }
         let config = WKWebViewConfiguration()
         config.userContentController.add(self, name: "logger")
         config.userContentController.add(self, name: "errorFeedback")

@@ -1,3 +1,4 @@
+import './math-compat';
 import { mathjax } from '@mathjax/src/js/mathjax.js';
 import { browserAdaptor } from '@mathjax/src/js/adaptors/browserAdaptor.js';
 import { RegisterHTMLHandler } from '@mathjax/src/js/handlers/html.js';
