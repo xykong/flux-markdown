@@ -347,3 +347,9 @@ Changed the diagnostic workload to dollar display delimiters supported by both v
 Post-clear RSS in MiB: release **1361 / 1516 / 1520**, current **2022 / 2031 / 2131**. Third-cycle difference is **612 MiB** (about 40%). The existing version also retains substantial process memory, but that does not erase the added cost of the new implementation. This remains an unresolved memory regression/tradeoff for acceptance, not a pass.
 
 Saved raw samples and method in `memory-release-comparison.json`; added `memory-common-corpus.js` and optional bundle/workload arguments to the monitor so the comparison is reproducible. Both native runs exit 0 with all 1000 formulas each render. These are RSS observations, not identical physical-footprint/retained-heap measurements; final older-platform and resource-budget decisions still require evidence.
+
+## Detached in-place sanitization hypothesis rejected
+
+Tested DOMPurify IN_PLACE on detached generated math wrappers using the same allowlist/reference validation, instead of serializing each wrapper into an additional sanitizer document. Safety-equivalence tests and the full 518-test experimental suite passed. The same common-corpus memory workload worsened post-clear RSS to approximately **2440 / 2607 / 2799 MiB**, compared with **2022 / 2031 / 2131 MiB** on the retained implementation.
+
+Reverted the experimental implementation and its specific API test, and rebuilt the retained source. The experiment is preserved only as `memory-inplace-experiment.json`; no safety bypass or unproven optimization is adopted. This is another concrete negative result against equating fewer parser calls with lower retained WebKit memory. The accepted source test count remains 517 (the extra experimental test was removed).
