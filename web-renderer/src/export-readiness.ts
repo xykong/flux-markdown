@@ -1,5 +1,6 @@
 /** Rendering is awaited by the caller; then fonts/images must settle before print. */
-export async function waitForExportReady(timeoutMs = 15000): Promise<void> {
+export async function waitForExportReady(timeoutMs = 15000, checkCurrent: () => void = () => {}): Promise<void> {
+    checkCurrent();
     const root = document.getElementById('markdown-preview');
     if (root?.querySelector('.math-error, .katex-error')) {
         throw new Error('Cannot export: mathematics or an equation reference failed to render');
@@ -20,11 +21,25 @@ export async function waitForExportReady(timeoutMs = 15000): Promise<void> {
             cleanup.push(() => { img.removeEventListener('load', loaded); img.removeEventListener('error', failed); });
         });
     });
+    const fontsReady = async () => {
+        // Font requests can start only after the new mathematics participates in
+        // layout. Recheck after each ready promise rather than trusting an old one.
+        for (let pass = 0; pass < 6; pass++) {
+            checkCurrent();
+            root?.getBoundingClientRect();
+            await document.fonts?.ready;
+            checkCurrent();
+            root?.getBoundingClientRect();
+            if (!document.fonts || document.fonts.status === 'loaded') return;
+        }
+        throw new Error('Export fonts did not settle');
+    };
     try {
         await Promise.race([
-            Promise.all([...images, document.fonts?.ready]),
+            Promise.all([...images, fontsReady()]),
             new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error('Export resources timed out')), timeoutMs); }),
         ]);
+        checkCurrent();
     } finally {
         if (timer !== undefined) clearTimeout(timer);
         cleanup.forEach(dispose => dispose());

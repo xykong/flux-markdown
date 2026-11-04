@@ -2,7 +2,6 @@ import { installBlockCopy, blockCopyResult, CopyController } from './block-copy'
 import './styles/block-copy.css';
 import { installErrorFeedback, setFeedbackGeneration, feedbackGeneration } from './error-feedback';
 import { waitForExportReady } from './export-readiness';
-window.waitForExportReady = waitForExportReady;
 import { sanitizeDocumentHTML, sanitizeDiagramHTML } from './safe-html';
 import { renderTSVTable } from './tsv';
 import { installMathSyntax } from './math-syntax';
@@ -447,6 +446,25 @@ function buildMd(enableTypst = true): MarkdownIt {
 const md: MarkdownIt = buildMd();
 let renderGeneration = 0;
 let currentRender: Promise<void> = Promise.resolve();
+window.waitForExportReady = async (timeoutMs = 15000) => {
+    const generation = renderGeneration;
+    const started = Date.now();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const checkCurrent = () => {
+        if (generation !== renderGeneration) throw new Error('Document changed during export');
+    };
+    try {
+        await Promise.race([
+            currentRender,
+            new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error('Export rendering timed out')), timeoutMs); }),
+        ]);
+        checkCurrent();
+        await waitForExportReady(Math.max(1, timeoutMs - (Date.now() - started)), checkCurrent);
+        checkCurrent();
+    } finally {
+        if (timer !== undefined) clearTimeout(timer);
+    }
+};
 window.waitForRenderComplete = async () => {
     const generation = renderGeneration;
     await currentRender;
