@@ -80,6 +80,19 @@ test('returns owned CSS without leaving a second engine stylesheet in the page',
     expect(result.css).toContain('mjx-assistive-mml');
     expect(document.querySelector('#MJX-SVG-styles')).toBeNull();
 });
+test('disconnects temporary output descendants after returning independent sanitized HTML',async()=>{
+    const original=SVG.prototype.typeset;
+    const temporary: HTMLElement[]=[];
+    const spy=jest.spyOn(SVG.prototype,'typeset').mockImplementation(function(math,doc){
+        const node=original.call(this,math,doc) as HTMLElement;temporary.push(node);return node;
+    });
+    try {
+        const result=await renderMathSources([source('x','x=1')],'temporary-trees');
+        expect(result.items[0].html).toContain('<svg');
+        expect(temporary).toHaveLength(1);
+        expect(temporary[0].childNodes).toHaveLength(0);
+    } finally {spy.mockRestore();}
+});
 test('multi-formula output preserves every source boundary and its own local glyphs',async()=>{
     const result=await renderMathSources(Array.from({length:12},(_,i)=>source('item-'+i,`x_${i}=1`)), 'batch');
     expect(result.items.map(item=>item.id)).toEqual(Array.from({length:12},(_,i)=>'item-'+i));

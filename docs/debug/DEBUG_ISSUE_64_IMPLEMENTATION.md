@@ -331,3 +331,11 @@ Built the unmodified `v1.42.645` renderer in an isolated ignored build directory
 Ran the current valid derived 12-item mathematical corpus in 20 fresh native WebKit processes/nonpersistent data stores: first-math p50/p95 **126/130 ms**, all 12 items and zero errors each time. The initial math-engine chunk is **1,390,922 bytes**, below the 3 MiB runtime asset gate. The OS disk cache was not flushed, so this is process-cold evidence, not reboot-cold disk performance.
 
 Raw samples, asset traces, source commits and scope are in `cold-and-plain-benchmark.json`; reusable JS workloads are in `scripts/research/issue64-math/`. Current reference-machine cold/warm/no-math gates now have production evidence. Actual extension/older-platform performance, memory limits/recovery and the remaining interaction/reviewer gates are still not complete.
+
+## Explicit temporary-tree disconnection
+
+Added a real-engine test retaining a temporary typeset-root handle: before cleanup it still owned SVG descendants after the engine returned independent sanitized strings. The engine now empties temporary output roots/source wrappers/stage in finally before dropping the MathJax list. It does not mutate the independent sanitized output published by the caller. This breaks native descendant graphs even when a wrapper's garbage collection is delayed.
+
+The new test fails before and passes after; full Jest **59 suites / 517 tests** and build/typecheck pass. Same three-cycle memory experiment yields roughly **2035 / 2072 / 2074 MiB** post-clear, versus **2042 / 2096 / 2160 MiB** for DOM-move alone. The late cycles are flatter, but the residual footprint remains high and no hard memory-success claim is made.
+
+Raw data is in `memory-tree-cleanup-experiment.json`. Retained the explicit lifecycle cleanup for its directly tested ownership guarantee. Next comparison should render identical dollar-delimited formula payloads on the release baseline and current engine; the original bracket-only stress input cannot serve as a fair old-engine memory baseline.

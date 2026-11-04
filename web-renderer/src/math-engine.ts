@@ -127,6 +127,14 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
         // Remove this exact session's sheet, never a newer session's replacement.
         const sheet = svg.styleSheet(doc);
         if (sheet.parentNode) sheet.remove();
+        // The returned output consists of sanitized strings, not these staging
+        // elements. Break their native descendant graphs before dropping the
+        // MathJax list; delayed collection of a wrapper must not retain its SVG.
+        for (const item of doc.math) {
+            if (item.typesetRoot instanceof Element) item.typesetRoot.replaceChildren();
+        }
+        for (const node of nodes) node.replaceChildren();
+        stage.replaceChildren();
         doc.clear();
         stage.remove();
     }
