@@ -128,4 +128,9 @@ describe('Issue 64 mathematical input contracts', () => {
         expect(headings[1].id).toContain('y');
         expect(headings[0].id).not.toBe(headings[1].id);
     });
+    test('formula navigation retains original source lines after CRLF front matter',async()=>{
+        await render('---\r\ntitle: Test\r\n---\r\n\r\nText\r\n\r\n\\[\r\nx=1\r\n\\]');
+        expect(preview().querySelector('.flux-math-source')?.getAttribute('data-source-line')).toBe('7');
+        expect(preview().querySelector('.flux-math-source')?.getAttribute('data-source-line-end')).toBe('9');
+    });
 });

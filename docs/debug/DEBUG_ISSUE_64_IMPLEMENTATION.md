@@ -257,3 +257,9 @@ Injected an SVG typesetting failure and an initialization failure. Before the co
 The engine now attaches the measurement root only after initialization succeeds, recognizes MathJax output-error nodes, retains failed output's original source, and rejects references to failed targets while continuing later valid formulas. Failure diagnostics return through the same production mathematical-error path, so export gating remains effective.
 
 All ten engine tests pass, including the injected failures and cleanup check. Full Jest **58 suites / 497 tests**, typecheck and production build pass. This resolves concrete fault paths but does not claim that the large-workload memory or native interaction gates are complete.
+
+## Original block source preservation
+
+Added CRLF/frontmatter source-navigation and copy tests. Navigation already retained the correct original 7–9 line range, but the copied math fence normalized CRLF to LF. Capture original source lines before markdown-it normalization and recover display-math/fence raw blocks from token source ranges, preserving exact newline sequences and container prefixes. Mathematical payload parsing remains normalized as before.
+
+The original failing CRLF copy case now passes, along with a quoted CRLF formula that verifies the original `>` prefixes are retained. Full Jest **58 suites / 500 tests**, typecheck and production build pass. Multiline inline math's exact line-ending preservation, nested-link semantics and remaining broad acceptance items are not inferred from these block-source tests.

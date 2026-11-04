@@ -35,3 +35,14 @@ test('copying a quote includes math source once and failure exposes selectable s
     expect(formula.querySelector('svg')).not.toBeNull();
     controller.dispose();
 });
+test('math fence source is preserved with front matter and CRLF line endings',async()=>{
+    const fence='```math\r\nx=1\r\n```';
+    await window.renderMarkdown('---\r\ntitle: Test\r\n---\r\n\r\n'+fence,{showCopyButtons:false});
+    const formula=document.querySelector('.flux-math-source')!;
+    expect(blockPlainText(formula)).toBe(fence);
+});
+test('nested formula copies the original container prefixes',async()=>{
+    const block='> \\[\r\n> x=1\r\n> \\]';
+    await window.renderMarkdown(block,{showCopyButtons:false});
+    expect(blockPlainText(document.querySelector('.flux-math-source')!)).toBe(block);
+});

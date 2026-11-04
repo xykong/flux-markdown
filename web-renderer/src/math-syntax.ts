@@ -20,6 +20,10 @@ function escaped(source: string, position: number): boolean {
 /** Recognize math before Markdown escapes, leaving TeX interpretation to the engine. */
 export function installMathSyntax(md: MarkdownIt, namespace = 'math'): MathSource[] {
     const sources: MathSource[] = [];
+    let originalLines: string[] = [];
+    md.core.ruler.before('normalize', 'flux_math_original_lines', state => {
+        originalLines = state.src.match(/[^\r\n]*(?:\r\n|\r|\n|$)/g) || [];
+    });
     md.inline.ruler.before('escape', 'flux_math_inline', (state, silent) => {
         const start = state.pos;
         // Raw HTML code containers are separate html_inline tokens. Respect
@@ -107,9 +111,14 @@ export function installMathSyntax(md: MarkdownIt, namespace = 'math'): MathSourc
             for (const child of token.type === 'inline' ? token.children || [] : [token]) {
                 if (!child.type.startsWith('flux_math_')) continue;
                 const meta = child.meta as MathMeta;
+                if (meta.display && token.map) {
+                    // Markdown-it normalizes CRLF before parsing. Recover the
+                    // exact original block for copy/fallback from its source map.
+                    meta.raw = originalLines.slice(token.map[0], token.map[1]).join('').replace(/(?:\r\n|\r|\n)$/, '');
+                }
                 const firstLine = (token.map?.[0] || 0) + (meta.localLine || 0) + 1 + Number(state.env.sourceLineOffset || 0);
                 const source: MathSource = { id: `${namespace}-${sources.length}`, raw: meta.raw, payload: meta.payload,
-                    display: meta.display, firstLine, lastLine: firstLine + meta.raw.split('\n').length - 1 };
+                    display: meta.display, firstLine, lastLine: firstLine + meta.raw.split(/\r\n|\r|\n/).length - 1 };
                 meta.source = source;
                 sources.push(source);
             }
