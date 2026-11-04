@@ -1,0 +1,66 @@
+import { mathjax } from '@mathjax/src/js/mathjax.js';
+import { browserAdaptor } from '@mathjax/src/js/adaptors/browserAdaptor.js';
+import { RegisterHTMLHandler } from '@mathjax/src/js/handlers/html.js';
+import { AssistiveMmlHandler } from '@mathjax/src/js/a11y/assistive-mml.js';
+import { SVG } from '@mathjax/src/js/output/svg.js';
+import { createMathInput } from './math-identity';
+import { installMathFontLoader } from './math-font-loader';
+import { sanitizeMathHTML } from './safe-html';
+import type { MathSource } from './math-syntax';
+
+const adaptor = browserAdaptor();
+AssistiveMmlHandler(RegisterHTMLHandler(adaptor));
+installMathFontLoader();
+
+export interface MathEngineResult {
+    items: Array<{ id: string; html: string }>;
+    errors: Array<{ sourceId: string; code: 'syntax' | 'unresolved-reference' }>;
+    css: string;
+}
+
+/** One isolated semantic document; the caller owns publication/generation checks. */
+export async function renderMathSources(sources: readonly MathSource[], namespace: string): Promise<MathEngineResult> {
+    const stage = document.createElement('div');
+    stage.style.cssText = 'position:absolute;left:-100000px;width:800px;visibility:hidden;font-size:18px;';
+    stage.setAttribute('aria-hidden', 'true');
+    const nodes = sources.map(source => {
+        const node = document.createElement(source.display ? 'div' : 'span');
+        node.textContent = (source.display ? '\\[' : '\\(') + source.payload + (source.display ? '\\]' : '\\)');
+        stage.appendChild(node);
+        return node;
+    });
+    document.body.appendChild(stage);
+    const svg = new SVG<HTMLElement, Text, Document>({ fontCache: 'local', linebreaks: { inline: false }, displayOverflow: 'scroll' });
+    const doc = mathjax.document(document, { InputJax: createMathInput(namespace), OutputJax: svg,
+        elements: [stage], enableAssistiveMml: true });
+    try {
+        await doc.renderPromise();
+        const failed = new Set(nodes.filter(node => node.querySelector('[data-mml-node="merror"], merror')));
+        const errors: MathEngineResult['errors'] = [];
+        nodes.forEach((node, index) => {
+            if (failed.has(node)) errors.push({ sourceId: sources[index].id, code: 'syntax' });
+            let unresolved = false;
+            node.querySelectorAll('a').forEach(link => {
+                const href = link.getAttribute('href') || link.getAttribute('data-mjx-href') || '';
+                let id = '';
+                try { if (href.startsWith('#')) id = decodeURIComponent(href.slice(1)); } catch { /* invalid fragment */ }
+                const targets = Array.from(stage.querySelectorAll('[id]')).filter(target => target.id === id);
+                if (!id || targets.length !== 1 || Array.from(failed).some(container => container.contains(targets[0]))) {
+                    link.removeAttribute('href'); link.removeAttribute('data-mjx-href'); unresolved = true;
+                } else {
+                    link.setAttribute('href', '#'+encodeURIComponent(id));
+                    link.setAttribute('tabindex', '0');
+                }
+            });
+            if (unresolved) errors.push({ sourceId: sources[index].id, code: 'unresolved-reference' });
+        });
+        return {
+            items: nodes.map((node, index) => ({ id: sources[index].id, html: sanitizeMathHTML(node.innerHTML) })),
+            errors,
+            css: adaptor.textContent(svg.styleSheet(doc)),
+        };
+    } finally {
+        doc.clear();
+        stage.remove();
+    }
+}
