@@ -26,6 +26,13 @@ npm test --prefix web-renderer -- --runInBand --silent > "$ISSUE64_RUN/jest.log"
 npm run --prefix web-renderer build > "$ISSUE64_RUN/build.log" 2>&1
 scripts/test-renderer-webkit.sh > "$ISSUE64_RUN/native-suite.log" 2>&1
 swiftc Sources/Shared/RendererBundleSchemeHandler.swift scripts/research/issue64-math/main.swift -o "$ISSUE64_RUN/probe"
+for ISSUE64_WIDTH in 320 960; do
+    for ISSUE64_ZOOM in 1 2; do
+        for ISSUE64_THEME in light dark; do
+            FLUX_MATH_PROBE_WIDTH="$ISSUE64_WIDTH" FLUX_MATH_PROBE_ZOOM="$ISSUE64_ZOOM" FLUX_MATH_PROBE_THEME="$ISSUE64_THEME" "$ISSUE64_RUN/probe" 'flux-renderer://bundle/index.html' "$PROJECT_ROOT/web-renderer/dist" "$PROJECT_ROOT/scripts/issue64/math-layout.js" "$ISSUE64_RUN/input.json" 45 > "$ISSUE64_RUN/layout-$ISSUE64_WIDTH-$ISSUE64_ZOOM-$ISSUE64_THEME.json" 2> "$ISSUE64_RUN/layout-$ISSUE64_WIDTH-$ISSUE64_ZOOM-$ISSUE64_THEME.log"
+        done
+    done
+done
 python3 scripts/issue64/asset-closure.py > "$ISSUE64_RUN/asset-closure.json"
 "$ISSUE64_RUN/probe" 'flux-renderer://bundle/index.html' "$PROJECT_ROOT/web-renderer/dist" "$PROJECT_ROOT/scripts/issue64/asset-closure.js" "$ISSUE64_RUN/asset-closure.json" 60 > "$ISSUE64_RUN/asset-runtime.json" 2> "$ISSUE64_RUN/asset-runtime.log"
 python3 - "$ISSUE64_RUN" <<'PY'
@@ -67,6 +74,7 @@ out=Path(sys.argv[1]);assert 'CSP ' not in (out/'offline.log').read_text(),'Offl
 report={'sourceCommit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'platform':subprocess.check_output(['sw_vers','-productVersion'],text=True).strip(),'architecture':subprocess.check_output(['uname','-m'],text=True).strip(),'bundleIndexSha256':hashlib.sha256(Path('web-renderer/dist/index.html').read_bytes()).hexdigest(),'production':json.loads((out/'production-summary.json').read_text()),'offline':json.loads((out/'offline.json').read_text()),'notCovered':['actual selected App/QuickLook/Finder UI','minimum macOS/Intel','VoiceOver speech','PDF visual inspection','memory acceptance','independent reviewer sign-off']}
 report['assetClosure']={'static':json.loads((out/'asset-closure.json').read_text()),'native':json.loads((out/'asset-runtime.json').read_text()),'missingGlyphDetected':{'static':True,'native':True}}
 report['resourceFailure']=json.loads((out/'resource-failure.json').read_text())
+report['mathLayout']=[case for path in sorted(out.glob('layout-*.json')) for case in json.loads(path.read_text())['cases']]
 report['worktreeDirty']=bool(subprocess.check_output(['git','status','--porcelain'],text=True).strip())
 report['validationSourceHashes']={name:hashlib.sha256(Path(name).read_bytes()).hexdigest() for name in ['scripts/test-issue64-math.sh','scripts/issue64/asset-closure.py','scripts/issue64/asset-closure.js','scripts/issue64/resource-failure.js','scripts/research/issue64-math/main.swift','web-renderer/vite.config.ts']}
 (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')

@@ -8,8 +8,10 @@ import { installMathSyntax } from './math-syntax';
 import { rememberMathSource, uniqueMathTargets } from './math-source-store';
 import { prepareMathPrint } from './math-print';
 import { separateMathLinks } from './math-reference-links';
+import { installMathLayout } from './math-layout';
 import './styles/math.css';
 let restoreMathPrint: (() => void) | undefined;
+let disposeMathLayout: (() => void) | undefined;
 window.addEventListener('beforeprint', () => {
     restoreMathPrint?.();
     const root = document.getElementById('markdown-preview');
@@ -1069,11 +1071,13 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         const renderedFragment = document.createDocumentFragment();
         while (tempDiv.firstChild) renderedFragment.appendChild(tempDiv.firstChild);
         outputDiv.replaceChildren(renderedFragment);
+        disposeMathLayout?.();
         const sourceTargets = uniqueMathTargets(outputDiv, mathSources.map(source => source.id));
         for (const source of mathSources) {
             const target = sourceTargets.get(source.id);
             if (target) rememberMathSource(target, source.raw);
         }
+        disposeMathLayout = mathSources.length ? installMathLayout(outputDiv) : undefined;
         if (toc) toc.render(outline);
         prepareRenderedImages(outputDiv, options);
         logToSwift(`[renderMarkdown:${callId}] DOM UPDATED successfully`);
@@ -1214,6 +1218,7 @@ window.renderMarkdown = (text, options) => {
 };
 
 window.renderSource = function(text: string, theme: string, prevContent?: string, options: RenderOptions = {}) {
+    disposeMathLayout?.(); disposeMathLayout = undefined;
     window.__fluxLang = options.uiLanguage === "system" ? undefined : options.uiLanguage ?? window.__fluxLang;
     applyInterfaceDirection();
     disposeBlockCopy();

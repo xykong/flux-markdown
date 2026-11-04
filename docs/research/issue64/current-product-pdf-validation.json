@@ -1,12 +1,12 @@
 {
-  "sourceCommit": "8274ca666a73970658700579f1f156471cd41e7a",
+  "sourceCommit": "33ece8804067eb58afd613747ecf6659e20731a1",
   "fixture": "valid-original-syntax.md",
   "fixtureSha256": "51fcf97c86e8adb51b148975e13c4fe214ed50fe56623bcb3ba04e52c87e767d",
   "pdf": "output/pdf/issue64-valid-original-syntax.pdf",
-  "pdfSha256": "0b1545bd29dbeff70be031f0058bbd46184e6608f6f0130ada019599844f8b8f",
+  "pdfSha256": "38d7f323f00e3a64ed5a7af95fc2ca06af262d170c4ea45b932e45ea59d54f22",
   "pages": 2,
   "host": "actual Debug FluxMarkdown CLI, macOS 27.0.1 arm64, local target override 12.0",
-  "visualReview": "Both freshly rendered Poppler pages inspected; final runner PDF raster bytes match those inspected pages. Matrix and cases rows, Chinese text, original delimiters/fence, tag/reference, currency/code and introduction grouping remain complete.",
+  "visualReview": "After inline-overflow changes, both freshly rendered PDF page PNGs match the previously inspected product-export-verified pages byte-for-byte; ordinary print layout and equation-link geometry are unchanged.",
   "linkInspection": {
     "tool": "PDFKit",
     "annotations": 1,
@@ -28,11 +28,16 @@
     "not a tagged PDF",
     "PDF viewer mouse/VoiceOver interactions not covered by annotation inspection"
   ],
-  "bundleIndexSha256": "cf3830d645b6b2d991112e1e5293db8fc02873cd0546d2781887fe2cc7d61d8b",
+  "bundleIndexSha256": "1b3ee2dca4c023cef86490216c49db8cb4c2a7e14ef5f30f5089b69504f324e9",
   "productRunner": "scripts/test-issue64-product-export.sh",
   "productRunnerEvidence": "product-export-runner-report.json",
   "rasterSha256": {
     "page-1.png": "5138e89146cb86ec36057cb354d887bd250a3fbfce9c46df80118f546a3767e1",
     "page-2.png": "aaab996b5beeb650e9c4acfb494c2bc8ab280d2817c5ca5755ceb32bf9a5992c"
+  },
+  "pendingSourceAtRun": {
+    "web-renderer/src/math-layout.ts": "a9666386946bbe27e9c4650e562ee22f8ddd294d0e75d1e4d4075e2d7c63ddbb",
+    "web-renderer/src/styles/math.css": "80e825a9db4d226a454a89100ff6a78ebe22095d64bea6859bbdd50d64e46c0c",
+    "web-renderer/src/index.ts": "1d0a01f8737dca39c70ebc6b1f7e3cca83125e868b68f79f1118ed25b0e86e4a"
   }
 }

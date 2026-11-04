@@ -25,7 +25,7 @@
 
 ## 4. Product integration
 - [x] 4.1 Verify and integrate output sanitization, self-contained SVG glyph paths and standard accessible reference links (actual VoiceOver remains in 5.3).
-- [ ] 4.2 Implement math styling, RTL isolation, narrow/zoom behavior, source copy and search/outline integration.
+- [x] 4.2 Implement math styling, RTL isolation, narrow/native-zoom behavior, source copy and search/outline integration; current native geometry and trusted keyboard scrolling verified. Host/platform/VoiceOver acceptance remains in 5.2/5.3.
 - [x] 4.3 Preserve the stored math toggle; update supported language labels and shared contextual error feedback inventory (native activation acceptance remains in 5.2/5.3).
 - [ ] 4.4 Await math and resources for App/CLI export; produce offline standalone HTML and verify PDF/print behavior.
 

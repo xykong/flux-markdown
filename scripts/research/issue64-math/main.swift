@@ -16,7 +16,21 @@ final class Probe: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         }
         config.userContentController.addUserScript(WKUserScript(source: "window.addEventListener('error',e=>window.webkit.messageHandlers.trace.postMessage(String(e.message)));window.addEventListener('securitypolicyviolation',e=>window.webkit.messageHandlers.trace.postMessage('CSP '+e.blockedURI+' '+e.violatedDirective));window.addEventListener('unhandledrejection',e=>window.webkit.messageHandlers.trace.postMessage(String(e.reason)));console.warn=console.error=(...x)=>window.webkit.messageHandlers.trace.postMessage(x.map(String).join(' '));", injectionTime: .atDocumentStart, forMainFrameOnly: true))
         config.setURLSchemeHandler(RendererBundleSchemeHandler(rootDirectory: URL(fileURLWithPath: CommandLine.arguments[2])), forURLScheme: "flux-renderer")
-        view = WKWebView(frame: NSRect(x: 0, y: 0, width: 960, height: 900), configuration: config)
+        let width = Double(ProcessInfo.processInfo.environment["FLUX_MATH_PROBE_WIDTH"] ?? "960") ?? 0
+        guard width.isFinite, (240...1920).contains(width) else {
+            fputs("Probe width must be between 240 and 1920 points\n", stderr)
+            exit(2)
+        }
+        view = WKWebView(frame: NSRect(x: 0, y: 0, width: width, height: 900), configuration: config)
+        let zoom = Double(ProcessInfo.processInfo.environment["FLUX_MATH_PROBE_ZOOM"] ?? "1") ?? 0
+        guard zoom.isFinite, (0.5...3).contains(zoom) else {
+            fputs("Probe zoom must be between 0.5 and 3\n", stderr)
+            exit(2)
+        }
+        view.pageZoom = zoom
+        let theme = ProcessInfo.processInfo.environment["FLUX_MATH_PROBE_THEME"] ?? "system"
+        guard ["system", "light", "dark"].contains(theme) else { exit(2) }
+        if theme != "system" { view.appearance = NSAppearance(named: theme == "dark" ? .darkAqua : .aqua) }
         view.navigationDelegate = self
         if ProcessInfo.processInfo.environment["FLUX_MATH_PROBE_WINDOW"] == "1" {
             let window = NSWindow(contentRect: view.frame, styleMask: [.titled], backing: .buffered, defer: false)
@@ -43,7 +57,8 @@ final class Probe: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
     }
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         fputs("Page loaded\n",stderr)
-        webView.callAsyncJavaScript(script, arguments: ["source":source], in: nil, in: .page) { result in
+        webView.callAsyncJavaScript(script, arguments: ["source":source, "probeZoom":webView.pageZoom,
+            "probeTheme":ProcessInfo.processInfo.environment["FLUX_MATH_PROBE_THEME"] ?? "system"], in: nil, in: .page) { result in
             switch result {
             case .success(let value):
                 if JSONSerialization.isValidJSONObject(value), let data = try? JSONSerialization.data(withJSONObject: value, options: [.prettyPrinted, .sortedKeys]) { print(String(data: data, encoding: .utf8)!) }
@@ -57,6 +72,16 @@ final class Probe: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
                     self.view = nil
                     fputs("JS: MEMPHASE webview-released\n", stderr)
                     DispatchQueue.main.asyncAfter(deadline: .now() + 15) { exit(0) }
+                } else if let path = ProcessInfo.processInfo.environment["FLUX_MATH_PROBE_SNAPSHOT"] {
+                    webView.takeSnapshot(with: nil) { image, error in
+                        guard error == nil, let tiff = image?.tiffRepresentation,
+                              let bitmap = NSBitmapImageRep(data: tiff),
+                              let png = bitmap.representation(using: .png, properties: [:]) else {
+                            fputs("Probe snapshot failed\n", stderr); exit(1)
+                        }
+                        do { try png.write(to: URL(fileURLWithPath: path)); exit(0) }
+                        catch { fputs("Probe snapshot could not be saved\n", stderr); exit(1) }
+                    }
                 } else { exit(0) }
             case .failure(let error): fputs("\(error)\n",stderr); exit(1)
             }

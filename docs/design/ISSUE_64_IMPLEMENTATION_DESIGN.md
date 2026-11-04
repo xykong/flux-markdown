@@ -46,6 +46,7 @@ flowchart TD
 | `math-engine.ts`（新增） | 延迟加载、独立 TeX/MathDocument、AMS 适配、MathML/SVG 输出 | 私自写当前预览 DOM |
 | `index.ts` / `math-engine.ts` | generation、顺序、引用核对、展示/失败/清理生命周期；实现未单设 math-document 文件 | 共享可变数学会话状态 |
 | `safe-html.ts` | document/diagram/math 三种明确输入策略 | 放行所有自定义元素或任意 URI |
+| `math-layout.ts` | 仅对已登记且超出所在文本块宽度的行内公式启用可聚焦的局部滚动；响应尺寸变化并清理监听 | 改写正常公式的基线、全局缩放、TeX 语义 |
 | `index.ts` | 现有入口调用、开关兼容、导航、目录、源码及渲染完成承诺 | 内嵌整套数学实现 |
 | `export-readiness.ts` | 当前会话终态、数学错误、布局/字体/图像就绪 | 根据“Promise resolved”推断没有数学错误 |
 | `error-feedback.ts` / 原生 ErrorIncident | 安全事件、恢复与反馈、六种语言 | 上传数学源码或标签文字 |

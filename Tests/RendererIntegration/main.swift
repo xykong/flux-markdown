@@ -135,7 +135,16 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         link.focus();window.webkit.messageHandlers.nativeMathKey.postMessage('enter');
         const until=performance.now()+3000;
         while(target.getBoundingClientRect().top>window.innerHeight && performance.now()<until)await new Promise(r=>setTimeout(r,30));
-        return before>window.innerHeight && target.getBoundingClientRect().top<window.innerHeight;
+        if(!(before>window.innerHeight && target.getBoundingClientRect().top<window.innerHeight))throw new Error('Reference did not scroll into view');
+        await window.renderMarkdown('$'+Array(80).fill('x').join('+')+'$',{context:'app',showCopyButtons:false});
+        const scrolling=document.querySelector('.math-inline-overflow');
+        if(!scrolling || scrolling.tabIndex!==0)throw new Error('Wide inline formula lacks focusable scroll surface');
+        scrolling.scrollLeft=0;scrolling.focus();
+        window.webkit.messageHandlers.nativeMathKey.postMessage('right');
+        const scrollDeadline=performance.now()+3000;
+        while(scrolling.scrollLeft===0 && performance.now()<scrollDeadline)await new Promise(r=>setTimeout(r,30));
+        if(!(scrolling.scrollLeft>0 && window.scrollX===0))throw new Error(JSON.stringify({scrollLeft:scrolling.scrollLeft,width:scrolling.clientWidth,scrollWidth:scrolling.scrollWidth,windowX:window.scrollX,active:document.activeElement?.className,tabIndex:scrolling.tabIndex}));
+        return true;
         """),
         ("math baseline API compatibility and reference export", """
         const descriptor=Object.getOwnPropertyDescriptor(Object,'hasOwn');
@@ -287,8 +296,9 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
             return
         }
         if message.name == "nativeMathKey", let key = message.body as? String, let window = focusWindow {
-            let characters = key == "space" ? " " : "\r"
-            let code: UInt16 = key == "space" ? 49 : 36
+            guard ["space", "enter", "right"].contains(key) else { exit(1) }
+            let characters = key == "space" ? " " : key == "right" ? "\u{F703}" : "\r"
+            let code: UInt16 = key == "space" ? 49 : key == "right" ? 124 : 36
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 for type in [NSEvent.EventType.keyDown, .keyUp] {
                     if let event = NSEvent.keyEvent(with: type, location: .zero, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: window.windowNumber, context: nil, characters: characters, charactersIgnoringModifiers: characters, isARepeat: false, keyCode: code) {
