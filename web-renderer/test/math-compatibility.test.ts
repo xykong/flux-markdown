@@ -3,6 +3,8 @@ jest.mock('mermaid', () => ({
 }));
 
 import '../src/index';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 
 function preview(): HTMLElement {
     return document.getElementById('markdown-preview')!;
@@ -82,5 +84,41 @@ describe('Issue 64 mathematical input contracts', () => {
         expect(formulas()).toHaveLength(1);
         expect(preview().textContent).toContain('Document end');
         expect(preview().querySelector('.katex-error, .math-error, [data-mml-node="merror"], mjx-merror')).not.toBeNull();
+    });
+
+    test('renders the original MathML beside TeX with one accessible tree per item', async () => {
+        const cases: Array<{ id: string; tex: string }> = JSON.parse(readFileSync(resolve(__dirname, '../../docs/research/issue64/math-cases.json'), 'utf8'));
+        await render(cases.find(item => item.id === 'M13')!.tex+'\n\n$x=1$');
+        expect(formulas()).toHaveLength(2);
+        expect(preview().querySelectorAll('mjx-assistive-mml math')).toHaveLength(2);
+        const semantic = preview().querySelector('mjx-assistive-mml math')!;
+        expect(Array.from(semantic.querySelectorAll('msup > mi')).map(node => node.textContent)).toEqual(['x','y','z']);
+    });
+
+    test('preserves native MathML when enhanced mathematics is disabled', async () => {
+        await window.renderMarkdown('<math><mi>x</mi></math>\n\n'+String.raw`\(x^2\)`, { enableKatex: false });
+        expect(preview().querySelector('math mi')?.textContent).toBe('x');
+        expect(formulas()).toHaveLength(0);
+        expect(preview().textContent).toContain(String.raw`\(x^2\)`);
+    });
+
+    test('renders every original mathematical item and retains the intentional error', async () => {
+        const original = readFileSync(resolve(__dirname, '../../Tests/fixtures/issues/64/markdown-preview-test.md'), 'utf8');
+        const cases: Array<{ id: string; tex: string }> = JSON.parse(readFileSync(resolve(__dirname, '../../docs/research/issue64/math-cases.json'), 'utf8'));
+        const section = original.slice(original.indexOf('## 10 ·'), original.indexOf('<a id="diagrams">'));
+        await render(cases.find(item => item.id === 'M13')!.tex+'\n\n'+section);
+        expect(formulas()).toHaveLength(12);
+        expect(preview().querySelectorAll('mjx-container')).toHaveLength(13);
+        expect(preview().querySelectorAll('.math-error')).toHaveLength(1);
+        expect(preview().querySelectorAll('mjx-assistive-mml math')).toHaveLength(13);
+        expect(preview().textContent).toContain('$5.00');
+        expect(preview().querySelector('code')?.textContent).toBe('$HOME');
+    });
+
+    test('export rejects unresolved references and recovers on the next valid document', async () => {
+        await render(String.raw`$\eqref{absent}$`);
+        await expect(window.waitForExportReady()).rejects.toThrow(/math/i);
+        await render('$x=1$');
+        await expect(window.waitForExportReady()).resolves.toBeUndefined();
     });
 });

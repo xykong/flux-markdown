@@ -1,6 +1,9 @@
 /** Rendering is awaited by the caller; then fonts/images must settle before print. */
 export async function waitForExportReady(timeoutMs = 15000): Promise<void> {
     const root = document.getElementById('markdown-preview');
+    if (root?.querySelector('.math-error, .katex-error')) {
+        throw new Error('Cannot export: mathematics or an equation reference failed to render');
+    }
     if (root?.querySelector('.mermaid-error, .vega-error, .graphviz-error, .typst-error')) {
         throw new Error('Cannot export: a diagram failed to render');
     }

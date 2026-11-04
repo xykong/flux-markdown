@@ -3,6 +3,7 @@ import { browserAdaptor } from '@mathjax/src/js/adaptors/browserAdaptor.js';
 import { RegisterHTMLHandler } from '@mathjax/src/js/handlers/html.js';
 import { AssistiveMmlHandler } from '@mathjax/src/js/a11y/assistive-mml.js';
 import { SVG } from '@mathjax/src/js/output/svg.js';
+import { MathML } from '@mathjax/src/js/input/mathml.js';
 import { createMathInput } from './math-identity';
 import { installMathFontLoader } from './math-font-loader';
 import { sanitizeMathHTML } from './safe-html';
@@ -25,13 +26,14 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
     stage.setAttribute('aria-hidden', 'true');
     const nodes = sources.map(source => {
         const node = document.createElement(source.display ? 'div' : 'span');
-        node.textContent = (source.display ? '\\[' : '\\(') + source.payload + (source.display ? '\\]' : '\\)');
+        if (source.kind === 'mathml') node.innerHTML = sanitizeMathHTML(source.payload);
+        else node.textContent = (source.display ? '\\[' : '\\(') + source.payload + (source.display ? '\\]' : '\\)');
         stage.appendChild(node);
         return node;
     });
     document.body.appendChild(stage);
     const svg = new SVG<HTMLElement, Text, Document>({ fontCache: 'local', linebreaks: { inline: false }, displayOverflow: 'scroll' });
-    const doc = mathjax.document(document, { InputJax: createMathInput(namespace), OutputJax: svg,
+    const doc = mathjax.document(document, { InputJax: [createMathInput(namespace), new MathML()], OutputJax: svg,
         elements: [stage], enableAssistiveMml: true });
     try {
         await doc.renderPromise();

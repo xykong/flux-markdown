@@ -963,6 +963,23 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = sanitizeDocumentHTML(frontMatterHtml + html);
 
+        if (options.enableKatex !== false) {
+            tempDiv.querySelectorAll('math').forEach(math => {
+                if (math.closest('pre, code, mjx-assistive-mml') || math.parentElement?.closest('math')) return;
+                const raw = math.outerHTML;
+                const display = math.getAttribute('display') === 'block';
+                const sourceBlock = math.closest('[data-source-line]');
+                const firstLine = Number(sourceBlock?.getAttribute('data-source-line') || 1);
+                const id = `${mathNamespace}-mml-${mathSources.length}`;
+                mathSources.push({ id, kind: 'mathml', raw, payload: raw, display, firstLine, lastLine: firstLine });
+                const holder = document.createElement(display ? 'div' : 'span');
+                holder.className = 'flux-math-source';
+                holder.dataset.mathId = id;
+                math.replaceWith(holder);
+                holder.appendChild(math);
+            });
+        }
+
         if (options.enableKatex !== false && mathSources.length) {
             const placeholders = new Map(mathSources.map(source => {
                 const nodes = tempDiv.querySelectorAll(`[data-math-id="${source.id}"]`);

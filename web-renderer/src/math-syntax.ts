@@ -1,6 +1,7 @@
 import MarkdownIt from 'markdown-it';
 
 export interface MathSource {
+    kind?: 'tex' | 'mathml';
     id: string;
     raw: string;
     payload: string;
