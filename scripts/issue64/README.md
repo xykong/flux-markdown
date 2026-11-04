@@ -17,3 +17,11 @@ Against that damaged copy, `resource-failure.js` checks the actual renderer in a
 `report.json` describes only the checks actually performed. It explicitly lists the remaining actual host UI, minimum-platform, VoiceOver, PDF visual, memory and human-review gates. This runner does not install or replace FluxMarkdown, send feedback, change file associations or declare the full feature accepted. The native suite briefly uses its own window and isolated test pasteboard, restoring the prior foreground application afterward.
 
 Do not edit the immutable original fixture to make an expectation pass. Document the line-132 parenthesis-escape/math ambiguity separately from the dedicated 13-item corpus; the full original currently has 14 mathematical items including that ambiguous example and the one intentional error.
+
+After building the actual native application, validate its CLI export separately:
+
+```sh
+scripts/test-issue64-product-export.sh /path/to/FluxMarkdown.app /tmp/new-issue64-export-evidence
+```
+
+The output directory must be new. This checks the app signature, all manifest-declared renderer resources against the current build, mathematical resource/license closure, actual valid and invalid CLI exports, and the two-page PDF's internal equation-reference destination using PDFKit. Render and visually inspect both pages afterward; the script explicitly does not claim visual or PDF-viewer/VoiceOver acceptance. It neither installs the app nor changes the selected QuickLook provider.
