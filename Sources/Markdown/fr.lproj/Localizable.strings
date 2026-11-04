@@ -51,7 +51,7 @@
 "Enable or disable rendering capabilities" = "Activer ou désactiver les capacités de rendu";
 "Mermaid Diagrams" = "Diagrammes Mermaid";
 "Flowcharts, sequence diagrams, and more" = "Organigrammes, diagrammes de séquence, etc.";
-"KaTeX Math" = "Maths KaTeX";
+"Mathematical Formulas" = "Formules mathématiques";
 "Mathematical expressions and equations" = "Expressions et équations mathématiques";
 "Emoji Support" = "Prise en charge des emojis";
 "GitHub flavored emoji codes like :smile:" = "Codes emoji style GitHub comme :smile:";

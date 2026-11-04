@@ -353,8 +353,8 @@ struct RenderingSettingsView: View {
                 )
                 Divider().padding(.leading, 52)
                 FeatureToggleRow(
-                    title: NSLocalizedString("KaTeX Math", comment: "KaTeX toggle title"),
-                    subtitle: NSLocalizedString("Mathematical expressions and equations", comment: "KaTeX toggle subtitle"),
+                    title: NSLocalizedString("Mathematical Formulas", comment: "Mathematical rendering toggle title"),
+                    subtitle: NSLocalizedString("Mathematical expressions and equations", comment: "Mathematical rendering toggle subtitle"),
                     icon: "function",
                     isOn: Binding(get: { preference.enableKatex }, set: { preference.enableKatex = $0 })
                 )

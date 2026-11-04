@@ -127,3 +127,11 @@ Investigated the copy visibility failure: the same unchanged test both passed an
 The next full run reached the new API-removal case after previous math tests had already cached the engine. The compatibility initializer only ran on module import, so that explicit API removal failed. Each mathematical session now ensures the required API before using the cached engine.
 
 After rebuilding, `scripts/test-renderer-webkit.sh` passes **all 28 real WebKit cases**, including copy visibility/focus, source-generation cancellation, reference export, native Typst offline, Mermaid/Graphviz/Vega, slow export resources, search, outline, wide/narrow and RTL geometry. Focused engine/compatibility unit tests (5 cases) also pass. This supersedes the earlier full-suite failure, but does not substitute for actual host UI, native clipboard, VoiceOver, minimum-system or PDF visual acceptance.
+
+## Native settings and application build checkpoint
+
+Renamed the visible rendering option from KaTeX Math to Mathematical Formulas across en/zh-Hans/de/fr/es/ar, retaining the unchanged `enableKatex` persisted key, bindings and renderer option for preference compatibility. All six strings files pass plutil validation; checked that the new key appears exactly once in each locale and the persisted key remains unchanged.
+
+`make app LOCAL_DEPLOYMENT_TARGET=12.0 CONFIGURATION=Debug` completed successfully with the current Xcode toolchain, including a clean dependency install, renderer build, generated Xcode project and native application/embedded extension compilation. This is the documented temporary local target override, not a change to the macOS 11 product requirement or proof of its runtime compatibility. No installation, release or file-association change occurred.
+
+Prepared `/tmp/flux-issue64-valid-export.md` from the fixed source cases (12 valid items, M12 intentionally excluded and still covered by error tests) for the actual App CLI/PDF acceptance next.

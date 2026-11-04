@@ -51,7 +51,7 @@
 "Enable or disable rendering capabilities" = "تفعيل أو تعطيل إمكانات العرض";
 "Mermaid Diagrams" = "مخططات Mermaid";
 "Flowcharts, sequence diagrams, and more" = "المخططات الانسيابية ومخططات التسلسل والمزيد";
-"KaTeX Math" = "رياضيات KaTeX";
+"Mathematical Formulas" = "الصيغ الرياضية";
 "Mathematical expressions and equations" = "التعبيرات الرياضية والمعادلات";
 "Emoji Support" = "دعم الرموز التعبيرية";
 "GitHub flavored emoji codes like :smile:" = "رموز تعبيرية بنمط GitHub مثل :smile:";
