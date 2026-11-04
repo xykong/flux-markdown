@@ -323,3 +323,11 @@ Passed the existing render-generation predicate into the mathematical engine. It
 Added tests for an already-invalid session and supersession during metrics/compilation. Both assert no SVG typesetting call and no residual measurement root. This is cooperative phase cancellation, not an interrupt for synchronous TeX work already executing; input/expansion limits remain necessary.
 
 Full Jest **59 suites / 516 tests**, typecheck/build pass. This improves stale-work behavior without treating it as a fix for the separate repeated-document memory observations. Native installation authorization and external/platform acceptance remain pending.
+
+## Cold mathematical and no-math baseline comparison
+
+Built the unmodified `v1.42.645` renderer in an isolated ignored build directory using its lockfile. Compared the same 100-section plain Markdown workload on baseline/current bundles: five warmups and 30 samples each, identical native viewport/options. Both p50/p95 are **9/10 ms**. Every sample retains 100 headings, zero math outputs; current asset tracing shows no math-engine or glyph/font chunk requests. This meets the no-math regression gate on the current reference machine.
+
+Ran the current valid derived 12-item mathematical corpus in 20 fresh native WebKit processes/nonpersistent data stores: first-math p50/p95 **126/130 ms**, all 12 items and zero errors each time. The initial math-engine chunk is **1,390,922 bytes**, below the 3 MiB runtime asset gate. The OS disk cache was not flushed, so this is process-cold evidence, not reboot-cold disk performance.
+
+Raw samples, asset traces, source commits and scope are in `cold-and-plain-benchmark.json`; reusable JS workloads are in `scripts/research/issue64-math/`. Current reference-machine cold/warm/no-math gates now have production evidence. Actual extension/older-platform performance, memory limits/recovery and the remaining interaction/reviewer gates are still not complete.
