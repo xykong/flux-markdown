@@ -437,3 +437,11 @@ Added an 80-reference forward-link integrity case and measured a production work
 Same native workload after five warmups/ten samples: p50/p95 **218/228 ms before**, **201/205 ms after**, with exact item/link counts and zero math errors in each sample. Saved raw samples and reusable workload in `reference-index-benchmark.json` and `benchmark-references.js`. This is a targeted comparison, not a new substitute acceptance threshold.
 
 Full Jest **59 suites / 531 tests**, typecheck/build pass. Overall memory/platform/actual host acceptance remains open; the measured lookup improvement does not claim to fix those independent gates.
+
+## Directed QuickLook attempt and bundled attribution
+
+Tried the documented qlmanage `-g`/`-c` path with the exact current appex and its declared Markdown UTI. The tool reports it cannot obtain a generator at that extension path and again launches the installed old extension. Closed only the owned qlmanage process. This is concrete evidence that this legacy directed-generator path does not validate the current extension; no installed bundle was replaced.
+
+Completed the newly added dependency attribution resources. Copied the runtime's exact Apache-2.0 license and preserved the MathJax Consortium copyright from its source header. Inspected the pinned NewCM package metadata and WOFF2 copyright table: its packaging declares Apache-2.0, while the underlying font retains MathJax, Inc./Antonis Tsolomitis and GUST attribution. Included those distinctions in the bundled notice and third-party documentation, reusing the existing full GUST text rather than conflating the separate Typst font provenance.
+
+Production build passes; byte comparison confirms the exact runtime license and notice are present in dist/licenses. The npm font repository URL returned 404 during provenance checking; attribution above comes from the installed pinned package/embedded metadata and official MathJax font documentation, not an assumed repository layout. This is asset provenance work, not a claim of a comprehensive legal audit.
