@@ -143,3 +143,11 @@ Running the built application's `--export-pdf` on that valid corpus initially fa
 The CLI sets a resource base URL, which affected MathJax's default reference URL construction. Explicitly setting TeX `baseURL: ''` keeps formula references as same-document fragments. The rebuilt real application now reports successful PDF export to `/tmp/flux-issue64-product-pdf/valid.pdf`. Five focused real-engine tests and the renderer/native rebuild pass. Added a base-element unit case, although JSDOM did not reproduce the native default-URL difference; the native failing-then-successful CLI run is the actual regression evidence.
 
 PDF visual inspection, metadata/link inspection and invalid-input export rejection remain pending; file creation alone is not final PDF acceptance.
+
+## Product PDF visual failure evidence
+
+Rendered all three pages of the actual CLI PDF with Poppler and inspected each. The M08 matrix is present, but its neighboring cases expression does not visibly show the second row in the PDF, while the live semantic tree contains both rows. Source-line gutters also remain in print. Therefore this PDF **fails visual acceptance**; it is not delivered as a successful artifact. Source heading M05 also ends on the preceding page from its formula, requiring pagination review.
+
+The independent native probe confirmed that both cases rows exist in semantic output and SVG DOM. The next investigation must distinguish SVG clipping/print overflow from mathematical parsing; simply increasing semantic item counts will not address this failure.
+
+Separately ran the actual app CLI on the intentional unknown-command control. It exits nonzero with actionable export feedback and does not create the requested invalid.pdf. Evidence summary and valid-PDF hash are in `docs/research/issue64/product-pdf-checkpoint.json`. PDF links/tagging and full corrected visual output remain unverified.

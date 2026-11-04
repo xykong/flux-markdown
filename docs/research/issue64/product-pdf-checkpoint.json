@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-04",
+  "commit": "ea86caf",
+  "host": "actual Debug FluxMarkdown CLI, local deployment target 12.0, macOS 27.0.1 arm64",
+  "validInput": "derived 12 valid original math items, intentional M12 excluded",
+  "pdfSha256": "d3e7f8a9da6d4d2cec4c4bb9c909a8c14e636d6d9f01c1f088e25eee4c15f2c1",
+  "pdfBytes": 116790,
+  "pages": 3,
+  "result": "visual acceptance failed",
+  "observations": [
+    "All 12 valid case headings present",
+    "M08 cases second row absent/clipped in rendered PDF despite semantic tree containing two rows",
+    "Source-line gutter remains in PDF",
+    "M09 tag (1) and M10 visible reference (1) present",
+    "Chinese conditional-probability text visible"
+  ],
+  "invalidInputResult": {
+    "command": "actual CLI with unknownMarkdownPreviewCommand",
+    "exit": "nonzero",
+    "outputFileCreated": false
+  },
+  "next": "inspect print overflow and SVG layout; remove source gutter from print; repeat actual CLI output and all-page review"
+}
