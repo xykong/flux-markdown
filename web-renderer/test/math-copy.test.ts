@@ -51,3 +51,12 @@ test('multiline inline mathematics retains its original CRLF sequence',async()=>
     await window.renderMarkdown('Prefix '+formula+' suffix',{showCopyButtons:false});
     expect(blockPlainText(document.querySelector('.flux-math-source')!)).toBe(formula);
 });
+test('table formula copies preserve the original escaped pipe in each cell',async()=>{
+    await window.renderMarkdown('| First | Second |\n| --- | --- |\n| $a\\|b$ | $c\\|d$ |',{showCopyButtons:false});
+    const formulas=Array.from(document.querySelectorAll('.flux-math-source'));
+    expect(formulas.map(blockPlainText)).toEqual(['$a\\|b$','$c\\|d$']);
+});
+test('table source mapping distinguishes literal code and repeated mathematical cells',async()=>{
+    await window.renderMarkdown('A | B | C\n--- | --- | ---\n`$a\\|b$` | **$a\\|b$** | $a\\|b$',{showCopyButtons:false});
+    expect(Array.from(document.querySelectorAll('.flux-math-source')).map(blockPlainText)).toEqual(['$a\\|b$','$a\\|b$']);
+});

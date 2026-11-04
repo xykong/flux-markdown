@@ -9,7 +9,7 @@ export interface MathSource {
     firstLine: number;
     lastLine: number;
 }
-interface MathMeta { raw: string; payload: string; display: boolean; localLine?: number; source?: MathSource }
+interface MathMeta { raw: string; payload: string; display: boolean; localLine?: number; localOffset?: number; source?: MathSource }
 
 function escaped(source: string, position: number): boolean {
     let slashes = 0;
@@ -43,7 +43,7 @@ export function installMathSyntax(md: MarkdownIt, namespace = 'math'): MathSourc
             if (!silent) {
                 const token = state.push('flux_math_inline', 'math', 0);
                 token.content = reference[0];
-                token.meta = { raw: reference[0], payload: reference[0], display: false,
+                token.meta = { raw: reference[0], payload: reference[0], display: false, localOffset: start,
                     localLine: state.src.slice(0, start).split('\n').length - 1 } satisfies MathMeta;
             }
             state.pos += reference[0].length;
@@ -63,7 +63,7 @@ export function installMathSyntax(md: MarkdownIt, namespace = 'math'): MathSourc
         if (!silent) {
             const token = state.push('flux_math_inline', 'math', 0);
             token.content = payload;
-            token.meta = { raw: state.src.slice(start, end + close.length), payload, display: false,
+            token.meta = { raw: state.src.slice(start, end + close.length), payload, display: false, localOffset: start,
                 localLine: state.src.slice(0, start).split('\n').length - 1 } satisfies MathMeta;
         }
         state.pos = end + close.length;
@@ -103,10 +103,27 @@ export function installMathSyntax(md: MarkdownIt, namespace = 'math'): MathSourc
     md.core.ruler.after('inline', 'flux_math_sources', state => {
         sources.length = 0;
         const ranges: Array<[number, number] | null> = [];
+        let table: { original: string; normalized: string; offsets: number[]; cursor: number } | null = null;
         for (const token of state.tokens) {
+            if (token.type === 'tr_open') {
+                const original = originalLines[token.map?.[0] ?? -1] || '';
+                table = {original, normalized:'', offsets:[], cursor:0};
+                for (let index=0; index<original.length; index++) {
+                    // Match the table parser's escape transformation and retain
+                    // offsets into the original row, once per row rather than cell.
+                    if (original[index] === '\\' && original[index+1] === '|') continue;
+                    table.offsets.push(index);table.normalized += original[index];
+                }
+            }
+            if (token.type === 'tr_close') table = null;
             if (token.nesting === -1) { ranges.pop(); continue; }
             if (token.nesting === 1) ranges.push(token.map || ranges[ranges.length - 1] || null);
             const sourceRange = token.map || ranges[ranges.length - 1];
+            let tableStart = -1;
+            if (token.type === 'inline' && !token.map && table) {
+                tableStart = table.normalized.indexOf(token.content, table.cursor);
+                if (tableStart >= 0) table.cursor = tableStart + token.content.length;
+            }
             if (token.type === 'fence' && token.info.trim().split(/\s+/)[0] === 'math') {
                 token.type = 'flux_math_block';
                 const range = token.map!;
@@ -115,6 +132,11 @@ export function installMathSyntax(md: MarkdownIt, namespace = 'math'): MathSourc
             for (const child of token.type === 'inline' ? token.children || [] : [token]) {
                 if (!child.type.startsWith('flux_math_')) continue;
                 const meta = child.meta as MathMeta;
+                if (table && tableStart >= 0 && meta.localOffset !== undefined) {
+                    const first = table.offsets[tableStart + meta.localOffset];
+                    const last = table.offsets[tableStart + meta.localOffset + meta.raw.length - 1];
+                    if (first !== undefined && last !== undefined) meta.raw = table.original.slice(first, last + 1);
+                }
                 if (meta.display && token.map) {
                     // Markdown-it normalizes CRLF before parsing. Recover the
                     // exact original block for copy/fallback from its source map.

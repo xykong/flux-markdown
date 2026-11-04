@@ -377,3 +377,9 @@ Added production-entry cases for GFM escaped vertical bars, strong/emphasis math
 A separate source-position case exposed table inline tokens lacking their own map: formulas incorrectly inherited line 1. The math collector now tracks enclosing block ranges and uses the row range for such tokens. The red test now reports rows 3 and 4 correctly. This changes position metadata, not GFM's delimiter/escaping rules.
 
 Full Jest **59 suites / 525 tests**, typecheck/build pass. Exact raw table-cell escape reconstruction and broader external/interaction/memory gates remain distinct from these semantic/line-range checks.
+
+## Original table-cell escapes
+
+The copy test for `$a\|b$` in a GFM cell failed because markdown-it's table parser removes the escape before the inline math rule receives its input. Added a per-row normalization-to-original offset map matching that table transformation. Mathematical parsing continues to use the GFM-decoded payload, while copying/fallback uses the original source slice.
+
+Verified multiple cells, repeated identical formulas, a literal code cell and a formula inside emphasis, including tables without outer pipes. Mapping is built once per row, not repeatedly per cell. Full Jest **59 suites / 527 tests** passes; a subsequent mapping-cache refinement passes focused source tests/typecheck and the production build. External platform/host and memory acceptance states are unchanged.
