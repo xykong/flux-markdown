@@ -389,3 +389,13 @@ Verified multiple cells, repeated identical formulas, a literal code cell and a 
 On source `e457b87`, reran the complete production-bundle WebKit integration suite: **all 29 cases pass**. Ran Xcode's native BlockCopyBridgeTests and SharedPreferenceStoreTests with the documented local macOS 12 deployment override. Queried the resulting xcresult summary: **22 passed, 0 failed, 0 skipped**, on macOS 27.0.1 arm64. The pasteboard tests use isolated named boards and preferences use temporary stores.
 
 Saved the allowlisted result summary in `current-native-validation.json` (omitting machine identifiers). These fresh results cover current code and the changed bridge/preference boundaries; they do not establish minimum-system execution, VoiceOver speech, actual new-extension QuickLook/Finder loading or resolution of the measured memory cost. The corresponding user requests remain pending.
+
+## Resumed implementation: virtual-layout and actual VoiceOver probes
+
+The user explicitly resumed work and requested continued improvement. The goal is active; unavailable external gates are tracked separately rather than stopping local work.
+
+Prototyped MathJax LiteAdaptor construction with native postprocessing: the valid mathematical corpus had no engine errors, but three-cycle residual RSS remained about **1936 / 2001 / 2009 MiB**. The modest benefit did not justify shipping uncalibrated CJK/host-width measurement. Restored the accepted browser-adaptor implementation and rebuilt it. Results are preserved in `memory-virtual-layout-experiment.json`; the prototype is not production behavior.
+
+Attempted actual VoiceOver in a dedicated native test window containing only public mathematical samples. The native AX tree exposes the fraction, powers and named reference. VoiceOver started after its welcome dialog, but read-only last-phrase AppleScript calls timed out. The utility reported AppleScript control disabled; a semantic activation was a no-op and one coordinate attempt timed out. No speech correctness is inferred.
+
+Closed VoiceOver and the dedicated probe, reopened the utility to verify the AppleScript-control setting was still its original 0, then closed the utility. Process checks confirm no test VoiceOver/utility/probe remains. `voiceover-attempt.json` records exact limitations and restoration. The initial probe compile error was corrected before the actual reading attempt; no unrelated document content was read. Actual speech exploration remains an open validation item, but this does not stop other goal work.
