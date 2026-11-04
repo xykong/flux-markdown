@@ -157,6 +157,9 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
           while(!document.querySelector('.math-copy-source') && performance.now()<failureDeadline)await new Promise(r=>setTimeout(r,30));
           const recovery=document.querySelector('.math-copy-source');
           if(!recovery || recovery.value!==failedSource || !recovery.readOnly)throw new Error('Copy failure lost original formula');
+          const live=document.querySelector('.math-copy-host [role="status"]');
+          if(!live?.textContent.trim() || live.getAttribute('aria-live')!=='polite')throw new Error('Copy failure lacks a live status update');
+          if(document.querySelector('.math-copy-host').textContent.split(live.textContent).length!==2)throw new Error('Copy failure instruction is duplicated');
           if(document.documentElement.scrollWidth>window.innerWidth+1)throw new Error('Copy failure causes whole-page horizontal overflow: '+uiLanguage);
           for(const control of document.querySelectorAll('.block-copy-error button,.math-copy-source')) {
             const rect=control.getBoundingClientRect();

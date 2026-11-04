@@ -60,3 +60,25 @@ test('table source mapping distinguishes literal code and repeated mathematical 
     await window.renderMarkdown('A | B | C\n--- | --- | ---\n`$a\\|b$` | **$a\\|b$** | $a\\|b$',{showCopyButtons:false});
     expect(Array.from(document.querySelectorAll('.flux-math-source')).map(blockPlainText)).toEqual(['$a\\|b$','$a\\|b$']);
 });
+
+test.each([['en','Copy failed.'],['zh-Hans','复制失败。'],['de','Kopieren fehlgeschlagen.'],['fr','Échec de la copie.'],['es','No se pudo copiar.'],['ar','تعذر النسخ.']])('copy failure updates the persistent live status once and retry replaces it (%s)', async (uiLanguage, expectedFailure) => {
+    await window.renderMarkdown('$x$', {showCopyButtons:false,uiLanguage});
+    const root=document.getElementById('markdown-preview')!;
+    let success=false;
+    const controller=installBlockCopy(root,'live-copy',async()=>success);
+    const status=root.querySelector('[role="status"]')!;
+    const formula=root.querySelector<HTMLElement>('.flux-math-source')!;
+    await controller.copy(formula);
+    expect(root.querySelector('[role="status"]')).toBe(status);
+    expect(status.getAttribute('aria-live')).toBe('polite');
+    const failure=status.textContent!;
+    expect(failure).toContain(expectedFailure);
+    expect(root.textContent!.split(failure)).toHaveLength(2);
+    expect(root.querySelector('textarea')?.value).toBe('$x$');
+    success=true;await controller.copy(formula);
+    expect(status.textContent).not.toBe(failure);
+    expect(status.textContent!.length).toBeGreaterThan(0);
+    expect(root.querySelector('.block-copy-error')).toBeNull();
+    expect(status.parentElement?.getAttribute('data-copy-state')).toBe('success');
+    controller.dispose();
+});

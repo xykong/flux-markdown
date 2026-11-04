@@ -84,13 +84,12 @@ export function installBlockCopy(root: HTMLElement, generation: string, send = n
             entry.busy = false; entry.button.disabled = false;
             entry.tools.querySelector('.block-copy-error')?.remove();
             entry.tools.dataset.copyState = success ? 'success' : 'error';
-            entry.status.textContent = success ? strings[1] : '';
+            entry.status.textContent = success ? strings[1] : strings[2];
             if (success) {
                 const timer = setTimeout(() => { entry.status.textContent = ''; delete entry.tools.dataset.copyState; timers.delete(timer); }, 2000);
                 entry.timer = timer; timers.add(timer);
             } else {
                 const failure = document.createElement(originalMathSource(block) !== undefined && block.tagName === 'SPAN' ? 'span' : 'div'); failure.className = 'block-copy-error';
-                const message = document.createElement('span'); message.textContent = strings[2];
                 const select = document.createElement('button'); select.type = 'button'; select.textContent = strings[3];
                 select.addEventListener('click', event => {
                     event.preventDefault(); event.stopPropagation();
@@ -100,7 +99,7 @@ export function installBlockCopy(root: HTMLElement, generation: string, send = n
                     if (block.firstChild === entry.tools && entry.tools.nextSibling) range.setStartBefore(entry.tools.nextSibling);
                     const selection = window.getSelection(); selection?.removeAllRanges(); selection?.addRange(range);
                 });
-                failure.append(message, select);
+                failure.append(select);
                 if (originalMathSource(block) !== undefined) {
                     const source = document.createElement('textarea');
                     source.className = 'math-copy-source'; source.readOnly = true; source.value = text;
