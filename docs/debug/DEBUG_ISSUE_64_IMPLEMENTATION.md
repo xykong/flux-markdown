@@ -223,3 +223,11 @@ A vmmap sample during the experiment attributes about 1.7 GiB allocated / 2.3 Gi
 Tested sanitizing the entire stage in one DOMPurify pass, then redistributing sanitized children by source order, keeping the same allowlist and glyph checks. All 495 tests passed, including a new multi-formula local-glyph integrity test. However, the identical recovery workload retained roughly **3100 / 3102 / 3104 MiB**, worse than the per-formula implementation. The batch implementation was reverted and the normal build restored; raw evidence is in `memory-batch-experiment.json`.
 
 Retained the independent multi-formula test, which also passes with the original implementation. The experiment suggests reducing the number of parser calls alone does not resolve the native-memory footprint and can increase simultaneous tree allocation. No production performance claim or memory completion is made; further heap/allocator attribution is required.
+
+## Window attachment and view-release control
+
+Extended the research probe with opt-in native-window attachment and post-completion release observation. Ran the same three-cycle workload with a WKWebView attached to an NSWindow ordered behind existing windows. Post-clear RSS was approximately **2471 / 2548 / 2623 MiB**, similar to the windowless experiment; DOM cleanup stayed stable.
+
+After removing the script handler/delegate, detaching and releasing the probe-owned view/window, observed another 15 seconds. The same WebContent process stayed near 2623 MiB; it disappeared after the probe process exited. This is evidence against a solely windowless-test cause, not proof of specific framework cache or object retention. No private GC/memory-pressure API was used and no production lifecycle behavior was changed.
+
+Raw data and scope are saved in `memory-window-experiment.json`. The monitor now records process disappearance explicitly rather than silently skipping absent samples. Probe source compiles and monitor syntax checks pass; the release log's literal newline in this experimental binary was corrected in the saved script. Memory acceptance remains unresolved; next work must distinguish render-call lifetime, framework process cache and actual retained DOM/JS objects.

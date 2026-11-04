@@ -4,6 +4,7 @@ let app = NSApplication.shared
 app.setActivationPolicy(.prohibited)
 final class Probe: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
     var view: WKWebView!
+    var hostWindow: NSWindow?
     let script = try! String(contentsOfFile: CommandLine.arguments[3], encoding: .utf8)
     let source = try! String(contentsOfFile: CommandLine.arguments[4], encoding: .utf8)
     func start() {
@@ -14,6 +15,13 @@ final class Probe: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         config.setURLSchemeHandler(RendererBundleSchemeHandler(rootDirectory: URL(fileURLWithPath: CommandLine.arguments[2])), forURLScheme: "flux-renderer")
         view = WKWebView(frame: NSRect(x: 0, y: 0, width: 960, height: 900), configuration: config)
         view.navigationDelegate = self
+        if ProcessInfo.processInfo.environment["FLUX_MATH_PROBE_WINDOW"] == "1" {
+            let window = NSWindow(contentRect: view.frame, styleMask: [.titled], backing: .buffered, defer: false)
+            window.title = "FluxMarkdown mathematical memory probe"
+            window.contentView = view
+            window.orderBack(nil)
+            hostWindow = window
+        }
         view.load(URLRequest(url: URL(string: CommandLine.arguments[1])!))
         let timeout = CommandLine.arguments.count > 5 ? Double(CommandLine.arguments[5]) ?? 45 : 45
         DispatchQueue.main.asyncAfter(deadline: .now() + timeout) { fputs("Probe timeout\n", stderr); exit(2) }
@@ -26,7 +34,16 @@ final class Probe: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
             case .success(let value):
                 if JSONSerialization.isValidJSONObject(value), let data = try? JSONSerialization.data(withJSONObject: value, options: [.prettyPrinted, .sortedKeys]) { print(String(data: data, encoding: .utf8)!) }
                 else { print(String(describing:value)) }
-                exit(0)
+                if ProcessInfo.processInfo.environment["FLUX_MATH_PROBE_CLOSE_WAIT"] == "1" {
+                    self.view.configuration.userContentController.removeScriptMessageHandler(forName: "trace")
+                    self.view.navigationDelegate = nil
+                    self.hostWindow?.contentView = nil
+                    self.hostWindow?.orderOut(nil)
+                    self.hostWindow = nil
+                    self.view = nil
+                    fputs("JS: MEMPHASE webview-released\n", stderr)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 15) { exit(0) }
+                } else { exit(0) }
             case .failure(let error): fputs("\(error)\n",stderr); exit(1)
             }
         }

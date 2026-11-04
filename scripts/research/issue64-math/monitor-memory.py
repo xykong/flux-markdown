@@ -11,7 +11,7 @@ with (out/'stdout.json').open('w') as stdout,(out/'stderr.log').open('w') as std
   candidates=[pid for pid,data in procs.items() if pid not in before and 'com.apple.WebKit.WebContent.xpc/Contents/MacOS/com.apple.WebKit.WebContent' in data['command']]
   if webpid is None and len(candidates)==1:webpid=candidates[0]
   lines=(out/'stderr.log').read_text().splitlines();phases=[line for line in lines if 'MEMPHASE' in line]
-  if webpid in procs:samples.append({'seconds':round(time.monotonic()-start,2),'rssKiB':procs[webpid]['rssKiB'],'phase':phases[-1] if phases else 'startup'})
+  if webpid is not None:samples.append({'seconds':round(time.monotonic()-start,2),'rssKiB':procs[webpid]['rssKiB'] if webpid in procs else 0,'processExists':webpid in procs,'phase':phases[-1] if phases else 'startup'})
   time.sleep(1)
  print('exit',p.returncode,'webpid',webpid)
  (out/'samples.json').write_text(json.dumps({'exit':p.returncode,'webpid':webpid,'samples':samples},indent=2))
