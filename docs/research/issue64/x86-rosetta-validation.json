@@ -1,0 +1,104 @@
+{
+  "observedAt": "2026-11-04T21:29:11.617512+00:00",
+  "sourceCommit": "d7d437151a06d81ccfc4962ee2b3994b18211ae0",
+  "toolchain": "Xcode 27.2\nBuild version 27B52",
+  "sdk": {
+    "version": "27.2",
+    "minimumDeploymentTarget": "12.0",
+    "supportedArchitectures": [
+      "x86_64",
+      "x86_64h",
+      "arm64",
+      "arm64e",
+      "arm64e.x1"
+    ],
+    "checkedXcodeLocations": [
+      "/Applications",
+      "~/Applications"
+    ],
+    "foundXcodeApps": [
+      "/Applications/Xcode.app"
+    ]
+  },
+  "runtime": {
+    "hardwareArchitecture": "arm64",
+    "hostBinaryArchitecture": "x86_64",
+    "rosettaAvailable": true,
+    "operatingSystem": "27.0.1",
+    "webContentArchitecture": "not independently measured",
+    "deploymentTargetOverride": "12.0"
+  },
+  "swiftTests": {
+    "passed": 22,
+    "failed": 0,
+    "skipped": 0,
+    "suites": [
+      "BlockCopyBridgeTests",
+      "SharedPreferenceStoreTests"
+    ],
+    "appArchitecture": "x86_64",
+    "extensionArchitecture": "x86_64",
+    "testBundleArchitecture": "x86_64",
+    "xcresult": "/tmp/flux-issue64-x86-native.xcresult",
+    "codeSigningAllowed": false
+  },
+  "renderer": {
+    "invalidExportRejected": true,
+    "original": {
+      "end": true,
+      "errors": 1,
+      "graphviz": 1,
+      "math": 14,
+      "mermaid": 8,
+      "vega": 1
+    },
+    "recovery": true,
+    "validMath": 12
+  },
+  "offline": {
+    "assistive": 12,
+    "formulas": 12,
+    "scripts": 0,
+    "validReferenceTargets": 1
+  },
+  "firstLoadCompatibility": {
+    "actualOldSystem": false,
+    "compatibilityShimInstalled": true,
+    "dynamicGlyphRendered": true,
+    "exportValid": true,
+    "hasOwnBeforeFirstMath": true,
+    "mathjaxFormulas": 13,
+    "referenceValid": true,
+    "removedAtDocumentStart": [
+      "Object.hasOwn",
+      "Array.at",
+      "String.at",
+      "TypedArray.at"
+    ]
+  },
+  "productPDF": {
+    "structure": {
+      "internalLinks": [
+        {
+          "destinationPage": 2,
+          "destinationPoint": [
+            514.8738000000001,
+            401.624
+          ],
+          "sourcePage": 2
+        }
+      ],
+      "pages": 2
+    },
+    "rasterMatchesReviewedArm64Pages": true,
+    "sha256": "3a9809c9a76ad42ce819cbcaf1173477df7914062d80a7cb5ccd29880328b499"
+  },
+  "bundleIndexSha256": "3497754a6219ea61c8a8db7d1eacf248e395a6d9bb9b579f3cbf822425c6eea8",
+  "limitations": [
+    "Rosetta on Apple silicon is not physical Intel hardware",
+    "macOS 27 is not macOS 11",
+    "target 12.0 is a local override, not a change to the product declaration",
+    "test build is not prepared as a distributable release",
+    "no actual selected QuickLook/Finder or VoiceOver validation"
+  ]
+}
