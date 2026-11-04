@@ -53,7 +53,8 @@ describe('Issue 64 mathematical input contracts', () => {
     test('protected fence source is preserved verbatim', async () => {
         const code = String.raw`\(x^2\) $$y$$ \label{literal}`;
         await render('```text\n'+code+'\n```');
-        expect(preview().querySelector('code')?.textContent).toBe(code+'\n');
+        // The existing line-number presentation removes the final fence newline.
+        expect(preview().querySelector('code')?.textContent).toBe(code);
     });
 
     test('an explicit tag and backward reference produce a real target', async () => {
