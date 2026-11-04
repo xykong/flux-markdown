@@ -1017,7 +1017,11 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
                     if (!target) continue;
                     target.innerHTML = item.html;
                     target.classList.add('flux-math');
-                    if (result.errors.some(error => error.sourceId === item.id)) target.classList.add('math-error');
+                    const failure = result.errors.find(error => error.sourceId === item.id);
+                    if (failure) {
+                        target.classList.add('math-error');
+                        if (failure.code === 'input-limit') target.classList.add('math-input-limit');
+                    }
                 }
             } catch (error) {
                 if (!isCurrent()) return;

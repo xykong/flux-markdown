@@ -21,6 +21,14 @@ test('flags unresolved references and preserves valid following formulas', async
     expect(result.errors.map(error => error.sourceId)).toEqual(['bad']);
     expect(result.items.find(item => item.id === 'good')?.html).toContain('<svg');
 });
+test('oversized input is preserved without entering the TeX engine', async () => {
+    const oversized=source('large','x'.repeat(65537));
+    const result=await renderMathSources([oversized,source('good','y=1')],'bounded');
+    expect(result.errors).toEqual([{sourceId:'large',code:'input-limit'}]);
+    expect(result.items[0].html).toContain(oversized.raw);
+    expect(result.items[0].html).not.toContain('mjx-container');
+    expect(result.items[1].html).toContain('<svg');
+});
 test('measures using the current content width and text font, then removes the stage', async () => {
     const host = document.createElement('div');
     host.style.cssText = 'font-size:24px;font-family:serif;padding:10px;';

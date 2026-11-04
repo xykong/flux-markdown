@@ -8,6 +8,7 @@ import { createMathInput } from './math-identity';
 import { installMathFontLoader } from './math-font-loader';
 import { sanitizeMathHTML } from './safe-html';
 import type { MathSource } from './math-syntax';
+import { partitionMathSources } from './math-limits';
 
 const adaptor = browserAdaptor();
 AssistiveMmlHandler(RegisterHTMLHandler(adaptor));
@@ -15,12 +16,24 @@ installMathFontLoader();
 
 export interface MathEngineResult {
     items: Array<{ id: string; html: string }>;
-    errors: Array<{ sourceId: string; code: 'syntax' | 'unresolved-reference' }>;
+    errors: Array<{ sourceId: string; code: 'syntax' | 'unresolved-reference' | 'input-limit' }>;
     css: string;
 }
 
 /** One isolated semantic document; the caller owns publication/generation checks. */
 export async function renderMathSources(sources: readonly MathSource[], namespace: string, host?: HTMLElement): Promise<MathEngineResult> {
+    const { accepted, rejected } = partitionMathSources(sources);
+    if (rejected.length) {
+        const result = accepted.length ? await renderMathSources(accepted, namespace, host) : { items: [], errors: [], css: '' } satisfies MathEngineResult;
+        const rendered = new Map(result.items.map(item => [item.id, item.html]));
+        for (const source of rejected) {
+            const text = document.createElement('span');
+            text.textContent = source.raw;
+            rendered.set(source.id, text.innerHTML);
+        }
+        return { items: sources.map(source => ({ id: source.id, html: rendered.get(source.id)! })),
+            errors: [...rejected.map(source => ({sourceId:source.id,code:'input-limit' as const})), ...result.errors], css: result.css };
+    }
     const stage = document.createElement('div');
     const style = host ? getComputedStyle(host) : null;
     const padding = style ? (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0) : 0;

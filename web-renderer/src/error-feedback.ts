@@ -44,6 +44,17 @@ export function installErrorFeedback(root: HTMLElement): () => void {
                 const controls = document.createElement('div'); controls.className = 'error-feedback-controls';
                 controls.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;font:13px system-ui;';
                 const hint = document.createElement('span'); hint.textContent = labels[2]; hint.style.width = '100%';
+                if (element.classList.contains('math-input-limit')) {
+                    const limitHints: Record<string, string> = {
+                        en: 'This formula exceeds the preview limit. Open the document in your editor to simplify it or split the document. The original source is preserved.',
+                        zh: '公式超出预览限制。可在编辑器中简化公式或拆分文档；原始源码已保留。',
+                        de: 'Diese Formel überschreitet das Vorschaulimit. Öffne das Dokument im Editor, um sie zu vereinfachen oder das Dokument aufzuteilen. Der Quelltext bleibt erhalten.',
+                        fr: 'Cette formule dépasse la limite de prévisualisation. Ouvrez le document dans votre éditeur pour la simplifier ou diviser le document. La source est conservée.',
+                        es: 'Esta fórmula supera el límite de vista previa. Abre el documento en tu editor para simplificarla o dividir el documento. Se conserva el código original.',
+                        ar: 'تتجاوز هذه الصيغة حد المعاينة. افتح المستند في المحرر لتبسيطها أو تقسيم المستند. تم الاحتفاظ بالمصدر الأصلي.',
+                    };
+                    hint.textContent = limitHints[(window.__fluxLang || navigator.language).split('-')[0]] || limitHints.en;
+                }
                 if (kind === 'search') {
                     const searchHints: Record<string, string> = { en: 'Check the search expression, or turn off regular expression search.', zh: '请检查搜索表达式，或关闭正则表达式搜索。', de: 'Prüfe den Suchausdruck oder deaktiviere die Regex-Suche.', fr: 'Vérifiez l’expression ou désactivez la recherche par expression régulière.', es: 'Revisa la expresión o desactiva la búsqueda con expresiones regulares.', ar: 'تحقق من تعبير البحث، أو أوقف البحث بالتعبيرات النمطية.' };
                     hint.textContent = searchHints[(window.__fluxLang || navigator.language).split('-')[0]] || searchHints.en;
