@@ -2,6 +2,8 @@
 
 Date: 2026-11-04. Implementation source: `e457b87`; later commits record validation. **The requested full objective is not complete.**
 
+Update after user resumption: the user explicitly requested continued improvement and set the goal active. The blocking audit below records the earlier stop; it is not the current execution status. Continue available implementation/profiling/validation work while preserving unresolved external gates.
+
 ## Requirement audit
 
 | Requirement | Authoritative evidence | Status and limits |
