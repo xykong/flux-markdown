@@ -33,12 +33,12 @@ final class BlockCopyBridge {
         return true
     }
 
-    func handle(_ message: WKScriptMessage, generation: String, enabled: Bool) {
+    func handle(_ message: WKScriptMessage, generation: String, enabled: Bool, pasteboard: NSPasteboard = .general) {
         guard RendererBridgePolicy.accepts(message),
               let request = Self.request(message.body, generation: generation, enabled: enabled),
               let webView = message.webView else { return }
         guard acceptSequence(request) else { return }
-        let success = Self.write(request.text)
+        let success = Self.write(request.text, to: pasteboard)
         webView.callAsyncJavaScript(
             "window.blockCopyResult && window.blockCopyResult(id, generation, success);",
             arguments: ["id": request.id, "generation": request.generation, "success": success],

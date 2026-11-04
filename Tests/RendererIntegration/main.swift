@@ -7,6 +7,8 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private var webView: WKWebView!
     private var focusWindow: NSWindow?
     private var previousApplication: NSRunningApplication?
+    private let mathPasteboard = NSPasteboard.withUniqueName()
+    private let mathCopyBridge = BlockCopyBridge()
     private var started = false
     private var index = 0
     private var feedbackEvents: [[String: Any]] = []
@@ -117,6 +119,24 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         """),
         ("passive HTML", "await window.renderMarkdown('<img src=\"missing.png\" onerror=\"window.pwned=true\"><details><summary>ok</summary></details>'); return !document.querySelector('[onerror]') && !window.pwned && !!document.querySelector('details');"),
         ("new render wins", "const a=window.renderMarkdown('# OLD\\n\\n$x$'); const b=window.renderMarkdown('# NEW',{enableKatex:false}); await Promise.all([a,b]); return document.querySelector('h1').textContent==='NEW';"),
+        ("math native keyboard copy and reference", """
+        window.setFeedbackGeneration('math-keyboard');
+        const source=String.raw`\\(\\frac{x}{2}\\)`;
+        await window.renderMarkdown(source+'\\n\\n'+String.raw`\\(\\eqref{x}\\)`+'\\n\\n'+Array(60).fill('Spacer paragraph.').join('\\n\\n')+'\\n\\n'+String.raw`\\[x=1\\tag{A}\\label{x}\\]`,{context:'app',showCopyButtons:true});
+        const button=document.querySelector('.math-copy-inline .block-copy-tools > button');
+        button.focus();
+        window.webkit.messageHandlers.nativeMathKey.postMessage('space');
+        const deadline=performance.now()+5000;
+        while(!document.querySelector('.math-copy-inline [data-copy-state="success"]') && performance.now()<deadline)await new Promise(r=>setTimeout(r,30));
+        if(!document.querySelector('.math-copy-inline [data-copy-state="success"]'))throw new Error('Native key copy was not acknowledged');
+        const link=document.querySelector('a.math-reference-link');
+        const target=document.getElementById(decodeURIComponent(link.getAttribute('href').slice(1)));
+        const before=target.getBoundingClientRect().top;
+        link.focus();window.webkit.messageHandlers.nativeMathKey.postMessage('enter');
+        const until=performance.now()+3000;
+        while(target.getBoundingClientRect().top>window.innerHeight && performance.now()<until)await new Promise(r=>setTimeout(r,30));
+        return before>window.innerHeight && target.getBoundingClientRect().top<window.innerHeight;
+        """),
         ("math baseline API compatibility and reference export", """
         const descriptor=Object.getOwnPropertyDescriptor(Object,'hasOwn');
         Reflect.deleteProperty(Object,'hasOwn');
@@ -239,6 +259,8 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         }
         let config = WKWebViewConfiguration()
         config.userContentController.add(self, name: "logger")
+        config.userContentController.add(self, name: "blockCopy")
+        config.userContentController.add(self, name: "nativeMathKey")
         config.userContentController.add(self, name: "errorFeedback")
         config.setURLSchemeHandler(RendererBundleSchemeHandler(rootDirectory: URL(fileURLWithPath: CommandLine.arguments[1])), forURLScheme: RendererBundleSchemeHandler.scheme)
         let imageDirectory = URL(fileURLWithPath: CommandLine.arguments[2])
@@ -260,6 +282,22 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     }
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
         guard RendererBridgePolicy.accepts(message) else { print("FAIL bridge origin"); exit(1) }
+        if message.name == "blockCopy" {
+            mathCopyBridge.handle(message, generation: "math-keyboard", enabled: true, pasteboard: mathPasteboard)
+            return
+        }
+        if message.name == "nativeMathKey", let key = message.body as? String, let window = focusWindow {
+            let characters = key == "space" ? " " : "\r"
+            let code: UInt16 = key == "space" ? 49 : 36
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                for type in [NSEvent.EventType.keyDown, .keyUp] {
+                    if let event = NSEvent.keyEvent(with: type, location: .zero, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: window.windowNumber, context: nil, characters: characters, charactersIgnoringModifiers: characters, isARepeat: false, keyCode: code) {
+                        window.sendEvent(event)
+                    }
+                }
+            }
+            return
+        }
         if message.name == "errorFeedback", let body = message.body as? [String: Any] { feedbackEvents.append(body); return }
         guard let text = message.body as? String else { return }
         if text.contains("Error") || text.contains("fallback") || text.hasPrefix("TSV 20,000") || text.hasPrefix("COPY performance") { print(text) }
@@ -268,7 +306,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private func next() {
         if index == cases.count { print("PASS all \(cases.count) real WebKit cases"); exit(0) }
         let (name, js) = cases[index]
-        if name == "block copy delayed visibility and focus" {
+        if name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" {
             // :focus-within requires an active WebKit page, not just activeElement
             // in the otherwise windowless integration harness.
             previousApplication = NSWorkspace.shared.frontmostApplication
@@ -285,13 +323,17 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         webView.callAsyncJavaScript(js, arguments: ["imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData], in: nil, in: .page) { result in
             switch result {
             case .success(let value) where value as? Bool == true:
+                if name == "math native keyboard copy and reference" {
+                    guard self.mathPasteboard.string(forType: .string) == #"\(\frac{x}{2}\)"# else { print("FAIL mathematical clipboard source"); exit(1) }
+                    self.mathPasteboard.releaseGlobally()
+                }
                 if name == "contextual feedback bridge" {
                     let reports = self.feedbackEvents.filter { $0["action"] as? String == "report" }
                     guard reports.count == 1, reports[0]["kind"] as? String == "mermaid",
                           reports[0]["generation"] as? String == "11111111-1111-1111-1111-111111111111",
                           !String(describing: self.feedbackEvents).contains("SAMPLE-DO-NOT-INCLUDE") else { print("FAIL feedback payload or stale action"); exit(1) }
                 }
-                if name == "block copy delayed visibility and focus" {
+                if name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" {
                     self.focusWindow?.contentView = nil
                     self.focusWindow?.orderOut(nil)
                     self.focusWindow = nil

@@ -277,3 +277,11 @@ Moved mathematical navigation out of aria-hidden SVG. A standalone ref/eqref wra
 When the formula lies inside a normal Markdown link, split the outer link around the formula to avoid nested anchors. If that outer link contained only the formula, keep its external destination as a separate visible URL link rather than dropping it. Preserve any explicit outer anchor identity once.
 
 The two prior red tests now pass, plus tests for multiple references and formula-only external links. Real production WebKit inspection confirms separate external and fragment links, no parent-link nesting, and the reference's accessible name `(A)`. Full Jest **59 suites / 504 tests**, typecheck/build pass. Actual trusted keyboard activation and VoiceOver speech remain to be exercised; valid DOM is not claimed as a screen-reader result.
+
+## Trusted native keyboard and clipboard
+
+Added a real-window WKWebView integration case that focuses the formula copy button and delivers native NSEvent space keyDown/keyUp through NSWindow, rather than calling JavaScript click. The existing trusted-event gate accepts the activation; the actual BlockCopyBridge validates the request, writes to an isolated named NSPasteboard and acknowledges the result. The test asserts exact original TeX on that pasteboard. The bridge accepts an optional pasteboard for this test; production callers retain `.general` by default, and the user's clipboard is not touched.
+
+The same native case focuses the named HTML formula-reference link, sends Return, and verifies the below-viewport target moves into view. This proves native activation reaches the real navigation code, not merely target existence. The isolated pasteboard is released afterward and the prior foreground application restored.
+
+The selected case passes, followed by the complete `scripts/test-renderer-webkit.sh` run: **all 29 real WebKit cases pass**. This validates shared native renderer/bridge behavior; full App/QuickLook/Finder UI and VoiceOver speech/platform coverage remain explicit outstanding gates.
