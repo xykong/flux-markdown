@@ -201,3 +201,13 @@ Repeated native rendering of a small mathematical document shows stable DOM coun
 Added a failing real-engine test and removed only the exact session-owned stylesheet during cleanup, retaining returned CSS for publication by the current generation. This avoids an obsolete engine session leaving or publishing its global CSS. It does not remove another session's replacement node.
 
 After rebuilding, five actual WebKit rerenders each report 203 nodes, two styles and zero engine-owned SVG styles/stages; plain-text switching leaves no math. Full Jest **58 suites / 494 tests**, typecheck/build pass. This verifies DOM/style cleanup, not recovery of the previously observed large-workload RSS; that memory investigation remains open.
+
+## Large-workload recovery observation
+
+Ran three cycles in one identified fresh WebContent process: ten renders of 1000 formulas, plain-text replacement, then ten seconds idle. Every loaded phase had 1000 formulas and zero staging roots; after clearing, final DOM count stabilized at 193 and math/staging counts at zero. No output loss occurred.
+
+Process RSS during each post-clear idle interval remained about **2361 / 2452 / 2631 MiB**, with no significant recovery in those ten-second intervals. This is **not a passing memory result**. RSS is not a retained JavaScript heap measurement and WebKit may retain allocator pages, but the rising residual process footprint still requires investigation; it cannot be dismissed based on DOM counts.
+
+Saved raw one-second RSS samples, phase events and environment in `memory-cycle.json`, and the workload/monitor scripts under `scripts/research/issue64-math/`. The phase field is the last logged marker (therefore an `idle` marker can also precede the next workload); analyze explicit cleared intervals for recovery rather than treating every marker-group sample as idle. Monitor syntax checked; the executed source workload and equivalent temporary monitor produced exit 0.
+
+Next required work: attribute retained state/caches and test cleanup or bounded reuse, then repeat this same recovery workload without relaxing the scope or declaring completion from short-run timing alone.
