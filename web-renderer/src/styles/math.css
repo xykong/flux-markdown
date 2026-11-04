@@ -18,6 +18,14 @@ div.flux-math-source {
     outline: 2px solid currentColor;
     outline-offset: 3px;
 }
+.math-search-highlight {
+    outline: 2px solid #d4a017;
+    outline-offset: 2px;
+}
+.math-search-highlight.search-highlight-active {
+    outline-width: 3px;
+    outline-color: #bf8700;
+}
 @media print {
     div.flux-math-source {
         break-inside: avoid;

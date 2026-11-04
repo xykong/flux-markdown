@@ -1,3 +1,4 @@
+import { originalMathSource } from './math-source-store';
 /**
  * Search engine for finding and highlighting text in the rendered markdown content
  */
@@ -9,6 +10,7 @@ export interface SearchOptions {
 }
 
 export interface SearchMatch {
+    mathematical?: boolean;
     element: HTMLElement;
     textNode: Text;
     startOffset: number;
@@ -96,6 +98,7 @@ export class SearchEngine {
      * Clear all search highlights
      */
     public clear(): void {
+        document.querySelectorAll('.math-search-highlight').forEach(element => element.classList.remove('math-search-highlight', this.activeHighlightClassName));
         // Remove all highlight elements
         const highlights = document.querySelectorAll(`.${this.highlightClassName}`);
         highlights.forEach(highlight => {
@@ -141,7 +144,7 @@ export class SearchEngine {
                 acceptNode: (node) => {
                     // Skip script, style, and other non-visible elements
                     const parent = node.parentElement;
-                    if (!parent || parent.closest('.block-copy-tools')) return NodeFilter.FILTER_REJECT;
+                    if (!parent || parent.closest('.block-copy-tools, .flux-math-source, mjx-assistive-mml, .error-feedback-controls')) return NodeFilter.FILTER_REJECT;
 
                     const tagName = parent.tagName.toLowerCase();
                     if (['script', 'style', 'noscript'].includes(tagName)) {
@@ -191,6 +194,21 @@ export class SearchEngine {
             node = walker.nextNode();
         }
 
+        root.querySelectorAll<HTMLElement>('.flux-math-source').forEach(element => {
+            const source = originalMathSource(element);
+            if (source === undefined) return;
+            regex.lastIndex = 0;
+            if (!regex.test(source)) return;
+            matches.push({ element, mathematical: true, textNode: document.createTextNode(source), startOffset: 0,
+                endOffset: source.length, index: 0 });
+        });
+        matches.sort((a, b) => {
+            const left: Node = a.mathematical ? a.element : a.textNode;
+            const right: Node = b.mathematical ? b.element : b.textNode;
+            if (left === right) return a.startOffset - b.startOffset;
+            return left.compareDocumentPosition(right) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+        });
+        matches.forEach((match, index) => { match.index = index; });
         return matches;
     }
 
@@ -229,6 +247,10 @@ export class SearchEngine {
      * Wrap a single match with a highlight span
      */
     private wrapMatch(match: SearchMatch): void {
+        if (match.mathematical) {
+            match.element.classList.add('math-search-highlight');
+            return;
+        }
         const textNode = match.textNode;
         const text = textNode.textContent || '';
 

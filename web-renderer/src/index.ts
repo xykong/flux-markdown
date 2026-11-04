@@ -5,6 +5,7 @@ import { waitForExportReady } from './export-readiness';
 import { sanitizeDocumentHTML, sanitizeDiagramHTML } from './safe-html';
 import { renderTSVTable } from './tsv';
 import { installMathSyntax } from './math-syntax';
+import { rememberMathSource } from './math-source-store';
 import './styles/math.css';
 import './styles/tsv.css';
 /**
@@ -759,6 +760,8 @@ window.exportHTML = function(): string {
     clone.querySelectorAll('.block-copy-tools').forEach(control => control.remove());
     clone.querySelectorAll('.block-copy-host').forEach(host => host.replaceWith(...Array.from(host.childNodes)));
     clone.querySelectorAll('.error-feedback-controls').forEach(control => control.remove());
+    clone.querySelectorAll('.search-highlight').forEach(mark => mark.replaceWith(document.createTextNode(mark.textContent || '')));
+    clone.querySelectorAll('.math-search-highlight, .search-highlight-active').forEach(node => node.classList.remove('math-search-highlight', 'search-highlight-active'));
     clone.querySelectorAll<HTMLElement>('.blockquote-placeholder').forEach(placeholder => {
         const quote = placeholder.nextElementSibling as HTMLElement | null;
         if (quote?.matches('blockquote, .markdown-alert')) quote.style.display = '';
@@ -1051,6 +1054,10 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         if (!isCurrent()) return;
         searchEngine?.clear();
         outputDiv.innerHTML = tempDiv.innerHTML;
+        for (const source of mathSources) {
+            const nodes = outputDiv.querySelectorAll(`[data-math-id="${source.id}"]`);
+            if (nodes.length === 1) rememberMathSource(nodes[0], source.raw);
+        }
         if (toc) toc.render(outline);
         prepareRenderedImages(outputDiv, options);
         logToSwift(`[renderMarkdown:${callId}] DOM UPDATED successfully`);
