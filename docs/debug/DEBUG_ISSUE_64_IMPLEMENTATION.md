@@ -383,3 +383,9 @@ Full Jest **59 suites / 525 tests**, typecheck/build pass. Exact raw table-cell 
 The copy test for `$a\|b$` in a GFM cell failed because markdown-it's table parser removes the escape before the inline math rule receives its input. Added a per-row normalization-to-original offset map matching that table transformation. Mathematical parsing continues to use the GFM-decoded payload, while copying/fallback uses the original source slice.
 
 Verified multiple cells, repeated identical formulas, a literal code cell and a formula inside emphasis, including tables without outer pipes. Mapping is built once per row, not repeatedly per cell. Full Jest **59 suites / 527 tests** passes; a subsequent mapping-cache refinement passes focused source tests/typecheck and the production build. External platform/host and memory acceptance states are unchanged.
+
+## Current-revision native verification
+
+On source `e457b87`, reran the complete production-bundle WebKit integration suite: **all 29 cases pass**. Ran Xcode's native BlockCopyBridgeTests and SharedPreferenceStoreTests with the documented local macOS 12 deployment override. Queried the resulting xcresult summary: **22 passed, 0 failed, 0 skipped**, on macOS 27.0.1 arm64. The pasteboard tests use isolated named boards and preferences use temporary stores.
+
+Saved the allowlisted result summary in `current-native-validation.json` (omitting machine identifiers). These fresh results cover current code and the changed bridge/preference boundaries; they do not establish minimum-system execution, VoiceOver speech, actual new-extension QuickLook/Finder loading or resolution of the measured memory cost. The corresponding user requests remain pending.
