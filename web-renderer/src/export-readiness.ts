@@ -1,9 +1,20 @@
+export class MathematicalExportError extends Error {}
+export type ExportPreparation = { status: 'ready' } | { status: 'mathematics' };
+
+export async function prepareExport(wait: () => Promise<void>): Promise<ExportPreparation> {
+    try { await wait(); return { status: 'ready' }; }
+    catch (error) {
+        if (error instanceof MathematicalExportError) return { status: 'mathematics' };
+        throw error;
+    }
+}
+
 /** Rendering is awaited by the caller; then fonts/images must settle before print. */
 export async function waitForExportReady(timeoutMs = 15000, checkCurrent: () => void = () => {}): Promise<void> {
     checkCurrent();
     const root = document.getElementById('markdown-preview');
     if (root?.querySelector('.math-error, .katex-error')) {
-        throw new Error('Cannot export: mathematics or an equation reference failed to render');
+        throw new MathematicalExportError('Cannot export: mathematics or an equation reference failed to render');
     }
     if (root?.querySelector('.mermaid-error, .vega-error, .graphviz-error, .typst-error')) {
         throw new Error('Cannot export: a diagram failed to render');

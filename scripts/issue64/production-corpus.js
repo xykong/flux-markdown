@@ -21,6 +21,8 @@ const html=window.exportHTML();
 await window.renderMarkdown(input.invalid,{context:'app'});
 let rejected=false;try{await window.waitForExportReady();}catch{rejected=true;}
 assert(rejected,'Invalid mathematics falsely allowed successful export');
+assert(JSON.stringify(await window.prepareExport())===JSON.stringify({status:'mathematics'}),'Native preparation did not return the closed mathematical blocker');
 await window.renderMarkdown(input.valid,{context:'app'});await window.waitForExportReady();
 assert(!root.querySelector('.math-error'),'Valid document did not recover after invalid input');
-return {original,validMath:12,invalidExportRejected:rejected,recovery:true,html};
+assert(JSON.stringify(await window.prepareExport())===JSON.stringify({status:'ready'}),'Native preparation did not recover');
+return {exportPreparation:true,original,validMath:12,invalidExportRejected:rejected,recovery:true,html};

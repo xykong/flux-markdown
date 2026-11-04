@@ -44,7 +44,7 @@ enum ErrorFeedback {
     static var disclosure: String { text("Opens GitHub with this error and system information. You confirm publication there.") }
 
     @discardableResult static func capture(_ kind: FailureKind, error: Error? = nil,
-                                          phase: IncidentPhase = .failed, scope: UUID? = nil, reason: IncidentReason? = nil, targetVersion: String? = nil) -> ErrorIncident {
+                                          phase: IncidentPhase = .failed, scope: UUID? = nil, reason: IncidentReason? = nil, targetVersion: String? = nil, renderingBlocker: FailureKind? = nil) -> ErrorIncident {
         let source: IncidentSource = Bundle.main.bundleIdentifier == "com.xykong.Markdown.QuickLook" ? .quicklook : .app
         var environment = DiagnosticEnvironment.current()
         if let targetVersion { environment["targetVersion"] = targetVersion }
@@ -57,6 +57,7 @@ enum ErrorFeedback {
             incident.updateSession = UpdateDiagnostics.shared.freeze(error: error)
         }
         incident.reason = reason
+        incident.renderingBlocker = renderingBlocker
         incident.historyUnavailable = store.unavailable
         let contextKeys = Set(incident.settings.keys)
         incident.settingChanges = AppearancePreference.shared.history?.snapshot().events.filter { contextKeys.contains($0.key) }.suffix(5).compactMap {
@@ -138,7 +139,7 @@ enum ErrorFeedback {
         }
         let draft = IncidentDraft(incident), alert = NSAlert()
         alert.messageText = text(incident.kind.title)
-        alert.informativeText = text(incident.kind.guidance)
+        alert.informativeText = text(incident.guidance)
         if let recoveryTitle, recovery != nil { alert.addButton(withTitle: text(recoveryTitle)) }
         alert.addButton(withTitle: text("Report This Problem"))
         alert.addButton(withTitle: text("Close"))
@@ -217,7 +218,7 @@ final class IncidentNotice: NSView {
         draft = IncidentDraft(incident); self.recovery = recovery
         super.init(frame: .zero)
         wantsLayer = true; layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor; layer?.cornerRadius = 8
-        let message = NSTextField(wrappingLabelWithString: ErrorFeedback.text(incident.kind.title) + ". " + ErrorFeedback.text(incident.kind.guidance))
+        let message = NSTextField(wrappingLabelWithString: ErrorFeedback.text(incident.kind.title) + ". " + ErrorFeedback.text(incident.guidance))
         let buttons = NSStackView(); buttons.orientation = .horizontal; buttons.spacing = 8
         buttonStack = buttons
         if let recoveryTitle, recovery != nil { buttons.addArrangedSubview(NSButton(title: ErrorFeedback.text(recoveryTitle), target: self, action: #selector(recover))) }
@@ -328,11 +329,11 @@ final class RendererErrorRegistry {
     private(set) var scope = UUID()
     private var incidents: [String: ErrorIncident] = [:]
     func beginDocument() -> String { scope = UUID(); incidents.removeAll(); return scope.uuidString }
-    func nativeFailure(_ kind: FailureKind, error: Error? = nil) -> ErrorIncident {
-        let key = "native:" + kind.rawValue
+    func nativeFailure(_ kind: FailureKind, error: Error? = nil, renderingBlocker: FailureKind? = nil) -> ErrorIncident {
+        let key = "native:" + kind.rawValue + ":" + (renderingBlocker?.rawValue ?? "none")
         let codes = ErrorIncident(kind: kind, source: .app, error: error).codes
         if let existing = incidents[key], existing.codes == codes { return existing }
-        let incident = ErrorFeedback.capture(kind, error: error, scope: scope)
+        let incident = ErrorFeedback.capture(kind, error: error, scope: scope, renderingBlocker: renderingBlocker)
         incidents[key] = incident
         return incident
     }
@@ -386,7 +387,7 @@ struct DocumentReadFailure: LocalizedError, RecoverableError, CustomNSError {
     let incident: ErrorIncident
     init(kind: FailureKind, error: Error) { incident = ErrorFeedback.capture(kind, error: error) }
     var errorDescription: String? { ErrorFeedback.text(incident.kind.title) }
-    var recoverySuggestion: String? { ErrorFeedback.text(incident.kind.guidance) + "\n\n" + ErrorFeedback.disclosure }
+    var recoverySuggestion: String? { ErrorFeedback.text(incident.guidance) + "\n\n" + ErrorFeedback.disclosure }
     var recoveryOptions: [String] { ["Choose Another File", "Report This Problem", "Review Feedback…", "Close"].map(ErrorFeedback.text) }
     static var errorDomain: String { "com.xykong.Markdown.DocumentRead" }
     var errorCode: Int { incident.kind == .fileTooLarge ? CocoaError.fileReadTooLarge.rawValue : CocoaError.fileReadCorruptFile.rawValue }

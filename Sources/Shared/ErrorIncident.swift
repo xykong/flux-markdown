@@ -117,6 +117,7 @@ struct ErrorIncident: Codable {
     var previewTest: String?
     var historyUnavailable: Bool?
     var reason: IncidentReason?
+    var renderingBlocker: FailureKind?
     var quickLookCheck: IncidentQuickLookCheck?
     var updateSession: UpdateSessionSnapshot?
 
@@ -164,7 +165,10 @@ struct ErrorIncident: Codable {
             }
         }
     }
+    var guidance: String { renderingBlocker == .math ? FailureKind.math.guidance : kind.guidance }
+
     var isValid: Bool {
+        (renderingBlocker == nil || (renderingBlocker == .math && [.exportHTML, .exportPDF].contains(kind))) &&
         schema == 1 && (-62135596800...253402300799).contains(date.timeIntervalSince1970) && codes.count <= 8 && steps.count <= 12 &&
         (quickLookCheck?.isValid ?? true) && (updateSession?.isValid ?? true) && settingChanges.count <= 5 && settingChanges.allSatisfy(\.isValid) &&
         (previewTest == nil || ["rendered", "unconfirmed", "not-run"].contains(previewTest!)) &&
@@ -187,6 +191,7 @@ struct ErrorIncident: Codable {
         lines += ["", "## Related operation events"] + steps.map { "- \(formatter.string(from: $0.date)): \($0.kind.rawValue) / \($0.phase.rawValue)" }
         if let updateSession { lines += updateSession.report }
         if let reason { lines += ["Failure category: \(reason.rawValue)"] }
+        if let renderingBlocker { lines += ["Rendering blocker: \(renderingBlocker.rawValue)"] }
         if historyUnavailable == true { lines += ["", "Some diagnostic information is unavailable. This report includes the current incident."] }
         if let previewTest { lines += ["", "Last explicit preview test (historical, not proof of current rendering): \(previewTest)"] }
         lines += ["", "## Recent related settings changes"] + settingChanges.map { "- \(formatter.string(from: $0.date)): \($0.key) \($0.before) → \($0.after)" }

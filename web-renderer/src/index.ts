@@ -2,7 +2,7 @@ import './math-compat';
 import { installBlockCopy, blockCopyResult, CopyController } from './block-copy';
 import './styles/block-copy.css';
 import { installErrorFeedback, setFeedbackGeneration, feedbackGeneration } from './error-feedback';
-import { waitForExportReady } from './export-readiness';
+import { waitForExportReady, prepareExport, ExportPreparation } from './export-readiness';
 import { sanitizeDocumentFragment, sanitizeDiagramHTML } from './safe-html';
 import { renderTSVTable } from './tsv';
 import { installMathSyntax } from './math-syntax';
@@ -480,6 +480,7 @@ window.waitForExportReady = async (timeoutMs = 15000) => {
         if (timer !== undefined) clearTimeout(timer);
     }
 };
+window.prepareExport = () => prepareExport(() => window.waitForExportReady());
 window.waitForRenderComplete = async () => {
     const generation = renderGeneration;
     await currentRender;
@@ -623,6 +624,7 @@ declare global {
         navigateDocumentPosition: (position: DocumentPosition) => boolean;
         waitForRenderComplete: () => Promise<void>;
         waitForExportReady: (timeoutMs?: number) => Promise<void>;
+        prepareExport: () => Promise<ExportPreparation>;
         invalidateRender: () => void;
         renderMarkdown: (text: string, options?: RenderOptions) => Promise<void>;
         renderSource: (text: string, theme: string, prevContent?: string, options?: RenderOptions) => void;

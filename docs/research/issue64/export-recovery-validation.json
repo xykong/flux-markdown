@@ -1,0 +1,42 @@
+{
+  "rendererTests": 554,
+  "rendererSuites": 61,
+  "nativeTests": 28,
+  "nativeFailures": 0,
+  "productionCorpus": {
+    "exportPreparation": true,
+    "invalidExportRejected": true,
+    "original": {
+      "end": true,
+      "errors": 1,
+      "graphviz": 1,
+      "math": 14,
+      "mermaid": 8,
+      "vega": 1
+    },
+    "recovery": true,
+    "validMath": 12
+  },
+  "productPDF": {
+    "internalLinks": [
+      {
+        "destinationPage": 2,
+        "destinationPoint": [
+          514.8738000000001,
+          401.624
+        ],
+        "sourcePage": 2
+      }
+    ],
+    "pages": 2
+  },
+  "notCovered": [
+    "actual foreground editor launch/report activation",
+    "VoiceOver",
+    "minimum macOS runtime",
+    "physical Intel",
+    "system-selected candidate QuickLook",
+    "memory acceptance",
+    "independent human sign-off"
+  ]
+}

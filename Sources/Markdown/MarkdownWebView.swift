@@ -138,11 +138,18 @@ struct MarkdownWebView: NSViewRepresentable {
         let errorRegistry = RendererErrorRegistry()
         private let blockCopyBridge = BlockCopyBridge()
         let usage = UsageTelemetrySession(source: "app")
-        func showFailure(_ kind: FailureKind, error: Error? = nil, recoveryTitle: String = "Reload", recovery: (() -> Void)? = nil) {
+        func showFailure(_ kind: FailureKind, error: Error? = nil, renderingBlocker: FailureKind? = nil, recoveryTitle: String = "Reload", recovery: (() -> Void)? = nil) {
             guard let view = currentWebView else { return }
-            let incident = errorRegistry.nativeFailure(kind, error: error)
+            let incident = errorRegistry.nativeFailure(kind, error: error, renderingBlocker: renderingBlocker)
             IncidentNotice.attach(to: view, incident: incident, recoveryTitle: recoveryTitle,
                                   recovery: recovery ?? { [weak self] in self?.retryPreview() })
+        }
+        private func showMathematicalExportFailure(_ kind: FailureKind, scope: UUID) {
+            guard errorRegistry.scope == scope else { return }
+            showFailure(kind, renderingBlocker: .math, recoveryTitle: "Open in Editor", recovery: { [weak self] in
+                guard self?.errorRegistry.scope == scope else { return }
+                self?.handleOpenInExternalEditor()
+            })
         }
         private var rendererTimeout: DispatchWorkItem?
         func armRendererTimeout() {
@@ -388,11 +395,18 @@ struct MarkdownWebView: NSViewRepresentable {
                   let win = webView.window,
                   win.isKeyWindow || win.windowController?.document === NSDocumentController.shared.currentDocument else { return }
             starReminder?.cancelOpportunity()
-            exportHTML(webView: webView) { [weak self] htmlString in
+            let exportScope = errorRegistry.scope
+            exportHTML(webView: webView) { [weak self] result in
                 DispatchQueue.main.async {
-                    guard let htmlString = htmlString else {
-                        os_log("exportHTML: received nil HTML", log: self?.logger ?? .default, type: .error)
-                        self?.showFailure(.exportHTML, recoveryTitle: "Export Again", recovery: { [weak self] in self?.handleExportHTML() })
+                    guard self?.errorRegistry.scope == exportScope else { return }
+                    let htmlString: String
+                    switch result {
+                    case .success(let html): htmlString = html
+                    case .failure(.mathematics):
+                        self?.showMathematicalExportFailure(.exportHTML, scope: exportScope)
+                        return
+                    case .failure(.other(let error)):
+                        self?.showFailure(.exportHTML, error: error, recoveryTitle: "Export Again", recovery: { [weak self] in self?.handleExportHTML() })
                         return
                     }
                     let panel = NSSavePanel()
@@ -721,12 +735,15 @@ struct MarkdownWebView: NSViewRepresentable {
             }
         }
         
-        func exportHTML(webView: WKWebView, completion: @escaping (String?) -> Void) {
-            webView.callAsyncJavaScript("await window.waitForRenderComplete(); await window.waitForExportReady(); return window.exportHTML();", arguments: [:], in: nil, in: .page) { [weak self] outcome in
+        func exportHTML(webView: WKWebView, completion: @escaping (Result<String, RendererExportFailure>) -> Void) {
+            webView.callAsyncJavaScript(RendererExportPreparation.htmlScript, arguments: [:], in: nil, in: .page) { [weak self] outcome in
                 if case .failure(let error) = outcome {
                     os_log("exportHTML JS error: %{public}@", log: self?.logger ?? .default, type: .error, error.localizedDescription)
-                    completion(nil)
-                } else if case .success(let result) = outcome, var html = result as? String {
+                    completion(.failure(.other(error)))
+                } else if case .success(let result) = outcome, RendererExportPreparation.decode(result) == .mathematics {
+                    completion(.failure(.mathematics))
+                } else if case .success(let result) = outcome,
+                          case .ready(let renderedHTML)? = RendererExportPreparation.decode(result), var html = renderedHTML {
                     // Convert local file URLs (e.g. file:///... or local-md://...) to base64 inline data URIs
                     // to ensure images like GIFs are preserved in the offline HTML.
                     do {
@@ -761,9 +778,9 @@ struct MarkdownWebView: NSViewRepresentable {
                         os_log("exportHTML regex error: %{public}@", log: self?.logger ?? .default, type: .error, error.localizedDescription)
                     }
                     
-                    completion(html)
+                    completion(.success(html))
                 } else {
-                    completion(nil)
+                    completion(.failure(.other(nil)))
                 }
             }
         }
@@ -775,12 +792,21 @@ struct MarkdownWebView: NSViewRepresentable {
             }
 
             let resolvedSize = fontSize ?? (AppearancePreference.shared.baseFontSize * webView.pageZoom)
-            let injectJS = "document.documentElement.style.setProperty('--print-font-size', '\(resolvedSize)px');"
-            webView.callAsyncJavaScript("await window.waitForRenderComplete(); await window.waitForExportReady(); " + injectJS, arguments: [:], in: nil, in: .page) { [weak self] result in
+            let exportScope = errorRegistry.scope
+            webView.callAsyncJavaScript(RendererExportPreparation.pdfScript, arguments: ["fontSize":resolvedSize], in: nil, in: .page) { [weak self] result in
+                guard self?.errorRegistry.scope == exportScope else { return }
                 if case .failure(let error) = result {
                     os_log("exportPDF: failed to inject font-size variable: %{public}@",
                            log: self?.logger ?? .default, type: .error, error.localizedDescription)
                     self?.showFailure(.exportPDF, error: error, recoveryTitle: "Export Again", recovery: { [weak self] in self?.handleExportPDF() })
+                    return
+                }
+                guard case .success(let value) = result, let preparation = RendererExportPreparation.decode(value) else {
+                    self?.showFailure(.exportPDF, recoveryTitle: "Export Again", recovery: { [weak self] in self?.handleExportPDF() })
+                    return
+                }
+                if preparation == .mathematics {
+                    self?.showMathematicalExportFailure(.exportPDF, scope: exportScope)
                     return
                 }
                 self?.runPrintOperation(webView: webView, to: destinationURL)
