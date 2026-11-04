@@ -1,0 +1,49 @@
+{
+  "profiles": {
+    "current": {
+      "build": {
+        "profile": "current",
+        "sourceCommit": "62ee2ae601e270543e1e464c1773c8a24e418e35",
+        "legacyRelease": null,
+        "rendererWorkingTreeChanges": [],
+        "packageLockSha256": "ccc903dfe4ef7df89cbf00c08533feb515ab5839b56c14ec1b962106399bbace",
+        "bundleIndexSha256": "f76179f581c95d9b6e887fdae293746a51dd1f6986b19439a1ab953fb38772dd",
+        "nodeVersion": "v25.9.0",
+        "bundleDirectory": "/private/tmp/flux-issue64-current-profile-final/bundle",
+        "scope": "Complete renderer version/configuration for developer comparison; no per-formula engine mixing and no installation. Legacy is not eligible for issue-64 feature acceptance."
+      },
+      "native": {
+        "katex": 0,
+        "mathCodeFences": 0,
+        "mathjax": 3,
+        "profile": "current"
+      }
+    },
+    "legacy": {
+      "build": {
+        "profile": "legacy",
+        "sourceCommit": "4844b1505e7116cc7b16e2a0cbe891c600d00180",
+        "legacyRelease": "v1.42.645",
+        "rendererWorkingTreeChanges": [],
+        "packageLockSha256": "6c718e2f8e2f34f3577a8fd24b126fbac7b75b27efd67ee9ed82678ea322b4c3",
+        "bundleIndexSha256": "57009b842b96722b90b3faa98bca63ad7305694832b4274028accba030e82476",
+        "nodeVersion": "v25.9.0",
+        "bundleDirectory": "/tmp/flux-issue64-legacy-profile-verified/bundle",
+        "scope": "Complete renderer version/configuration for developer comparison; no per-formula engine mixing and no installation. Legacy is not eligible for issue-64 feature acceptance."
+      },
+      "native": {
+        "katex": 1,
+        "mathCodeFences": 1,
+        "mathjax": 0,
+        "profile": "legacy"
+      }
+    }
+  },
+  "guardsVerified": [
+    "invalid profile rejected",
+    "existing output refused without changes",
+    "output inside renderer source refused"
+  ],
+  "legacySourceAndLockUnchanged": true,
+  "scope": "Developer whole-renderer build switch; no runtime per-formula fallback, no application installation and no relaxation of modern feature acceptance."
+}

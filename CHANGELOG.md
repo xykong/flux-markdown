@@ -1,5 +1,13 @@
 ## [Unreleased]
-_无待发布的变更_
+_Draft release notes. Release validation remains in progress; see the [acceptance status](docs/debug/ISSUE_64_ACCEPTANCE_STATUS.md)._
+
+### Added
+- **Expanded mathematics**: Support parenthesis/bracket math delimiters, `math` fences, selected AMS equation environments and presentation MathML, alongside dollar-delimited formulas. Addresses the test corpus in [#64](https://github.com/xykong/flux-markdown/issues/64).
+- **Equation navigation and source**: Add document-scoped numbering, labels, forward references, explicit/starred tags, formula-source search and source copying.
+
+### Fixed
+- **Reading and export**: Keep oversized formulas locally scrollable under native zoom, preserve mathematical direction in RTL documents, and retain vector mathematics and equation links in exports.
+- **Mathematical failures**: Preserve source and reject incomplete mathematical exports. Explain unsupported image-backed MathML, and keep copy recovery usable in narrow previews with localized live status messages.
 
 ## [1.42.645] - 2026-10-29
 ### Added

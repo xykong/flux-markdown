@@ -29,3 +29,14 @@ scripts/test-issue64-product-export.sh /path/to/FluxMarkdown.app /tmp/new-issue6
 ```
 
 The output directory must be new. This checks the app signature, all manifest-declared renderer resources against the current build, mathematical resource/license closure, actual valid and invalid CLI exports, and the two-page PDF's internal equation-reference destination using PDFKit. Render and visually inspect both pages afterward; the script explicitly does not claim visual or PDF-viewer/VoiceOver acceptance. It neither installs the app nor changes the selected QuickLook provider.
+
+For whole-renderer developer comparison:
+
+```sh
+scripts/build-issue64-math-backend.sh current /tmp/new-current-math-profile
+scripts/build-issue64-math-backend.sh legacy /tmp/new-legacy-math-profile
+```
+
+Each creates an isolated `bundle` and `profile.json`. Current mode uses the working renderer and records dirty state; legacy mode archives the pinned v1.42.645 renderer/configuration and uses its unchanged lockfile. Dependencies for the current workspace must already be installed. Invalid profiles, existing destinations and destinations inside renderer sources are rejected. The legacy profile has the old syntax limitations and is for controlled comparison, not issue-64 feature acceptance or installation into a differently versioned app.
+
+Use the existing native research probe with `backend-profile.js` and the generated `profile.json`. The smoke fixture deliberately distinguishes the profiles: current yields three MathJax outputs; legacy yields one KaTeX output and retains the math fence as code. Full feature acceptance still uses the current production runner above.

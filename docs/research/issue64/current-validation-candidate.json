@@ -1,0 +1,46 @@
+{
+  "observedAt": "2026-11-04T19:14:04.451970+00:00",
+  "sourceCommit": "62ee2ae601e270543e1e464c1773c8a24e418e35",
+  "candidate": "build/issue64-host-validation/candidate-62ee2ae.app",
+  "candidateInfo": {
+    "version": "1.42.645",
+    "build": "645",
+    "executableSha256": "6522f63c4677433717fac3a2c17016469c7ea02f32f68f9867fdc45640150e16",
+    "codeResourcesSha256": "6bbcd658903efd745ec69152f264447509f9c91a85f138b4dfcf7f37df5394e3"
+  },
+  "candidateAppAndExtensionRendererSha256": "f76179f581c95d9b6e887fdae293746a51dd1f6986b19439a1ab953fb38772dd",
+  "installed": {
+    "version": "1.42.645",
+    "build": "645",
+    "executableSha256": "e45dbd67acd99a9dd82ad146ea9bf2da92a412fcf53efc60884e9a38bcc4f9d5",
+    "codeResourcesSha256": "724d12be147149ef27e63df20195fcfb2b45c95083ad39e6ddf7d3f78ae82383"
+  },
+  "originalBackup": {
+    "version": "1.42.645",
+    "build": "645",
+    "executableSha256": "e45dbd67acd99a9dd82ad146ea9bf2da92a412fcf53efc60884e9a38bcc4f9d5",
+    "codeResourcesSha256": "724d12be147149ef27e63df20195fcfb2b45c95083ad39e6ddf7d3f78ae82383"
+  },
+  "installedMatchesOriginalBackup": true,
+  "candidateSignatureVerified": true,
+  "installedAndBackupSignaturesVerified": true,
+  "installedApplicationReplaced": false,
+  "selfHostedRunners": {
+    "total_count": 0,
+    "source": "GET /repos/xykong/flux-markdown/actions/runners",
+    "scope": "Self-hosted runner inventory only; does not inventory GitHub-hosted machines."
+  },
+  "workflowRuntime": "macos-15; not proof of macOS 11 runtime",
+  "limitations": [
+    "actual selected QuickLook/Finder remains unverified",
+    "minimum macOS/Intel and VoiceOver still need their own evidence"
+  ],
+  "appAndExtensionExactResourceMatch": {
+    "filesEach": 172,
+    "extraFiles": 0,
+    "missingFiles": 0,
+    "contentDifferences": 0
+  },
+  "providerSelectionExplicitlyModified": false,
+  "actualProviderSelectionRevalidated": false
+}

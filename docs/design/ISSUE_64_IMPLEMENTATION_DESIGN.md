@@ -197,6 +197,10 @@ interface MathDocumentSession {
 
 每批独立验证后提交 Conventional Commit。逐批保留旧正文引擎内部回退开关供开发验收，不做逐公式动态混用；正式切换必须完整通过 A–F，回退是整个正文引擎与配置一起恢复。
 
+内部开发入口为 `scripts/build-issue64-math-backend.sh current|legacy NEW_OUTPUT_DIRECTORY`。它分别构建当前渲染器，或固定发布提交 `4844b1505e7116cc7b16e2a0cbe891c600d00180`（v1.42.645）的整个渲染器及配置；旧版按原锁文件独立安装依赖。产物隔离，不改写当前 `dist`、不安装应用，也不改变用户设置。用 `scripts/issue64/backend-profile.js` 和原生探针验证选定的整套路径。旧版的有限语法能力不计入本次功能验收。
+
+用户级回退应恢复经过签名验证、版本与资源匹配的完整旧应用。执行前核对已安装应用与备份是否仍一致，并取得维护窗口授权；避免仅替换渲染器资源造成原生接口、签名和缓存不匹配。原 Markdown 文件与既有数学开关无需迁移。当前候选与原备份的证据见 `docs/research/issue64/current-validation-candidate.json`；没有执行安装替换。
+
 ## 9. 设计完成与产品完成
 
 设计交付包括确定的架构、类型契约、语法/编号政策、边界处理、实测选型、独立期望、实现批次和发布门槛。当前设计可以进入实施评审。
