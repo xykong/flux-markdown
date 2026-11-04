@@ -34,5 +34,12 @@
       "source gutter border/space remains",
       "PDF link/tagged accessibility inspection"
     ]
+  },
+  "paginationFix": {
+    "sha256": "86654ffb2db34e17d7e2e24fc5ab4183956a91e65c8b3977f4a14bab6691c7ad",
+    "bytes": 110613,
+    "pages": 3,
+    "review": "All three pages inspected after actual CLI export; all 12 valid mathematical items complete, M05 and M09 headings remain with their formulas, no source gutter or numbers.",
+    "scope": "current macOS arm64 CLI print path only; not minimum-platform or VoiceOver proof"
   }
 }

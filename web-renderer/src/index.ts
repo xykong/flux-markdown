@@ -6,7 +6,15 @@ import { sanitizeDocumentHTML, sanitizeDiagramHTML } from './safe-html';
 import { renderTSVTable } from './tsv';
 import { installMathSyntax } from './math-syntax';
 import { rememberMathSource } from './math-source-store';
+import { prepareMathPrint } from './math-print';
 import './styles/math.css';
+let restoreMathPrint: (() => void) | undefined;
+window.addEventListener('beforeprint', () => {
+    restoreMathPrint?.();
+    const root = document.getElementById('markdown-preview');
+    restoreMathPrint = root ? prepareMathPrint(root) : undefined;
+});
+window.addEventListener('afterprint', () => { restoreMathPrint?.(); restoreMathPrint = undefined; });
 import './styles/tsv.css';
 /**
  * Escapes colons inside Gantt task labels when the metadata delimiter is
