@@ -85,7 +85,12 @@ export function installMathSyntax(md: MarkdownIt, namespace = 'math'): MathSourc
             if (line !== open) return false;
             for (last = start + 1; last < end; last++) {
                 if (state.sCount[last] < state.blkIndent && state.src.slice(state.bMarks[last], state.eMarks[last]).trim()) return false;
-                if (state.src.slice(state.bMarks[last] + state.tShift[last], state.eMarks[last]).trim() === close) break;
+                const candidate = state.src.slice(state.bMarks[last] + state.tShift[last], state.eMarks[last]).trim();
+                if (candidate === close) break;
+                // A new explicit display opener cannot nest in this display
+                // environment. Leave the unmatched source readable so the later
+                // independent block can be parsed normally.
+                if (open !== close && candidate.startsWith(open)) return false;
             }
             if (last === end) return false;
             payload = state.getLines(start + 1, last, state.blkIndent, false);

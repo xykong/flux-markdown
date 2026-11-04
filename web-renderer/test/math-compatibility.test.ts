@@ -153,4 +153,16 @@ describe('Issue 64 mathematical input contracts', () => {
         expect(preview().querySelector('strong mjx-container')).not.toBeNull();
         expect(preview().querySelector('em mjx-container')).not.toBeNull();
     });
+    test('an unmatched display opener does not consume a later heading and valid block',async()=>{
+        await render('\\[\nunclosed\n\n## Following\n\n\\[\nx=1\n\\]\n\nEnd');
+        expect(preview().querySelector('h2')?.textContent).toBe('Following');
+        expect(formulas()).toHaveLength(1);
+        expect(preview().textContent).toContain('unclosed');
+        expect(preview().textContent).toContain('End');
+    });
+    test('an unclosed block in a quote cannot consume a later top-level closer',async()=>{
+        await render('> \\[\n> unclosed\n\n## Following\n\n\\]\n\n$x=1$');
+        expect(preview().querySelector('h2')?.textContent).toBe('Following');
+        expect(formulas()).toHaveLength(1);
+    });
 });
