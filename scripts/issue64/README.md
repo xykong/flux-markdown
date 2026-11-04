@@ -8,6 +8,10 @@ scripts/test-issue64-math.sh
 
 The command verifies every original attachment file against its recorded hash, runs the renderer tests/build and complete native WebKit suite, and executes the unmodified corpus with real math/diagram engines. It derives a valid mathematical document by removing only the intentional unknown-command line and including the original MathML. It verifies matrix/cases structure, Chinese text, reference targets, failed-export rejection and recovery.
 
+Noninteractive checks run before the interactive suite. Their report initially records native interaction as pending, then records passed/failed/blocked-environment. The full command still exits unsuccessfully when the interactive suite cannot complete; completed noninteractive evidence is retained without representing it as full acceptance.
+
+The first-load compatibility probe removes Object.hasOwn and Array/String/TypedArray.at at document start, before page scripts execute. It verifies renderer startup, the original valid math plus a dynamic font case, reference targets and export. Resource tracing and the Vite manifest enforce an independent compatibility chunk before renderer dependencies. This is a capability-removal regression, not an old-macOS runtime test.
+
 It then saves the production export, opens it in a fresh WebKit process with scripts/network/fonts blocked by CSP, and checks formula geometry, auxiliary semantics, links and absence of application controls/resource violations. Evidence and logs are retained in the printed temporary directory; failure prints that path for diagnosis.
 
 The build emits Vite's module manifest. The runner verifies every declared module/import/resource exists inside the bundle and the mathematical license notices match their sources, then imports all 40 upstream SVG dynamic glyph modules through the production scheme handler in a fresh WebKit process. A disposable copy with its double-struck glyph chunk removed must fail both static verification and native imports. This proves executable resource closure on the current platform; it does not assert visual correctness for every glyph or minimum-system compatibility.

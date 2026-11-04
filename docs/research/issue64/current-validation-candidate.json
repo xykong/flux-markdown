@@ -1,14 +1,18 @@
 {
-  "observedAt": "2026-11-04T19:14:04.451970+00:00",
-  "sourceCommit": "62ee2ae601e270543e1e464c1773c8a24e418e35",
-  "candidate": "build/issue64-host-validation/candidate-62ee2ae.app",
+  "observedAt": "2026-11-04T21:15:59.920662+00:00",
+  "sourceCommit": "9af2af6cd1283ba024bda015791946b78032529b",
+  "candidate": "build/issue64-host-validation/candidate-startup-compat.app",
   "candidateInfo": {
     "version": "1.42.645",
     "build": "645",
-    "executableSha256": "6522f63c4677433717fac3a2c17016469c7ea02f32f68f9867fdc45640150e16",
-    "codeResourcesSha256": "6bbcd658903efd745ec69152f264447509f9c91a85f138b4dfcf7f37df5394e3"
+    "executableSha256": "c8e66eea1ec7a5f1163989af3f684afbc5b01d61dee1b08a6f0a8ede503541aa",
+    "codeResourcesSha256": "57d124d4696b4090e330cb113b07316f289709e4155ddd2b4d7fe8536bbecd08",
+    "minimumSystemVersion": "12.0",
+    "architectures": [
+      "arm64"
+    ]
   },
-  "candidateAppAndExtensionRendererSha256": "f76179f581c95d9b6e887fdae293746a51dd1f6986b19439a1ab953fb38772dd",
+  "candidateAppAndExtensionRendererSha256": "3497754a6219ea61c8a8db7d1eacf248e395a6d9bb9b579f3cbf822425c6eea8",
   "installed": {
     "version": "1.42.645",
     "build": "645",
@@ -36,12 +40,18 @@
     "minimum macOS/Intel and VoiceOver still need their own evidence"
   ],
   "appAndExtensionExactResourceMatch": {
-    "filesEach": 172,
+    "filesEach": 173,
     "extraFiles": 0,
     "missingFiles": 0,
     "contentDifferences": 0
   },
   "providerSelectionExplicitlyModified": false,
-  "actualProviderSelectionRevalidated": true,
-  "actualProviderEvidence": "current-host-revalidation.json"
+  "actualProviderSelectionRevalidated": false,
+  "actualProviderEvidence": "current-host-revalidation.json",
+  "pendingSourceAtBuild": {
+    "web-renderer/src/index.ts": "8abde0c05a247b87472ddddc86de57c5beca36c8ccd9561b090afb506967a6e0",
+    "web-renderer/vite.config.ts": "601f01ea29a65843671d8fe7986df1bd3f7d91597450bbd9bcb1482484c10b5c"
+  },
+  "candidateRuntimeScope": "Local Debug build; not a macOS 11/Intel validation artifact.",
+  "workingTreeDirtyAtBuild": true
 }

@@ -1,0 +1,20 @@
+// Capability removal is narrower than running an old operating system.
+const input=JSON.parse(source);
+const assert=(ok,message)=>{if(!ok)throw new Error(message);};
+for(let i=0;i<150&&typeof window.renderMarkdown!=='function';i++)await new Promise(r=>setTimeout(r,20));
+assert(window.__issue64EarlyMissingAPIs?.length===4,'Missing document-start capability removal');
+const typedArrayPrototype=Object.getPrototypeOf(Uint8Array.prototype);
+const targets=[[Object,'hasOwn','Object.hasOwn'],[Array.prototype,'at','Array.at'],[String.prototype,'at','String.at'],[typedArrayPrototype,'at','TypedArray.at']];
+assert(typeof Object.hasOwn==='function','Compatibility bootstrap did not run before the renderer');
+window.webkit.messageHandlers.trace.postMessage('COMPAT_BOOTSTRAP_READY_BEFORE_FIRST_MATH');
+const root=document.getElementById('markdown-preview');
+await window.renderMarkdown(input.valid+'\n\n$\\mathbb{abcdefghijklmnopqrstuvwxyz}$',{context:'app'});
+await window.waitForExportReady();
+assert(root.querySelectorAll('mjx-container').length===13 && !root.querySelector('.math-error'),'Fresh mathematical import failed without selected APIs');
+assert(typeof Object.hasOwn==='function','Mathematical compatibility shim was not installed');
+for(const [owner,key,name] of targets.filter(entry=>entry[2]!=='Object.hasOwn'))assert(typeof owner[key]==='undefined','Unexpected global polyfill: '+name);
+const reference=root.querySelector('a.math-reference-link');
+assert(reference && document.getElementById(decodeURIComponent(reference.getAttribute('href').slice(1))),'Reference graph failed');
+const exported=new DOMParser().parseFromString(window.exportHTML(),'text/html');
+assert(exported.querySelectorAll('mjx-container').length===13 && !exported.querySelector('script'),'Mathematical export failed');
+return {removedAtDocumentStart:window.__issue64EarlyMissingAPIs,hasOwnBeforeFirstMath:true,mathjaxFormulas:13,compatibilityShimInstalled:true,dynamicGlyphRendered:true,referenceValid:true,exportValid:true,actualOldSystem:false};

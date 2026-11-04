@@ -6,6 +6,10 @@ final class ProbeSchemeHandler: NSObject, WKURLSchemeHandler {
     let base: RendererBundleSchemeHandler
     init(root: URL) { base = RendererBundleSchemeHandler(rootDirectory: root) }
     func webView(_ webView: WKWebView, start task: WKURLSchemeTask) {
+        if ProcessInfo.processInfo.environment["FLUX_MATH_PROBE_TRACE_RESOURCES"] == "1",
+           let name = task.request.url?.lastPathComponent {
+            fputs("RESOURCE_REQUEST \(name)\n", stderr)
+        }
         if task.request.url?.lastPathComponent == "issue64-forbidden-math-glyph.svg" {
             fputs("FORBIDDEN_MATH_RESOURCE_REQUEST\n", stderr)
         }
@@ -22,6 +26,16 @@ final class Probe: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         let config = WKWebViewConfiguration()
         config.websiteDataStore = .nonPersistent()
         config.userContentController.add(self, name: "trace")
+        if ProcessInfo.processInfo.environment["FLUX_MATH_PROBE_MISSING_APIS"] == "1" {
+            config.userContentController.addUserScript(WKUserScript(source: """
+                const targets=[[Object,'hasOwn','Object.hasOwn'],[Array.prototype,'at','Array.at'],[String.prototype,'at','String.at'],[Object.getPrototypeOf(Uint8Array.prototype),'at','TypedArray.at']];
+                for(const [owner,key,name] of targets) {
+                    if(!Reflect.deleteProperty(owner,key) || typeof owner[key]!=='undefined')throw new Error('Could not remove '+name);
+                }
+                window.__issue64EarlyMissingAPIs=targets.map(entry=>entry[2]);
+                window.webkit.messageHandlers.trace.postMessage('COMPAT_APIS_REMOVED_AT_DOCUMENT_START');
+                """, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        }
         if ProcessInfo.processInfo.environment["FLUX_MATH_PROBE_FEEDBACK_RECORDING"] == "1" {
             config.userContentController.add(self, name: "errorFeedback")
         }

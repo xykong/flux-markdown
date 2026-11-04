@@ -7,6 +7,12 @@ from pathlib import Path
 renderer = Path(__file__).resolve().parents[2] / 'web-renderer'
 bundle = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else renderer / 'dist'
 manifest = json.loads((bundle / '.vite/manifest.json').read_text())
+bootstrap = manifest['index.html']
+early = bootstrap.get('imports', [])
+if not early or 'renderer-compat' not in manifest[early[0]]['file']:
+    raise ValueError('Renderer dependencies may execute before compatibility setup')
+if manifest[early[0]].get('imports') or manifest[early[0]].get('dynamicImports'):
+    raise ValueError('Compatibility chunk must remain dependency-free')
 dynamic = renderer / 'node_modules/@mathjax/mathjax-newcm-font/mjs/svg/dynamic'
 modules = []
 

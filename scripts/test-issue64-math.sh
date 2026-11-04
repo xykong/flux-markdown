@@ -24,8 +24,18 @@ payload={'original':original,'valid':valid,'invalid':r'$\unknownMarkdownPreviewC
 PY
 npm test --prefix web-renderer -- --runInBand --silent > "$ISSUE64_RUN/jest.log" 2>&1
 npm run --prefix web-renderer build > "$ISSUE64_RUN/build.log" 2>&1
-env -u FLUX_WEBKIT_CASE_FILTER scripts/test-renderer-webkit.sh > "$ISSUE64_RUN/native-suite.log" 2>&1
 swiftc Sources/Shared/RendererBundleSchemeHandler.swift scripts/research/issue64-math/main.swift -o "$ISSUE64_RUN/probe"
+FLUX_MATH_PROBE_TRACE_RESOURCES=1 FLUX_MATH_PROBE_MISSING_APIS=1 "$ISSUE64_RUN/probe" 'flux-renderer://bundle/index.html' "$PROJECT_ROOT/web-renderer/dist" "$PROJECT_ROOT/scripts/issue64/math-first-load-compat.js" "$ISSUE64_RUN/input.json" 45 > "$ISSUE64_RUN/first-load-compat.json" 2> "$ISSUE64_RUN/first-load-compat.log"
+python3 - "$ISSUE64_RUN" <<'PYCOMPAT'
+from pathlib import Path
+import sys
+lines=(Path(sys.argv[1])/'first-load-compat.log').read_text().splitlines()
+removed=next(i for i,line in enumerate(lines) if 'COMPAT_APIS_REMOVED_AT_DOCUMENT_START' in line)
+ready=next(i for i,line in enumerate(lines) if 'COMPAT_BOOTSTRAP_READY_BEFORE_FIRST_MATH' in line)
+engine=[i for i,line in enumerate(lines) if line.startswith('RESOURCE_REQUEST math-engine-')]
+glyph=[i for i,line in enumerate(lines) if line.startswith('RESOURCE_REQUEST double-struck-')]
+assert engine and glyph and removed<ready<min(engine) and ready<min(glyph),'Compatibility/import ordering not proven'
+PYCOMPAT
 "$ISSUE64_RUN/probe" 'flux-renderer://bundle/index.html' "$PROJECT_ROOT/web-renderer/dist" "$PROJECT_ROOT/scripts/issue64/math-resource-boundary.js" "$ISSUE64_RUN/input.json" 45 > "$ISSUE64_RUN/math-resource-boundary.json" 2> "$ISSUE64_RUN/math-resource-boundary.log"
 if rg -q 'FORBIDDEN_MATH_RESOURCE_REQUEST' "$ISSUE64_RUN/math-resource-boundary.log"; then
     printf 'Unsupported mathematical image initiated a resource request\n' >&2
@@ -84,10 +94,28 @@ report['mathResourceBoundary']=json.loads((out/'math-resource-boundary.json').re
 report['mathResourceBoundary']['sentinelResourceRequests']=(out/'math-resource-boundary.log').read_text().count('FORBIDDEN_MATH_RESOURCE_REQUEST')
 report['mathResourceHTTP']=json.loads((out/'http-resource-boundary/report.json').read_text())
 report['mathLayout']=[case for path in sorted(out.glob('layout-*.json')) for case in json.loads(path.read_text())['cases']]
+report['firstLoadCompatibility']=json.loads((out/'first-load-compat.json').read_text())
+report['nativeInteractiveSuite']='pending'
 report['worktreeDirty']=bool(subprocess.check_output(['git','status','--porcelain'],text=True).strip())
 report['validationSourceHashes']={name:hashlib.sha256(Path(name).read_bytes()).hexdigest() for name in ['scripts/test-issue64-math.sh','scripts/issue64/asset-closure.py','scripts/issue64/asset-closure.js','scripts/issue64/resource-failure.js','scripts/research/issue64-math/main.swift','web-renderer/vite.config.ts']}
 (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
-print('PASS current-machine renderer and standalone-HTML end-to-end checks')
+print('PASS noninteractive renderer and standalone-HTML checks; native interaction remains pending')
 print('Evidence:',out)
 print('Remaining gates:',', '.join(report['notCovered']))
 PY
+if env -u FLUX_WEBKIT_CASE_FILTER scripts/test-renderer-webkit.sh > "$ISSUE64_RUN/native-suite.log" 2>&1; then
+    ISSUE64_NATIVE_STATUS=passed
+else
+    ISSUE64_NATIVE_STATUS=failed
+fi
+python3 - "$ISSUE64_RUN" "$ISSUE64_NATIVE_STATUS" <<'PYNATIVE'
+from pathlib import Path
+import json,sys
+out=Path(sys.argv[1]);p=out/'report.json';report=json.loads(p.read_text());status=sys.argv[2]
+if status=='failed' and 'Environment: native test window did not become active' in (out/'native-suite.log').read_text():status='blocked-environment'
+report['nativeInteractiveSuite']=status
+p.write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+print('Native interactive suite:',status)
+PYNATIVE
+test "$ISSUE64_NATIVE_STATUS" = passed
+printf 'PASS complete current-machine renderer suite: %s\n' "$ISSUE64_RUN"

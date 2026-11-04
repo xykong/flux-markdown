@@ -1,0 +1,134 @@
+{
+  "baseCommit": "9af2af6",
+  "result": {
+    "actualOldSystem": false,
+    "compatibilityShimInstalled": true,
+    "dynamicGlyphRendered": true,
+    "exportValid": true,
+    "hasOwnBeforeFirstMath": true,
+    "mathjaxFormulas": 13,
+    "referenceValid": true,
+    "removedAtDocumentStart": [
+      "Object.hasOwn",
+      "Array.at",
+      "String.at",
+      "TypedArray.at"
+    ]
+  },
+  "timing": {
+    "cold": {
+      "samples": [
+        109,
+        108,
+        107,
+        110,
+        108,
+        108,
+        109,
+        107,
+        108,
+        112,
+        115,
+        112,
+        112,
+        113,
+        116,
+        116,
+        111,
+        116,
+        110,
+        109
+      ],
+      "p95": 116,
+      "budgetMs": 150
+    },
+    "plain": {
+      "headings": 100,
+      "math": 0,
+      "samples": [
+        9,
+        10,
+        12,
+        8,
+        8,
+        9,
+        9,
+        8,
+        9,
+        8,
+        8,
+        9,
+        8,
+        8,
+        8,
+        9,
+        9,
+        8,
+        9,
+        8,
+        8,
+        8,
+        9,
+        7,
+        8,
+        8,
+        9,
+        8,
+        8,
+        8
+      ],
+      "p95": 10
+    }
+  },
+  "rejectedDynamicEntryTiming": {
+    "samples": [
+      112,
+      109,
+      113,
+      110,
+      111,
+      112,
+      112,
+      154,
+      113,
+      111,
+      112,
+      155,
+      113,
+      113,
+      110,
+      110,
+      110,
+      113,
+      112,
+      112
+    ],
+    "p95": 154,
+    "budgetMs": 150
+  },
+  "staticSourceAudit": {
+    "scope": [
+      "web-renderer/src",
+      "@mathjax/src/mjs",
+      "@mathjax/mathjax-newcm-font/mjs"
+    ],
+    "selectedModernAPIsFound": [
+      "Object.hasOwn"
+    ],
+    "lookbehindMatches": 0,
+    "limitations": "Textual search of selected APIs, not exhaustive compatibility analysis or a substitute for old WebKit."
+  },
+  "regression": {
+    "before": "Missing Object.hasOwn at document start prevented renderer startup, before the lazy math engine loaded.",
+    "after": "Compatibility shim and Vite preload helper are in a dependency-free first chunk; original static renderer entry retained.",
+    "dependencyOrderNegativeControl": "/var/folders/31/2k2kp17n2f7blhy25xr06r9h0000gn/T/flux-issue64-bootstrap-negative-fiu5ssl5",
+    "dependencyOrderRejectionVerified": true
+  },
+  "primaryReferences": [
+    "https://webkit.org/blog/12445/new-webkit-features-in-safari-15-4/",
+    "https://webkit.org/blog/13966/webkit-features-in-safari-16-4/"
+  ],
+  "bundleIndexSha256": "3497754a6219ea61c8a8db7d1eacf248e395a6d9bb9b579f3cbf822425c6eea8",
+  "nativeInteractiveSuite": "blocked-environment",
+  "actualMacOS11Tested": false
+}

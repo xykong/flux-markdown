@@ -1,4 +1,4 @@
-/** MathJax's module build expects Object.hasOwn, absent in Safari 14. */
+/** Bundled renderer dependencies expect Object.hasOwn, absent in Safari 14. */
 export function ensureMathCompatibility(): void {
     const constructor = Object as ObjectConstructor & { hasOwn?: (object: object, key: PropertyKey) => boolean };
     if (!constructor.hasOwn) {

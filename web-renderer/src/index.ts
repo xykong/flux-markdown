@@ -1,3 +1,4 @@
+import './math-compat';
 import { installBlockCopy, blockCopyResult, CopyController } from './block-copy';
 import './styles/block-copy.css';
 import { installErrorFeedback, setFeedbackGeneration, feedbackGeneration } from './error-feedback';

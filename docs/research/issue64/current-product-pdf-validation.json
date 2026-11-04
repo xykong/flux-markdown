@@ -1,12 +1,12 @@
 {
-  "sourceCommit": "7da8d837136eb9108bc8b20922a068485c0dacbf",
+  "sourceCommit": "9af2af6cd1283ba024bda015791946b78032529b",
   "fixture": "valid-original-syntax.md",
   "fixtureSha256": "51fcf97c86e8adb51b148975e13c4fe214ed50fe56623bcb3ba04e52c87e767d",
   "pdf": "output/pdf/issue64-valid-original-syntax.pdf",
-  "pdfSha256": "a7d2f405639efc6cfad831ea51bac0387c8d1f281790de13a61df01544715fb8",
+  "pdfSha256": "5a664c0e8e4a59c60442455f9d7a1c2c5060c61fb9c07e6179b8b9d386fed247",
   "pages": 2,
   "host": "actual Debug FluxMarkdown CLI, macOS 27.0.1 arm64, local target override 12.0",
-  "visualReview": "Both current product PDF page PNGs exactly match the previously reviewed pages after inert MathML extraction. Formula layout and equation-link position remain unchanged.",
+  "visualReview": "Current static compatibility-entry PDF page rasters exactly match the previously reviewed product output.",
   "linkInspection": {
     "tool": "PDFKit",
     "annotations": 1,
@@ -28,7 +28,7 @@
     "not a tagged PDF",
     "PDF viewer mouse/VoiceOver interactions not covered by annotation inspection"
   ],
-  "bundleIndexSha256": "f76179f581c95d9b6e887fdae293746a51dd1f6986b19439a1ab953fb38772dd",
+  "bundleIndexSha256": "3497754a6219ea61c8a8db7d1eacf248e395a6d9bb9b579f3cbf822425c6eea8",
   "productRunner": "scripts/test-issue64-product-export.sh",
   "productRunnerEvidence": "product-export-runner-report.json",
   "rasterSha256": {
@@ -36,9 +36,8 @@
     "page-2.png": "aaab996b5beeb650e9c4acfb494c2bc8ab280d2817c5ca5755ceb32bf9a5992c"
   },
   "pendingSourceAtRun": {
-    "web-renderer/src/index.ts": "aeb1b45a3c0dc8b929b8ca9aea7739b26ffb12d202f22590fd697bf4b6a22cfd",
-    "web-renderer/src/safe-html.ts": "a88a5f5f02f4f02c1509460ec6cb350b0bf09e1ff1b491c97dadc508120fc94e",
-    "web-renderer/src/math-engine.ts": "6175b325d21d8c18c0cd000a79008086f40a35099e6c1c1d94ca8526d118aee6"
+    "web-renderer/src/index.ts": "8abde0c05a247b87472ddddc86de57c5beca36c8ccd9561b090afb506967a6e0",
+    "web-renderer/vite.config.ts": "601f01ea29a65843671d8fe7986df1bd3f7d91597450bbd9bcb1482484c10b5c"
   },
   "unsupportedMathImageExport": {
     "exitCode": 1,
