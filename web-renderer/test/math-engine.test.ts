@@ -189,3 +189,19 @@ test('measures using the current content width and text font, then removes the s
     host.remove();
 });
 jest.mock('../src/math-font-loader', () => ({ installMathFontLoader: () => {} }));
+
+test.each([
+    '<mglyph src="https://example.invalid/glyph.svg" width="10px" height="10px"/>',
+    '<mtext><svg xmlns="http://www.w3.org/2000/svg"><image href="https://example.invalid/glyph.svg"/></svg></mtext>',
+    '<mtext><img src="https://example.invalid/glyph.svg" alt="glyph"/></mtext>',
+])('image-bearing MathML retains source and does not prevent following mathematics: %s', async (body) => {
+    const raw='<math xmlns="http://www.w3.org/1998/Math/MathML">'+body+'</math>';
+    const input={...source('image',raw),kind:'mathml' as const};
+    const result=await renderMathSources([input,source('valid','x=1')],'no-image-resources');
+    expect(result.errors).toEqual([{sourceId:'image',code:'unsupported-resource'}]);
+    expect(result.items[0].html).toContain('&lt;math');
+    expect(result.items[0].html).toContain('example.invalid/glyph.svg');
+    expect(result.items[0].html).not.toContain('<image');
+    expect(result.items[1].html).toContain('<svg');
+    expect(document.querySelector('mglyph,svg image,[data-math-measurement]')).toBeNull();
+});

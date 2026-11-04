@@ -17,6 +17,7 @@
 | 标记与编号 | 自定义一次注册的 AMS tags 子类；每次渲染创建实例 | 避免空格标签 ID 碰撞、对象继承键误判及每会话 tagformat 全局类注册增长 |
 | Markdown 识别 | 在 markdown-it token 层建立数学源项，代码和普通 HTML 属性保持保护 | 已处理的 DOM 无法还原被转义/分列的原始 TeX |
 | 清理策略 | `safe-html.ts` 新增受控 math profile，仍复用 DOMPurify | 实测现有 document profile 会删除全部 SVG use，diagram profile会删除 mjx 外层容器 |
+| 数学图片资源 | 数学输出不支持 `mglyph`、SVG `image` 或 MathML 内嵌 HTML `img`；保留公式源码并通过共享错误界面说明边界 | 在采用到主文档前，从 DOMPurify 的独立文档片段提取 MathML；不能等排版后才移除图片，否则已可能发起资源请求。普通文档图片沿用既有策略 |
 | 导出 | 渲染结束后导出静态 SVG + 样式 + 辅助 MathML + 标准锚点 | 无 MathJax 脚本、字体网络请求或本地 scheme；PDF链接能力单独检查 |
 | 原功能依赖 | Typst 和 Mermaid 维持各自路径，KaTeX 依赖不随正文迁移删除 | 其内部数学依赖不等于正文引擎选择 |
 

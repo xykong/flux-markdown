@@ -2,7 +2,7 @@ import { installBlockCopy, blockCopyResult, CopyController } from './block-copy'
 import './styles/block-copy.css';
 import { installErrorFeedback, setFeedbackGeneration, feedbackGeneration } from './error-feedback';
 import { waitForExportReady } from './export-readiness';
-import { sanitizeDocumentHTML, sanitizeDiagramHTML } from './safe-html';
+import { sanitizeDocumentFragment, sanitizeDiagramHTML } from './safe-html';
 import { renderTSVTable } from './tsv';
 import { installMathSyntax } from './math-syntax';
 import { rememberMathSource, uniqueMathTargets } from './math-source-store';
@@ -998,10 +998,10 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         const html = parser.renderer.render(tokens, parser.options, environment);
 
         const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = sanitizeDocumentHTML(frontMatterHtml + html);
+        const documentFragment = sanitizeDocumentFragment(frontMatterHtml + html);
 
         if (options.enableKatex !== false) {
-            tempDiv.querySelectorAll('math').forEach(math => {
+            documentFragment.querySelectorAll('math').forEach(math => {
                 if (math.closest('pre, code, mjx-assistive-mml') || math.parentElement?.closest('math')) return;
                 const raw = math.outerHTML;
                 const display = math.getAttribute('display') === 'block';
@@ -1013,9 +1013,10 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
                 holder.className = 'flux-math-source';
                 holder.dataset.mathId = id;
                 math.replaceWith(holder);
-                holder.appendChild(math);
+                holder.textContent = raw;
             });
         }
+        tempDiv.appendChild(documentFragment);
 
         if (options.enableKatex !== false && mathSources.length) {
             const placeholders = uniqueMathTargets(tempDiv, mathSources.map(source => source.id));
@@ -1037,6 +1038,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
                     if (failure) {
                         target.classList.add('math-error');
                         if (failure.code === 'input-limit') target.classList.add('math-input-limit');
+                        if (failure.code === 'unsupported-resource') target.classList.add('math-resource-unsupported');
                     }
                 }
             } catch (error) {

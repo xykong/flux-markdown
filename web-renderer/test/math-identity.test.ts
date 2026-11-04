@@ -79,3 +79,32 @@ describe('document-scoped equation identity', () => {
         }
     });
 });
+
+test('seeded Unicode label bijections and equation permutations preserve the reference graph', () => {
+    let seed=0x64017;
+    const alphabet=['a','b','0','_',':',' ','é','e\u0301','α','中','𝛼'];
+    const next=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed;};
+    const labels=['a b','a_b','é','e\u0301','𝛼','α','constructor','__proto__','toString'];
+    for(let i=0;i<32;i++) labels.push('k'+i+':'+Array.from({length:8},()=>alphabet[next()%alphabet.length]).join('')+':end');
+    expect(new Set(labels).size).toBe(labels.length);
+    for(const renamed of [false,true]) {
+        const names=labels.map((name,index)=>renamed?'renamed:'+index+':'+name:name);
+        const order=names.map((_,i)=>i);
+        if(renamed)order.reverse();
+        const refs=names.map(name=>`\\(\\eqref{${name}}\\)`).join('\n');
+        const equations=order.map(i=>`\\[x=${i}\\tag{T${i}}\\label{${names[i]}}\\]`).join('\n');
+        const result=compile(refs+'\n'+equations,renamed?'property-renamed':'property-original');
+        expect(result.output).not.toContain('merror');
+        expect(result.output).not.toContain('???');
+        expect(Object.keys(result.labels)).toHaveLength(names.length);
+        const targetIDs=names.map((name,i)=>{
+            expect(result.labels[name].tag).toBe('T'+i);
+            expect(result.output).toContain('(T'+i+')');
+            return result.labels[name].id;
+        });
+        expect(new Set(targetIDs).size).toBe(names.length);
+        const references=[...result.output.matchAll(/href="#([^"]+)"/g)].map(match=>match[1]);
+        expect(references).toHaveLength(names.length);
+        expect(new Set(references)).toEqual(new Set(targetIDs));
+    }
+});

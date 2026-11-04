@@ -26,3 +26,9 @@ describe('safe mathematical output', () => {
         expect(root.querySelector('use')).toBeNull();
     });
 });
+
+test('mathematical SVG output cannot retain external image resources', () => {
+    const root=document.createElement('div');
+    root.innerHTML=sanitizeMathHTML('<svg><image href="https://example.invalid/glyph.svg" width="10" height="10"/></svg>');
+    expect(root.querySelector('image')).toBeNull();
+});

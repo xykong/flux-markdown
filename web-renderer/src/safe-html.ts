@@ -4,15 +4,18 @@ export function sanitizeMathHTML(html: string): string {
     return sanitizeMathOutput(html).html;
 }
 
-export function sanitizeMathOutput(html: string): { html: string; ids: string[]; links: string[]; paths: number; formulas: number } {
+export function sanitizeMathOutput(html: string): { html: string; ids: string[]; links: string[]; paths: number; formulas: number; blockedResources: boolean } {
     const fragment = DOMPurify.sanitize(html, {
         USE_PROFILES: { html: true, svg: true, mathMl: true },
         ADD_TAGS: ['mjx-container', 'mjx-assistive-mml', 'use'],
         ADD_ATTR: ['jax', 'display', 'overflow'],
-        FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed', 'form', 'input', 'button', 'textarea', 'select', 'base', 'link', 'meta', 'foreignObject', 'img', 'audio', 'video', 'source'],
+        FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed', 'form', 'input', 'button', 'textarea', 'select', 'base', 'link', 'meta', 'foreignObject', 'img', 'image', 'mglyph', 'audio', 'video', 'source'],
         FORBID_ATTR: ['srcdoc', 'name', 'autofocus'],
         RETURN_DOM_FRAGMENT: true,
     });
+    // FORBID_TAGS enforces the boundary. Removal metadata only tells callers
+    // that a formula lost visible resource content and must not appear complete.
+    const blockedResources = DOMPurify.removed.some(item => 'element' in item && item.element instanceof Element && /^(?:.*:)?(?:image|mglyph|img)$/i.test(item.element.localName));
     const identities = new Map<string, Element[]>();
     fragment.querySelectorAll('[id]').forEach(node => {
         const id = node.getAttribute('id')!;
@@ -43,18 +46,25 @@ export function sanitizeMathOutput(html: string): { html: string; ids: string[];
     const formulas = fragment.querySelectorAll('mjx-container').length;
     const container = document.createElement('div');
     container.appendChild(fragment);
-    return { html: container.innerHTML, ids, links, paths, formulas };
+    return { html: container.innerHTML, ids, links, paths, formulas, blockedResources };
 }
 
-/** Documents may contain presentation HTML, never executable page content. */
-export function sanitizeDocumentHTML(html: string): string {
-    return DOMPurify.sanitize(html, {
+const documentPolicy = {
         USE_PROFILES: { html: true, svg: true, mathMl: true },
         FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed', 'form', 'button', 'textarea', 'select', 'base', 'link', 'meta', 'foreignObject'],
         FORBID_ATTR: ['srcdoc', 'name', 'autofocus'],
         ADD_URI_SAFE_ATTR: ['data-source-line', 'data-source-line-end'],
         ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|local-md|file):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
-    });
+};
+
+/** Documents may contain presentation HTML, never executable page content. */
+export function sanitizeDocumentHTML(html: string): string {
+    return DOMPurify.sanitize(html, documentPolicy);
+}
+
+/** Keep nodes inert until mathematical inputs have been extracted. */
+export function sanitizeDocumentFragment(html: string): DocumentFragment {
+    return DOMPurify.sanitize(html, { ...documentPolicy, RETURN_DOM_FRAGMENT: true });
 }
 
 /** Diagram engines also embed user-provided links; sanitize their SVG output. */

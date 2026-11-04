@@ -1,8 +1,8 @@
 {
-  "sourceCommit": "6f2d492f724df8c3ec4d7d1907d087e23e8f7b68",
+  "sourceCommit": "7da8d837136eb9108bc8b20922a068485c0dacbf",
   "platform": "27.0.1",
   "architecture": "arm64",
-  "bundleIndexSha256": "7e84d9adb81b73940b151377c98d0da57d6b81f72a206b4314ce9c00f719a78d",
+  "bundleIndexSha256": "f76179f581c95d9b6e887fdae293746a51dd1f6986b19439a1ab953fb38772dd",
   "production": {
     "invalidExportRejected": true,
     "original": {
@@ -33,46 +33,46 @@
   "assetClosure": {
     "static": {
       "modules": [
-        "assets/PUA-GbmCXyb7.js",
-        "assets/accents-b-i-mU5ntSbP.js",
-        "assets/accents-D5lJJbFD.js",
-        "assets/arabic-ixdSIqi9.js",
-        "assets/arrows-GWFxE2oZ.js",
-        "assets/braille-d-DRHu5dJv.js",
-        "assets/braille-C7EzDtlM.js",
-        "assets/calligraphic-BlGf9TSc.js",
-        "assets/cherokee-Dkab4lRT.js",
-        "assets/cyrillic-ss-B0J_-feC.js",
-        "assets/cyrillic-YmHfovgd.js",
-        "assets/devanagari-Btk03lC0.js",
-        "assets/double-struck-D-ArecEv.js",
-        "assets/fraktur-BsoWgQS0.js",
-        "assets/greek-ss-F_8AawKm.js",
-        "assets/greek-HF1Ogbdo.js",
-        "assets/hebrew-CCBXGER1.js",
-        "assets/latin-b-j7R5e7mC.js",
-        "assets/latin-bi-CPYyhD2U.js",
-        "assets/latin-i-zt4hmH03.js",
-        "assets/latin-BivIqSa8.js",
-        "assets/marrows-jgsfXO-W.js",
-        "assets/math-pAg34Ujy.js",
-        "assets/monospace-ex-B196OMoJ.js",
-        "assets/monospace-l-CsywCwZZ.js",
-        "assets/monospace-CctIg2QQ.js",
-        "assets/mshapes-NGE_TRt4.js",
-        "assets/phonetics-ss-BxePTthI.js",
-        "assets/phonetics-CDX1MbMf.js",
-        "assets/sans-serif-b-CPMyCVd0.js",
-        "assets/sans-serif-bi-z_oM8Jdo.js",
-        "assets/sans-serif-ex-jIqFy_mJ.js",
-        "assets/sans-serif-i-CANASSp_.js",
-        "assets/sans-serif-r-DHFUNtlW.js",
-        "assets/sans-serif-BLDjUugq.js",
-        "assets/script-CLJWfJas.js",
-        "assets/shapes-Ih-f5B6w.js",
-        "assets/symbols-b-i-BQfiaJlr.js",
-        "assets/symbols-BPNKx-R0.js",
-        "assets/variants-DrXnQLYH.js"
+        "assets/PUA-CErs2-Pa.js",
+        "assets/accents-b-i-CSi6TS2H.js",
+        "assets/accents-D9vTlhKZ.js",
+        "assets/arabic-CpDUz-BC.js",
+        "assets/arrows-CF6tj95m.js",
+        "assets/braille-d-Ch5nveRJ.js",
+        "assets/braille-Bqy24Ms3.js",
+        "assets/calligraphic-DaSlswhl.js",
+        "assets/cherokee-CDuC8p00.js",
+        "assets/cyrillic-ss-DIXD8bi9.js",
+        "assets/cyrillic-DUkOQcvT.js",
+        "assets/devanagari-CGZuY2Hj.js",
+        "assets/double-struck-B0cisdE_.js",
+        "assets/fraktur-Cakg11x8.js",
+        "assets/greek-ss-RT36Ia6w.js",
+        "assets/greek-CNhiq1NX.js",
+        "assets/hebrew-RPKLhGdE.js",
+        "assets/latin-b-CoP9JM7P.js",
+        "assets/latin-bi-DIhSWleD.js",
+        "assets/latin-i-CYjB-rGr.js",
+        "assets/latin-HnOt6Ifl.js",
+        "assets/marrows-BNZdAHOM.js",
+        "assets/math-qrE__hS_.js",
+        "assets/monospace-ex-CV0XjnzL.js",
+        "assets/monospace-l-BmwsXZfD.js",
+        "assets/monospace-CjEb8PoD.js",
+        "assets/mshapes-Bg8p9jmL.js",
+        "assets/phonetics-ss-1YLI6dzZ.js",
+        "assets/phonetics-uWuwAHVW.js",
+        "assets/sans-serif-b-DbLgLiN_.js",
+        "assets/sans-serif-bi-DbrzWZvR.js",
+        "assets/sans-serif-ex-DlXEFt2a.js",
+        "assets/sans-serif-i-bhnS4uL5.js",
+        "assets/sans-serif-r-CU7VkOsJ.js",
+        "assets/sans-serif-Bkhcseph.js",
+        "assets/script-BdOCK8Pz.js",
+        "assets/shapes-ClmFjVsW.js",
+        "assets/symbols-b-i-cvAUQvDr.js",
+        "assets/symbols-Bgx3myWw.js",
+        "assets/variants-CArRDC_f.js"
       ],
       "manifestEntries": 165,
       "licenses": {
@@ -240,6 +240,53 @@
     ],
     "privateContentExcluded": true,
     "staleFeedbackRejected": true
+  },
+  "mathResourceBoundary": {
+    "cases": [
+      {
+        "exportRejected": true,
+        "followingFormulaRendered": true,
+        "sourcePreserved": true
+      },
+      {
+        "exportRejected": true,
+        "followingFormulaRendered": true,
+        "sourcePreserved": true
+      },
+      {
+        "exportRejected": true,
+        "followingFormulaRendered": true,
+        "sourcePreserved": true
+      }
+    ],
+    "recovered": true,
+    "sentinelResourceRequests": 0
+  },
+  "mathResourceHTTP": {
+    "ordinaryImageLoaded": true,
+    "ordinaryImageRequests": 1,
+    "mathematicalImageRequests": 0,
+    "mathCases": {
+      "cases": [
+        {
+          "exportRejected": true,
+          "followingFormulaRendered": true,
+          "sourcePreserved": true
+        },
+        {
+          "exportRejected": true,
+          "followingFormulaRendered": true,
+          "sourcePreserved": true
+        },
+        {
+          "exportRejected": true,
+          "followingFormulaRendered": true,
+          "sourcePreserved": true
+        }
+      ],
+      "recovered": true
+    },
+    "transport": "HTTP on 127.0.0.1 only"
   },
   "mathLayout": [
     {
@@ -437,18 +484,13 @@
   ],
   "worktreeDirty": true,
   "validationSourceHashes": {
-    "scripts/test-issue64-math.sh": "3d249b718962d15f36a50f57384e8d03c18003fe55f59b16c84248a6bee8c979",
+    "scripts/test-issue64-math.sh": "8eb216c42ccc38be8794bfee15730667b3547f5c9c754e66e32ad674f8c8c1f4",
     "scripts/issue64/asset-closure.py": "4f50b008d17614375a03c3efe2c535e5a3e387f4cf8b9c985b02392e0bbed094",
     "scripts/issue64/asset-closure.js": "02b1e1f9fe93accf0a5e8ab158532db5e6b7e0fb40ddf86fe43ffc65752ce325",
     "scripts/issue64/resource-failure.js": "93340e256abfd5abc1847883057554be49e0e916a40e3051179b780a0222a26d",
-    "scripts/research/issue64-math/main.swift": "99d55a2f640fbed24e36b86aa89da279fc716bcd880fa7358dbf081f4809dfaa",
-    "web-renderer/vite.config.ts": "26ec6fa3f5aaf1d5fd34983d52031c3f27feb0a9bca53ca04335a8b8f8088afb"
-  },
-  "additionalNativeCheck": {
-    "case": "math native keyboard copy and reference",
-    "log": "/tmp/flux-issue64-copy-status-native.log",
-    "passed": true,
-    "sourceSha256": "5941ba399f9a0dc0686229ea1cfd52cb3d2a85f40266b28297affb5feb04b463",
-    "checks": "Failure reply updates a nonempty polite live status exactly once, alongside existing copy/source selection/overflow/export assertions."
+    "scripts/research/issue64-math/main.swift": "dcf1ad6651d67b1b106992e4c30b48833af84d18e8a97172308f6e2a4883ad4f",
+    "web-renderer/vite.config.ts": "26ec6fa3f5aaf1d5fd34983d52031c3f27feb0a9bca53ca04335a8b8f8088afb",
+    "scripts/issue64/math-resource-boundary.js": "97ac6b8e15c63501ff1fbbc40a9ed1d1391a3162213fa0c366b09e7b7aa019d2",
+    "scripts/issue64/verify-math-resource-http.py": "b5d15aae53328e8160a10b9115aa8c5a5c57d9fff048532b1699cdfaaafc19bd"
   }
 }

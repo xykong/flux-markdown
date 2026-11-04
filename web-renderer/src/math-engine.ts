@@ -8,7 +8,7 @@ import { MathML } from '@mathjax/src/js/input/mathml.js';
 import { STATE } from '@mathjax/src/js/core/MathItem.js';
 import { createMathInput } from './math-identity';
 import { installMathFontLoader } from './math-font-loader';
-import { sanitizeMathHTML, sanitizeMathOutput } from './safe-html';
+import { sanitizeMathOutput } from './safe-html';
 import type { MathSource } from './math-syntax';
 import { partitionMathSources } from './math-limits';
 
@@ -18,7 +18,7 @@ installMathFontLoader();
 
 export interface MathEngineResult {
     items: Array<{ id: string; html: string }>;
-    errors: Array<{ sourceId: string; code: 'syntax' | 'output' | 'unresolved-reference' | 'input-limit' }>;
+    errors: Array<{ sourceId: string; code: 'syntax' | 'output' | 'unresolved-reference' | 'input-limit' | 'unsupported-resource' }>;
     css: string;
 }
 
@@ -50,9 +50,17 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
     stage.style.fontFamily = style?.fontFamily || 'system-ui';
     stage.style.fontWeight = style?.fontWeight || 'normal';
     stage.setAttribute('aria-hidden', 'true');
+    const blockedInputs = new Set<HTMLElement>();
     const nodes = sources.map(source => {
         const node = document.createElement(source.display ? 'div' : 'span');
-        if (source.kind === 'mathml') node.innerHTML = sanitizeMathHTML(source.payload);
+        if (source.kind === 'mathml') {
+            const input = sanitizeMathOutput(source.payload);
+            if (input.blockedResources) {
+                blockedInputs.add(node);
+                return node; // Never connect image-bearing MathML to the stage.
+            }
+            node.innerHTML = input.html;
+        }
         else node.textContent = (source.display ? '\\[' : '\\(') + source.payload + (source.display ? '\\]' : '\\)');
         stage.appendChild(node);
         return node;
@@ -72,7 +80,7 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
         doc.findMath({ elements: [stage] });
         await doc.renderPromise();
         checkCurrent();
-        const outputFailed = new Set(nodes.filter(node => node.querySelector('.mjx-output-error')));
+        const outputFailed = new Set(nodes.filter(node => blockedInputs.has(node) || node.querySelector('.mjx-output-error')));
         const failed = new Set(nodes.filter(node => outputFailed.has(node) || node.querySelector('[data-mml-node="merror"], merror')));
         const stageTargets = new Map<string, { count: number; failed: boolean }>();
         for (const node of nodes) {
@@ -83,7 +91,7 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
         }
         const errors: MathEngineResult['errors'] = [];
         nodes.forEach((node, index) => {
-            if (failed.has(node)) errors.push({ sourceId: sources[index].id, code: outputFailed.has(node) ? 'output' : 'syntax' });
+            if (failed.has(node)) errors.push({ sourceId: sources[index].id, code: blockedInputs.has(node) ? 'unsupported-resource' : outputFailed.has(node) ? 'output' : 'syntax' });
             let unresolved = false;
             const references: Array<{href:string;label:string}> = [];
             const referenceLabels = new Map<string, string>();
@@ -130,8 +138,8 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
         });
         const cleaned = nodes.map((node, index) => {
             const result = sanitizeMathOutput(node.innerHTML);
-            if (result.paths !== node.querySelectorAll('svg path').length || result.formulas !== node.querySelectorAll('mjx-container').length) {
-                errors.push({sourceId:sources[index].id, code:'output'});
+            if (result.blockedResources || result.paths !== node.querySelectorAll('svg path').length || result.formulas !== node.querySelectorAll('mjx-container').length) {
+                errors.push({sourceId:sources[index].id, code:result.blockedResources ? 'unsupported-resource' : 'output'});
             }
             return result;
         });
@@ -157,7 +165,7 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
             }
         }
 
-        const fallbackSources = new Set(errors.filter(error=>error.code==='output'||error.code==='unresolved-reference').map(error=>error.sourceId));
+        const fallbackSources = new Set(errors.filter(error=>error.code==='output'||error.code==='unresolved-reference'||error.code==='unsupported-resource').map(error=>error.sourceId));
         return {
             items: cleaned.map((item,index)=>{
                 if (fallbackSources.has(sources[index].id)) {

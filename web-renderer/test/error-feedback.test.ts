@@ -77,4 +77,27 @@ describe('error surface coverage', () => {
         expect(document.querySelector('[data-feedback-action="report"]')).toBeNull();
         stop();
     });
+    it.each([
+        ['en','image resource','Open in Editor'],
+        ['zh-Hans','图片资源','在编辑器中打开'],
+        ['de','Bildressource','Im Editor öffnen'],
+        ['fr','image non prise','Ouvrir dans l’éditeur'],
+        ['es','imagen que','Abrir en el editor'],
+        ['ar','صورة','فتح في المحرر'],
+    ])('explains unsupported mathematical images without diagnostics containing source (%s)', (language, hint, recovery) => {
+        const postMessage=jest.fn();
+        window.webkit={messageHandlers:{logger:{postMessage:jest.fn()},linkClicked:{postMessage:jest.fn()},errorFeedback:{postMessage}}};
+        setFeedbackGeneration('unsupported-image-'+language);
+        window.__fluxLang=language;
+        document.documentElement.setAttribute('data-context','app');
+        document.body.innerHTML='<span class="math-error math-resource-unsupported">SENSITIVE-MATH</span>';
+        const stop=installErrorFeedback(document.body);
+        const controls=document.querySelector('.error-feedback-controls')!;
+        expect(controls.textContent).toContain(hint);
+        expect(controls.querySelector('[data-feedback-action="recover"]')?.textContent).toBe(recovery);
+        expect(postMessage).toHaveBeenCalledWith(expect.objectContaining({kind:'math',reason:'resourceUnavailable',action:'record'}));
+        expect(JSON.stringify(postMessage.mock.calls)).not.toContain('SENSITIVE-MATH');
+        stop();
+    });
+
 });

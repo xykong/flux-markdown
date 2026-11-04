@@ -1,0 +1,65 @@
+{
+  "sourceCommit": "7da8d837136eb9108bc8b20922a068485c0dacbf",
+  "oracle": {
+    "directory": "/var/folders/31/2k2kp17n2f7blhy25xr06r9h0000gn/T/flux-issue64-clean-oracle-o1o37u4x",
+    "copiedInputs": [
+      "reference.tex",
+      "identities.tex"
+    ],
+    "noAuxiliaryInputs": true,
+    "cachedResourcesOnly": true,
+    "untrustedMode": true,
+    "passesPerDocument": 2,
+    "engineMatchesPinnedArchive": true,
+    "archiveSha256": "a3f1cac7c5678f01661a92212f58480ae3b0634115d880dbc59e2953ded45667",
+    "auxiliaryOutputsMatchArchivedReference": true,
+    "referenceRasterPagesMatchArchivedReview": 2,
+    "files": {
+      "reference.tex": "7a6bc0335bbb755ed4f9b112a2c6c64c0b3ca82ee6d790c33d1dc9c80003071e",
+      "identities.tex": "0695e6c042604b81b33cfd3d854f9d2d2a96f13995596bf4bfeebc4c0bdfee01",
+      "reference.aux": "15659c903017563a1eb259808fce6930c119a128dd3a29b49e9ee5f9886808e5",
+      "identities.aux": "8ae7cd1a697aa8847f4168ac774c1f910de8c44b6ad9d22a9de35fc78982e344",
+      "reference.pdf": "15b9acdcbfe0112ac4bdd92ff4e9f85a74ca56cecbbe2d72e2429bf1f078494f",
+      "fresh-1.png": "3aae3c34488f5007f59c9f9c20ac8d025e9d548407530dfcde15c7bc0557ac86",
+      "fresh-2.png": "72085a1acc36be36065495d138ff5782f55fdf7a3f0ce0d696fbfdf9237b02bb"
+    }
+  },
+  "negativeControls": {
+    "wrongOracleNumber": {
+      "directory": "/var/folders/31/2k2kp17n2f7blhy25xr06r9h0000gn/T/flux-issue64-clean-negative-1e5d43l0",
+      "mutation": "eq:pythagoras 1 -> 99",
+      "rejected": true
+    },
+    "removedExportWait": {
+      "log": "/tmp/flux-issue64-export-wait-mutation.log",
+      "mutation": "Replace currentRender with Promise.resolve() inside export readiness",
+      "rejected": true,
+      "detectedBehavior": "Previous document remained visible when export readiness returned",
+      "productionSourceRestored": true,
+      "readinessFunctionUnchangedAfterResourceFix": true
+    }
+  },
+  "propertyCheck": {
+    "seed": "0x64017",
+    "distinctLabels": 41,
+    "transformations": [
+      "bijective renaming",
+      "reverse equation order with forward references"
+    ],
+    "labelCases": [
+      "spaces versus underscores",
+      "composed versus decomposed Unicode",
+      "BMP and supplementary characters",
+      "inherited object-property names"
+    ],
+    "referenceGraphPreserved": true
+  },
+  "existingFaultEvidence": [
+    "web-renderer/test/math-engine.test.ts",
+    "docs/research/issue64/production-e2e-report.json"
+  ],
+  "limitations": [
+    "independent engine verification does not replace independent reviewer sign-off",
+    "native/older-platform/VoiceOver/memory acceptance remains separately tracked"
+  ]
+}

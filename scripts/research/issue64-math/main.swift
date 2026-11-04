@@ -2,6 +2,17 @@ import AppKit
 import WebKit
 let app = NSApplication.shared
 app.setActivationPolicy(.prohibited)
+final class ProbeSchemeHandler: NSObject, WKURLSchemeHandler {
+    let base: RendererBundleSchemeHandler
+    init(root: URL) { base = RendererBundleSchemeHandler(rootDirectory: root) }
+    func webView(_ webView: WKWebView, start task: WKURLSchemeTask) {
+        if task.request.url?.lastPathComponent == "issue64-forbidden-math-glyph.svg" {
+            fputs("FORBIDDEN_MATH_RESOURCE_REQUEST\n", stderr)
+        }
+        base.webView(webView, start: task)
+    }
+    func webView(_ webView: WKWebView, stop task: WKURLSchemeTask) { base.webView(webView, stop: task) }
+}
 final class Probe: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
     var view: WKWebView!
     var hostWindow: NSWindow?
@@ -15,7 +26,7 @@ final class Probe: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
             config.userContentController.add(self, name: "errorFeedback")
         }
         config.userContentController.addUserScript(WKUserScript(source: "window.addEventListener('error',e=>window.webkit.messageHandlers.trace.postMessage(String(e.message)));window.addEventListener('securitypolicyviolation',e=>window.webkit.messageHandlers.trace.postMessage('CSP '+e.blockedURI+' '+e.violatedDirective));window.addEventListener('unhandledrejection',e=>window.webkit.messageHandlers.trace.postMessage(String(e.reason)));console.warn=console.error=(...x)=>window.webkit.messageHandlers.trace.postMessage(x.map(String).join(' '));", injectionTime: .atDocumentStart, forMainFrameOnly: true))
-        config.setURLSchemeHandler(RendererBundleSchemeHandler(rootDirectory: URL(fileURLWithPath: CommandLine.arguments[2])), forURLScheme: "flux-renderer")
+        config.setURLSchemeHandler(ProbeSchemeHandler(root: URL(fileURLWithPath: CommandLine.arguments[2])), forURLScheme: "flux-renderer")
         let width = Double(ProcessInfo.processInfo.environment["FLUX_MATH_PROBE_WIDTH"] ?? "960") ?? 0
         guard width.isFinite, (240...1920).contains(width) else {
             fputs("Probe width must be between 240 and 1920 points\n", stderr)

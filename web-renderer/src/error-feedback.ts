@@ -36,7 +36,7 @@ export function installErrorFeedback(root: HTMLElement): () => void {
                 attached.set(element, generation);
                 const eventGeneration = generation;
                 // Equivalent module failures in one document share a bounded incident.
-                const reason = element.classList.contains('module-load-error') ? 'moduleUnavailable' : kind === 'images' ? 'resourceUnavailable' : kind === 'search' ? 'invalidInput' : 'operationFailed';
+                const reason = element.classList.contains('module-load-error') ? 'moduleUnavailable' : kind === 'images' || element.classList.contains('math-resource-unsupported') ? 'resourceUnavailable' : kind === 'search' ? 'invalidInput' : 'operationFailed';
                 const group = kind + ':' + reason;
                 const id = groupIDs.get(group) || String(++nextID);
                 groupIDs.set(group, id);
@@ -54,6 +54,17 @@ export function installErrorFeedback(root: HTMLElement): () => void {
                         ar: 'تتجاوز هذه الصيغة حد المعاينة. افتح المستند في المحرر لتبسيطها أو تقسيم المستند. تم الاحتفاظ بالمصدر الأصلي.',
                     };
                     hint.textContent = limitHints[(window.__fluxLang || navigator.language).split('-')[0]] || limitHints.en;
+                }
+                if (element.classList.contains('math-resource-unsupported')) {
+                    const hints: Record<string, string> = {
+                        en: 'This formula contains an image resource that mathematical previews do not support. Open the document in your editor to use a text formula or a separate image. The original source is preserved.',
+                        zh: '该公式包含数学预览暂不支持的图片资源。请在编辑器中改用文字公式，或将图片单独插入文档。原始源码已保留。',
+                        de: 'Diese Formel enthält eine Bildressource, die die mathematische Vorschau nicht unterstützt. Öffne das Dokument im Editor und verwende eine Textformel oder ein separates Bild. Der Quelltext bleibt erhalten.',
+                        fr: 'Cette formule contient une image non prise en charge par l’aperçu mathématique. Ouvrez le document dans votre éditeur pour utiliser une formule textuelle ou une image séparée. La source est conservée.',
+                        es: 'Esta fórmula contiene una imagen que la vista previa matemática no admite. Abre el documento en tu editor para usar una fórmula de texto o una imagen independiente. Se conserva el código original.',
+                        ar: 'تحتوي هذه الصيغة على صورة لا تدعمها المعاينة الرياضية. افتح المستند في المحرر لاستخدام صيغة نصية أو صورة منفصلة. تم الاحتفاظ بالمصدر الأصلي.',
+                    };
+                    hint.textContent = hints[(window.__fluxLang || navigator.language).split('-')[0]] || hints.en;
                 }
                 if (kind === 'search') {
                     const searchHints: Record<string, string> = { en: 'Check the search expression, or turn off regular expression search.', zh: '请检查搜索表达式，或关闭正则表达式搜索。', de: 'Prüfe den Suchausdruck oder deaktiviere die Regex-Suche.', fr: 'Vérifiez l’expression ou désactivez la recherche par expression régulière.', es: 'Revisa la expresión o desactiva la búsqueda con expresiones regulares.', ar: 'تحقق من تعبير البحث، أو أوقف البحث بالتعبيرات النمطية.' };

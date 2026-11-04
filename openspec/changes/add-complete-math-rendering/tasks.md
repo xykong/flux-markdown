@@ -27,12 +27,12 @@
 - [x] 4.1 Verify and integrate output sanitization, self-contained SVG glyph paths and standard accessible reference links (actual VoiceOver remains in 5.3).
 - [x] 4.2 Implement math styling, RTL isolation, narrow/native-zoom behavior, source copy and search/outline integration; current native geometry and trusted keyboard scrolling verified. Host/platform/VoiceOver acceptance remains in 5.2/5.3.
 - [x] 4.3 Preserve the stored math toggle; update supported language labels and shared contextual error feedback inventory (native activation acceptance remains in 5.2/5.3).
-- [ ] 4.4 Await math and resources for App/CLI export; produce offline standalone HTML and verify PDF/print behavior.
+- [x] 4.4 Await math and resources for App/CLI export; verify standalone HTML offline and actual CLI PDF structure/rasters. Remaining host/viewer/VoiceOver acceptance is tracked in 5.2/5.3.
 
 ## 5. Independent acceptance
-- [ ] 5.1 Run semantic/LaTeX-reference checks and sanitizer tests with real dependencies.
+- [x] 5.1 Run semantic/LaTeX-reference checks and sanitizer tests with real dependencies; clean cached-only two-pass TeX rebuild matches archived labels and reviewed rasters.
 - [ ] 5.2 Validate native App, QuickLook and Finder, minimum/current systems, themes, widths and repeated document lifecycle.
 - [ ] 5.3 Review screenshots, geometry, real keyboard and VoiceOver behavior; inspect exported HTML/PDF independently.
-- [ ] 5.4 Run metamorphic/property/fault-injection tests and demonstrate that broken labels/assets/awaits are detected.
+- [x] 5.4 Run seeded Unicode-label/permutation properties and fault injection. Wrong reference numbers, deleted glyph assets, removed export waits and forbidden mathematical image requests are detected; production mutations restored.
 - [ ] 5.5 Run full original-document regression, existing Typst/diagram checks and frozen performance gates.
 - [ ] 5.6 Record final evidence, supported boundaries, rollback and release notes; commit verified work items.
