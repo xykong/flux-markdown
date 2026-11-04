@@ -369,3 +369,11 @@ The engine previously validated reference targets before sanitization only. Adde
 Fault-injection tests delete an output path or a target ID from the sanitizer result and verify the affected formula/reference cannot report success or retain a broken href. A chain test verifies an earlier reference cannot survive when its later target is itself unresolved and falls back to source. These checks address the design's explicit damaged-output detection requirement.
 
 All **59 suites / 521 tests**, typecheck and production build pass. Independent host, minimum-system, VoiceOver and native-memory gates remain outstanding; no installed app or pending permission state changed.
+
+## Markdown container coverage
+
+Added production-entry cases for GFM escaped vertical bars, strong/emphasis math and footnote formula references after footnote relocation. These render valid mathematical semantics without breaking table column count or the reference target.
+
+A separate source-position case exposed table inline tokens lacking their own map: formulas incorrectly inherited line 1. The math collector now tracks enclosing block ranges and uses the row range for such tokens. The red test now reports rows 3 and 4 correctly. This changes position metadata, not GFM's delimiter/escaping rules.
+
+Full Jest **59 suites / 525 tests**, typecheck/build pass. Exact raw table-cell escape reconstruction and broader external/interaction/memory gates remain distinct from these semantic/line-range checks.

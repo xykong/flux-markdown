@@ -49,4 +49,8 @@ describe('math syntax without an output engine', () => {
         expect(sources.map(source=>source.payload)).toEqual(['a','b']);
         expect(sources.map(source=>source.firstLine)).toEqual([1,3]);
     });
+    test('table-cell formulas inherit the original row line range', () => {
+        const sources=parse('| Formula |\n| --- |\n| $x$ |\n| $y$ |');
+        expect(sources.map(source=>source.firstLine)).toEqual([3,4]);
+    });
 });

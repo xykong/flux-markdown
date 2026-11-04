@@ -133,4 +133,24 @@ describe('Issue 64 mathematical input contracts', () => {
         expect(preview().querySelector('.flux-math-source')?.getAttribute('data-source-line')).toBe('7');
         expect(preview().querySelector('.flux-math-source')?.getAttribute('data-source-line-end')).toBe('9');
     });
+    test('GFM table escaping preserves mathematical vertical bars',async()=>{
+        await render('| Formula | Result |\n| --- | --- |\n| $a\\|b$ | **$x^2$** |');
+        expect(preview().querySelectorAll('tbody td')).toHaveLength(2);
+        expect(formulas()).toHaveLength(2);
+        expect(preview().querySelector('.math-error')).toBeNull();
+        const semantic=preview().querySelector('mjx-assistive-mml math')!;
+        expect(semantic.textContent).toContain('|');
+    });
+    test('footnote formulas and references use source order despite footnote relocation',async()=>{
+        await render('[^n]: '+String.raw`\(\eqref{x}\)`+'\n\nBody[^n]\n\n'+String.raw`\[x=1\tag{A}\label{x}\]`);
+        expect(formulas()).toHaveLength(2);
+        const footnote=preview().querySelector('.footnotes')!;
+        expect(footnote.querySelector('a.math-reference-link')?.getAttribute('aria-label')).toBe('(A)');
+        expect(preview().querySelector('.math-error')).toBeNull();
+    });
+    test('strong and emphasis containers preserve formula semantics',async()=>{
+        await render('**'+String.raw`\(x^2\)`+'** and *$y^2$*');
+        expect(preview().querySelector('strong mjx-container')).not.toBeNull();
+        expect(preview().querySelector('em mjx-container')).not.toBeNull();
+    });
 });

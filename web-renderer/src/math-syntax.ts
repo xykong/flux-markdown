@@ -102,7 +102,11 @@ export function installMathSyntax(md: MarkdownIt, namespace = 'math'): MathSourc
 
     md.core.ruler.after('inline', 'flux_math_sources', state => {
         sources.length = 0;
+        const ranges: Array<[number, number] | null> = [];
         for (const token of state.tokens) {
+            if (token.nesting === -1) { ranges.pop(); continue; }
+            if (token.nesting === 1) ranges.push(token.map || ranges[ranges.length - 1] || null);
+            const sourceRange = token.map || ranges[ranges.length - 1];
             if (token.type === 'fence' && token.info.trim().split(/\s+/)[0] === 'math') {
                 token.type = 'flux_math_block';
                 const range = token.map!;
@@ -121,7 +125,7 @@ export function installMathSyntax(md: MarkdownIt, namespace = 'math'): MathSourc
                     meta.raw = lines.map((line, index) => line + (index === lines.length - 1 ? '' :
                         originalLines[first + index]?.match(/(\r\n|\r|\n)$/)?.[0] || '\n')).join('');
                 }
-                const firstLine = (token.map?.[0] || 0) + (meta.localLine || 0) + 1 + Number(state.env.sourceLineOffset || 0);
+                const firstLine = (sourceRange?.[0] || 0) + (meta.localLine || 0) + 1 + Number(state.env.sourceLineOffset || 0);
                 const source: MathSource = { id: `${namespace}-${sources.length}`, raw: meta.raw, payload: meta.payload,
                     display: meta.display, firstLine, lastLine: firstLine + meta.raw.split(/\r\n|\r|\n/).length - 1 };
                 meta.source = source;
