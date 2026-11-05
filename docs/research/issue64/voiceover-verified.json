@@ -1,0 +1,90 @@
+{
+  "observedAt": "2026-11-05T11:16:25.438312+00:00",
+  "rendererCommit": "868237a",
+  "host": "Dedicated secondary-screen WKWebView app with a unique bundle identifier and the unchanged production renderer",
+  "input": "docs/research/issue64/valid-original-syntax.md plus bounded fraction/root/matrix examples",
+  "control": "orca computer hotkey with explicit Ctrl+Alt modifiers, --restore-window, exact PID/window target; foreground PID verified",
+  "evidence": "Actual VoiceOver caption window captured by its own window ID; OCR assisted indexing, critical captions visually inspected",
+  "cases": {
+    "M01": {
+      "file": "docs/research/issue64/voiceover-verified/M01.png",
+      "sha256": "48c804f14abfcd9c5e96106b01f439cb51e5ad577a250e0553466884da962597"
+    },
+    "M02": {
+      "file": "docs/research/issue64/voiceover-verified/M02.png",
+      "sha256": "fcf4575149bbefb73e053c2153d162c274ab958f7c8e9bffb31a5639187672d8"
+    },
+    "M03": {
+      "file": "docs/research/issue64/voiceover-verified/M03.png",
+      "sha256": "cdc10699c7767b4eed32fda8f47ae164ed987f4e25292a059c2e0d620d1dad61"
+    },
+    "M04": {
+      "file": "docs/research/issue64/voiceover-verified/M04.png",
+      "sha256": "8546324f0406237a3740235ab72d290e442cab02dcac834615271c80c753b8d4"
+    },
+    "M05": {
+      "file": "docs/research/issue64/voiceover-verified/M05.png",
+      "sha256": "ebab5c1dbb2899d3509f393cfc7577c4a90cf5c34c405baf3bade8f20d4fae92"
+    },
+    "M06": {
+      "file": "docs/research/issue64/voiceover-verified/M06.png",
+      "sha256": "5aeeeb7dc19ab9d5491537945547935002b51aef4e01c8a911fbfe2d4312dc3e"
+    },
+    "M07-row1": {
+      "file": "docs/research/issue64/voiceover-verified/M07-row1.png",
+      "sha256": "b03e675e82d3004e1f209e9ce1d90381d30c324546107acec0fa44ea4f3e0f1c"
+    },
+    "M07-row2": {
+      "file": "docs/research/issue64/voiceover-verified/M07-row2.png",
+      "sha256": "852df67f45195fb14beeac7aada42052b10e4ebe2a0478ba5e581e54f5963818"
+    },
+    "M07-row3": {
+      "file": "docs/research/issue64/voiceover-verified/M07-row3.png",
+      "sha256": "e46a82fe44d70f3bef4f32ac338acb59f0d407136ba53e425b589fd020792d76"
+    },
+    "M08-matrix": {
+      "file": "docs/research/issue64/voiceover-verified/M08-matrix.png",
+      "sha256": "26cb7c7e17c7e28cbdea32cb2cd17aadd1e75cddb80f7df43d9688e4ce655af5"
+    },
+    "M08-cases": {
+      "file": "docs/research/issue64/voiceover-verified/M08-cases.png",
+      "sha256": "524fbb0affea75e1da8a8b28f12bba01b296a3d9b8e39080ff6aba047e832610"
+    },
+    "M09": {
+      "file": "docs/research/issue64/voiceover-verified/M09.png",
+      "sha256": "4160554cfed73dbed428300c1704ed90bf4e4cd9149daca5797ac9b444273ac2"
+    },
+    "M10-link": {
+      "file": "docs/research/issue64/voiceover-verified/M10-link.png",
+      "sha256": "df13e64244c0a1b16c62c47116ed38299d2648e039e3174140d6ac5557098b85"
+    },
+    "M10-activate": {
+      "file": "docs/research/issue64/voiceover-verified/M10-activate.png",
+      "sha256": "4160554cfed73dbed428300c1704ed90bf4e4cd9149daca5797ac9b444273ac2"
+    },
+    "M11": {
+      "file": "docs/research/issue64/voiceover-verified/M11.png",
+      "sha256": "a4d3ff2eef3a508372e7b2d1e2983568eb8083d62e5cf586cd1dedb0937c7abd"
+    },
+    "M13": {
+      "file": "docs/research/issue64/voiceover-verified/M13.png",
+      "sha256": "07f9144c9e235013abc3dad771fdd207da1135a80ffb2d7e94e2635c7bd091e8"
+    },
+    "nested-matrix": {
+      "file": "docs/research/issue64/voiceover-verified/nested-matrix.png",
+      "sha256": "3e7ac53d8be6c4ad9989f00d9fdd75f0a673d3d2ba60894bca213b56c9715e75"
+    }
+  },
+  "result": "Valid mathematical speech text and nested structural exploration verified; labelled references recognized as links and activation announces their target equation",
+  "limitations": [
+    "Physical audio playback not recorded",
+    "Default VoiceOver Chinese phrasing retained, including row-relative coordinates during nested table exploration",
+    "This does not constitute memory acceptance or native recovery-action execution"
+  ],
+  "settingsChanged": false,
+  "cleanup": {
+    "VoiceOverStopped": true,
+    "ownedProbeStopped": true,
+    "noAutomationPermissionChanges": true
+  }
+}

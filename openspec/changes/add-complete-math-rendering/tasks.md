@@ -14,7 +14,7 @@
 - [x] 2.3 Measure 20 fresh-process and 30 warm samples; freeze reference-hardware time, asset and DOM budgets.
 - [x] 2.4 Select exact engine/font versions, package profile, SVG output, assistive MathML and no-Worker policy in the design.
 - [x] 2.5 Obtain independent human review of the original-case expectations/reference: user explicitly confirmed M01–M13 as consistent in the three-column packet. Scope and exact page hash are recorded in output/pdf/issue64-review/human-review.json; no separate human approval of supplemental contracts is implied.
-- [ ] 2.6 Validate actual VoiceOver and WebContent memory; freeze environment-specific limits. Minimum-system/physical Intel validation explicitly waived by user on 2026-11-05; compatibility remains unverified.
+- [ ] 2.6 Validate WebContent memory and freeze its environment-specific limit. Actual VoiceOver speech text/structural navigation is now verified via captions and native foreground controls (voiceover-verified.json). Minimum-system/physical Intel validation explicitly waived by user on 2026-11-05; compatibility remains unverified.
 - [x] 2.7 Verify the production modular build and full runtime asset closure: current WebKit loads all 40 SVG glyph modules; Vite manifest/resource/license checks and missing-glyph fault injection pass. Minimum-platform compatibility remains in 2.6.
 
 ## 3. Parsing and document semantics

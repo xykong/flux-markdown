@@ -66,7 +66,14 @@ final class Probe: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
             window.setFrame(frame, display: false)
             window.title = "FluxMarkdown mathematical memory probe"
             window.contentView = view
-            window.orderBack(nil)
+            if policy.allowsFocus {
+                app.setActivationPolicy(.regular)
+                window.makeKeyAndOrderFront(nil)
+                window.makeFirstResponder(view)
+                app.activate(ignoringOtherApps: true)
+            } else {
+                window.orderBack(nil)
+            }
             hostWindow = window
         }
         view.load(URLRequest(url: URL(string: CommandLine.arguments[1])!))
