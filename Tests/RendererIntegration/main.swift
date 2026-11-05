@@ -147,10 +147,12 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         const scrolling=document.querySelector('.math-inline-overflow');
         if(!scrolling || scrolling.tabIndex!==0)throw new Error('Wide inline formula lacks focusable scroll surface');
         scrolling.scrollLeft=0;scrolling.focus();
+        const scrollKeyEvidence=[];
+        scrolling.addEventListener('keydown',event=>{scrollKeyEvidence.push({key:event.key,trusted:event.isTrusted,focused:document.hasFocus(),prevented:event.defaultPrevented});},{once:true});
         window.webkit.messageHandlers.nativeMathKey.postMessage('right');
         const scrollDeadline=performance.now()+3000;
         while(scrolling.scrollLeft===0 && performance.now()<scrollDeadline)await new Promise(r=>setTimeout(r,30));
-        if(!(scrolling.scrollLeft>0 && window.scrollX===0))throw new Error(JSON.stringify({scrollLeft:scrolling.scrollLeft,width:scrolling.clientWidth,scrollWidth:scrolling.scrollWidth,windowX:window.scrollX,active:document.activeElement?.className,tabIndex:scrolling.tabIndex}));
+        if(!(scrolling.scrollLeft>0 && window.scrollX===0))throw new Error(JSON.stringify({scrollLeft:scrolling.scrollLeft,width:scrolling.clientWidth,scrollWidth:scrolling.scrollWidth,windowX:window.scrollX,active:document.activeElement?.className,tabIndex:scrolling.tabIndex,documentFocused:document.hasFocus(),keys:scrollKeyEvidence}));
         window.webkit.messageHandlers.nativeMathKey.postMessage('narrow');
         const narrowDeadline=performance.now()+3000;
         while(window.innerWidth>160 && performance.now()<narrowDeadline)await new Promise(r=>setTimeout(r,30));
