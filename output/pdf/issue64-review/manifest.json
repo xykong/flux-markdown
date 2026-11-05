@@ -1,0 +1,12 @@
+{
+  "candidateCommit": "868237a",
+  "reviewerSignOff": false,
+  "files": {
+    "output/pdf/issue64-independent-reference.pdf": "ecec0311ce91d2b346bf8ca98dcd02eb6cfd752791c27e82eed034242f76fd19",
+    "output/pdf/issue64-review/candidate.pdf": "d1a1bca530ca347a7b1780cff359694716851caed042cad3a9978d08730c2ab0",
+    "output/pdf/issue64-review/numbering-contracts.pdf": "810fe43359354958acc29a727f7fb6f94dab6d5d7c9c086afd8d1ceb366cbfea",
+    "output/pdf/issue64-review/index.html": "d49b244f60761d4f75d79b866c1d3ef55480c9acacc817b58a3175e103a5a0da"
+  },
+  "originalCases": 13,
+  "expectations": "docs/research/issue64/acceptance-expectations.json"
+}

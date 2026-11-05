@@ -1,0 +1,38 @@
+{
+  "candidate": "868237a",
+  "finderPreviewPane": {
+    "validCorpusRendered": true,
+    "compactModeNoCopyControls": true,
+    "referenceClickReachesNumberedEquation": true,
+    "extensionPID": 59218,
+    "extensionPath": "/Applications/FluxMarkdown.app/Contents/PlugIns/MarkdownPreview.appex/Contents/MacOS/MarkdownPreview",
+    "registrationRepair": "lsregister -f installed App; pluginkit -a installed extension; no global default editor change",
+    "initialState": "raw text preview before current installed path was registered"
+  },
+  "nativeWebKitCasesPassed": 29,
+  "nativeLog": "build/issue64-secondary-renewed-native.log",
+  "voiceOver": {
+    "startedByAssistant": true,
+    "userConfirmedCaptionPanel": true,
+    "secondaryDisplayScreenshotObserved": true,
+    "observedCaptionMeaning": [
+      "Finder text field guidance",
+      "Finder list/selection guidance"
+    ],
+    "mathematicalSpeechVerified": false,
+    "reason": "Targeted app AX access timed out; injected VO chords did not reliably navigate into the remote preview",
+    "shutdownVerified": true,
+    "automationSettingsChanged": false
+  },
+  "installationRestored": {
+    "startedAt": "2026-11-05T08:44:04.801545+00:00",
+    "original": "/Applications/.FluxMarkdown-issue64-original",
+    "candidate": "build/issue64-host-validation/candidate-868237a.app",
+    "restorationRequired": false,
+    "restoredAt": "2026-11-05T09:23:45.534809+00:00",
+    "originalHashesMatch": true,
+    "originalRegistrationRefreshed": true
+  },
+  "reviewPacket": "output/pdf/issue64-review/index.html",
+  "reviewerSignOff": false
+}
