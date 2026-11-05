@@ -1,48 +1,68 @@
-"""Build the offline human review page from the frozen oracle and actual App exports."""
+"""One item per row: independent reference, actual App output, reviewer feedback."""
 from pathlib import Path
 import base64
 import hashlib
 import html
 import json
+import fitz
 
 root = Path(__file__).resolve().parents[2]
 out = root / 'output/pdf/issue64-review'
+items = out / 'items'; items.mkdir(exist_ok=True)
 cases = json.loads((root / 'docs/research/issue64/math-cases.json').read_text())
-checks = [
-'E = mc²：等号与平方位置正确。', 'x > 0：不等号方向正确。', '根号覆盖 x²，右侧为 x；结合原文 x > 0 的条件理解。',
-'a² + b² = c²：三个平方均为上标。', '积分上下限为负无穷、正无穷；指数为 −x²；右侧为 √π。',
-'求和下限 k = 1、上限 n；右侧为 n(n+1)/2。', 'aligned 共三行，等号对齐；分式、极限和“条件概率”均完整。',
-'矩阵为两行两列 [1,2;3,4]；分段函数为 x²（x≥0）和 −x（x<0）。',
-'勾股公式右侧编号为 (1)，没有重复或缺失编号。', '引用文字为 (1)，在候选 PDF 或应用中点击可定位到 M09。',
-'∇·粗体 E = ρ/ε₀，下标 0 完整。',
-'故意无效命令应报错、保留源码和后文，并阻止完整成功导出；因此本项不在候选 PDF 中。',
-'MathML 输入显示 x²+y²=z²；三个指数都是 2。此项按原始 XML 结构核对，独立 TeX PDF 未覆盖它。'
-]
+reference_path = root / 'output/pdf/issue64-independent-reference.pdf'
+reference = fitz.open(reference_path)
+candidate = fitz.open(out / 'candidate.pdf')
+export_evidence = json.loads((out / 'app-export-evidence.json').read_text())
+assert export_evidence['invalidExport']['exitCode'] != 0 and not export_evidence['invalidExport']['outputCreated']
+assert export_evidence['candidatePDFSha256'] == hashlib.sha256((out / 'candidate.pdf').read_bytes()).hexdigest()
+# PDF-point viewports, checked against the original complete pages. No formula is re-typeset here.
+reference_boxes = {
+'M01': (64,157,114,176), 'M02': (64,196,99,214), 'M03': (64,230,114,251),
+'M04': (64,267,129,289), 'M05': (248,309,346,350), 'M06': (252,380,342,423),
+'M07': (185,451,410,548), 'M08': (201,571,394,620), 'M09': (265,650,532,678),
+'M10': (64,699,84,718), 'M11': (267,744,327,780)}
+candidate_boxes = {
+'M01': (0,(169.8,305,242.2,332)), 'M02': (0,(357,307,409,331)), 'M03': (0,(442.8,303,514,332)),
+'M04': (0,(186,347,285.5,373)), 'M05': (0,(218,431,378,484)), 'M06': (0,(222,540,372,599)),
+'M07': (1,(113,118,485,271)), 'M08': (1,(134,325,460,381)), 'M09': (1,(244,432,540,465)),
+'M10': (1,(170.5,476,193.2,503)), 'M11': (1,(247,558,348,605)), 'M13': (0,(53,200,163,229))}
+names = ['能量公式','不等式','根号与上标','勾股公式','积分','求和','三行对齐与分式','矩阵与分段函数','公式编号','编号引用','数学代码块','故意错误的公式','MathML 公式']
+hints = ['核对 c 的平方。','核对大于号方向。','根号应覆盖 x²。','三个平方均为上标。','核对上下限、负指数和根号。','核对上下限与分母 2。','应有三行；分式和“条件概率”完整。','矩阵两行两列，分段函数两行。','右侧编号应为 (1)。','显示为 (1)，并对应上一条公式。','E 为粗体，ε 的下标为 0。','故意写错的命令不应成功导出。','三个变量的指数均为 2。']
 def uri(path, mime):
     return 'data:' + mime + ';base64,' + base64.b64encode(path.read_bytes()).decode()
-def image(name, label):
-    return f'<button class="page" data-caption="{html.escape(label)}"><img alt="{html.escape(label)}" src="{uri(out/name,"image/png")}"></button>'
-rows = []
-for case, check in zip(cases, checks):
-    ident=case['id']; source=html.escape(case['tex'])
-    rows.append(f'<article class="check"><label for="{ident}"><b>{ident}</b> · 原文第 {case["line"]} 行</label><p>{check}</p><select id="{ident}" aria-label="{ident} 复核结果"><option>未核对</option><option>通过</option><option>有问题</option></select><details><summary>查看原始输入</summary><pre>{source}</pre></details></article>')
-reference=root/'output/pdf/issue64-independent-reference.pdf'
-page=r'''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Issue 64 公式人工复核</title>
-<style>body{margin:0;background:#f4f6fa;color:#17212e;font:16px/1.6 system-ui,sans-serif}main{max-width:1440px;margin:auto;padding:28px}h1{font-size:32px;margin:0}h2{margin-top:30px}p{max-width:1000px}.note{background:#fff8e3;border-left:4px solid #b77a08;padding:14px 18px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.panel,.check{background:white;padding:18px;border:1px solid #dce2eb;border-radius:12px}.panel h3{margin-top:0}.page{display:block;width:100%;border:0;background:white;padding:0;cursor:zoom-in}.page img{width:100%;height:auto;display:block}.checks{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.check p{margin:8px 0}select,button,textarea{font:inherit}select{padding:6px;max-width:100%}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}a{color:#1454c0}textarea{box-sizing:border-box;width:100%;min-height:160px;padding:12px}dialog{max-width:94vw;max-height:94vh;padding:12px;border:1px solid #8793a3;border-radius:10px}dialog img{display:block;max-width:88vw;height:auto}dialog button{position:sticky;top:0;float:right}dialog::backdrop{background:#0009}.actions{display:flex;gap:16px;flex-wrap:wrap}#generate{padding:9px 18px;background:#155dcc;color:white;border:0;border-radius:8px;margin:10px 0}@media(max-width:900px){.grid,.checks{grid-template-columns:1fr}main{padding:16px}}@media print{select,#generate,dialog{display:none}.grid{display:block}}</style>
-<main><h1>Issue 64 · 公式人工复核</h1><p>请核对符号、上下标、分式、矩阵行列、编号与引用。点击任一页面图片可放大；字体、字号和分页可以不同，不要求像素相同。</p>
-<div class="note">共 12 个有效数学项和 1 个故意错误项。左侧由独立 Tectonic / XeTeX + amsmath 编译，右侧来自候选 App 的实际 PDF 导出。M12 不应成功导出；M13 的 MathML 结构另行核对。当前未替你填写任何“通过”。</div>
-<div class="actions">__LINKS__</div><h2>原始数学语料</h2><div class="grid"><section class="panel"><h3>独立 TeX 参照 · M01–M11</h3>__REF__</section><section class="panel"><h3>候选 App · 12 个有效项</h3><p>M13 在第一页最上方；M01–M06 在第一页，M07–M11 在第二页。</p>__CURRENT__</section></div>
-<h2>逐项核对</h2><div class="checks">__CHECKS__</div>
-<h2>补充：前向引用、自动编号与 tag*</h2><p>检查前向引用 (A)、后向引用 A、自动编号 (1)、align 首行 (2)、无编号次行，以及 tag* 的 B / (B)。右侧输入直接取自左侧参照的对应段落。</p><div class="grid"><section class="panel"><h3>独立 TeX 参照</h3>__REF2__</section><section class="panel"><h3>候选 App 实际导出</h3>__CONTRACT__</section></div>
-<h2>反馈给我</h2><p>请勾选已核对的项目，并写出有问题的 ID 和现象。本页不上传数据；生成后把摘要发回聊天即可。未核对项不会计作通过。</p><label for="notes">补充意见（可选）</label><textarea id="notes" placeholder="例如：M08 的第二行……；补充编号案例已核对……"></textarea><button id="generate">生成复核摘要</button><textarea id="report" readonly aria-label="可复制的复核摘要"></textarea>
-<p>参照来源：issue 64 原附件；实现前冻结的 acceptance-expectations.json。候选实现：868237a。此页供人工复核，不替代 VoiceOver、实际宿主或内存验收。</p></main>
-<dialog id="zoom"><button id="closeZoom">关闭放大图</button><h2 id="caption"></h2><img id="zoomImage" alt=""></dialog>
-<script>const dialog=document.getElementById('zoom');document.querySelectorAll('.page').forEach(button=>button.onclick=()=>{const source=button.querySelector('img');const image=document.getElementById('zoomImage');image.src=source.src;image.alt=source.alt;document.getElementById('caption').textContent=button.dataset.caption;dialog.showModal();});document.getElementById('closeZoom').onclick=()=>dialog.close();document.getElementById('generate').onclick=()=>{const lines=[...document.querySelectorAll('.check select')].map(select=>select.id+'：'+select.value);document.getElementById('report').value='Issue 64 人工复核\n'+lines.join('\n')+'\n补充：'+document.getElementById('notes').value;};</script></html>'''
+def crop(document, page_number, box, filename, scale):
+    path=items/filename
+    document[page_number].get_pixmap(matrix=fitz.Matrix(3,3),clip=fitz.Rect(box),alpha=False).save(path)
+    return f'<button type="button" class="formula-image" aria-label="放大公式"><img alt="公式图像" style="width:{(box[2]-box[0])*scale}px" src="{uri(path,"image/png")}"></button>'
+rows=[]
+for index,case in enumerate(cases):
+    ident=case['id']
+    if ident in reference_boxes:
+        expected=crop(reference,0,reference_boxes[ident],ident+'-reference.png',2)
+    elif ident=='M13':
+        expected='<div class="native-math">'+case['tex']+'</div>'
+    else:
+        expected='<div class="behavior"><strong>应当报错，拒绝导出</strong><p>不能把无效命令显示成正常公式。</p></div>'
+    if ident in candidate_boxes:
+        p,box=candidate_boxes[ident];actual=crop(candidate,p,box,ident+'-app.png',1.35)
+    else:
+        actual='<div class="behavior actual"><strong>App 已拒绝导出</strong><p>未生成 PDF 文件。</p><small>来自实际 App 导出验证记录，不是错误界面截图。</small></div>'
+    options=''.join(f'<label class="choice"><input type="radio" name="{ident}" value="{label}"><span>{label}</span></label>' for label in ['一致','不一致','内容一致，但排版有问题','无法判断'])
+    rows.append(f'''<tr data-case="{ident}"><td><div class="item-label"><b>{ident}</b> {names[index]}</div><div class="visual">{expected}</div><p class="hint">{hints[index]}</p></td><td><div class="app-label">{names[index]}</div><div class="visual">{actual}</div></td><td class="feedback"><fieldset><legend class="sr-only">{ident} 的反馈</legend>{options}</fieldset><textarea aria-label="{ident} 补充说明" placeholder="补充说明（可不填）" rows="2"></textarea><details><summary>查看原始输入</summary><pre>{html.escape(case['tex'])}</pre></details></td></tr>''')
+page=r'''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Issue 64 · 逐项公式对比</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#f4f6fa;color:#17212e;font:16px/1.55 system-ui,sans-serif}main{max-width:1680px;margin:auto;padding:24px}h1{font-size:28px;margin:0 0 8px}.intro{margin:0 0 18px;color:#4b586a}.table-wrap{overflow:visible;border:1px solid #d8e0ea;border-radius:12px;background:white}table{border-collapse:collapse;width:100%;min-width:1050px;table-layout:fixed}col.compare{width:37%}col.feedback-col{width:26%}th{background:#eaf0f8;text-align:left;padding:16px 20px;font-size:18px;position:sticky;top:0;z-index:1}tr{scroll-margin-top:72px}td{vertical-align:top;padding:20px;border-top:1px solid #dce3ed}td+td{border-left:1px solid #e5eaf1}.item-label,.app-label{font-size:15px;margin-bottom:16px}.item-label b{color:#1c5cac;margin-right:8px}.app-label{color:#66758a}.visual{min-height:90px;display:flex;align-items:center;justify-content:center;padding:10px 0}.formula-image{border:0;padding:0;background:white;cursor:zoom-in;max-width:100%}.formula-image img{display:block;max-width:100%;height:auto}.hint{font-size:14px;color:#637087;margin:12px 0 0}.native-math{font-size:25px}.behavior{width:100%;background:#f7f8fa;padding:16px;border-radius:8px;font-size:15px}.behavior p{margin:6px 0}.behavior small{color:#66758a}.actual{background:#fff5e4}fieldset{border:0;margin:0;padding:0}.choice{display:flex;align-items:flex-start;gap:8px;padding:6px 0;cursor:pointer;font-size:15px}.choice input{margin-top:5px;accent-color:#155dcc}.feedback textarea{width:100%;margin-top:8px;border:1px solid #c8d2df;border-radius:6px;padding:8px;font:14px/1.5 system-ui;resize:vertical}details{font-size:13px;color:#69768a;margin-top:10px}summary{cursor:pointer}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}.sr-only{position:absolute;clip:rect(0,0,0,0);width:1px;height:1px;overflow:hidden}.footer{margin-top:20px;padding:20px;background:white;border:1px solid #dce3ed;border-radius:12px}.footer p{margin:0 0 12px}.primary{background:#155dcc;color:white;border:0;border-radius:7px;padding:10px 18px;font:16px system-ui;cursor:pointer}.progress{font-size:14px;color:#526075;margin-left:12px}#report{display:block;width:100%;min-height:180px;margin-top:14px;padding:12px;font:14px/1.6 system-ui;border:1px solid #c8d2df;border-radius:6px}#report[hidden]{display:none}.sources a{display:inline-block;margin:6px 20px 6px 0;color:#155dcc}dialog{max-width:94vw;max-height:92vh;border:1px solid #9ca8b7;border-radius:10px;padding:20px}dialog::backdrop{background:#0008}dialog img{display:block;max-width:85vw;max-height:75vh;width:auto;height:auto}dialog button{float:right;margin-bottom:12px;padding:6px 12px}tr.done{background:#fbfdff}@media(max-width:1100px){.table-wrap{overflow-x:auto}main{padding:12px}h1{font-size:24px}}@media print{.feedback,.footer{display:none}table{min-width:0}th,td{position:static}}</style>
+<main><h1>逐项公式对比</h1><p class="intro">每行只看一项：对比左、中两列，在右侧选择。字体和字号不同可以接受；重点看公式内容、结构和编号。</p>
+<div class="table-wrap"><table><colgroup><col class="compare"><col class="compare"><col class="feedback-col"></colgroup><thead><tr><th>① 正确参照</th><th>② App 实际输出</th><th>③ 你的判断</th></tr></thead><tbody>__ROWS__</tbody></table></div>
+<section class="footer"><p>选完后点击下面的按钮，把生成的文字复制回聊天。不确定的项目选“无法判断”即可。</p><button class="primary" id="generate">生成反馈摘要</button><span class="progress" id="progress" aria-live="polite">已判断 0 / 13 项</span><textarea id="report" hidden readonly aria-label="复制回聊天的反馈摘要"></textarea>
+<details class="sources"><summary>参照来源与完整 PDF（无需先看）</summary><p>左侧 M01–M11 截自独立 TeX 编译参照，M13 使用浏览器原生 MathML；中间有效公式截自候选 App 的实际 PDF。M12 比较错误导出行为。图片仅裁取对应区域，没有重新绘制公式。此页不自动上传反馈。</p>__LINKS__<p>候选实现：868237a。点击公式图片可放大。编号跳转可在候选 PDF 中点击 (1) 检查。</p></details></section></main>
+<dialog id="zoom"><button type="button" id="closeZoom">关闭</button><img id="zoomImage" alt="放大的公式"></dialog>
+<script>const rows=[...document.querySelectorAll('tr[data-case]')],dialog=document.getElementById('zoom');function update(){const n=rows.filter(r=>r.querySelector('input:checked')).length;document.getElementById('progress').textContent='已判断 '+n+' / 13 项';rows.forEach(r=>r.classList.toggle('done',!!r.querySelector('input:checked')));}document.querySelectorAll('input[type=radio]').forEach(i=>i.onchange=update);document.querySelectorAll('.formula-image').forEach(b=>b.onclick=()=>{document.getElementById('zoomImage').src=b.querySelector('img').src;dialog.showModal();});document.getElementById('closeZoom').onclick=()=>dialog.close();document.getElementById('generate').onclick=()=>{const lines=rows.map(r=>{const selected=r.querySelector('input:checked');const note=r.querySelector('textarea').value.trim();return r.dataset.case+'：'+(selected?selected.value:'未核对')+(note?'；'+note:'');});const report=document.getElementById('report');report.value='Issue 64 公式复核\n'+lines.join('\n');report.hidden=false;report.focus();report.select();};</script></html>'''
 links=[]
-for path,label,name in [(reference,'下载独立参照 PDF','reference.pdf'),(out/'candidate.pdf','下载候选原始语料 PDF','candidate.pdf'),(out/'numbering-contracts.pdf','下载补充编号 PDF','numbering-contracts.pdf')]:
+for path,label,name in [(reference_path,'独立参照 PDF','reference.pdf'),(out/'candidate.pdf','App 输出 PDF','candidate.pdf'),(out/'numbering-contracts.pdf','补充编号案例 PDF','numbering-contracts.pdf')]:
     links.append(f'<a download="{name}" href="{uri(path,"application/pdf")}">{label}</a>')
-for key,value in {'__LINKS__':' '.join(links),'__REF__':image('reference-1.png','独立参照：原始语料'),'__CURRENT__':image('candidate-1.png','候选 App：第 1 页')+image('candidate-2.png','候选 App：第 2 页'),'__CHECKS__':''.join(rows),'__REF2__':image('reference-2.png','独立参照：补充编号'),'__CONTRACT__':image('contracts-1.png','候选 App：补充编号')}.items():page=page.replace(key,value)
+page=page.replace('__ROWS__',''.join(rows)).replace('__LINKS__',''.join(links))
 (out/'index.html').write_text(page)
-manifest={'candidateCommit':'868237a','reviewerSignOff':False,'files':{str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for p in [reference,out/'candidate.pdf',out/'numbering-contracts.pdf',out/'index.html']},'originalCases':len(cases),'expectations':'docs/research/issue64/acceptance-expectations.json'}
+manifest={'layout':'one item per row; reference / actual output / feedback','candidateCommit':'868237a','reviewerSignOff':False,'originalCases':len(cases),'referencePDF':str(reference_path.relative_to(root)),'referenceCropBoxes':reference_boxes,'candidateCropBoxes':candidate_boxes,'files':{str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for p in [reference_path,out/'candidate.pdf',out/'app-export-evidence.json',out/'index.html',*sorted(items.glob('*.png'))]}}
 (out/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
 print(out/'index.html')

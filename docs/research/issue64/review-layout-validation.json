@@ -1,0 +1,17 @@
+{
+  "columns": 3,
+  "images": 23,
+  "progressVerified": true,
+  "rows": 13,
+  "summaryVerified": true,
+  "unreviewedDefault": true,
+  "zoomVerified": true,
+  "layout": "reference / actual App output / reviewer feedback",
+  "reviewerSignOff": false,
+  "checkedViews": [
+    "top",
+    "complex formulas M07-M09",
+    "error and MathML M12-M13"
+  ],
+  "source": "output/pdf/issue64-review/manifest.json"
+}
