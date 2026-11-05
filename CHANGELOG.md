@@ -1,4 +1,7 @@
 ## [Unreleased]
+_无待发布的变更_
+
+## [1.43.755] - 2026-11-05
 
 ### Added
 - **Expanded mathematics**: Support parenthesis/bracket math delimiters, `math` fences, selected AMS equation environments and presentation MathML, alongside dollar-delimited formulas. Addresses the test corpus in [#64](https://github.com/xykong/flux-markdown/issues/64).
