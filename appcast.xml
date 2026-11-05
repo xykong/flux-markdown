@@ -7,6 +7,23 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 1.43.755</title>
+            <link>https://github.com/xykong/flux-markdown/releases/tag/v1.43.755</link>
+            <sparkle:version>755</sparkle:version>
+            <sparkle:shortVersionString>1.43.755</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+            <pubDate>Thu, 05 Nov 2026 16:00:08 +0000</pubDate>
+            <enclosure
+                url="https://github.com/xykong/flux-markdown/releases/download/v1.43.755/FluxMarkdown.dmg"
+                sparkle:edSignature="m11xU5IeN5r4V0j180o3A+GjmgkRPB9G8800uOaOkaFIj9jE6yrM3eix0qjhNx/CUGj8ZvbzsHpS+KhRsL1SBA=="
+                length="45129830"
+                type="application/octet-stream" />
+            <description><![CDATA[
+                <h2>更新内容</h2><h3>Added</h3><ul><li><strong>Expanded mathematics</strong>: Support parenthesis/bracket math delimiters, <code>math</code> fences, selected AMS equation environments and presentation MathML, alongside dollar-delimited formulas. Addresses the test corpus in [#64](https://github.com/xykong/flux-markdown/issues/64).</li><li><strong>Equation navigation and source</strong>: Add document-scoped numbering, labels, forward references, explicit/starred tags, formula-source search and source copying.</li></ul><h3>Fixed</h3><ul><li><strong>Reading and export</strong>: Keep oversized formulas locally scrollable under native zoom, preserve mathematical direction in RTL documents, and retain vector mathematics and equation links in exports.</li><li><strong>Mathematical failures</strong>: Preserve source and reject incomplete mathematical exports. Explain unsupported image-backed MathML, and keep copy recovery usable in narrow previews with localized live status messages.</li></ul><p><a href="https://github.com/xykong/flux-markdown/releases/tag/v1.43.755">查看完整更新日志</a></p>
+            ]]></description>
+        </item>
+        
+        <item>
             <title>Version 1.42.645</title>
             <link>https://github.com/xykong/flux-markdown/releases/tag/v1.42.645</link>
             <sparkle:version>645</sparkle:version>
