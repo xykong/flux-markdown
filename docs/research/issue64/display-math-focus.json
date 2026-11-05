@@ -1,0 +1,25 @@
+{
+  "unitTests": 556,
+  "suites": 61,
+  "noninteractiveLayoutCases": 72,
+  "resizeProbe": {
+    "narrow": {
+      "scrollWidth": 665,
+      "tabIndex": 0,
+      "width": 83
+    },
+    "nativeKeyActivationVerified": false,
+    "wide": {
+      "scrollWidth": 823,
+      "tabIndex": null,
+      "width": 823
+    }
+  },
+  "windowCreated": false,
+  "foregroundActivation": false,
+  "unresolved": [
+    "native ArrowRight intermittency",
+    "actual display-math keyboard activation",
+    "VoiceOver"
+  ]
+}

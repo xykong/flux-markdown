@@ -20,6 +20,7 @@ for (const context of ['app','quicklook','finder']) for (const uiLanguage of ['e
     const last=formulas[formulas.length-1];
     const scrolling=[last,...last.querySelectorAll('mjx-container')].filter(node=>node.scrollWidth>node.clientWidth+1 && ['auto','scroll'].includes(getComputedStyle(node).overflowX));
     assert(scrolling.length>0,'Wide formula has no local scrolling surface');
+    assert(scrolling.every(node=>node.tabIndex===0),'Wide display scroll surface is not keyboard reachable');
     const link=root.querySelector('a.math-reference-link');
     assert(link && link.getAttribute('aria-label')==='(1)' && document.getElementById(decodeURIComponent(link.getAttribute('href').slice(1))), 'Numbered reference lost target');
     for(const formula of formulas) {

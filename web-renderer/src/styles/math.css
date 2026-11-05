@@ -20,6 +20,8 @@ span.math-inline-overflow {
     overflow-x: auto;
     vertical-align: middle;
 }
+.flux-math mjx-container:focus-visible,
+.flux-math-source:focus-visible,
 .flux-math a:focus-visible {
     outline: 2px solid currentColor;
     outline-offset: 3px;
