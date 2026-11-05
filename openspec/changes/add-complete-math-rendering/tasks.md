@@ -14,7 +14,7 @@
 - [x] 2.3 Measure 20 fresh-process and 30 warm samples; freeze reference-hardware time, asset and DOM budgets.
 - [x] 2.4 Select exact engine/font versions, package profile, SVG output, assistive MathML and no-Worker policy in the design.
 - [ ] 2.5 Obtain independent reviewer sign-off of the expectation manifest and reference.
-- [ ] 2.6 Validate minimum-system/Intel APIs, actual VoiceOver and WebContent memory; freeze environment-specific limits.
+- [ ] 2.6 Validate actual VoiceOver and WebContent memory; freeze environment-specific limits. Minimum-system/physical Intel validation explicitly waived by user on 2026-11-05; compatibility remains unverified.
 - [x] 2.7 Verify the production modular build and full runtime asset closure: current WebKit loads all 40 SVG glyph modules; Vite manifest/resource/license checks and missing-glyph fault injection pass. Minimum-platform compatibility remains in 2.6.
 
 ## 3. Parsing and document semantics
@@ -31,7 +31,7 @@
 
 ## 5. Independent acceptance
 - [x] 5.1 Run semantic/LaTeX-reference checks and sanitizer tests with real dependencies; clean cached-only two-pass TeX rebuild matches archived labels and reviewed rasters.
-- [ ] 5.2 Validate native App, QuickLook and Finder, minimum/current systems, themes, widths and repeated document lifecycle.
+- [ ] 5.2 Validate native App, QuickLook and Finder on the current system, themes, widths and repeated document lifecycle (old-system/physical Intel runtime waived by user).
 - [ ] 5.3 Review screenshots, geometry, real keyboard and VoiceOver behavior; inspect exported HTML/PDF independently.
 - [x] 5.4 Run seeded Unicode-label/permutation properties and fault injection. Wrong reference numbers, deleted glyph assets, removed export waits and forbidden mathematical image requests are detected; production mutations restored.
 - [ ] 5.5 Run full original-document regression, existing Typst/diagram checks and frozen performance gates.
