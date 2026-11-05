@@ -86,6 +86,15 @@ final class Probe: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         fputs("JS: \(message.body)\n",stderr)
     }
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        if ProcessInfo.processInfo.environment["FLUX_MATH_PROBE_REPORT_PROCESS"] == "1" {
+            // Test-only WebKit SPI. Never guess another application's process if unavailable.
+            guard webView.responds(to: NSSelectorFromString("_webProcessIdentifier")),
+                  let pid = webView.value(forKey: "_webProcessIdentifier") as? NSNumber,
+                  pid.int32Value > 0 else {
+                fputs("Owned WebContent identity is unavailable\n", stderr); exit(2)
+            }
+            fputs("PROBE_WEB_CONTENT_PID \(pid.int32Value)\n", stderr)
+        }
         fputs("Page loaded\n",stderr)
         webView.callAsyncJavaScript(script, arguments: ["source":source, "probeZoom":webView.pageZoom,
             "probeTheme":ProcessInfo.processInfo.environment["FLUX_MATH_PROBE_THEME"] ?? "system"], in: nil, in: .page) { result in

@@ -1,15 +1,15 @@
 """Sample physical footprint after the fixed workload clears its document.
 
 Usage: python3 profile-footprint.py PROBE_EXECUTABLE OUTPUT_DIRECTORY BUNDLE [WORKLOAD]
-The output directory must be new. Only the monitor's newly selected WebContent
-process is inspected. Raw diagnostics omit allocation content and stack traces.
+The output directory must be new. Only the monitor's WKWebView-reported WebContent
+process is inspected, with its start time checked before each diagnostic. Raw diagnostics omit allocation content and stack traces.
 """
 import json
-import re
 from pathlib import Path
 import subprocess
 import sys
 import time
+from diagnostic_summary import leak_summary
 
 here = Path(__file__).resolve().parent
 out = Path(sys.argv[2]).resolve()
@@ -35,14 +35,20 @@ with (out / 'monitor.log').open('w') as log:
         for tool, args in [('vmmap', ['-summary']), ('leaks', ['--noContent', '--nostacks'])]:
             if monitor.poll() is not None:
                 raise RuntimeError('Workload ended before diagnostics completed')
+            current_start = subprocess.check_output(['ps', '-p', str(pid), '-o', 'lstart='], text=True).strip()
+            if not identity.get('startedAt') or current_start != identity['startedAt']:
+                raise RuntimeError('WebContent process identity expired or PID was reused')
             with (out / (tool + '.txt')).open('w') as capture:
                 run = subprocess.run(['/usr/bin/' + tool, *args, str(pid)], stdout=capture, stderr=subprocess.STDOUT, timeout=30)
             results[tool] = run.returncode
             captured = (out / (tool + '.txt')).read_text()
             if tool == 'vmmap' and (run.returncode != 0 or 'Physical footprint:' not in captured):
                 raise RuntimeError('Physical-footprint capture failed')
-            if tool == 'leaks' and not re.search(r'Process \d+: \d+ leaks for \d+ total leaked bytes', captured):
-                raise RuntimeError('Leak diagnostic did not produce a result')
+            if tool == 'leaks':
+                summary = leak_summary(captured)
+                if summary is None or summary['pid'] != pid:
+                    raise RuntimeError('Leak diagnostic did not identify the selected process')
+                results['leakSummary'] = summary
         # leaks returns 1 for reported leaks; preserve that result, never label it a pass.
         (out / 'diagnostic-status.json').write_text(json.dumps(results, indent=2) + '\n')
         monitor.wait(timeout=120)

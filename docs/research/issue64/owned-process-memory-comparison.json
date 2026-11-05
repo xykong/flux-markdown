@@ -1,0 +1,139 @@
+{
+  "sourceCommit": "badb2e6598540225077847311201bb0267b21e9a",
+  "method": "Three sequential fresh-process pairs; same 1000 dollar-delimited formulas rendered ten times, clear, snapshot ten seconds later, complete sixty-second idle. Target PID reported by the owned WKWebView and start time rechecked before diagnostics. No visible windows.",
+  "runs": {
+    "current": [
+      {
+        "run": "build/issue64-memory-current/current-2",
+        "identity": {
+          "probePid": 70512,
+          "webContentPid": 70516,
+          "source": "owned WKWebView SPI",
+          "startedAt": "Thu Nov  5 14:29:25 2026",
+          "selectedFromNewProcesses": false
+        },
+        "footprint": "57.3M",
+        "peak": "1.7G",
+        "leakSummary": {
+          "pid": 70516,
+          "count": 1,
+          "bytes": 32
+        },
+        "leaksExit": 1,
+        "completed": true
+      },
+      {
+        "run": "build/issue64-memory-current/current-3",
+        "identity": {
+          "probePid": 81306,
+          "webContentPid": 81310,
+          "source": "owned WKWebView SPI",
+          "startedAt": "Thu Nov  5 14:37:42 2026",
+          "selectedFromNewProcesses": false
+        },
+        "footprint": "56.3M",
+        "peak": "1.7G",
+        "leakSummary": {
+          "pid": 81310,
+          "count": 1,
+          "bytes": 32
+        },
+        "leaksExit": 1,
+        "completed": true
+      },
+      {
+        "run": "build/issue64-memory-current/current-4",
+        "identity": {
+          "probePid": 86280,
+          "webContentPid": 86283,
+          "source": "owned WKWebView SPI",
+          "startedAt": "Thu Nov  5 14:40:08 2026",
+          "selectedFromNewProcesses": false
+        },
+        "footprint": "55.3M",
+        "peak": "1.7G",
+        "leakSummary": {
+          "pid": 86283,
+          "count": 1,
+          "bytes": 32
+        },
+        "leaksExit": 1,
+        "completed": true
+      }
+    ],
+    "baseline": [
+      {
+        "run": "build/issue64-memory-current/baseline-2",
+        "identity": {
+          "probePid": 72685,
+          "webContentPid": 72690,
+          "source": "owned WKWebView SPI",
+          "startedAt": "Thu Nov  5 14:30:36 2026",
+          "selectedFromNewProcesses": false
+        },
+        "footprint": "78.5M",
+        "peak": "1.0G",
+        "leakSummary": {
+          "pid": 72690,
+          "count": 1,
+          "bytes": 32
+        },
+        "leaksExit": 1,
+        "completed": true
+      },
+      {
+        "run": "build/issue64-memory-current/baseline-3",
+        "identity": {
+          "probePid": 83731,
+          "webContentPid": 83734,
+          "source": "owned WKWebView SPI",
+          "startedAt": "Thu Nov  5 14:38:56 2026",
+          "selectedFromNewProcesses": false
+        },
+        "footprint": "79.4M",
+        "peak": "1.0G",
+        "leakSummary": {
+          "pid": 83734,
+          "count": 1,
+          "bytes": 32
+        },
+        "leaksExit": 1,
+        "completed": true
+      },
+      {
+        "run": "build/issue64-memory-current/baseline-4",
+        "identity": {
+          "probePid": 89472,
+          "webContentPid": 89477,
+          "source": "owned WKWebView SPI",
+          "startedAt": "Thu Nov  5 14:41:23 2026",
+          "selectedFromNewProcesses": false
+        },
+        "footprint": "78.1M",
+        "peak": "1.0G",
+        "leakSummary": {
+          "pid": 89477,
+          "count": 1,
+          "bytes": 32
+        },
+        "leaksExit": 1,
+        "completed": true
+      }
+    ]
+  },
+  "partialAttemptsNotCounted": {
+    "current-1": {
+      "footprint": "56.3M",
+      "peak": "1.8G"
+    },
+    "baseline-1": {
+      "footprint": "78.8M",
+      "peak": "1.1G"
+    },
+    "reason": "Old plural-only leaks parser stopped the post-clear workload; diagnostic parser fixed before complete runs."
+  },
+  "budgetsAccepted": false,
+  "interpretation": "Current post-clear physical footprint is consistently lower, but rounded physical peak is higher. Both versions report one 32-byte leak; no product-specific attribution established. This does not verify actual host memory or a reviewed peak budget.",
+  "workloadSha256": "18496e5c804c0fea4e10e243dbcab11daffb7a707aedb1b37064535fd7ca7c3a",
+  "privateProbeAPIReference": "https://raw.githubusercontent.com/WebKit/WebKit/main/Source/WebKit/UIProcess/API/Cocoa/WKWebViewPrivate.h"
+}
