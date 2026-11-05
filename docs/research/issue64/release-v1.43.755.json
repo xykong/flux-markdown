@@ -1,0 +1,40 @@
+{
+  "version": "1.43.755",
+  "release": "https://github.com/xykong/flux-markdown/releases/tag/v1.43.755",
+  "verifiedAt": "2026-11-05T16:08:41.840377+00:00",
+  "workflowRun": 42057577574,
+  "tagCommit": "23064cf67c34e6968307150d4f9b9d48fd245666",
+  "assets": {
+    "FluxMarkdown.dmg": {
+      "sha256": "66fc06859ed822adaf708fd902af81a5165f1561e7928e8f6769f9393d8a979f",
+      "size": 45129830
+    },
+    "FluxMarkdown-1.43.755-macports-source.tar.gz": {
+      "sha256": "b724764394cadfc0e948526665d23947af42631f0d26b80b5cc7f13ba3caa472",
+      "size": 31370611
+    },
+    "flux-markdown-v1.43.755-celebration.png": {
+      "sha256": "9e85aee2ae5d33ae8c4711e4cb0c0ebc4c595aed762bc85759fb423a80a85fa7",
+      "size": 1532076
+    }
+  },
+  "remoteAssetDigestsVerified": true,
+  "sparkleAndTapRemoteVerified": true,
+  "localInstalledVersion": "1.43.755",
+  "formalProductExport": "build/issue64-release-product-export/report.json",
+  "pdfRasterEqualsHumanApprovedReview": true,
+  "architecture": [
+    "arm64",
+    "x86_64"
+  ],
+  "minimumDeploymentTarget": "11.0",
+  "actualOldSystemRuntimeTested": false,
+  "image": {
+    "tool": "animal-mediakit",
+    "model": "gpt-image-2.5-flare",
+    "resolvedModel": "azure/gpt-image-2.5-flare",
+    "traceId": "5a464376282501a82808215622dae27f",
+    "visuallyReviewed": true
+  },
+  "packaging": "Headless create-dmg with preserved previous DMG Finder layout; no Finder window displayed."
+}
