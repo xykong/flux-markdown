@@ -1,0 +1,92 @@
+{
+  "sourceCommit": "bdad849f76bfc89056da2e7a07b58231b21109af",
+  "worktreeDirty": false,
+  "platform": "27.0.1",
+  "architecture": "arm64",
+  "fixtureSha256": "51fcf97c86e8adb51b148975e13c4fe214ed50fe56623bcb3ba04e52c87e767d",
+  "bundleIndexSha256": "2292a777ce0cce775542c0e2820f94f721d237ba1c3d1645f2afb8345662eec2",
+  "executableSha256": "f6bc3d4507370cf6abcfed758d14421f7c9bad614a51b7f1bf208a98f430a9d9",
+  "pdfSha256": "d1377490fa3027c20e0b5678da4f4da04677f32aa4b3f5dbf63913327a37db69",
+  "structure": {
+    "internalLinks": [
+      {
+        "destinationPage": 2,
+        "destinationPoint": [
+          514.8738000000001,
+          401.624
+        ],
+        "sourcePage": 2
+      }
+    ],
+    "pages": 2
+  },
+  "signatureVerified": true,
+  "invalidExport": {
+    "exitCode": 1,
+    "outputCreated": false
+  },
+  "notCovered": [
+    "PDF viewer interaction/VoiceOver",
+    "actual selected QuickLook/Finder extension",
+    "minimum operating system",
+    "new human visual review; comparison uses previously reviewed reference"
+  ],
+  "assetClosure": {
+    "modules": [
+      "assets/PUA-BLcY0gcd.js",
+      "assets/accents-b-i-CAq9WmUS.js",
+      "assets/accents-qHCwVjov.js",
+      "assets/arabic-CTijUs7y.js",
+      "assets/arrows-3Omm6Ahh.js",
+      "assets/braille-d-DmZGm1xO.js",
+      "assets/braille-BZt02gB2.js",
+      "assets/calligraphic-Cm3r8IQ3.js",
+      "assets/cherokee-D-jZho_X.js",
+      "assets/cyrillic-ss-SHyJBWlj.js",
+      "assets/cyrillic-C1fm0Dpc.js",
+      "assets/devanagari-D46dX0Va.js",
+      "assets/double-struck-Bvn7Sdr_.js",
+      "assets/fraktur-DMblHTV6.js",
+      "assets/greek-ss-DaaBXJxQ.js",
+      "assets/greek-D5QQr3st.js",
+      "assets/hebrew-DVQjTbGq.js",
+      "assets/latin-b-bv7XKgEG.js",
+      "assets/latin-bi-o4dEVF8E.js",
+      "assets/latin-i-8GixNrBA.js",
+      "assets/latin-SQeJ9_pd.js",
+      "assets/marrows-DDm2hGfy.js",
+      "assets/math-DwurnFgz.js",
+      "assets/monospace-ex-euj9dpAx.js",
+      "assets/monospace-l-xFfgbBeE.js",
+      "assets/monospace-BmPMJHou.js",
+      "assets/mshapes-CsxRiA4o.js",
+      "assets/phonetics-ss-DetR1re2.js",
+      "assets/phonetics-DPlBVSkh.js",
+      "assets/sans-serif-b-DYIT5aGG.js",
+      "assets/sans-serif-bi-CnYPl_eS.js",
+      "assets/sans-serif-ex-B0pu5cdt.js",
+      "assets/sans-serif-i-Bf_6sZvF.js",
+      "assets/sans-serif-r-kgFQUL_B.js",
+      "assets/sans-serif-Dr2tbyZA.js",
+      "assets/script-qm0K1qAC.js",
+      "assets/shapes-C52_EWbR.js",
+      "assets/symbols-b-i-CVN_eI5n.js",
+      "assets/symbols-BphQLF1Y.js",
+      "assets/variants-DSFhMBjj.js"
+    ],
+    "manifestEntries": 166,
+    "licenses": {
+      "MathJax-Apache-2.0.txt": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "MathJax-NOTICE.txt": "8e244275e8265a832655438aabcd97cf1471a918764ecbbd5e6291b0703785f8",
+      "NewComputerModern.txt": "49ea6cb9257bbee0a3979c48a774cd221550ac1c20c95549efe45fc99cc18050"
+    }
+  },
+  "rasterComparison": {
+    "reference": "prior actual App export before display-focus change",
+    "resolutionDPI": 120,
+    "pagesByteIdentical": [
+      true,
+      true
+    ]
+  }
+}
