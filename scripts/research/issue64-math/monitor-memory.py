@@ -12,9 +12,9 @@ bundle = Path(sys.argv[3]) if len(sys.argv) > 3 else root / 'web-renderer/dist'
 workload = Path(sys.argv[4]) if len(sys.argv) > 4 else root / 'scripts/research/issue64-math/memory-cycle.js'
 
 def processes():
-    rows = subprocess.check_output(['ps', '-eo', 'pid=,rss=,comm='], text=True).splitlines()
-    return {int(parts[0]): {'rssKiB': int(parts[1]), 'executable': parts[2]}
-            for row in rows if len(parts := row.split(None, 2)) == 3}
+    rows = subprocess.check_output(['ps', '-eo', 'pid=,rss=,stat=,comm='], text=True).splitlines()
+    return {int(parts[0]): {'rssKiB': int(parts[1]), 'state': parts[2], 'executable': parts[3]}
+            for row in rows if len(parts := row.split(None, 3)) == 4}
 
 samples = []
 with (out / 'stdout.json').open('w') as stdout, (out / 'stderr.log').open('w') as stderr:
@@ -29,10 +29,12 @@ with (out / 'stdout.json').open('w') as stdout, (out / 'stderr.log').open('w') a
             trace = (out / 'stderr.log').read_text()
             reported = web_content_pid(trace)
             procs = processes()
+            if p.poll() is not None:
+                break
             if reported is not None:
                 if webpid is not None and reported != webpid:
                     raise RuntimeError('WebContent process changed')
-                if reported in procs and 'com.apple.WebKit.WebContent.xpc/Contents/MacOS/com.apple.WebKit.WebContent' not in procs[reported]['executable']:
+                if reported in procs and not procs[reported]['state'].startswith('Z') and 'com.apple.WebKit.WebContent.xpc/Contents/MacOS/com.apple.WebKit.WebContent' not in procs[reported]['executable']:
                     raise RuntimeError('Reported PID is not a WebContent executable')
                 webpid = reported
                 if not (out / 'process-identity.json').exists():

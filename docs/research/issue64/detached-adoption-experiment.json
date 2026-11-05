@@ -1,0 +1,14 @@
+{
+  "change": "Capture native metrics, detach before typesetting, sanitize detached generated nodes in place, then transfer sanitized output.",
+  "acceptance": {
+    "roundedPeakMax": "1.1G",
+    "warm100P95MaxMs": 150,
+    "warm1000P95MaxMs": 2000,
+    "nativeOutput": "unchanged"
+  },
+  "testsPassed": 561,
+  "physicalFootprint": "55.5M",
+  "physicalPeak": "1.8G",
+  "completed": true,
+  "decision": "Rejected and reverted: faster warm output but no physical peak improvement."
+}

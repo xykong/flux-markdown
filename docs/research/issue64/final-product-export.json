@@ -1,0 +1,89 @@
+{
+  "sourceCommit": "35af2f262cb1b7a8a6db586eeeafcd33aae8773d",
+  "worktreeDirty": true,
+  "platform": "27.0.1",
+  "architecture": "arm64",
+  "fixtureSha256": "51fcf97c86e8adb51b148975e13c4fe214ed50fe56623bcb3ba04e52c87e767d",
+  "bundleIndexSha256": "7b888fd2f47aeda558c3df144e73ef278484307517969def684e842503d791a1",
+  "executableSha256": "e0c39140a9c8ba74d68c6d08ac374782a2edbc4df06f009128bf06453b234f29",
+  "pdfSha256": "637598deb34b075a1afbcc392745d98b4fb642ffb9599c3b6e198530533587b3",
+  "structure": {
+    "internalLinks": [
+      {
+        "destinationPage": 2,
+        "destinationPoint": [
+          514.8738000000001,
+          401.624
+        ],
+        "sourcePage": 2
+      }
+    ],
+    "pages": 2
+  },
+  "signatureVerified": true,
+  "invalidExport": {
+    "exitCode": 1,
+    "outputCreated": false
+  },
+  "notCovered": [
+    "visual review of this PDF",
+    "PDF viewer interaction/VoiceOver",
+    "actual selected QuickLook/Finder extension",
+    "minimum operating system"
+  ],
+  "assetClosure": {
+    "modules": [
+      "assets/PUA-Biu-J_Ut.js",
+      "assets/accents-b-i-3piTfC1h.js",
+      "assets/accents-CfwCRqpA.js",
+      "assets/arabic-DYEgjiUI.js",
+      "assets/arrows-B5V5KbUh.js",
+      "assets/braille-d-KxGkMCRb.js",
+      "assets/braille-BqCeX4md.js",
+      "assets/calligraphic-CsGdfxVW.js",
+      "assets/cherokee-Bv9klTAl.js",
+      "assets/cyrillic-ss-2m71pNV3.js",
+      "assets/cyrillic-Cu1Fit9f.js",
+      "assets/devanagari-sIm7UIa2.js",
+      "assets/double-struck-BdhUIrZP.js",
+      "assets/fraktur-CqTl2agD.js",
+      "assets/greek-ss-DxDc6LIQ.js",
+      "assets/greek-IhFZ1OM5.js",
+      "assets/hebrew-CoGPZ2Pt.js",
+      "assets/latin-b-CZuKA5D6.js",
+      "assets/latin-bi-XGks46R_.js",
+      "assets/latin-i-DzzndWrV.js",
+      "assets/latin-maU80b8S.js",
+      "assets/marrows-DFAuI4QT.js",
+      "assets/math-BUmeD4yL.js",
+      "assets/monospace-ex-BJNU9DC6.js",
+      "assets/monospace-l-Cu3T-5zF.js",
+      "assets/monospace-BOQxGkg7.js",
+      "assets/mshapes-DgTnoomA.js",
+      "assets/phonetics-ss-OW2agTY8.js",
+      "assets/phonetics-B-9CFOxu.js",
+      "assets/sans-serif-b-DCmoEI8O.js",
+      "assets/sans-serif-bi-B6uvbyLv.js",
+      "assets/sans-serif-ex-oYOVz3eO.js",
+      "assets/sans-serif-i-c_z17hO1.js",
+      "assets/sans-serif-r-DD1ay6EK.js",
+      "assets/sans-serif-1SB20Dzy.js",
+      "assets/script-B0ZYtOKi.js",
+      "assets/shapes-BZrVLrf7.js",
+      "assets/symbols-b-i-D0j7AXlD.js",
+      "assets/symbols-BOJa3Kx9.js",
+      "assets/variants-CozOSQC-.js"
+    ],
+    "manifestEntries": 166,
+    "licenses": {
+      "MathJax-Apache-2.0.txt": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "MathJax-NOTICE.txt": "8e244275e8265a832655438aabcd97cf1471a918764ecbbd5e6291b0703785f8",
+      "NewComputerModern.txt": "49ea6cb9257bbee0a3979c48a774cd221550ac1c20c95549efe45fc99cc18050"
+    }
+  },
+  "reviewedRasterComparison": {
+    "pages": 2,
+    "identical": true,
+    "dpi": 120
+  }
+}

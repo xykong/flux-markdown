@@ -135,5 +135,7 @@
   "budgetsAccepted": false,
   "interpretation": "Current post-clear physical footprint is consistently lower, but rounded physical peak is higher. Both versions report one 32-byte leak; no product-specific attribution established. This does not verify actual host memory or a reviewed peak budget.",
   "workloadSha256": "18496e5c804c0fea4e10e243dbcab11daffb7a707aedb1b37064535fd7ca7c3a",
-  "privateProbeAPIReference": "https://raw.githubusercontent.com/WebKit/WebKit/main/Source/WebKit/UIProcess/API/Cocoa/WKWebViewPrivate.h"
+  "privateProbeAPIReference": "https://raw.githubusercontent.com/WebKit/WebKit/main/Source/WebKit/UIProcess/API/Cocoa/WKWebViewPrivate.h",
+  "currentAcceptanceRecord": "memory-acceptance.json",
+  "budgetFlagMeaning": "budgetsAccepted records the state when these measurements were made; the subsequent explicit user acceptance is recorded separately."
 }

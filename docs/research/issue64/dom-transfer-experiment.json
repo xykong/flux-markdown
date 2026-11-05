@@ -1,0 +1,92 @@
+{
+  "change": "Transfer sanitized DOM fragments into the renderer rather than reparsing serialized MathJax output. HTML contract and sanitizer policies retained.",
+  "referencePeak": "1.7G in three prior completed controlled runs",
+  "experimentFootprint": "89.4M",
+  "experimentPeak": "2.0G",
+  "diagnostics": {
+    "vmmap": 0,
+    "leaks": 1,
+    "leakSummary": {
+      "pid": 71864,
+      "count": 1,
+      "bytes": 32
+    }
+  },
+  "workloadCompleted": true,
+  "testsPassed": 558,
+  "warmTiming": {
+    "100": {
+      "domBytes": 776670,
+      "samples": [
+        75,
+        73,
+        71,
+        82,
+        71,
+        72,
+        72,
+        71,
+        77,
+        72,
+        76,
+        71,
+        76,
+        71,
+        71,
+        72,
+        71,
+        78,
+        74,
+        70,
+        69,
+        77,
+        74,
+        74,
+        69,
+        71,
+        83,
+        71,
+        73,
+        70
+      ]
+    },
+    "1000": {
+      "domBytes": 8809288,
+      "samples": [
+        803,
+        895,
+        867,
+        761,
+        859,
+        736,
+        761,
+        748,
+        810,
+        738,
+        751,
+        751,
+        747,
+        753,
+        847,
+        817,
+        740,
+        752,
+        758,
+        855,
+        749,
+        827,
+        780,
+        771,
+        729,
+        786,
+        819,
+        740,
+        785,
+        769
+      ]
+    }
+  },
+  "decision": "Rejected and reverted: higher physical peak (2.0G) and post-clear footprint (89.4M), with no material latency benefit.",
+  "patch": "dom-transfer-experiment.patch; apply with git apply --unidiff-zero",
+  "rawEvidence": "build/issue64-dom-transfer"
+}

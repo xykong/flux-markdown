@@ -1,5 +1,5 @@
 ## [Unreleased]
-_Draft release notes. Release validation remains in progress; see the [acceptance status](docs/debug/ISSUE_64_ACCEPTANCE_STATUS.md)._
+_Unreleased. Issue #64 implementation and agreed current-system acceptance are complete; see the [acceptance status](docs/debug/ISSUE_64_ACCEPTANCE_STATUS.md) for evidence and accepted boundaries._
 
 ### Added
 - **Expanded mathematics**: Support parenthesis/bracket math delimiters, `math` fences, selected AMS equation environments and presentation MathML, alongside dollar-delimited formulas. Addresses the test corpus in [#64](https://github.com/xykong/flux-markdown/issues/64).

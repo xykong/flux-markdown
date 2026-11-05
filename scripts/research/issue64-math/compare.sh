@@ -14,7 +14,7 @@ assert source.count(needle) == 1
 source = source.replace(needle, needle + '\n            fputs("ASSET \\(data.count) \\(url.absoluteString)\\n", stderr)')
 (Path(sys.argv[2]) / 'RendererBundleSchemeHandler.swift').write_text(source)
 PY
-swiftc "$MATH_LAB/RendererBundleSchemeHandler.swift" "$MATH_LAB/main.swift" -o "$MATH_LAB/probe-traced"
+swiftc "$PROJECT_ROOT/Tests/Support/TestWindowPolicy.swift" "$MATH_LAB/RendererBundleSchemeHandler.swift" "$MATH_LAB/main.swift" -o "$MATH_LAB/probe-traced"
 python3 "$MATH_LAB/compare.py"
 node "$MATH_LAB/contracts.mjs"
 printf 'Design research evidence: %s\n' "$MATH_LAB"

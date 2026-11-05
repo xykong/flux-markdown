@@ -1,0 +1,14 @@
+{
+  "hypothesis": "The production stage has one uniform wrapper per formula, so MathJax repeats equivalent native metric probes. Reuse metrics only for those exact attribute-free owned wrappers, per display/tag kind, within a single call. Fall back to the library for any other parent.",
+  "acceptance": {
+    "roundedPeakMax": "1.1G",
+    "warm100P95MaxMs": 150,
+    "warm1000P95MaxMs": 2000,
+    "nativeLayout": "original corpus, CJK, labels and export unchanged"
+  },
+  "testsPassed": 558,
+  "physicalFootprint": "58.0M",
+  "physicalPeak": "1.7G",
+  "completed": true,
+  "decision": "Not retained: no physical-peak improvement; user subsequently accepted the original 1.7G stress cost and instructed stopping optimization."
+}

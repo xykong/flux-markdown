@@ -1,0 +1,61 @@
+diff --git a/web-renderer/src/math-engine.ts b/web-renderer/src/math-engine.ts
+index 6fe8a05..1f62a06 100644
+--- a/web-renderer/src/math-engine.ts
++++ b/web-renderer/src/math-engine.ts
+@@ -140,2 +140,5 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
+-            const result = sanitizeMathOutput(node.innerHTML);
+-            if (result.blockedResources || result.paths !== node.querySelectorAll('svg path').length || result.formulas !== node.querySelectorAll('mjx-container').length) {
++            const expectedPaths = node.querySelectorAll('svg path').length;
++            const expectedFormulas = node.querySelectorAll('mjx-container').length;
++            node.remove();
++            const result = sanitizeMathOutput(node.innerHTML, node);
++            if (result.blockedResources || result.paths !== expectedPaths || result.formulas !== expectedFormulas) {
+diff --git a/web-renderer/src/safe-html.ts b/web-renderer/src/safe-html.ts
+index 4b2656d..a9681d7 100644
+--- a/web-renderer/src/safe-html.ts
++++ b/web-renderer/src/safe-html.ts
+@@ -7,2 +7,3 @@ export function sanitizeMathHTML(html: string): string {
+-export function sanitizeMathOutput(html: string): { html: string; ids: string[]; links: string[]; paths: number; formulas: number; blockedResources: boolean } {
+-    const fragment = DOMPurify.sanitize(html, {
++export function sanitizeMathOutput(html: string, inPlaceNode?: HTMLElement): { html: string; ids: string[]; links: string[]; paths: number; formulas: number; blockedResources: boolean } {
++    if (inPlaceNode?.isConnected) throw new Error('Mathematical output must be detached before in-place sanitization');
++    const policy = {
+@@ -14,2 +15,9 @@ export function sanitizeMathOutput(html: string): { html: string; ids: string[];
+-        RETURN_DOM_FRAGMENT: true,
+-    });
++    };
++    let fragment: HTMLElement | DocumentFragment;
++    if (inPlaceNode) {
++        const cleaned = DOMPurify.sanitize(inPlaceNode, {...policy, IN_PLACE: true});
++        if (cleaned !== inPlaceNode) throw new Error('Mathematical output root was replaced');
++        fragment = inPlaceNode;
++    } else {
++        fragment = DOMPurify.sanitize(html, {...policy, RETURN_DOM_FRAGMENT: true});
++    }
+@@ -46,0 +55 @@ export function sanitizeMathOutput(html: string): { html: string; ids: string[];
++    if (inPlaceNode) return { html: inPlaceNode.innerHTML, ids, links, paths, formulas, blockedResources };
+diff --git a/web-renderer/test/math-inplace-output.test.ts b/web-renderer/test/math-inplace-output.test.ts
+new file mode 100644
+index 0000000..2bb9fe3
+--- /dev/null
++++ b/web-renderer/test/math-inplace-output.test.ts
+@@ -0,0 +1,19 @@
++import { sanitizeMathOutput } from '../src/safe-html';
++
++test('detached generated output can be sanitized in place without retaining forbidden nodes', () => {
++    const node=document.createElement('div');
++    node.innerHTML='<mjx-container><svg><path d="M0 0L1 1"></path><image href="https://invalid.example/image.svg"></image></svg><mjx-assistive-mml><math><mi>x</mi></math></mjx-assistive-mml></mjx-container><script>bad()</script>';
++    const result=(sanitizeMathOutput as (html:string,node:HTMLElement)=>ReturnType<typeof sanitizeMathOutput>)(node.innerHTML,node);
++    expect(node.querySelector('image,script')).toBeNull();
++    expect(result.blockedResources).toBe(true);
++    expect(result.paths).toBe(1);
++    expect(result.formulas).toBe(1);
++    expect(result.html).toBe(node.innerHTML);
++    expect(node.querySelector('math')?.namespaceURI).toBe('http://www.w3.org/1998/Math/MathML');
++});
++
++test('in-place sanitization refuses connected nodes', () => {
++    const node=document.createElement('div');document.body.append(node);
++    try { expect(()=>(sanitizeMathOutput as (html:string,node:HTMLElement)=>unknown)('',node)).toThrow('detached'); }
++    finally {node.remove();}
++});
