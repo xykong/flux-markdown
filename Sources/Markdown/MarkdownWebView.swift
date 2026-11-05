@@ -146,7 +146,7 @@ struct MarkdownWebView: NSViewRepresentable {
         }
         private func showMathematicalExportFailure(_ kind: FailureKind, scope: UUID) {
             guard errorRegistry.scope == scope else { return }
-            showFailure(kind, renderingBlocker: .math, recoveryTitle: "Open in Editor", recovery: { [weak self] in
+            showFailure(kind, renderingBlocker: .math, recoveryTitle: "Open in External Editor", recovery: { [weak self] in
                 guard self?.errorRegistry.scope == scope else { return }
                 self?.handleOpenInExternalEditor()
             })

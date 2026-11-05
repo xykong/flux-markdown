@@ -217,6 +217,9 @@ final class IncidentNotice: NSView {
     init(incident: ErrorIncident, recoveryTitle: String? = nil, recovery: (() -> Void)? = nil) {
         draft = IncidentDraft(incident); self.recovery = recovery
         super.init(frame: .zero)
+        setAccessibilityElement(true)
+        setAccessibilityRole(.group)
+        setAccessibilityLabel(ErrorFeedback.text(incident.kind.title))
         wantsLayer = true; layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor; layer?.cornerRadius = 8
         let message = NSTextField(wrappingLabelWithString: ErrorFeedback.text(incident.kind.title) + ". " + ErrorFeedback.text(incident.guidance))
         let buttons = NSStackView(); buttons.orientation = .horizontal; buttons.spacing = 8
