@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -euo pipefail
 PROJECT_ROOT=$(cd "$(dirname "$0")/.." && pwd)
 ISSUE64_RUN=$(mktemp -d "${TMPDIR:-/tmp}/flux-issue64-e2e.XXXXXX")
@@ -88,13 +88,14 @@ python3 - "$ISSUE64_RUN" <<'PY'
 from pathlib import Path
 import json,sys,subprocess,hashlib
 out=Path(sys.argv[1]);assert 'CSP ' not in (out/'offline.log').read_text(),'Offline export requested blocked resources'
-report={'sourceCommit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'platform':subprocess.check_output(['sw_vers','-productVersion'],text=True).strip(),'architecture':subprocess.check_output(['uname','-m'],text=True).strip(),'bundleIndexSha256':hashlib.sha256(Path('web-renderer/dist/index.html').read_bytes()).hexdigest(),'production':json.loads((out/'production-summary.json').read_text()),'offline':json.loads((out/'offline.json').read_text()),'notCovered':['actual selected App/QuickLook/Finder UI','minimum macOS/Intel','VoiceOver speech','PDF visual inspection','memory acceptance','independent reviewer sign-off']}
+report={'sourceCommit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'platform':subprocess.check_output(['sw_vers','-productVersion'],text=True).strip(),'architecture':subprocess.check_output(['uname','-m'],text=True).strip(),'bundleIndexSha256':hashlib.sha256(Path('web-renderer/dist/index.html').read_bytes()).hexdigest(),'production':json.loads((out/'production-summary.json').read_text()),'offline':json.loads((out/'offline.json').read_text()),'notCovered':['actual selected App/QuickLook/Finder UI','VoiceOver speech','PDF visual inspection','memory acceptance','independent reviewer sign-off']}
 report['assetClosure']={'static':json.loads((out/'asset-closure.json').read_text()),'native':json.loads((out/'asset-runtime.json').read_text()),'missingGlyphDetected':{'static':True,'native':True}}
 report['resourceFailure']=json.loads((out/'resource-failure.json').read_text())
 report['mathResourceBoundary']=json.loads((out/'math-resource-boundary.json').read_text())
 report['mathResourceBoundary']['sentinelResourceRequests']=(out/'math-resource-boundary.log').read_text().count('FORBIDDEN_MATH_RESOURCE_REQUEST')
 report['mathResourceHTTP']=json.loads((out/'http-resource-boundary/report.json').read_text())
 report['mathLayout']=[case for path in sorted(out.glob('layout-*.json')) for case in json.loads(path.read_text())['cases']]
+report['unverifiedOutOfScope']=['macOS 11/physical Intel runtime: waived by user on 2026-11-05']
 report['referenceGeometry']=json.loads((out/'reference-geometry.json').read_text())
 report['firstLoadCompatibility']=json.loads((out/'first-load-compat.json').read_text())
 report['nativeInteractiveSuite']='pending'
@@ -103,7 +104,7 @@ report['validationSourceHashes']={name:hashlib.sha256(Path(name).read_bytes()).h
 (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
 print('PASS noninteractive renderer and standalone-HTML checks; native interaction remains pending')
 print('Evidence:',out)
-print('Remaining gates:',', '.join(report['notCovered']))
+print('Not covered by this runner:',', '.join(report['notCovered']))
 PY
 if env -u FLUX_WEBKIT_CASE_FILTER scripts/test-renderer-webkit.sh > "$ISSUE64_RUN/native-suite.log" 2>&1; then
     ISSUE64_NATIVE_STATUS=passed

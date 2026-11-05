@@ -1,18 +1,18 @@
 {
-  "observedAt": "2026-11-05T04:48:39.827599+00:00",
-  "sourceCommit": "bdad849f76bfc89056da2e7a07b58231b21109af",
-  "candidate": "build/issue64-host-validation/candidate-bdad849.app",
+  "observedAt": "2026-11-05T05:48:49.524145+00:00",
+  "sourceCommit": "868237a",
+  "candidate": "build/issue64-host-validation/candidate-868237a.app",
   "candidateInfo": {
     "version": "1.42.645",
     "build": "645",
-    "executableSha256": "f6bc3d4507370cf6abcfed758d14421f7c9bad614a51b7f1bf208a98f430a9d9",
-    "codeResourcesSha256": "2e6c3eec9e06a49e1afdb1a2022a61cd7ea1ec7842102eabc9b0ba3920151cf8",
+    "executableSha256": "e0c39140a9c8ba74d68c6d08ac374782a2edbc4df06f009128bf06453b234f29",
+    "codeResourcesSha256": "59ac6eb37218d2ecb304226d4e802fc2aceda116e696be3c4f474a381dabab8a",
     "minimumSystemVersion": "12.0",
     "architectures": [
       "arm64"
     ]
   },
-  "candidateAppAndExtensionRendererSha256": "2292a777ce0cce775542c0e2820f94f721d237ba1c3d1645f2afb8345662eec2",
+  "candidateAppAndExtensionRendererSha256": "7b888fd2f47aeda558c3df144e73ef278484307517969def684e842503d791a1",
   "installed": {
     "version": "1.42.645",
     "build": "645",
@@ -36,8 +36,9 @@
   },
   "workflowRuntime": "macos-15; not proof of macOS 11 runtime",
   "limitations": [
-    "actual selected QuickLook/Finder remains unverified",
-    "minimum macOS/Intel and VoiceOver still need their own evidence"
+    "Actual system QuickLook confirmed; Finder preview-pane not yet exercised",
+    "VoiceOver and independent human sign-off remain open",
+    "Old-system/physical Intel validation waived by user; compatibility remains unverified"
   ],
   "appAndExtensionExactResourceMatch": {
     "filesEach": 173,
@@ -46,10 +47,12 @@
     "contentDifferences": 0
   },
   "providerSelectionExplicitlyModified": false,
-  "actualProviderSelectionRevalidated": false,
-  "actualProviderEvidence": "current-host-revalidation.json",
+  "actualProviderSelectionRevalidated": true,
+  "actualProviderEvidence": "authorized-native-host-validation.json",
   "pendingSourceAtBuild": {},
   "candidateRuntimeScope": "Local Debug build; not a macOS 11/Intel validation artifact.",
-  "workingTreeDirtyAtBuild": false,
-  "buildProvenance": "Built from clean committed bdad849 sources; staged separately without launching a visible App."
+  "workingTreeDirtyAtBuild": true,
+  "buildProvenance": "Built from native e5e859b and renderer sources subsequently committed in 868237a; temporary installed candidate moved back to staging after original restoration.",
+  "temporaryReplacementPerformed": true,
+  "originalInstallationRestored": true
 }
