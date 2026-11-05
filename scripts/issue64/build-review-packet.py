@@ -64,5 +64,12 @@ for path,label,name in [(reference_path,'独立参照 PDF','reference.pdf'),(out
 page=page.replace('__ROWS__',''.join(rows)).replace('__LINKS__',''.join(links))
 (out/'index.html').write_text(page)
 manifest={'layout':'one item per row; reference / actual output / feedback','candidateCommit':'868237a','reviewerSignOff':False,'originalCases':len(cases),'referencePDF':str(reference_path.relative_to(root)),'referenceCropBoxes':reference_boxes,'candidateCropBoxes':candidate_boxes,'files':{str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for p in [reference_path,out/'candidate.pdf',out/'app-export-evidence.json',out/'index.html',*sorted(items.glob('*.png'))]}}
+receipt_path = out / 'human-review.json'
+if receipt_path.exists():
+    receipt = json.loads(receipt_path.read_text())
+    if receipt.get('reviewedPageSha256') == hashlib.sha256((out / 'index.html').read_bytes()).hexdigest():
+        manifest['reviewerSignOff'] = True
+        manifest['reviewScope'] = receipt['scope']
+        manifest['reviewReceipt'] = str(receipt_path.relative_to(root))
 (out/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
 print(out/'index.html')

@@ -1,0 +1,29 @@
+{
+  "recordedAt": "2026-11-05T10:28:46.194850+00:00",
+  "reviewer": "User / task owner, explicit conversation reply",
+  "reviewedPageSha256": "0050e6e6934f4bb3976e6b137f56643789592034a2e12c43dbf9e37679ee9b7f",
+  "candidateCommit": "868237a",
+  "results": {
+    "M01": "一致",
+    "M02": "一致",
+    "M03": "一致",
+    "M04": "一致",
+    "M05": "一致",
+    "M06": "一致",
+    "M07": "一致",
+    "M08": "一致",
+    "M09": "一致",
+    "M10": "一致",
+    "M11": "一致",
+    "M12": "一致",
+    "M13": "一致"
+  },
+  "scope": "Original thirteen review rows: visual formula comparison, MathML comparison and the M12 export-rejection behavior displayed in the packet.",
+  "notImplied": [
+    "VoiceOver speech acceptance",
+    "memory peak acceptance",
+    "additional contracts not included in the thirteen-row response",
+    "complete product acceptance"
+  ],
+  "originalReply": "Issue 64 公式复核\nM01：一致\nM02：一致\nM03：一致\nM04：一致\nM05：一致\nM06：一致\nM07：一致\nM08：一致\nM09：一致\nM10：一致\nM11：一致\nM12：一致\nM13：一致"
+}

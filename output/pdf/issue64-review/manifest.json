@@ -1,7 +1,7 @@
 {
   "layout": "one item per row; reference / actual output / feedback",
   "candidateCommit": "868237a",
-  "reviewerSignOff": false,
+  "reviewerSignOff": true,
   "originalCases": 13,
   "referencePDF": "output/pdf/issue64-independent-reference.pdf",
   "referenceCropBoxes": {
@@ -210,5 +210,7 @@
     "output/pdf/issue64-review/items/M11-app.png": "ab580020d45eaee974aab95ea7c2a9fa6cc1a25e6c3dff4e36bef40199fac677",
     "output/pdf/issue64-review/items/M11-reference.png": "6117ad8fff9206a54f8c836e2ed8642dfa5582ec2bb3f2ee4fca842378814bb3",
     "output/pdf/issue64-review/items/M13-app.png": "fe34f3356e4ccd8e437c69f16f896d67dc33af1a62a046fec4fe57e02fc485c4"
-  }
+  },
+  "reviewScope": "Original thirteen review rows: visual formula comparison, MathML comparison and the M12 export-rejection behavior displayed in the packet.",
+  "reviewReceipt": "output/pdf/issue64-review/human-review.json"
 }
