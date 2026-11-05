@@ -376,9 +376,16 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         if name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" {
             // :focus-within requires an active WebKit page, not just activeElement
             // in the otherwise windowless integration harness.
+            guard let policy = TestWindowPolicy(environment: ProcessInfo.processInfo.environment), policy.allowsFocus else {
+                fputs("FAIL Environment: foreground test interaction is disabled by window policy\n", stderr); exit(1)
+            }
+            let window = NSWindow(contentRect: webView.frame, styleMask: [.titled], backing: .buffered, defer: false)
+            guard let frame = policy.frame(size: window.frame.size, screens: NSScreen.screens.map { $0.visibleFrame }) else {
+                fputs("FAIL Environment: required test display is unavailable or too small\n", stderr); exit(1)
+            }
+            window.setFrame(frame, display: false)
             previousApplication = NSWorkspace.shared.frontmostApplication
             app.setActivationPolicy(.accessory)
-            let window = NSWindow(contentRect: webView.frame, styleMask: [.titled], backing: .buffered, defer: false)
             window.contentView = webView
             window.makeKeyAndOrderFront(nil)
             window.makeFirstResponder(webView)

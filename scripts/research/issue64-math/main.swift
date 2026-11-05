@@ -59,6 +59,11 @@ final class Probe: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         view.navigationDelegate = self
         if ProcessInfo.processInfo.environment["FLUX_MATH_PROBE_WINDOW"] == "1" {
             let window = NSWindow(contentRect: view.frame, styleMask: [.titled], backing: .buffered, defer: false)
+            guard let policy = TestWindowPolicy(environment: ProcessInfo.processInfo.environment),
+                  let frame = policy.frame(size: window.frame.size, screens: NSScreen.screens.map({ $0.visibleFrame })) else {
+                fputs("Probe required test display is unavailable or too small\n", stderr); exit(2)
+            }
+            window.setFrame(frame, display: false)
             window.title = "FluxMarkdown mathematical memory probe"
             window.contentView = view
             window.orderBack(nil)

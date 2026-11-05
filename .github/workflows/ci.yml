@@ -77,7 +77,7 @@ jobs:
           npm run build
 
       - name: Test production renderer in WebKit
-        run: scripts/test-renderer-webkit.sh
+        run: FLUX_TEST_WINDOW_POLICY=ci-foreground scripts/test-renderer-webkit.sh
 
       - name: Generate Xcode project
         run: |

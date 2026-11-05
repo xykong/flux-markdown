@@ -24,7 +24,7 @@ payload={'original':original,'valid':valid,'invalid':r'$\unknownMarkdownPreviewC
 PY
 npm test --prefix web-renderer -- --runInBand --silent > "$ISSUE64_RUN/jest.log" 2>&1
 npm run --prefix web-renderer build > "$ISSUE64_RUN/build.log" 2>&1
-swiftc Sources/Shared/RendererBundleSchemeHandler.swift scripts/research/issue64-math/main.swift -o "$ISSUE64_RUN/probe"
+swiftc Tests/Support/TestWindowPolicy.swift Sources/Shared/RendererBundleSchemeHandler.swift scripts/research/issue64-math/main.swift -o "$ISSUE64_RUN/probe"
 FLUX_MATH_PROBE_TRACE_RESOURCES=1 FLUX_MATH_PROBE_MISSING_APIS=1 "$ISSUE64_RUN/probe" 'flux-renderer://bundle/index.html' "$PROJECT_ROOT/web-renderer/dist" "$PROJECT_ROOT/scripts/issue64/math-first-load-compat.js" "$ISSUE64_RUN/input.json" 45 > "$ISSUE64_RUN/first-load-compat.json" 2> "$ISSUE64_RUN/first-load-compat.log"
 python3 - "$ISSUE64_RUN" <<'PYCOMPAT'
 from pathlib import Path
@@ -112,7 +112,7 @@ python3 - "$ISSUE64_RUN" "$ISSUE64_NATIVE_STATUS" <<'PYNATIVE'
 from pathlib import Path
 import json,sys
 out=Path(sys.argv[1]);p=out/'report.json';report=json.loads(p.read_text());status=sys.argv[2]
-if status=='failed' and 'Environment: native test window did not become active' in (out/'native-suite.log').read_text():status='blocked-environment'
+if status=='failed' and any(reason in (out/'native-suite.log').read_text() for reason in ['Environment: native test window did not become active', 'Environment: foreground test interaction is disabled by window policy', 'Environment: required test display is unavailable or too small']):status='blocked-environment'
 report['nativeInteractiveSuite']=status
 p.write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
 print('Native interactive suite:',status)
