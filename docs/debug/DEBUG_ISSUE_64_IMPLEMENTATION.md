@@ -625,3 +625,10 @@ The notice test invokes its supplied recovery closure programmatically; it does 
 Created a new, separate `build/issue64-host-validation/candidate-031cc65.app` from the rebuilt Debug app. Deep strict signatures pass for candidate, installation and preserved backup; both candidate bundles exactly match all 173 current renderer files. Installed executable/resource signatures still match the original backup. The previous candidate is retained but is explicitly stale in the acceptance status. Version/build numbers are unchanged; this is a local arm64/macOS-12-target validation artifact, not a release.
 
 A fresh allowlisted CGSession query still reports screenLocked=1. No GUI retry, permission change, application replacement or provider election was attempted. This turn refreshed the authoritative candidate and requirement audit; it does not resolve actual-host, VoiceOver, minimum-platform, independently reviewed memory budget or human sign-off gates.
+
+
+### Resumed desktop: native interaction and actual App reference verified
+
+After goal resumption the session query no longer returned the prior lock flag. Used actual interaction as the stronger check: all 29 current real-WebKit cases pass, including trusted key/copy/recovery cases. Opened only the owned valid fixture in candidate-031cc65.app (PID 33205, window 7303). AX and screenshot capture now succeed. Background AXPress on the (1) reference was reported unasserted by the provider; independent post-state observation proves scrolling from 0% to 100% and reveals the correctly numbered target. Reviewed both initial and settled screenshots; retained task-only images and hashes in resumed-app-validation.json. The intermediate screenshot captured smooth scrolling, so it was not used as the settled result.
+
+This supersedes the prior locked-desktop blocker for these scoped checks, not all remaining acceptance. No installed application, provider election, clipboard, VoiceOver permission or external report was changed. Candidate test window is left available for continued scoped interaction.
