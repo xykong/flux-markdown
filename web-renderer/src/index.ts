@@ -1386,7 +1386,12 @@ function handleAnchorClick(e: Event) {
         const targetId = decodeURIComponent(href.substring(1));
         const targetElement = findElementByAnchor(targetId);
         if (targetElement) {
-            targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // MathJax labels live inside SVG groups; scroll the complete formula so
+            // its source wrapper's reading-toolbar clearance applies to navigation.
+            const scrollTarget = anchor.classList.contains('math-reference-link')
+                ? targetElement.closest<HTMLElement>('.flux-math-source') || targetElement
+                : targetElement;
+            scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
         return;
     }

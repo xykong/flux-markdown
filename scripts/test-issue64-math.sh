@@ -72,6 +72,7 @@ if ! rg -qi 'Importing a module script failed|Failed to fetch dynamically import
     exit 1
 fi
 FLUX_MATH_PROBE_FEEDBACK_RECORDING=1 "$ISSUE64_RUN/probe" 'flux-renderer://bundle/index.html' "$ISSUE64_RUN/missing-glyph-bundle" "$PROJECT_ROOT/scripts/issue64/resource-failure.js" "$ISSUE64_RUN/asset-closure.json" 30 > "$ISSUE64_RUN/resource-failure.json" 2> "$ISSUE64_RUN/resource-failure.log"
+"$ISSUE64_RUN/probe" 'flux-renderer://bundle/index.html' "$PROJECT_ROOT/web-renderer/dist" "$PROJECT_ROOT/scripts/issue64/math-reference-geometry.js" "$ISSUE64_RUN/input.json" 45 > "$ISSUE64_RUN/reference-geometry.json" 2> "$ISSUE64_RUN/reference-geometry.log"
 "$ISSUE64_RUN/probe" 'flux-renderer://bundle/index.html' "$PROJECT_ROOT/web-renderer/dist" "$PROJECT_ROOT/scripts/issue64/production-corpus.js" "$ISSUE64_RUN/input.json" 90 > "$ISSUE64_RUN/production.json" 2> "$ISSUE64_RUN/production.log"
 python3 - "$ISSUE64_RUN" <<'PY'
 from pathlib import Path
@@ -94,6 +95,7 @@ report['mathResourceBoundary']=json.loads((out/'math-resource-boundary.json').re
 report['mathResourceBoundary']['sentinelResourceRequests']=(out/'math-resource-boundary.log').read_text().count('FORBIDDEN_MATH_RESOURCE_REQUEST')
 report['mathResourceHTTP']=json.loads((out/'http-resource-boundary/report.json').read_text())
 report['mathLayout']=[case for path in sorted(out.glob('layout-*.json')) for case in json.loads(path.read_text())['cases']]
+report['referenceGeometry']=json.loads((out/'reference-geometry.json').read_text())
 report['firstLoadCompatibility']=json.loads((out/'first-load-compat.json').read_text())
 report['nativeInteractiveSuite']='pending'
 report['worktreeDirty']=bool(subprocess.check_output(['git','status','--porcelain'],text=True).strip())

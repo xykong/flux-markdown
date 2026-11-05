@@ -1,0 +1,40 @@
+{
+  "cases": [
+    {
+      "bottom": 133.5625,
+      "context": "app",
+      "toolbarBottom": 42,
+      "top": 80,
+      "viewportHeight": 900
+    },
+    {
+      "bottom": 133.5625,
+      "context": "quicklook",
+      "toolbarBottom": 42,
+      "top": 80,
+      "viewportHeight": 900
+    },
+    {
+      "bottom": 133.25,
+      "context": "finder",
+      "toolbarBottom": 0,
+      "top": 79.6875,
+      "viewportHeight": 900
+    }
+  ],
+  "beforeFix": {
+    "context": "app",
+    "formulaTop": -19,
+    "formulaBottom": 34.5625,
+    "toolbarBottom": 42,
+    "regressionDetected": true
+  },
+  "actualSystemQuickLook": {
+    "originalFixture": true,
+    "extensionPID": 38001,
+    "extensionPath": "/Applications/FluxMarkdown.app/Contents/PlugIns/MarkdownPreview.appex/Contents/MacOS/MarkdownPreview",
+    "afterClickEquationAndNumberVisibleBelowToolbar": true,
+    "screenshotReviewedInTool": true
+  },
+  "unitTests": 557
+}

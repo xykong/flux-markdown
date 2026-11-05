@@ -34,3 +34,14 @@ test('complex formulas expose each distinct reference outside the hidden SVG',as
     expect(links.map(link=>link.textContent)).toEqual(['(A)','(B)']);
     expect(links.every(link=>!link.closest('[aria-hidden="true"]'))).toBe(true);
 });
+
+test('reference navigation scrolls the complete formula rather than an inner SVG label',async()=>{
+    await window.renderMarkdown(String.raw`\(\eqref{x}\)`+'\n\n'+String.raw`\[x=1\tag{A}\label{x}\]`,{showCopyButtons:false});
+    const link=document.querySelector<HTMLAnchorElement>('a.math-reference-link')!;
+    const target=document.getElementById(decodeURIComponent(link.hash.slice(1)))!;
+    const formula=target.closest<HTMLElement>('.flux-math-source')!;
+    formula.scrollIntoView=jest.fn();target.scrollIntoView=jest.fn();
+    link.click();
+    expect(formula.scrollIntoView).toHaveBeenCalledWith({behavior:'smooth',block:'start'});
+    expect(target.scrollIntoView).not.toHaveBeenCalled();
+});
