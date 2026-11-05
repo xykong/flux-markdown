@@ -1,7 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 PROJECT_ROOT=$(cd "$(dirname "$0")/.." && pwd)
-ISSUE64_RUN=$(mktemp -d "${TMPDIR:-/tmp}/flux-issue64-e2e.XXXXXX")
+ISSUE64_EVIDENCE_ROOT="$PROJECT_ROOT/build/issue64-validation"
+mkdir -p "$ISSUE64_EVIDENCE_ROOT"
+ISSUE64_RUN=$(mktemp -d "$ISSUE64_EVIDENCE_ROOT/run.XXXXXX")
 trap 'printf "Issue 64 validation failed; inspect logs in %s\n" "$ISSUE64_RUN" >&2' ERR
 printf 'Issue 64 evidence directory: %s\n' "$ISSUE64_RUN"
 cd "$PROJECT_ROOT"
