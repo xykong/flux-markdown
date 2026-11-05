@@ -36,5 +36,21 @@
     "traceId": "5a464376282501a82808215622dae27f",
     "visuallyReviewed": true
   },
-  "packaging": "Headless create-dmg with preserved previous DMG Finder layout; no Finder window displayed."
+  "packaging": "Headless create-dmg with preserved previous DMG Finder layout; no Finder window displayed.",
+  "imageRefresh": {
+    "updatedAt": "2026-11-05T17:28:54.454129+00:00",
+    "model": "gpt-image-2.5-flare",
+    "traceId": "e84fbaedf9180b3bf07ffe4af8833c09",
+    "asset": "flux-markdown-v1.43.755-celebration-v2.webp",
+    "dimensions": [
+      1200,
+      800
+    ],
+    "bytes": 129950,
+    "previousBytes": 1532076,
+    "sha256": "d3896f34af056625cca99f374e7a4f7e8d9f58047f446a867bb36a382a7717d3",
+    "publicDownloadByteVerified": true,
+    "visuallyReviewedAfterCompression": true,
+    "releaseBodyUpdated": true
+  }
 }
