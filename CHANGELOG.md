@@ -1,5 +1,6 @@
 ## [Unreleased]
-_无待发布的变更_
+### Fixed
+- **Automatic update startup**: Upgrade Sparkle to 2.9.3 so an on-demand progress helper is actively woken after submission, preventing the reproduced `4005 → 10` agent-connection timeout tracked in [#61](https://github.com/xykong/flux-markdown/issues/61). Existing installations whose old updater already fails need a manual DMG or Homebrew upgrade first.
 
 ## [1.43.755] - 2026-11-05
 

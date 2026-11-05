@@ -9,7 +9,7 @@ settings:
 packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
-    exactVersion: 2.8.1
+    exactVersion: 2.9.3
 targets:
   Markdown:
     type: application

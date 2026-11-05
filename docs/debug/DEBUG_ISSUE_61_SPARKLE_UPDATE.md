@@ -1,5 +1,74 @@
 # Issue #61: in-app update fails
 
+## 2026-11-06 follow-up: registered progress job never runs
+
+- Baseline: `880be41`, Sparkle 2.8.1 in both dependency declarations. Reporter attachment `34419372/shareable.zip`, SHA-256 `fed2adf13bb6a86570aba815f2af55a71b894b656e2b3b4dd1423cc4496c65c8` (private copy under ignored `build/issue-61-20261106/`).
+- November 5 session: official 1.38.608 installed in Applications. Samples 26–39 show the installer running with PID 35493, while the registered GUI progress job reports `state=not` and no PID. The collector retains only the first word of `not running`; successful launchctl reads establish that the job exists. Samples 40–46 still find the progress job after the installer exits. No progress process or last-exit code is recorded.
+- Archive signature accepted at 17:55:25.308; agent connection timeout at 17:55:43.358. This supports a submitted-but-unstarted agent, rather than an archive signature failure. Sampling cannot exclude a very short-lived process; the shareable report does not retain launchd scheduling reasons.
+- Acceptance defined before implementation: induce on-demand-only progress startup in an isolated test host; demonstrate the old framework times out with the same error; change only the framework to a compatible upstream release and verify helper startup, real installation and relaunch. Keep security validation enabled. Also build the actual product and run updater regression tests.
+- Candidate: Sparkle 2.9.3 includes the post-submission status XPC probe and subsequent callback-order/security fixes, retaining macOS 10.13 library support. 2.10.x requires macOS 12 and is not appropriate for this project's macOS 11 baseline.
+- The fault injection is a diagnostic control, not a claim to recreate every macOS 26 scheduling condition. Manual installation will be needed to replace an already failing 2.8.1 updater; a new target alone cannot repair the running old framework.
+
+### Controlled result and implementation
+
+The defect is the missing post-submission demand for the progress agent: 2.8.1
+registers a Mach service and requests eager startup, then waits for the agent to
+connect. If eager startup does not happen, neither side initiates the demand that
+would launch the agent before the installer deadline. The reporter's job samples
+match this unstarted-job state. The precise macOS policy that suppressed eager
+startup on that machine is not present in the shareable data and remains unknown.
+
+Added a disposable host and `SMJobSubmit` interposer under
+`scripts/tests/sparkle-on-demand/`. Only the test progress job's `RunAtLoad` is
+changed to false; no signature, authorization or IPC validation is disabled. Both
+framework controls use the identical compiled host executable, old official
+public key/feed and source version 1.38.608. They install the official 1.43.755
+archive. Local host remains macOS 27.0.1 arm64.
+
+| Control | Result (2026-11-06, UTC+08:00) |
+| --- | --- |
+| 2.8.1, on-demand injection | 02:17:49.904 job submitted; snapshot `state = not running`, `runs = 0`, never exited; 02:18:09.119 failure 4005 → 10, exact `Timeout: agent connection was never initiated`. |
+| 2.9.3, same injection | 02:19:10.098 job submitted; Updater PID 74251 running by 02:19:10.557; EdDSA accepted 02:19:11.029; ready 02:19:11.717; installed 1.43.755 and relaunched as PID 74268. Deep strict signature verification passed. |
+| 2.8.1, injection removed | Ready 02:19:49.095; installed 1.43.755 and relaunched as PID 75819. Deep strict signature verification passed. This is the positive/reversal control. |
+
+The first new-framework launch after the old timeout woke the *old orphaned*
+progress job and returned error 1004 (failed to resume). It is recorded in
+`new-control.log`, not counted as a pass. After both old test jobs disappeared,
+the independent attempt above succeeded (`new-control-clean.log`). Retain this
+distinction when investigating migration; do not erase a failed first attempt or
+recommend deleting arbitrary launchd jobs to users.
+
+Both `project.yml` and `Package.swift` now pin 2.9.3. Its
+[post-submission probe](https://github.com/sparkle-project/Sparkle/blob/2.9.3/Sparkle/SPUInstallerDriver.m)
+explicitly creates demand for the status service. It also includes the later
+fix ensuring completion runs before asynchronous installer messages, plus the
+2.9.2 security corrections. Framework, Autoupdate and Updater binary load commands
+were checked: arm64 minimum 11.0, x86_64 minimum 10.13. No minimum-OS project setting
+was changed.
+
+### Product verification and delivery status
+
+- Renderer production build and typecheck passed; 34 native updater, feedback and
+  entitlement tests passed; two MacPorts export tests passed.
+- Actual Release product built with 2.9.3; deep strict signature and release
+  entitlement checks passed. Xcode 27.1 requires a diagnostic-only deployment
+  override of macOS 12; the build also used source version 1.38.608/608 solely to
+  exercise the official feed. Neither `.version` nor release artifacts changed.
+- Copied that product into an isolated `product-test` directory and used its normal
+  Check for Updates → Install Update → Install and Relaunch UI without injection.
+  Verified actual replacement to 1.43.755, deep strict signature and new process
+  PID 79424 from that exact path. `/Applications/FluxMarkdown.app` was untouched.
+- The test preparation script was itself executed successfully. Raw runtime logs,
+  launchd snapshots and `verified-results.json` remain ignored under
+  `build/issue-61-20261106/`. Test relaunch processes were terminated after verification.
+- This establishes a reproduced and repaired on-demand startup defect. It does
+  not claim an affected-machine pass: no macOS 26.4.1 execution is available here.
+  Release/publication and the reporter's subsequent upgrade confirmation remain
+  separate delivery steps. Do not mark the issue `done` or close it on this evidence.
+- Migration: manually install the version containing 2.9.3 using the official DMG
+  or Homebrew, then verify a subsequent in-app update. The existing 1.38.608 updater
+  cannot acquire this fix by downloading a newer target that it cannot install.
+
 ## Baseline and acceptance
 
 - Report: https://github.com/xykong/flux-markdown/issues/61
