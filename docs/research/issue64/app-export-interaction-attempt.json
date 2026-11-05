@@ -1,0 +1,16 @@
+{
+  "candidate": "candidate-031cc65.app",
+  "fixture": "owned temporary invalid formula with following text",
+  "rendererErrorObserved": true,
+  "followingTextPreserved": true,
+  "rendererRecoveryAndFeedbackControlsObserved": true,
+  "nativeExportFailureObserved": false,
+  "backgroundShortcut": "unverified synthetic input; no native export notice observed",
+  "foregroundAttempts": 2,
+  "foregroundResult": "window_not_found after successful window inventory; process remained alive",
+  "editorLaunchVerified": false,
+  "reportSent": false,
+  "diagnosis": "Unknown cause of window visibility changes; no crash established",
+  "rawEvidence": "/tmp/flux-issue64-resumed-host",
+  "nextStep": "Await stable visible test window before further foreground interaction"
+}
