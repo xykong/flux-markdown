@@ -20,3 +20,29 @@
 - Full renderer suite: 43 suites / 388 tests passed; production typecheck/build passed.
 - Local fix committed as `5a83055`; not published. Reporter response posted and read back: https://github.com/xykong/flux-markdown/issues/63#issuecomment-6412707064.
 - Status: partial local fix; waiting for the actual SVG/host/location and OS clarification. Issue remains open without done.
+
+## 2026-11-06 follow-up: matching public SVG
+
+The partial HTML-path fix above was published in v1.39.614; the earlier local-only
+status is historical. No new reporter reply has arrived. The reporter's latest
+message is October 21, so the inactivity closure threshold has not been reached.
+
+Found the reporter's public repository `https://github.com/zhengcan/dbx-notebook`
+with `plugin/assets/plugin.svg`, an SQL Notebook SVG matching the issue's path and
+label. Blob `d3043c119bfacf4a688c71831694f82110a53556` is 861 bytes and uses a
+viewBox without explicit width/height. Its first public file commit is October 22
+(`3e2db9a6f2deae4fe25f2e7b41583b4f94302ba9`), after the October 21 report; this is
+a matching public candidate, not proof of the exact originally failing bytes.
+
+Tested that SVG against the unchanged production WebKit harness, substituting only
+the fixture image and checking actual complete/nonzero decoded dimensions instead
+of the synthetic fixture's fixed 96px intrinsic size. All three reported reference
+forms decoded in App/QuickLook renderer contexts, both via local scheme and native
+image inlining (12 image/context/route combinations). Existing export-readiness
+checks passed too. Evidence: ignored `build/issue63-public-svg/`, including original
+asset, isolated probe and result log. No external repository code was executed.
+
+No remaining renderer failure was reproduced with this public SVG. Finder sandbox
+access on the reporter's machine, file location and exact original bytes remain
+unconfirmed. Keep the issue open without a whole-issue done claim; no new image
+permission change or speculative fix is justified by these results.
