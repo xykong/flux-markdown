@@ -7,6 +7,23 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 1.44.761</title>
+            <link>https://github.com/xykong/flux-markdown/releases/tag/v1.44.761</link>
+            <sparkle:version>761</sparkle:version>
+            <sparkle:shortVersionString>1.44.761</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+            <pubDate>Fri, 06 Nov 2026 01:10:41 +0000</pubDate>
+            <enclosure
+                url="https://github.com/xykong/flux-markdown/releases/download/v1.44.761/FluxMarkdown.dmg"
+                sparkle:edSignature="3tGRVAa5nS0JazYa4M22YA8jaWu/Ol6+2bKL8rGHYEm9lIrbryBP3pMzmkGPcRmsDRccSTkzYrQKbRsNIO8CCg=="
+                length="45213700"
+                type="application/octet-stream" />
+            <description><![CDATA[
+                <h2>更新内容</h2><h3>Fixed</h3><ul><li><strong>Automatic update startup</strong>: Upgrade Sparkle to 2.9.3 so an on-demand progress helper is actively woken after submission, preventing the reproduced <code>4005 → 10</code> agent-connection timeout tracked in [#61](https://github.com/xykong/flux-markdown/issues/61). Existing installations whose old updater already fails need a manual DMG or Homebrew upgrade first.</li></ul><p><a href="https://github.com/xykong/flux-markdown/releases/tag/v1.44.761">查看完整更新日志</a></p>
+            ]]></description>
+        </item>
+        
+        <item>
             <title>Version 1.43.755</title>
             <link>https://github.com/xykong/flux-markdown/releases/tag/v1.43.755</link>
             <sparkle:version>755</sparkle:version>
