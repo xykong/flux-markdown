@@ -24,6 +24,22 @@ describe('TableOfContents', () => {
 
     afterEach(() => toc.dispose());
 
+    test('heading direction follows its own text independently of interface language', () => {
+        for (const direction of ['ltr', 'rtl']) {
+            document.documentElement.dir = direction;
+            toc.render([
+                {level: 1, text: '1. مقدمة', id: 'arabic', children: []},
+                {level: 2, text: 'שלום עולם', id: 'hebrew', children: []},
+                {level: 2, text: 'English title', id: 'english', children: []},
+            ]);
+            const links = Array.from(container.querySelectorAll<HTMLAnchorElement>('.toc-link'));
+            expect(links.map(link => link.dir)).toEqual(['auto', 'auto', 'auto']);
+            expect(links.map(link => link.textContent)).toEqual(['1. مقدمة', 'שלום עולם', 'English title']);
+            expect(container.querySelector('.toc-header')?.getAttribute('dir')).toBeNull();
+        }
+        document.documentElement.removeAttribute('dir');
+    });
+
     test('should initialize with toggle button', () => {
         const button = container.querySelector('.toc-toggle');
         expect(button).toBeTruthy();

@@ -88,7 +88,7 @@ html[data-toc-docked="true"] #reading-layout { display: grid; grid-template-colu
 .toc-nav > .toc-list::after { content: ''; display: block; height: 8px; }
 .toc-item { padding: 0; margin: 0; }
 .toc-link {
-    position: relative; display: block; padding: 7px 10px 7px calc(12px + var(--toc-indent, 0px));
+    position: relative; display: block; padding: 7px 10px 7px calc(12px + var(--toc-indent, 0px)); text-align: start;
     margin: 2px 0; color: var(--reading-muted); text-decoration: none;
     font: 13px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; border-radius: 8px;
     white-space: nowrap; text-overflow: ellipsis; overflow: hidden;
@@ -147,3 +147,7 @@ html[data-reading-shared="true"]:not([data-toc-side="left"]) #toc-button-contain
 #reading-status[data-size="small"] .reading-parent, #reading-status[data-size="tiny"] .reading-parent { display: none; }
 #reading-status[data-size="tiny"] .reading-progress, #reading-status[data-size="tiny"] .reading-updated { display: none; }
 html:not([data-reading-shared="true"]) #reading-status { display: none; }
+
+/* Per-heading direction, including Safari 14.0 (before logical inset support). */
+.toc-link[data-text-direction="rtl"] { padding: 7px calc(12px + var(--toc-indent, 0px)) 7px 10px; }
+.toc-link[data-text-direction="rtl"].active::before { left: auto; right: 0; }

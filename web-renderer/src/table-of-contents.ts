@@ -115,6 +115,11 @@ export class TableOfContents {
         }
         this.container.querySelector('.toc-nav')?.remove();
         this.container.appendChild(nav);
+        // Let the browser resolve dir=auto, then batch writes to avoid interleaved style reads.
+        // Physical CSS fallbacks also cover Safari 14.0, before logical inset properties.
+        const directions = Array.from(nav.querySelectorAll<HTMLAnchorElement>('.toc-link'))
+            .map(link => ({ link, direction: getComputedStyle(link).direction }));
+        for (const { link, direction } of directions) link.dataset.textDirection = direction === 'rtl' ? 'rtl' : 'ltr';
         this.headings = Array.from(document.querySelectorAll<HTMLElement>('#markdown-preview h1[id], #markdown-preview h2[id], #markdown-preview h3[id], #markdown-preview h4[id], #markdown-preview h5[id], #markdown-preview h6[id]'));
         this.updateLayout();
         this.updateActiveHeading();
@@ -125,6 +130,7 @@ export class TableOfContents {
         headings.forEach(heading => {
             const item = document.createElement('li'); item.className = 'toc-item';
             const link = document.createElement('a'); link.className = 'toc-link';
+            link.dir = 'auto';
             link.href = `#${heading.id}`; link.textContent = heading.text; link.title = heading.text;
             link.dataset.level = String(heading.level);
             link.dataset.depth = String(Math.min(5, heading.level - baseLevel));

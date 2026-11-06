@@ -14,6 +14,29 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private var index = 0
     private var feedbackEvents: [[String: Any]] = []
     private var cases: [(String, String)] = [
+        ("mixed-language contents direction and targets", """
+        for(const uiLanguage of ['en','ar']) for(const contentsSide of ['left','right']) {
+          await window.renderMarkdown('# مقدمة\\n\\n## שלום עולם\\n\\n## English title\\n\\n## التفاصيل\\n\\n## التفاصيل',{context:'app',uiLanguage,contentsSide});
+          const links=[...document.querySelectorAll('.toc-link')];
+          if(links.length!==5)throw new Error('missing headings');
+          if(new Set(links.map(a=>a.hash)).size!==5)throw new Error('duplicate anchors');
+          for(let i=0;i<links.length;i++) {
+            const link=links[i], rtl=i!==2;
+            const target=document.getElementById(decodeURIComponent(link.hash.slice(1)));
+            if(!target)throw new Error('missing target');
+            const style=getComputedStyle(link);
+            if(style.direction!==(rtl?'rtl':'ltr'))throw new Error('wrong heading direction');
+            if(!(rtl?parseFloat(style.paddingRight)>parseFloat(style.paddingLeft):parseFloat(style.paddingLeft)>parseFloat(style.paddingRight)))throw new Error('wrong indentation');
+            link.classList.add('active');
+            const marker=getComputedStyle(link,'::before');
+            if((rtl?marker.right:marker.left)!=='0px')throw new Error('wrong active edge');
+            link.click();
+            if(link.getAttribute('aria-current')!=='location')throw new Error('navigation did not activate target');
+          }
+          if(document.documentElement.dataset.tocSide!==contentsSide)throw new Error('physical side changed');
+        }
+        await window.renderMarkdown('# Reset',{uiLanguage:'en',contentsSide:'right'}); return true;
+        """),
         ("Quick Look probe requires completed visible current fixture", """
         const heading='FluxMarkdown Quick Look Test', bold='Rendered Markdown';
         const fixture='# '+heading+'\\n\\n**'+bold+'** confirms the extension was selected.';

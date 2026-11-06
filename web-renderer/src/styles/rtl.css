@@ -8,16 +8,6 @@ html[dir="rtl"] #reading-toolbar { direction: ltr; }
 html[dir="rtl"] #toc-container,
 html[dir="rtl"] #reading-toolbar > * { direction: rtl; }
 
-/* Indentation and the active marker follow the text start edge. */
-html[dir="rtl"] .toc-link {
-    padding: 7px calc(12px + var(--toc-indent, 0px)) 7px 10px;
-}
-
-html[dir="rtl"] .toc-link.active::before {
-    left: auto;
-    right: 0;
-}
-
 /* Search panel: mirror the counter and the options separator. */
 html[dir="rtl"] .search-input {
     padding: 4px 8px 4px 60px;

@@ -111,3 +111,15 @@ This is a standard English markdown document with no RTL content.
         expect(document.getElementById('markdown-preview')?.getAttribute('dir')).toBeNull();
     });
 });
+
+
+test('Arabic-only headings have unique navigable contents targets', async () => {
+    document.body.innerHTML = '<div id="markdown-preview"></div><div id="toc-container"></div><div id="toc-button-container"></div>';
+    await window.renderMarkdown('# مقدمة\n\n## التفاصيل\n\n## التفاصيل', {uiLanguage:'en'});
+    const headings = Array.from(document.querySelectorAll<HTMLElement>('#markdown-preview h1, #markdown-preview h2'));
+    expect(headings.every(heading => heading.id.length > 0)).toBe(true);
+    expect(new Set(headings.map(heading => heading.id)).size).toBe(3);
+    for (const link of document.querySelectorAll<HTMLAnchorElement>('.toc-link')) {
+        expect(document.getElementById(decodeURIComponent(link.hash.slice(1)))).not.toBeNull();
+    }
+});

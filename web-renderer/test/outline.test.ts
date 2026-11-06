@@ -1,7 +1,7 @@
 import MarkdownIt from 'markdown-it';
 // @ts-ignore
 import anchor from 'markdown-it-anchor';
-import { extractHeadings, buildHeadingTree, extractOutline, HeadingNode } from '../src/outline';
+import { extractHeadings, buildHeadingTree, extractOutline, HeadingNode, headingSlug } from '../src/outline';
 
 describe('Outline Extraction', () => {
     let md: MarkdownIt;
@@ -143,4 +143,14 @@ describe('Outline Extraction', () => {
             expect(outline).toHaveLength(0);
         });
     });
+});
+
+
+test('heading fallback preserves existing anchors and supports non-Latin-only titles', () => {
+    expect(headingSlug('Hello World')).toBe('hello-world');
+    expect(headingSlug('中文标题')).toBe('中文标题');
+    expect(headingSlug('API مقدمة')).toBe('api');
+    expect(headingSlug('مقدمة')).toBe('مقدمة');
+    expect(headingSlug('שלום עולם')).toBe('שלום-עולם');
+    expect(headingSlug('🎉')).toBe('section');
 });
