@@ -139,7 +139,9 @@ or a link to an empty feedback form does not satisfy them.
   - State which version fixed it and link to the release tag.
   - List the specific fixes relevant to that issue.
   - Provide update instructions (Homebrew + DMG link).
-- **No closing issues**: Only add `done` label + comment. The issue author decides when to close.
+- **Resolved issues**: Add `done` and a release reply; leave closure to the reporter.
+- **Inactive unresolved reports (maintainer decision, 2026-11-06)**: When the reporter's latest message (including the original issue if they never replied) is more than one calendar month old and needed evidence is still missing, close as `not planned`, not as fixed, without adding `done`. Maintainer replies do not reset the reporter's inactivity clock. Preserve the history; fresh evidence can justify reopening. Apply during issue reviews; this rule does not itself schedule or authorize an unattended closing job.
+- **Related reports**: Share investigation/tooling and cross-reference evidence; do not declare duplicate root causes solely from similar symptoms.
 
 ### Workflow for Closing Out Fixed Issues
 ```bash
@@ -149,7 +151,7 @@ gh issue edit <NUMBER> --add-label "done"
 # 2. Post reply (in the issue's language)
 gh issue comment <NUMBER> --body "..."
 
-# DO NOT run: gh issue close <NUMBER>
+# Unresolved inactive reports may be closed under the inactivity rule above.
 ```
 
 ### Issue Reply Template (English)
