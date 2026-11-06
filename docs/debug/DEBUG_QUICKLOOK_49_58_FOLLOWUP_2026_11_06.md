@@ -179,3 +179,57 @@ native tests, but positive candidate extension selection on this machine is not
 claimed. Do not disrupt the user's installed application or purge other registered
 copies to force a passing result. #49/#58 remain unconfirmed pending the reporters'
 failing runtime evidence. No release, issue reply or label update was performed.
+
+## Installed-candidate acceptance (user-authorized follow-up)
+
+The user explicitly requested installing the fixed candidate and testing it.
+Before placement, verified no FluxMarkdown document windows were open, backed up
+1.43.755, and captured editor/registration state. Use the existing acceptance-app
+preparer with Release entitlements and a development display version; preserve
+script-generated release/build numbers. Acceptance requires the installed copy's
+new version/build/exact path marker, visible Finder heading/bold content, a negative
+probe with wrong content, preserved editor state, and final signature verification.
+Keep the working candidate installed if acceptance passes; retain the backup.
+
+### Installed acceptance result
+
+Installed and retained `1.44.761-dev-20261106-174520`, containing commit `5f6ed0d`,
+under `/Applications/FluxMarkdown.app`. Used `prepare-acceptance-app.sh ... Release`
+and the vendor `install-flux-markdown.sh`; the latter performs registration/repair
+and preserves the captured editor handlers. The older running extension was
+terminated before replacement so the new executable could be loaded. Product
+version/build remain 1.44.761/761; this is a local acceptance build, not a release.
+
+- Actual installed `--quicklook-self-test` returned `rendered`. The fresh log at
+  17:45:30 +08:00 contains the exact installed executable path, matching UUID,
+  `version=1.44.761 build=761 stage=rendered`. This resolves the prior inability
+  to test the candidate as the system-selected installed extension.
+- Finder positive fixture emitted the same new identity/build-aware marker.
+  A second fixture with the dedicated probe filename but incorrect heading/bold
+  text reached `preparePreviewOfFile` in the installed extension, then logged
+  `Quick Look probe did not verify the rendered fixture`; no successful marker
+  for that negative fixture exists in the captured interval.
+- Independently opened the positive fixture in the existing system QLPreviewView
+  harness. Foreground accessibility and screenshot show the expected heading,
+  bold text, body, contents and native toolbar, including the installed development
+  display version. The initial background-host screenshot showed only native
+  controls; it was not counted as visual success. Foreground inspection showed
+  the actual rendered document. This observation does not establish the cause of
+  the initial background capture difference.
+- Finder foreground window automation was unreliable (including a focus refusal),
+  so no successful Finder screenshot is claimed. Finder invocation evidence and
+  independent foreground system-host visual evidence are recorded separately.
+- Final deep signature and Release entitlement checks pass. Default-editor
+  snapshot exactly matches before installation. Test host processes and the
+  task-created Finder window were closed; the user's pre-existing Finder window
+  remains. No reporter issue, label or release was changed.
+
+Evidence: `build/quicklook-probe-validation/installed-if0ach3c/acceptance.json`,
+`positive-host.png`, the positive/negative event records, final diagnostics and
+entitlement checks. The verified previous application is preserved as
+`previous-1.43.755.zip` in that directory; ZIP integrity and the archived executable
+SHA-256 match the pre-install backup. Staged candidate/backup app directories were
+removed after archiving to avoid leaving extra discoverable app copies. Fixture
+files are retained only in this ignored evidence directory. The installed candidate
+is intentionally left in place at the user's request. The original #49/#58 reporter
+machines remain untested; this is local acceptance of the diagnostic corrections.
