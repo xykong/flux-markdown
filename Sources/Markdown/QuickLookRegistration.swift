@@ -159,6 +159,7 @@ enum QuickLookRegistration {
         fields["extensionVersion"] = Bundle(url: ext)?.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
         fields["firstInSavedOrder"] = String(currentOrder().first == identifier)
         fields["defaultMarkdownEditor"] = currentEditor("net.daringfireball.markdown") ?? "unknown"
+        fields["diagnosticSessionSchema"] = "2"
         fields["actualFinderProvider"] = "unknown-registration-is-not-runtime-proof"
         fields["lastExplicitPreviewTest"] = UserDefaults.standard.string(forKey: "quickLookLastProbeResult") ?? "not-run"
         fields["lastExplicitPreviewTestVersion"] = UserDefaults.standard.string(forKey: "quickLookLastProbeVersion") ?? "unknown"

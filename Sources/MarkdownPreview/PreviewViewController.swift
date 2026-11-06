@@ -91,7 +91,18 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     private var truncationNotice: NSTextField?
     private let errorRegistry = RendererErrorRegistry()
     private let blockCopyBridge = BlockCopyBridge()
+    private var diagnosticAttempt = UUID()
+    private func logDiagnosticStage(_ stage: QuickLookDiagnosticStage, error: Error? = nil) {
+        guard let url = currentURL, let token = QuickLookProbeEvidence.token(for: url) else { return }
+        let bundle = Bundle(for: type(of: self))
+        guard let version = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
+              let build = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String,
+              let marker = QuickLookProbeEvidence.diagnosticMarker(token: token, version: version, build: build, stage: stage, attempt: diagnosticAttempt, context: currentPreviewMode == .compact ? .compact : .quicklook, error: error) else { return }
+        os_log("%{public}@", log: logger, type: .default, marker)
+    }
+
     private func showFailure(_ kind: FailureKind, error: Error? = nil) {
+        if kind == .renderer || kind == .rendererResources { logDiagnosticStage(.rendererFailed, error: error) }
         let incident = errorRegistry.nativeFailure(kind, error: error)
         IncidentNotice.attach(to: view, incident: incident, recoveryTitle: "Open in FluxMarkdown", recovery: { [weak self] in
             guard let self, let url = self.currentURL else { return }
@@ -1070,6 +1081,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     }
     
     private func renderSourceView() {
+        logDiagnosticStage(.sourceMode)
         let usageRenderVersion = renderVersion.next()
         usage.rendering()
         usageReady = false
@@ -1318,6 +1330,9 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         previewHasUnreadableImages = false
         updateTruncationNotice(false)
         self.currentURL = url
+        diagnosticAttempt = UUID()
+        logDiagnosticStage(.prepared)
+        if isWebViewLoaded { logDiagnosticStage(.handshake) }
         usageReady = false
         usage.attach(view, document: url)
         
@@ -1372,6 +1387,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                     }
                     switch result {
                     case .success(let snapshot):
+                        self.logDiagnosticStage(.fileRead)
                         self.pendingMarkdown = snapshot.content
                         self.previewHasUnreadableImages = false
                         self.updateTruncationNotice(snapshot.isTruncated)
@@ -1381,6 +1397,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                         self.startFileMonitoring()
                         handler(nil)
                     case .failure(let error):
+                        self.logDiagnosticStage(.fileReadFailed, error: error)
                         os_log("Failed to read preview: %{public}@", log: self.logger, type: .error, error.localizedDescription)
                         self.showFailure(.fileRead, error: error)
                         handler(nil)
@@ -1483,6 +1500,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                 let feedbackGeneration = self.errorRegistry.beginDocument()
                 ErrorFeedback.capture(.renderer, phase: .started, scope: self.errorRegistry.scope)
                 self.webView.evaluateJavaScript("window.setFeedbackGeneration && window.setFeedbackGeneration('\(feedbackGeneration)');", completionHandler: nil)
+                self.logDiagnosticStage(.renderStarted)
                 self.webView.callAsyncJavaScript(
                     callJs,
                     arguments: ["probeHeading": QuickLookProbeEvidence.heading, "probeBoldText": QuickLookProbeEvidence.boldText],
@@ -1496,6 +1514,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                 self.showFailure(.renderer, error: error)
                     case .success(let value):
                         if probeToken != nil && (value as? Bool) != true {
+                            self.logDiagnosticStage(.renderUnverified)
                             os_log("Quick Look probe did not verify the rendered fixture", log: self.logger, type: .default)
                             break
                         }
@@ -1503,6 +1522,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                         self.usage.rendered()
                         os_log("🔵 renderMarkdown completed successfully, result: %{public}@", log: self.logger, type: .debug, String(describing: value))
                         if let token = probeToken, (value as? Bool) == true {
+                            self.logDiagnosticStage(.rendered)
                             let bundle = Bundle(for: type(of: self))
                             let version = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
                             let build = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "unknown"
@@ -1634,6 +1654,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                 cancelHandshakeTimeout()
                 
                 isWebViewLoaded = true
+                logDiagnosticStage(.handshake)
                 renderCurrentMode()
             }
         } else if message.name == "readingToolsLayout" {
@@ -1795,6 +1816,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         let item = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
             if !self.isWebViewLoaded {
+                self.logDiagnosticStage(.handshakeTimeout)
                 os_log("🔴 Renderer Handshake Timeout (%{public}.1fs)! Showing non-destructive error.", log: self.logger, type: .error, self.handshakeTimeoutInterval)
                 
                 self.showFailure(.renderer)

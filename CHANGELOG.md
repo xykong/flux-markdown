@@ -1,4 +1,7 @@
 ## [Unreleased]
+### Added
+- **Quick Look diagnostic session**: Collect one bounded self-test/Finder comparison into a local, allowlisted ZIP without repairs or uploads. Trace dedicated test fixtures by extension identity, request and preview mode; keep missing evidence and user-observed outcomes separate. Supports investigation of #58 and the historical #49 report without claiming either root cause is fixed.
+
 ### Fixed
 - **Quick Look self-test accuracy**: Require the expected extension executable, version and build, plus a completed current render with visible test content. Other app copies, missing/error output, hidden content and stale/source-mode renders no longer qualify as a verified preview. This improves diagnostics; it does not establish a fix for the unresolved Finder fallback reports #49/#58.
 

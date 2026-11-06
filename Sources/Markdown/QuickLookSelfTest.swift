@@ -12,10 +12,10 @@ final class QuickLookSelfTest {
     private var completion: ((Bool) -> Void)?
     private var attempts = 0
 
-    func start(completion: @escaping (Bool) -> Void) {
+    func start(probeToken: UUID = UUID(), completion: @escaping (Bool) -> Void) {
         guard self.completion == nil else { completion(false); return }
         self.completion = completion
-        generation = UUID(); token = UUID().uuidString; attempts = 0
+        generation = UUID(); token = probeToken.uuidString; attempts = 0
         do {
             let directory = FileManager.default.temporaryDirectory.appendingPathComponent("FluxMarkdown-QuickLook-\(token)")
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
