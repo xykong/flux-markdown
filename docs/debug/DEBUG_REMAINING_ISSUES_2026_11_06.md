@@ -50,3 +50,71 @@ heading targets, navigation activation and both physical sidebar sides under
 English and Arabic interfaces. Production typecheck/build passes. No claim of a
 physical macOS 11/Intel run is made. The fix is local/unreleased; no issue reply or
 GitHub state change was made for this previously closed report.
+
+
+## #64 lightweight batch acceptance before implementation
+
+Use original corpus sections 12.2/12.3 and ++inserted text++, including nested
+strong emphasis. Require semantic dl/dt/dd, abbr titles and ins; code/fences and
+C++ literals must remain intact. Abbreviation definitions must not leak across
+renders; malicious-looking tooltip text must stay inert. Verify source view,
+searchable rendered text, HTML export and actual WebKit layout. Use upstream
+markdown-it plugins instead of a custom parser; pin exact versions. Other dialects
+remain outside this batch as recorded in the OpenSpec proposal.
+
+## Dependency audit baseline before patch updates
+
+Adding the lightweight plugins exposed newly published advisories in existing
+runtime dependencies: DOMPurify 3.4.16 and markdown-it 14.3.2 (npm reports one
+critical and one high affected package). This is an affected-dependency finding,
+not proof that all advisory modes are reachable in this app. Acceptance is zero
+runtime audit findings plus the full sanitizer/rendering/WebKit regression suite.
+Use compatible patches DOMPurify 3.4.17 and markdown-it 14.3.3; do not migrate to
+markdown-it 15. Primary evidence: upstream DOMPurify 3.4.17 release and advisories
+GHSA-cg2g-xh64-v4q7, GHSA-mrv2-3pqr-j5jr, GHSA-c6gr-qvv4-5v3f,
+GHSA-vfgh-jcmw-g37q and GHSA-gfr2-rv44-r23c.
+
+
+## #64 result and remaining queue
+
+Six new production-entry tests failed before plugin integration and pass after it.
+Exact pins: markdown-it-deflist 4.0.0, markdown-it-abbr 2.0.0, markdown-it-ins 4.0.0.
+Local declarations use PluginSimple without adding type-suppression directives.
+Original corpus definition/abbreviation excerpts render semantically; insertion
+supports nested emphasis. Code, per-document isolation, inert tooltip text, source
+view and exported semantic elements are covered. A literal-code assertion disables
+existing line-number decoration to compare its original trailing newline accurately.
+
+Final verification: 572 renderer tests / 63 suites pass; production typecheck/build
+and all 32 real WebKit cases pass. WebKit covers each new syntax in app/quicklook/
+finder contexts, light/dark themes, visible geometry, export semantics and search.
+Runtime npm audit reports zero findings after the two compatible security patches.
+Release native build passes with the explicit local macOS 12 override. Actual
+candidate-app CLI PDF export produces one page; PDFKit confirms definition,
+abbreviation and inserted text without the unrendered Markdown markers. This is
+content/export-path acceptance, not an exhaustive printed-layout or VoiceOver audit.
+
+Current issue dispositions (all checked online November 6):
+
+| Issue | Action / next evidence |
+| --- | --- |
+| #63 | Matching public SVG passes all three forms across four renderer context/routes. Actual original file/system still unconfirmed; last reporter message October 21, so no inactivity closure yet. |
+| #64 | Mathematics shipped; this first non-math batch implemented locally. Containers/attributes/TOC placeholders and other dialects remain outside this batch. No whole-corpus or released-fix claim. |
+| #61 | Sparkle fix already released in 1.44.761. Await affected-machine check and a subsequent real update installation; do not manufacture another speculative updater change. |
+| #65 | Copy controls shipped in 1.42.645 with opt-out and hover behavior; no new regression reported. Keep awaiting reporter confirmation. |
+| #58 | Single-session diagnostics completed locally in the preceding work; a public instrumented build/tool distribution is still needed before requesting another reporter run. |
+
+No remaining open report currently meets the one-calendar-month inactivity rule.
+No further issue comments, labels or closures were performed. User-facing examples
+and supported/deferred scope are in `docs/user/LIGHTWEIGHT_MARKDOWN_EXTENSIONS.md`.
+
+## Installed batch acceptance
+
+Installed and retained `1.44.761-dev-20261106-184443` using the existing Release
+acceptance preparer and vendor installer. No FluxMarkdown document windows were
+open before installation. Default editor snapshots match, deep signatures and
+Release entitlements pass, and the installed app's actual Quick Look self-test
+returns rendered. The installed-app PDF export also passes the same one-page text
+checks. Backup and installation evidence are under
+`build/remaining-issues-validation/install-essclhyf/`; the staged app copy was
+removed after installation. This is a local development build, not a GitHub release.

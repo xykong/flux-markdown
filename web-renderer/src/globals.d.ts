@@ -26,3 +26,20 @@ declare module '*?url' {
     const url: string;
     export default url;
 }
+
+
+declare module 'markdown-it-deflist' {
+    import type { PluginSimple } from 'markdown-it';
+    const plugin: PluginSimple;
+    export default plugin;
+}
+declare module 'markdown-it-abbr' {
+    import type { PluginSimple } from 'markdown-it';
+    const plugin: PluginSimple;
+    export default plugin;
+}
+declare module 'markdown-it-ins' {
+    import type { PluginSimple } from 'markdown-it';
+    const plugin: PluginSimple;
+    export default plugin;
+}

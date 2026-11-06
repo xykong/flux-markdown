@@ -1,8 +1,10 @@
 ## [Unreleased]
 ### Added
+- **Lightweight Markdown extensions** (#64): Render definition lists, document-scoped abbreviation titles and `++inserted text++`, preserving code literals and semantic HTML/PDF output. This addresses the first non-math compatibility batch, not all dialects in the supplied corpus.
 - **Quick Look diagnostic session**: Collect one bounded self-test/Finder comparison into a local, allowlisted ZIP without repairs or uploads. Trace dedicated test fixtures by extension identity, request and preview mode; keep missing evidence and user-observed outcomes separate. Supports investigation of #58 and the historical #49 report without claiming either root cause is fixed.
 
 ### Fixed
+- **Runtime dependency security**: Update DOMPurify to 3.4.17 and markdown-it to the compatible 14.3.3 patch; runtime npm audit reports no findings at verification.
 - **RTL contents**: Follow each heading’s own text direction for contents alignment, indentation and the active marker, independently of interface language. Give Arabic/Hebrew-only headings nonempty, unique navigation targets while preserving existing nonempty anchors.
 - **Quick Look self-test accuracy**: Require the expected extension executable, version and build, plus a completed current render with visible test content. Other app copies, missing/error output, hidden content and stale/source-mode renders no longer qualify as a verified preview. This improves diagnostics; it does not establish a fix for the unresolved Finder fallback reports #49/#58.
 

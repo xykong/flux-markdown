@@ -14,6 +14,27 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private var index = 0
     private var feedbackEvents: [[String: Any]] = []
     private var cases: [(String, String)] = [
+        ("lightweight definition abbreviation and insertion syntax", """
+        const source='Term\\n: Definition **bold**\\n\\nHTML and ++inserted++ and `++literal++`\\n\\n*[HTML]: HyperText Markup Language';
+        for(const context of ['app','quicklook','finder']) for(const theme of ['light','dark']) {
+          await window.renderMarkdown(source,{context,theme});
+          const root=document.getElementById('markdown-preview');
+          if(root.querySelector('dt')?.textContent!=='Term'||root.querySelector('dd strong')?.textContent!=='bold')throw new Error('definition list lost');
+          if(root.querySelector('abbr')?.title!=='HyperText Markup Language'||root.querySelector('ins')?.textContent!=='inserted'||root.querySelector('code')?.textContent!=='++literal++')throw new Error('inline extension mismatch');
+          for(const el of root.querySelectorAll('dt,dd,abbr,ins')) {
+            const box=el.getBoundingClientRect();if(box.width<=0||box.height<=0)throw new Error('invisible extension');
+          }
+          await window.waitForExportReady();
+          const exported=new DOMParser().parseFromString(window.exportHTML(),'text/html');
+          if(!exported.querySelector('dl')||!exported.querySelector('abbr[title]')||!exported.querySelector('ins'))throw new Error('export lost extensions');
+        }
+        await window.renderMarkdown('HTML',{context:'app',theme:'light'});
+        if(document.querySelector('#markdown-preview abbr'))throw new Error('abbreviation leaked across documents');
+        await window.renderMarkdown(source,{context:'app'});window.showSearch();
+        const input=document.querySelector('.search-input');input.value='inserted';input.dispatchEvent(new Event('input',{bubbles:true}));
+        if(!document.querySelector('.search-match-counter').textContent.includes('/1'))throw new Error('inserted text not searchable');
+        window.hideSearch();await window.renderMarkdown('# Reset');return true;
+        """),
         ("mixed-language contents direction and targets", """
         for(const uiLanguage of ['en','ar']) for(const contentsSide of ['left','right']) {
           await window.renderMarkdown('# مقدمة\\n\\n## שלום עולם\\n\\n## English title\\n\\n## التفاصيل\\n\\n## التفاصيل',{context:'app',uiLanguage,contentsSide});

@@ -291,6 +291,9 @@ import sup from 'markdown-it-sup';
 // @ts-ignore
 import anchor from 'markdown-it-anchor';
 import githubAlerts from 'markdown-it-github-alerts';
+import definitionLists from 'markdown-it-deflist';
+import abbreviations from 'markdown-it-abbr';
+import insertions from 'markdown-it-ins';
 
 import { findSourceLineTarget, DocumentPosition } from './position-navigation';
 import { extractHeadings, buildHeadingTree, headingSlug } from './outline';
@@ -424,6 +427,9 @@ function buildMd(enableTypst = true): MarkdownIt {
         slugify: headingSlug
     });
     instance.use(githubAlerts);
+    instance.use(definitionLists);
+    instance.use(abbreviations);
+    instance.use(insertions);
 
     const defaultImageRender = instance.renderer.rules.image || function(tokens: any, idx: any, options: any, env: any, self: any) {
         return self.renderToken(tokens, idx, options);
