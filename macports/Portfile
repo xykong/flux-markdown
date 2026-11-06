@@ -4,7 +4,7 @@ PortSystem          1.0
 PortGroup           github 1.0
 PortGroup           xcode 1.0
 
-github.setup        xykong flux-markdown 1.43.755 v
+github.setup        xykong flux-markdown 1.44.761 v
 github.tarball_from releases
 
 categories          aqua sysutils
@@ -29,9 +29,9 @@ distname            FluxMarkdown-${version}-macports-source
 worksrcdir          FluxMarkdown-${version}
 extract.suffix      .tar.gz
 
-checksums           rmd160  b0574417b3f7db3983fdfe2fb7ad19cd30422e7b \
-                    sha256  b724764394cadfc0e948526665d23947af42631f0d26b80b5cc7f13ba3caa472 \
-                    size    31370611
+checksums           rmd160  c0d9cc317a1262f119f8a03df32f2674d519b1e3 \
+                    sha256  ec6836edfb3578e11e8cb32b2a46da57b5452bc900b860a1b3260feb6f7f7f43 \
+                    size    31376323
 
 # The xcode PortGroup owns build and staged installation. Preserve the
 # project's per-target entitlements for the Quick Look extension and helpers.
