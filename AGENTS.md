@@ -60,7 +60,8 @@ macOS QuickLook extension for Markdown files. Hybrid architecture: Native Swift 
   1. **PR Merged**: Run `./scripts/analyze-pr.sh <PR_NUMBER>` to generate CHANGELOG entry, add to `[Unreleased]` section.
   2. **Release**: Run `make release [major|minor|patch]` → Updates `.version`, `CHANGELOG.md`, builds DMG, creates GitHub release.
   3. **Homebrew**: Run `./scripts/update-homebrew-cask.sh` to update both tap and official cask files automatically.
-  4. See `docs/release/RELEASE_PROCESS.md` for complete workflow.
+  4. **Celebration Artwork (required)**: Create a version-specific professional celebration image, optimize to a 1200×800 WebP (target 100–200 KB), upload it as a Release asset, and place it at the top of the Release Notes. Inspect the compressed image and verify its public download before declaring the release complete. The release scripts do not perform this step automatically.
+  5. See `docs/release/RELEASE_PROCESS.md` for the complete workflow and artwork generation, compression, publication and verification commands.
 - **Homebrew Distribution**: Two tracks — tap version (full features) and official homebrew-cask (compliant, no formula deps). See `docs/release/HOMEBREW_SUBMISSION.md`.
 
 ## CONVENTIONS

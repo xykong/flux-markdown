@@ -39,3 +39,35 @@
 - Detailed controlled reproduction and product verification remain in
   `docs/debug/DEBUG_ISSUE_61_SPARKLE_UPDATE.md`. Private publication logs and
   downloaded evidence remain under ignored `build/issue-61-20261106/`.
+
+## Celebration artwork follow-up
+
+- Initial publication omitted the celebration image because the previous release's
+  post-publication image workflow had not been included in the release checklist.
+  The user requested the final workflow from session
+  `01a1a600-87b4-7700-8932-bdde596e02f6`. It is now mandatory in
+  `RELEASE_PROCESS.md` and the root `AGENTS.md`, including compressed-image visual
+  review, upload, top-of-notes placement and public byte verification.
+- Campaign theme: “Moving forward. Updates improved.” Version-specific artwork
+  uses Markdown documents, an update-arrow orbit, gold fireworks/ribbons and an
+  indigo background. No claim of affected-machine confirmation is added.
+- Attempted the prior `animal-mediakit` / `gpt-image-2.5-flare` path twice; both
+  calls terminated with `API_ERROR: The read operation timed out`, with no image
+  file returned. Used the built-in `image_gen` tool for the final artwork and
+  disclosed the substitution. No resolved model name or trace ID was supplied by
+  that tool; do not attribute the result to Flare.
+- Initial prompt: `artwork/v1.44.761-prompt.txt`. Exact final built-in prompt:
+  `artwork/v1.44.761-final-prompt.txt`. Original copied into the workspace;
+  resize/convert/compress used animal-mediakit. Both original and compressed
+  images were visually checked for spelling, layout and readability.
+- [Published WebP](https://github.com/xykong/flux-markdown/releases/download/v1.44.761/flux-markdown-v1.44.761-celebration.webp):
+  1200×800, 124,394 bytes (121.5 KiB), `image/webp`.
+  SHA-256: `97babb614e1dcf26062f9318af1763cc3c6322ea5d2777e7d5e41ecf0fed9269`.
+- Public download byte-matches the local final image at
+  `build/release-artwork-1.44.761/flux-markdown-v1.44.761-celebration.webp`.
+  GitHub asset digest/MIME checked; Release body read back with the image first
+  and original text preserved exactly. Existing DMG/source asset digests unchanged.
+  Browser rendering inspection was unavailable (`The browser access host is unavailable`);
+  verification covers the final local image, remote Markdown and public asset.
+- Did not alter `.version`, signed appcast, DMG or the original manifest-bound
+  release notes. Only the new image asset and GitHub Release body were published.

@@ -4,10 +4,16 @@
 
 ## 概述
 
-发布流程分为三个阶段：
+发布流程分为五个阶段：
 1. **PR 合并前**: 收集和记录变更
 2. **版本发布**: 自动化构建和发布
 3. **发布后**: 更新 Homebrew Cask 和验证
+4. **发布宣传图与最终验收**: 制作、压缩、上传庆祝图，将其放在 Release Notes 顶部并验证公开下载。完成后再宣布发布结束或回复 Issue。
+5. **Issue 跟进**: 回复相关 Issue，说明版本、更新方式及需要的复测。
+
+**每次正式发布必须包含本版庆祝宣传图。** `make release` / `publish-release.sh`
+目前只处理程序包、更新源和 Homebrew，不会自动生成宣传图；脚本成功不代表全部发布流程完成。
+按下文「庆祝宣传图」完成图片和页面检查，不得因为是修复版本而省略。
 
 ---
 
@@ -145,6 +151,7 @@ gh release create "v<VERSION>" build/artifacts/FluxMarkdown.dmg \
 - [ ] Release Notes 包含所有 PR 的感谢信息
 - [ ] Git tag 已推送
 - [ ] CHANGELOG.md 已更新
+- [ ] 已完成下文庆祝宣传图流程：本版文案、压缩 WebP、公开资源校验、Release Notes 顶部展示
 
 ---
 
@@ -419,9 +426,72 @@ echo "    4. git push origin master"
 
 ---
 
-## 阶段 4: Issue 回复规范
+## 阶段 4: 庆祝宣传图与最终验收（必做）
 
-### 4.1 核心原则
+此流程承接会话 `01a1a600-87b4-7700-8932-bdde596e02f6` 最后确认的
+v1.43.755 优化方案：专业且有庆祝氛围的宣传图，**不能直接嵌入数 MB 的原始 PNG**。
+参考产物为该版 Release 顶部的 `celebration-v2.webp`（1200×800，129,950 字节）。
+
+### 4.1 制作本版图片
+
+- 先确定本版真实用户价值，检查版本号和发布说明。不要沿用上版功能文案；修复版也需要庆祝图，但不能宣称尚未验证的全面修复、性能提升或安全认证。
+- 延续专业发布视觉：深靛蓝/蓝紫背景、金色烟花/丝带/彩屑、玻璃与金属 Markdown 文档主体、清晰的文字层级和留白。庆祝元素不得遮挡文字；不要退化成过于素净的单个图标。
+- 图片只保留产品名、完整版本号、简短主题文案；不塞入完整 changelog、错误码或小字。
+- 沿用指定会话的 `animal-mediakit generate image`、`gpt-image-2.5-flare`、1536×1024、high 质量生成路径。若该工具/模型不可用，应明确记录替代方案，不能假称仍使用同一模型。
+- 将最终 prompt 保存到 `docs/release/artwork/v<VERSION>-prompt.txt`。原始图和生成日志保存在 ignored 的 `build/release-artwork-<VERSION>/`，不将原始 PNG 或原始服务响应提交到仓库。
+
+示例（版本号读取 `.version`，不手写 build number）：
+
+```sh
+version=$(cat .version)
+artwork_dir="build/release-artwork-$version"
+mkdir -p "$artwork_dir"
+animal-mediakit --json generate image "$(cat "docs/release/artwork/v$version-prompt.txt")" \
+  --model gpt-image-2.5-flare --size 1536x1024 --quality high --output-format png \
+  -o "$artwork_dir/original.png" > "$artwork_dir/generate.json"
+```
+
+### 4.2 压缩和视觉验收
+
+1. 查看原始图，确认文字拼写、版本号、主题、构图及庆祝氛围。
+2. 按比例缩到 **1200×800**，转换为 WebP，再压缩（质量 80–85 起步）。
+3. 目标 **100–200 KB**，通常不超过 **250 KB**；超过时继续优化，或在发布记录明确说明保留更大尺寸的必要性。
+4. **必须重新查看最终压缩图**，检查小尺寸下的文字清晰度、边缘和压缩伪影。工具成功或文件体积合格不能代替视觉检查。
+
+```sh
+animal-mediakit image resize "$artwork_dir/original.png" \
+  --width 1200 --height 800 -o "$artwork_dir/resized.png"
+animal-mediakit image convert "$artwork_dir/resized.png" \
+  --format webp -o "$artwork_dir/converted.webp"
+animal-mediakit image compress "$artwork_dir/converted.webp" --quality 82 \
+  -o "$artwork_dir/flux-markdown-v$version-celebration.webp"
+```
+
+### 4.3 上传、插入和回读验证
+
+- 上传最终 WebP 到**对应版本 GitHub Release assets**。第一次采用
+  `flux-markdown-v<VERSION>-celebration.webp`；迭代采用 `-v2.webp` 等新文件名，避免缓存和覆盖旧文件。
+- 先用 `gh release view --json body,assets` 读取当前线上内容，再把图片 Markdown 放在 Release Notes 顶部。只新增或替换该宣传图引用，保留全部原有发布说明。使用 `--notes-file`，不要在 shell 中拼接转义正文。
+- 使用公开的 `https://github.com/xykong/flux-markdown/releases/download/v<VERSION>/<ASSET>` URL 和描述性 alt text，不使用本地路径、私有 URL 或生成服务临时 URL。
+- **不要修改已绑定 release-manifest 的 `release_notes_tmp.md` 来补图**，也不要重建/覆盖已发布的 DMG 或修改 appcast。用独立 notes 文件更新 GitHub 正文，保留原始发布清单可验证性。
+- 回读 Release：图片引用位于正文顶部，版本和 asset 名正确；原有正文完整。
+- 从公开 URL 下载图片，与本地 WebP 做字节比较并核对 SHA-256、MIME、尺寸、大小。检查发布页实际渲染；若浏览器不可用，记录这一限制，并至少确认远端 Markdown、资源下载和本地最终图均正确。
+- 在 `docs/release/RELEASE_<VERSION>.md` 记录模型、可用的 trace ID、prompt 路径、图片链接、尺寸/字节数/SHA-256、视觉审查与远端校验结果，提交并推送。二进制图作为 Release asset 保存，工作区保留最终副本。
+
+### 4.4 最终发布门禁
+
+- [ ] 正式包、签名、双架构/最低系统版本、GitHub/Sparkle/Homebrew 渠道已核验。
+- [ ] 本版庆祝图已生成、压缩、肉眼检查并上传；公开下载一致。
+- [ ] Release Notes 顶部显示本版图片，原有说明保留；不直接嵌入原始 PNG。
+- [ ] 发布记录已提交；需要的 Issue 回复已发出并回读。
+
+未完成上述检查，不要将发布标记为全部完成。补图不需要重新发版或改版本号。
+
+---
+
+## 阶段 5: Issue 回复规范
+
+### 5.1 核心原则
 
 | 规则 | 说明 |
 |------|------|
@@ -429,7 +499,7 @@ echo "    4. git push origin master"
 | **不关闭 issue** | 只添加 `done` 标签 + 回复。由 issue 作者决定是否关闭。 |
 | **不重复打开** | 若 issue 被误关闭，先 reopen，再补标签和回复。 |
 
-### 4.2 已修复 Issue 的处理流程
+### 5.2 已修复 Issue 的处理流程
 
 ```bash
 # 1. 确认修复已包含在已发布版本中
@@ -446,7 +516,7 @@ gh issue comment <NUMBER> --body "..."
 # gh issue close <NUMBER>
 ```
 
-### 4.3 回复模板
+### 5.3 回复模板
 
 **英文 issue**:
 ```
