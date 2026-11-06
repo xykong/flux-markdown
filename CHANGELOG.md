@@ -1,5 +1,6 @@
 ## [Unreleased]
-_无待发布的变更_
+### Fixed
+- **Quick Look self-test accuracy**: Require the expected extension executable, version and build, plus a completed current render with visible test content. Other app copies, missing/error output, hidden content and stale/source-mode renders no longer qualify as a verified preview. This improves diagnostics; it does not establish a fix for the unresolved Finder fallback reports #49/#58.
 
 ## [1.44.761] - 2026-11-06
 ### Fixed

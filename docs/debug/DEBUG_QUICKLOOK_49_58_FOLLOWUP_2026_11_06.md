@@ -123,3 +123,59 @@ Recommended implementation order before another reporter round trip:
 Neither #49 nor #58 has a confirmed root cause or released fix. Do not mark done,
 merge them as proven duplicates, or claim ad-hoc signing/default editor causes
 without the failing runtime evidence.
+
+## Authorized corrective work
+
+User requested fixes for the confirmed causes. Scope: the two diagnostic defects
+above; no claim of resolving either reporter's original fallback. Before code
+changes, added an alternate-copy rejection regression and renderer checks for a
+successful fixture, missing root, caught error, invalidation/source mode, wrong
+content and hidden/zero-size output. The renderer API will keep its existing
+promise contract; a separate probe verifier will require a completed current
+render and the expected visible heading/bold DOM. Native probing will require
+canonical executable identity and version/build plus this affirmative result.
+
+
+## Corrective result and validation
+
+Both confirmed diagnostic defects are corrected. The self-test reads the embedded
+extension's executable/version/build and accepts only a matching canonical path
+(including legitimate filesystem aliases), exact version/build, token, subsystem
+and rendered marker. Missing identity fails closed. Renderer probe verification
+requires the completed current generation and visible, nonzero-size expected
+heading and bold text. Source mode, caught errors, missing DOM, hidden ancestors,
+wrong content and superseded work cannot emit the successful probe marker. Normal
+render/export promise behavior remains unchanged; this does not introduce a new
+error surface or suppress the existing native self-test feedback.
+
+Evidence:
+
+- Before implementation: the native alternate-copy assertion failed, and the new
+  renderer positive contract check failed. The earlier isolated missing-root
+  experiment established why resolved promises are insufficient.
+- After implementation: all 563 renderer tests / 62 suites pass, production
+  typecheck/build pass, and all 30 real WebKit cases pass. The new WebKit case
+  verifies actual layout plus missing root, caught failure, hidden content,
+  source mode, stale generation and wrong content. Six Jest probe cases include
+  a newer asynchronous render invalidating previously successful content.
+- Native Xcode tests: 9 passed, zero failures, covering probe evidence and
+  registration/editor preservation. The first run encountered a stale Sparkle
+  module cache; an isolated derived-data run passed. Release configuration builds
+  successfully. Local Xcode 27 uses the explicit macOS 12 deployment override;
+  no macOS 11/physical Intel runtime acceptance or support-policy change is claimed.
+- Actual candidate self-test: temporarily registered a signed Release-entitlement
+  candidate without replacing the installed app. System Quick Look selected the
+  existing `/Applications` 1.43.755 extension instead. Its old rendered event was
+  correctly rejected and the candidate returned `quicklook_preview=unconfirmed`.
+  This is an actual cross-copy negative test, not a candidate positive-host pass.
+- Removed the candidate registration in a `finally` cleanup. Before/after
+  registration snapshots and default-editor state are byte-for-byte identical.
+  Local evidence remains under `build/quicklook-probe-validation/run-xks164pp/`.
+  The self-test's normal last-result/time preferences were updated by the run.
+
+Limit: the OS did not select the candidate extension during that actual-host
+attempt. Positive semantics are verified in real WKWebView and the exact-identity
+native tests, but positive candidate extension selection on this machine is not
+claimed. Do not disrupt the user's installed application or purge other registered
+copies to force a passing result. #49/#58 remain unconfirmed pending the reporters'
+failing runtime evidence. No release, issue reply or label update was performed.

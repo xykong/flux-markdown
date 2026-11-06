@@ -1473,7 +1473,10 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                 return
             }
             
-            let callJs = "return window.renderMarkdown(\(safeContentArg), \(optionsJson));"
+            let probeToken = capturedURL.flatMap { QuickLookProbeEvidence.token(for: $0) }
+            let callJs = probeToken == nil
+                ? "return window.renderMarkdown(\(safeContentArg), \(optionsJson));"
+                : "await window.renderMarkdown(\(safeContentArg), \(optionsJson)); return window.verifyQuickLookProbe(probeHeading, probeBoldText);"
             
             await MainActor.run {
                 guard self.renderVersion.isCurrent(capturedRenderVersion), self.currentURL == capturedURL else { return }
@@ -1482,7 +1485,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                 self.webView.evaluateJavaScript("window.setFeedbackGeneration && window.setFeedbackGeneration('\(feedbackGeneration)');", completionHandler: nil)
                 self.webView.callAsyncJavaScript(
                     callJs,
-                    arguments: [:],
+                    arguments: ["probeHeading": QuickLookProbeEvidence.heading, "probeBoldText": QuickLookProbeEvidence.boldText],
                     in: nil,
                     in: WKContentWorld.page
                 ) { result in
@@ -1492,13 +1495,19 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                         os_log("🔴 JS Execution Error (renderMarkdown): %{public}@", log: self.logger, type: .error, error.localizedDescription)
                 self.showFailure(.renderer, error: error)
                     case .success(let value):
+                        if probeToken != nil && (value as? Bool) != true {
+                            os_log("Quick Look probe did not verify the rendered fixture", log: self.logger, type: .default)
+                            break
+                        }
                         self.usageReady = true
                         self.usage.rendered()
                         os_log("🔵 renderMarkdown completed successfully, result: %{public}@", log: self.logger, type: .debug, String(describing: value))
-                        if let url = self.currentURL, let token = QuickLookProbeEvidence.token(for: url) {
-                            let version = Bundle(for: type(of: self)).object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
+                        if let token = probeToken, (value as? Bool) == true {
+                            let bundle = Bundle(for: type(of: self))
+                            let version = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
+                            let build = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "unknown"
                             os_log("%{public}@", log: self.logger, type: .default,
-                                   QuickLookProbeEvidence.marker(token: token, version: version, stage: "rendered"))
+                                   QuickLookProbeEvidence.marker(token: token, version: version, build: build, stage: "rendered"))
                         }
                         self.isSearchReady = true
                         self.completePendingSearchRequest()

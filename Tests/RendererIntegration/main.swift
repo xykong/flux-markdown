@@ -14,6 +14,37 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private var index = 0
     private var feedbackEvents: [[String: Any]] = []
     private var cases: [(String, String)] = [
+        ("Quick Look probe requires completed visible current fixture", """
+        const heading='FluxMarkdown Quick Look Test', bold='Rendered Markdown';
+        const fixture='# '+heading+'\\n\\n**'+bold+'** confirms the extension was selected.';
+        const verify=()=>window.verifyQuickLookProbe(heading,bold);
+        await window.renderMarkdown(fixture,{context:'quicklook'});
+        if(!verify())throw new Error('valid fixture rejected');
+        window.invalidateRender();
+        if(verify())throw new Error('stale generation accepted');
+        await window.renderMarkdown(fixture,{context:'quicklook'});
+        window.renderSource(fixture,'light');
+        if(verify())throw new Error('source accepted');
+        await window.renderMarkdown(fixture,{context:'quicklook'});
+        const root=document.getElementById('markdown-preview');
+        root.style.display='none';
+        if(verify())throw new Error('hidden fixture accepted');
+        root.style.display='';
+        root.id='temporarily-missing-preview';
+        await window.renderMarkdown(fixture,{context:'quicklook'});
+        if(verify())throw new Error('missing root accepted');
+        root.id='markdown-preview';
+        if(verify())throw new Error('old content accepted after failed render');
+        await window.renderMarkdown('# Wrong',{context:'quicklook'});
+        if(verify())throw new Error('wrong fixture accepted');
+        await window.renderMarkdown(fixture,{context:'quicklook'});
+        const random=crypto.getRandomValues;
+        crypto.getRandomValues=()=>{throw new Error('injected probe failure')};
+        try{await window.renderMarkdown(fixture,{context:'quicklook'});}finally{crypto.getRandomValues=random;}
+        if(verify() || !root.querySelector('.render-error'))throw new Error('caught failure accepted');
+        await window.renderMarkdown('# Restored',{context:'app'});
+        return true;
+        """),
         ("block copy delayed visibility and focus", """
         await window.renderMarkdown('```\\nhello\\n```',{context:'app',showCopyButtons:true});
         const nativeFocusDeadline=performance.now()+4000;

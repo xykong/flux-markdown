@@ -460,6 +460,7 @@ function buildMd(enableTypst = true): MarkdownIt {
 
 const md: MarkdownIt = buildMd();
 let renderGeneration = 0;
+let completedRenderGeneration = -1;
 let currentRender: Promise<void> = Promise.resolve();
 window.waitForExportReady = async (timeoutMs = 15000) => {
     const generation = renderGeneration;
@@ -626,6 +627,7 @@ declare global {
         waitForExportReady: (timeoutMs?: number) => Promise<void>;
         prepareExport: () => Promise<ExportPreparation>;
         invalidateRender: () => void;
+        verifyQuickLookProbe: (heading: string, boldText: string) => boolean;
         renderMarkdown: (text: string, options?: RenderOptions) => Promise<void>;
         renderSource: (text: string, theme: string, prevContent?: string, options?: RenderOptions) => void;
         clearDiffMarks: () => void;
@@ -861,6 +863,28 @@ function applyInterfaceDirection(language?: string): boolean {
     else document.documentElement.removeAttribute('dir');
     return isRtl;
 }
+
+// A resolved JS call alone does not prove that Markdown was rendered.
+window.verifyQuickLookProbe = (heading, boldText) => {
+    const root = document.getElementById('markdown-preview');
+    if (completedRenderGeneration !== renderGeneration || !root?.isConnected ||
+        root.classList.contains('source-mode') || root.querySelector('.render-error')) return false;
+    const title = root.querySelector('h1');
+    const strong = root.querySelector('p strong');
+    const visible = (element: Element | null): boolean => {
+        if (!element) return false;
+        const box = element.getBoundingClientRect();
+        if (box.width <= 0 || box.height <= 0) return false;
+        for (let node: Element | null = element; node; node = node.parentElement) {
+            const style = getComputedStyle(node);
+            if (style.display === 'none' || style.visibility === 'hidden' ||
+                style.visibility === 'collapse' || style.opacity === '0') return false;
+        }
+        return true;
+    };
+    return title?.textContent === heading && strong?.textContent === boldText &&
+        visible(root) && visible(title) && visible(strong);
+};
 
 window.renderMarkdown = async function (text: string, options: RenderOptions = {}) {
     disposeBlockCopy();
@@ -1206,6 +1230,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         readingStatus?.render(text, options.filename, options.prevContent);
         // Refresh the shared active-heading selection after asynchronous diagrams settle.
         window.dispatchEvent(new Event('scroll'));
+        completedRenderGeneration = callId;
         logToSwift(`[renderMarkdown:${callId}] COMPLETE`);
     } catch (e) {
         if (!isCurrent()) return;

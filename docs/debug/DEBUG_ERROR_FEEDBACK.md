@@ -27,6 +27,7 @@ Verified the repository's real logged-in GitHub editor with a non-private title/
 
 | Surface | Implementation / verification |
 | --- | --- |
+| Quick Look self-test | Failure continues through shared native ErrorFeedback. Verification now requires canonical extension identity/version/build and the completed visible fixture; missing root, caught errors, stale/source mode and wrong/hidden content are rejected. Covered by native evidence tests and the real WebKit probe case; actual candidate launch rejected a different installed extension without claiming success. |
 | Update errors | Real Sparkle user-driver path; failure captured before dismissal, report after acknowledgement; download/review/close remain accessible; unit checks include repeated failed update cycles. |
 | Document read/encoding/size | `DocumentReadFailure` exposes localized Foundation recovery options for choosing a file, reporting, review and closing; tested without opening another modal. OS-owned inaccessible failures still use Help fallback. |
 | Reload | Main app/extension attach native persistent notice; main app retry retains current content. Registry deduplicates repeated same-kind/code errors within one document. |
