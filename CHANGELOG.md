@@ -1,4 +1,7 @@
 ## [Unreleased]
+_无待发布的变更_
+
+## [1.45.774] - 2026-11-07
 ### Added
 - **Lightweight Markdown extensions** (#64): Render definition lists, document-scoped abbreviation titles and `++inserted text++`, preserving code literals and semantic HTML/PDF output. This addresses the first non-math compatibility batch, not all dialects in the supplied corpus.
 - **Quick Look diagnostic session**: Collect one bounded self-test/Finder comparison into a local, allowlisted ZIP without repairs or uploads. Trace dedicated test fixtures by extension identity, request and preview mode; keep missing evidence and user-observed outcomes separate. Supports investigation of #58 and the historical #49 report without claiming either root cause is fixed.
