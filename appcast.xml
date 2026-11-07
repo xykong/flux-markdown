@@ -7,6 +7,23 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 1.45.774</title>
+            <link>https://github.com/xykong/flux-markdown/releases/tag/v1.45.774</link>
+            <sparkle:version>774</sparkle:version>
+            <sparkle:shortVersionString>1.45.774</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+            <pubDate>Sat, 07 Nov 2026 08:14:06 +0000</pubDate>
+            <enclosure
+                url="https://github.com/xykong/flux-markdown/releases/download/v1.45.774/FluxMarkdown.dmg"
+                sparkle:edSignature="6lDKqLpqdOJVYaxDnrXlxhS44aTOhTZyhSm/nwD2yqg2SMquaQSkHDQkEb0nqM3z2z77Zqs1QBADOElBc1qCAg=="
+                length="45277706"
+                type="application/octet-stream" />
+            <description><![CDATA[
+                <h2>更新内容</h2><h3>Added</h3><ul><li><strong>Lightweight Markdown extensions</strong> (#64): Render definition lists, document-scoped abbreviation titles and <code>++inserted text++</code>, preserving code literals and semantic HTML/PDF output. This addresses the first non-math compatibility batch, not all dialects in the supplied corpus.</li><li><strong>Quick Look diagnostic session</strong>: Collect one bounded self-test/Finder comparison into a local, allowlisted ZIP without repairs or uploads. Trace dedicated test fixtures by extension identity, request and preview mode; keep missing evidence and user-observed outcomes separate. Supports investigation of #58 and the historical #49 report without claiming either root cause is fixed.</li></ul><h3>Fixed</h3><ul><li><strong>Runtime dependency security</strong>: Update DOMPurify to 3.4.17 and markdown-it to the compatible 14.3.3 patch; runtime npm audit reports no findings at verification.</li><li><strong>RTL contents</strong>: Follow each heading’s own text direction for contents alignment, indentation and the active marker, independently of interface language. Give Arabic/Hebrew-only headings nonempty, unique navigation targets while preserving existing nonempty anchors.</li><li><strong>Quick Look self-test accuracy</strong>: Require the expected extension executable, version and build, plus a completed current render with visible test content. Other app copies, missing/error output, hidden content and stale/source-mode renders no longer qualify as a verified preview. This improves diagnostics; it does not establish a fix for the unresolved Finder fallback reports #49/#58.</li></ul><p><a href="https://github.com/xykong/flux-markdown/releases/tag/v1.45.774">查看完整更新日志</a></p>
+            ]]></description>
+        </item>
+        
+        <item>
             <title>Version 1.44.761</title>
             <link>https://github.com/xykong/flux-markdown/releases/tag/v1.44.761</link>
             <sparkle:version>761</sparkle:version>
