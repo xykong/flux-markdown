@@ -120,3 +120,7 @@ export and actual QuickLook acceptance evidence.
 
 
 Issue 64 actual App menu verification found native overlays missing from WebKit's external AX tree and an untranslated editor caption. NativeMagnifyingWebView now exposes IncidentNotice groups alongside its remote document tree; the App reuses the translated Open in External Editor key. Thirty targeted native tests pass, and actual HTML export on invalid math now exposes the translated recovery and contextual report controls in the external AX tree. This is not VoiceOver speech or report-delivery proof.
+
+## Document path clipboard
+File → Copy Document Path (Command-Option-C) uses the focused saved document. Clipboard rejection captures `.copy` before presenting the shared native `ErrorFeedback` recovery/report surface; Retry retains the original URL and diagnostics contain no path. Unicode, spaces and shell punctuation are tested with an isolated pasteboard. No document/non-file URLs disable the action.
+Recent-document reopening retains unavailable entries. Failed opens capture `.fileRead` and present shared native feedback with “Choose Another File”; the action opens the native file picker. The report excludes the document path.

@@ -144,7 +144,7 @@ export class SearchEngine {
                 acceptNode: (node) => {
                     // Skip script, style, and other non-visible elements
                     const parent = node.parentElement;
-                    if (!parent || parent.closest('.block-copy-tools, .flux-math-source, mjx-assistive-mml, .error-feedback-controls')) return NodeFilter.FILTER_REJECT;
+                    if (!parent || parent.closest('.mermaid-tools, .block-copy-tools, .flux-math-source, mjx-assistive-mml, .error-feedback-controls')) return NodeFilter.FILTER_REJECT;
 
                     const tagName = parent.tagName.toLowerCase();
                     if (['script', 'style', 'noscript'].includes(tagName)) {

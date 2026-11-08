@@ -1,0 +1,5 @@
+- [x] 1. Reproduce identity-coupled history loss and add persistence regression tests.
+- [x] 2. Implement durable history with migration and explicit clear.
+- [x] 3. Implement localized active-document path copying.
+- [x] 4. Add default sizing and independent Mermaid controls with regression tests.
+- [x] 5. Run native and real WebKit checks, record evidence and limitations.

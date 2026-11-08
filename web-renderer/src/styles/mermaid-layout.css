@@ -1,0 +1,23 @@
+.mermaid { position: relative; min-width: 0; margin-block: 1em; }
+.mermaid-viewport { overflow-x: auto; max-width: 100%; }
+.mermaid-viewport > svg { margin-inline: auto; }
+.mermaid-tools {
+    display: flex; justify-content: flex-end; gap: 4px;
+    position: relative; z-index: 1; min-height: 28px;
+    opacity: 0; pointer-events: none;
+    font: 12px system-ui; user-select: none; -webkit-user-select: none;
+}
+.mermaid-tools button {
+    font: inherit; color: inherit; background: var(--bgColor-default, Canvas);
+    border: 1px solid currentColor; border-radius: 5px; min-width: 28px; min-height: 28px;
+    cursor: pointer;
+}
+.mermaid-tools button:disabled { opacity: .4; cursor: default; }
+.mermaid-tools button:focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
+.mermaid:hover > .mermaid-tools, .mermaid-tools:focus-within { opacity: 1; pointer-events: auto; }
+@media (hover: none) { .mermaid-tools { opacity: 1; pointer-events: auto; } }
+@media print {
+    .mermaid-tools { display: none !important; }
+    .mermaid-viewport { overflow: visible; }
+    .mermaid-viewport > svg { max-width: 100% !important; }
+}

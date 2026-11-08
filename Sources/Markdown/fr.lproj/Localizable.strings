@@ -239,3 +239,13 @@
 "Copy code and quotes. Reload open Quick Look previews to apply." = "Copier le code et les citations. Rechargez les aperçus Quick Look ouverts pour appliquer.";
 "Text could not be copied" = "Le texte n’a pas pu être copié";
 "Select the text to copy it manually, or try the copy button again." = "Sélectionnez le texte pour le copier manuellement ou réessayez le bouton de copie.";
+
+"Copy Document Path" = "Copier le chemin du document";
+
+"New Document" = "Nouveau document";
+
+"Open…" = "Ouvrir…";
+
+"Open Recent" = "Ouvrir un document récent";
+
+"Clear Menu" = "Effacer le menu";

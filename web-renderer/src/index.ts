@@ -1,4 +1,6 @@
 import './math-compat';
+import { installMermaidLayout } from './mermaid-layout';
+import './styles/mermaid-layout.css';
 import { preserveLetterSequences } from './typography';
 import { installBlockCopy, blockCopyResult, CopyController } from './block-copy';
 import './styles/block-copy.css';
@@ -14,6 +16,7 @@ import { installMathLayout } from './math-layout';
 import './styles/math.css';
 let restoreMathPrint: (() => void) | undefined;
 let disposeMathLayout: (() => void) | undefined;
+let disposeMermaidLayout: (() => void) | undefined;
 window.addEventListener('beforeprint', () => {
     restoreMathPrint?.();
     const root = document.getElementById('markdown-preview');
@@ -785,7 +788,7 @@ window.exportHTML = function(): string {
     // Ensure we clone the content so we don't modify the active DOM
     const clone = previewDiv ? (previewDiv.cloneNode(true) as HTMLElement) : document.createElement('div');
     
-    clone.querySelectorAll('.block-copy-tools').forEach(control => control.remove());
+    clone.querySelectorAll('.block-copy-tools, .mermaid-tools').forEach(control => control.remove());
     clone.querySelectorAll('.block-copy-host').forEach(host => host.replaceWith(...Array.from(host.childNodes)));
     clone.querySelectorAll('.error-feedback-controls').forEach(control => control.remove());
     clone.querySelectorAll('.search-highlight').forEach(mark => mark.replaceWith(document.createTextNode(mark.textContent || '')));
@@ -896,6 +899,7 @@ window.verifyQuickLookProbe = (heading, boldText) => {
 
 window.renderMarkdown = async function (text: string, options: RenderOptions = {}) {
     disposeBlockCopy();
+    disposeMermaidLayout?.(); disposeMermaidLayout = undefined;
     const callId = ++renderGeneration;
     const isCurrent = () => callId === renderGeneration;
     logToSwift(`[renderMarkdown:${callId}] START textLen=${text.length}`);
@@ -1180,6 +1184,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
                         </div>`;
                     }
                 }
+                disposeMermaidLayout = installMermaidLayout(outputDiv);
             } catch (err) {
                 logToSwift("JS Error loading/running mermaid: " + err);
                 if (isCurrent()) outputDiv.querySelectorAll(".mermaid").forEach(block => block.classList.add("mermaid-error", "module-load-error"));
@@ -1260,6 +1265,7 @@ window.renderSource = function(text: string, theme: string, prevContent?: string
     window.__fluxLang = options.uiLanguage === "system" ? undefined : options.uiLanguage ?? window.__fluxLang;
     applyInterfaceDirection();
     disposeBlockCopy();
+    disposeMermaidLayout?.(); disposeMermaidLayout = undefined;
     currentRender = Promise.resolve();
     ++renderGeneration;
     searchEngine?.clear();

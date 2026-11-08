@@ -1,5 +1,11 @@
 ## [Unreleased]
-_无待发布的变更_
+### Fixed
+- **Recent documents**: Keep app-owned recent-document history across development signing changes and upgrades, migrate available system history, preserve temporarily unavailable files, and honor explicit clearing without replacing SwiftUI's document controller.
+- **Mermaid sizing**: Cap automatic diagram labels at body-text size and fit available width instead of stretching small diagrams across wide windows.
+
+### Added
+- **Copy document path**: Copy the active saved document's plain filesystem path from the File menu or with Command-Option-C, including Unicode and spaces.
+- **Per-diagram zoom**: Reveal localized zoom-out/reset/zoom-in controls on hover or keyboard focus. Each Mermaid diagram scales independently; controls are excluded from copying, search and exports.
 
 ## [1.46.779] - 2026-11-08
 ### Fixed

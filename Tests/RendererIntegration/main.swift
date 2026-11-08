@@ -14,6 +14,40 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private var index = 0
     private var feedbackEvents: [[String: Any]] = []
     private var cases: [(String, String)] = [
+        ("Mermaid body-size cap and independent zoom at narrow/fullscreen widths", """
+        const sources=['graph TD; A[Small diagram]-->B[Second node]', 'sequenceDiagram\\nAlice->>Bob: Hello\\nBob-->>Alice: Hi', 'gantt\\ntitle Schedule\\ndateFormat YYYY-MM-DD\\nsection Work\\nTask :2026-01-01, 3d', 'classDiagram\\nAnimal <|-- Duck\\nAnimal : +int age'];
+        for(const source of sources) {
+          await window.renderMarkdown('Body text\\n\\n```mermaid\\n'+source+'\\n```\\n\\n```mermaid\\ngraph TD; X-->Y\\n```',{fontSize:16,context:'app'});
+          const root=document.getElementById('markdown-preview');
+          for(const width of [360,1600]) {
+            root.style.width=width+'px';root.style.maxWidth='none';
+            window.dispatchEvent(new Event('resize'));
+            await new Promise(resolve=>setTimeout(resolve,50));
+            for(const host of root.querySelectorAll('.mermaid')) {
+              const svg=host.querySelector('svg');if(!svg)throw new Error('diagram failed');
+              const scale=svg.getBoundingClientRect().width/svg.viewBox.baseVal.width;
+              const body=parseFloat(getComputedStyle(root).fontSize);
+              for(const label of svg.querySelectorAll('text,tspan,foreignObject *')) {
+                if(![...label.childNodes].some(n=>n.nodeType===3&&n.textContent.trim()))continue;
+                if(parseFloat(getComputedStyle(label).fontSize)*scale>body+0.5)throw new Error('label exceeds body size');
+              }
+              if(svg.getBoundingClientRect().width>host.clientWidth+1)throw new Error('automatic diagram overflows');
+            }
+          }
+          const diagrams=root.querySelectorAll('.mermaid');
+          const first=diagrams[0].querySelector('svg'), second=diagrams[1].querySelector('svg');
+          const before=first.getBoundingClientRect().width, other=second.getBoundingClientRect().width;
+          const buttons=diagrams[0].querySelectorAll('button');
+          buttons[2].click();
+          if(first.getBoundingClientRect().width<=before||second.getBoundingClientRect().width!==other)throw new Error('zoom not isolated');
+          buttons[1].click();if(Math.abs(first.getBoundingClientRect().width-before)>1)throw new Error('reset mismatch');
+          buttons[0].focus();if(getComputedStyle(diagrams[0].querySelector('.mermaid-tools')).opacity!=='1')throw new Error('keyboard controls hidden');
+          const exported=new DOMParser().parseFromString(window.exportHTML(),'text/html');
+          if(exported.querySelector('.mermaid-tools'))throw new Error('controls leaked into export');
+          root.style.width='';root.style.maxWidth='';
+        }
+        await window.renderMarkdown('# Reset');return true;
+        """),
         ("lightweight definition abbreviation and insertion syntax", """
         const source='Term\\n: Definition **bold**\\n\\nHTML and ++inserted++ and `++literal++`\\n\\n*[HTML]: HyperText Markup Language';
         for(const context of ['app','quicklook','finder']) for(const theme of ['light','dark']) {
@@ -458,7 +492,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private func next() {
         if index == cases.count { print("PASS all \(cases.count) real WebKit cases"); exit(0) }
         let (name, js) = cases[index]
-        if name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" {
+        if name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || name.hasPrefix("Mermaid body-size") {
             // :focus-within requires an active WebKit page, not just activeElement
             // in the otherwise windowless integration harness.
             guard let policy = TestWindowPolicy(environment: ProcessInfo.processInfo.environment), policy.allowsFocus else {
@@ -492,7 +526,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
                           reports[0]["generation"] as? String == "11111111-1111-1111-1111-111111111111",
                           !String(describing: self.feedbackEvents).contains("SAMPLE-DO-NOT-INCLUDE") else { print("FAIL feedback payload or stale action"); exit(1) }
                 }
-                if name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" {
+                if name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || name.hasPrefix("Mermaid body-size") {
                     self.focusWindow?.contentView = nil
                     self.focusWindow?.orderOut(nil)
                     self.focusWindow = nil

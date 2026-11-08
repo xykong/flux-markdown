@@ -50,6 +50,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             NSApplication.shared.terminate(nil)
         }
 
+        RecentDocumentHistory.shared.migrate(NSDocumentController.shared.recentDocumentURLs)
         UpdateRestorationManager.shared.restoreLastOpenedFile()
     }
 
@@ -109,6 +110,8 @@ struct MarkdownApp: App {
             DocumentPreviewScene(file: file, preference: preference, viewMode: $viewMode)
         }
         .commands {
+            DocumentPathCommands()
+            RecentDocumentCommands()
             CommandGroup(after: .saveItem) {
                 Button(action: {
                     NotificationCenter.default.post(name: .reloadFile, object: nil)
@@ -382,6 +385,9 @@ private struct DocumentPreviewScene: View {
             .preferredColorScheme(preference.currentMode == .system ? nil : (preference.currentMode == .dark ? .dark : .light))
         }
         .onDisappear { starReminder.invalidate() }
+        .onChange(of: file.fileURL) { url in
+            if let url { RecentDocumentHistory.shared.record(url) }
+        }
         .onReceive(NotificationCenter.default.publisher(for: ReadingToolbarLayout.notification)) { note in
             guard (note.object as? URL)?.standardizedFileURL == file.fileURL?.standardizedFileURL,
                   let inset = note.userInfo?["inset"] as? CGFloat else { return }
@@ -389,6 +395,7 @@ private struct DocumentPreviewScene: View {
         }
         .onAppear {
             if let fileURL = file.fileURL {
+                RecentDocumentHistory.shared.record(fileURL)
                 UpdateRestorationManager.shared.saveLastOpenedFile(url: fileURL)
             }
         }
@@ -401,6 +408,7 @@ private struct DocumentPreviewScene: View {
             maxHeight: .infinity
         )
         .environmentObject(preference)
+        .background(DocumentPathContext(url: file.fileURL))
         .background(WindowAccessor(fileURL: file.fileURL))
         .background(ToolbarFeedbackObserver { result in
             switch result {

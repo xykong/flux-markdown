@@ -7,7 +7,7 @@ ID="com.xykong.history-test.$(uuidgen)"
 trap 'defaults delete "$ID" 2>/dev/null || true; defaults delete "$ID.system" 2>/dev/null || true; rm -rf "$WORK"' EXIT
 APP="$WORK/HistoryProbe.app"
 mkdir -p "$APP/Contents/MacOS"
-swiftc Sources/Shared/RecentDocumentHistory.swift Sources/Markdown/RecentDocumentController.swift Tests/RecentDocumentIntegration/main.swift -o "$APP/Contents/MacOS/HistoryProbe"
+swiftc Sources/Shared/RecentDocumentHistory.swift Tests/RecentDocumentIntegration/main.swift -o "$APP/Contents/MacOS/HistoryProbe"
 touch "$WORK/sample.md"
 write_info() {
 cat > "$APP/Contents/Info.plist" <<PLIST

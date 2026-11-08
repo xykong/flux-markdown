@@ -234,3 +234,13 @@
 "Copy code and quotes. Reload open Quick Look previews to apply." = "نسخ التعليمات البرمجية والاقتباسات. أعد تحميل معاينات Quick Look المفتوحة لتطبيق التغيير.";
 "Text could not be copied" = "تعذر نسخ النص";
 "Select the text to copy it manually, or try the copy button again." = "حدد النص لنسخه يدويًا، أو جرّب زر النسخ مجددًا.";
+
+"Copy Document Path" = "نسخ مسار المستند";
+
+"New Document" = "مستند جديد";
+
+"Open…" = "فتح…";
+
+"Open Recent" = "فتح الأخيرة";
+
+"Clear Menu" = "مسح القائمة";

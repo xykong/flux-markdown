@@ -239,3 +239,13 @@
 "Copy code and quotes. Reload open Quick Look previews to apply." = "复制代码和引用。请重新载入已打开的快速查看预览以应用。";
 "Text could not be copied" = "无法复制文本";
 "Select the text to copy it manually, or try the copy button again." = "可以选择文本手动复制，或再次点击复制按钮。";
+
+"Copy Document Path" = "拷贝文档路径";
+
+"New Document" = "新建文档";
+
+"Open…" = "打开…";
+
+"Open Recent" = "打开最近使用";
+
+"Clear Menu" = "清除菜单";
