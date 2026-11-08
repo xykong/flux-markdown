@@ -26,6 +26,8 @@
 
 - 发布前从 GitHub 核实相关 issue 的发起人；在对应变更中使用可点击的
   `[@用户名](https://github.com/用户名)` 和 issue 链接致谢。
+- 致谢直接写在对应功能或修复条目内，不单独建立 `Acknowledgments`、
+  `致谢` 或统一感谢名单。历史补正也遵循此规则；先核实条目与 issue 的对应关系。
 - 区分问题发起人和实现贡献者；只感谢 PR 作者不能替代 issue 发起人致谢。
   调查工具或部分修复也可以感谢报告，但不得因此声称问题已全部解决。
 - 同步检查 GitHub Release Notes、`CHANGELOG.md` 与 `appcast.xml` 的对应版本。

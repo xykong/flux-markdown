@@ -213,6 +213,9 @@ log stream --predicate 'subsystem == "com.markdownquicklook.app"' --level debug
   `CHANGELOG.md`, and the corresponding Sparkle description consistent. Verify
   that complete `@handles` survive generated HTML; never infer a report is fixed
   merely because it is credited. See `docs/release/RELEASE_PROCESS.md`.
+- Put each reporter/contributor credit directly in the corresponding feature or
+  fix item. Do not create a separate Acknowledgments/致谢 section or collective
+  thank-you list, including when repairing historical release notes.
 
 - Regular user-requested releases increment the minor version by default. Do not
   choose patch-only releases unless the user explicitly requests one. The third

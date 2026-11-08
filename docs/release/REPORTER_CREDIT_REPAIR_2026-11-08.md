@@ -1,5 +1,10 @@
 # Historical release reporter-credit repair — 2026-11-08
 
+> Formatting follow-up: the maintainer rejected standalone acknowledgment
+> sections. All such sections in the releases, CHANGELOG and Sparkle feed are
+> now moved into their corresponding feature/fix entries. See
+> [the inline-credit verification](REPORTER_CREDIT_INLINE_2026-11-08.md).
+
 ## Scope and evidence
 
 Audited all 71 GitHub releases, 69 existing Sparkle items, CHANGELOG, GitHub issue
@@ -15,7 +20,8 @@ An association means the release notes or maintainer discussed that report; it
 is not a new claim that an unresolved report is fixed.
 
 - Existing prose, artwork, implementation credits and troubleshooting caveats
-  are retained. Missing reporter credits are appended as acknowledgments.
+  are retained. The initial backfill appended acknowledgment sections; the subsequent
+  formatting correction embeds all those credits in their corresponding entries.
 - #38 now credits reporter @hynek as well as the existing implementer @timokox.
 - #24's historical `@rebelporg` attribution is updated to the verified current
   issue-author login `@zackmezera`. The former profile returned 404; no claim is
