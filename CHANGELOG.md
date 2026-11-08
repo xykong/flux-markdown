@@ -1,4 +1,7 @@
 ## [Unreleased]
+_无待发布的变更_
+
+## [1.47.799] - 2026-11-08
 ### Fixed
 - **Referenced SVG sizing**: Keep percentage-width SVG images within their drawing dimensions and readable text scale on wide/fullscreen windows, center standalone diagrams in the reading column, and preserve inline icons, explicit alignment and exported layout.
 - **Recent documents**: Keep app-owned recent-document history across development signing changes and upgrades, migrate available system history, preserve temporarily unavailable files, and honor explicit clearing. System history already invalidated before migration cannot be recovered.
