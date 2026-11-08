@@ -43,5 +43,8 @@ release process.
 All 23 GitHub Release edits were read back exactly, with assets and release
 metadata unchanged. A fresh scan of all 71 public release bodies confirmed zero
 standalone acknowledgment headings. The complete local CHANGELOG and all 69
-Sparkle descriptions also pass the zero-heading scan. Public-feed verification
-follows the direct master push.
+Sparkle descriptions also pass the zero-heading scan. After the direct master push, both GitHub master source and the actual public
+`https://raw.githubusercontent.com/xykong/flux-markdown/master/appcast.xml`
+response matched the corrected feed byte-for-byte. SHA-256:
+`9f23a49a6ddef49761811a0645568f30593344f97ff982e2964f23cd0b052095`.
+The public Sparkle feed therefore also contains zero standalone credit headings.
