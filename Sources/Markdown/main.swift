@@ -61,5 +61,6 @@ if CommandLine.arguments.contains("--quicklook-self-test") {
     var environment = DiagnosticEnvironment.current()
     environment["applicationLanguagesBeforeBootstrap"] = applicationLanguagesBeforeBootstrap
     preference.history?.startSession(settings: preference.diagnosticSettings, environment: environment)
+    _ = RecentDocumentController()
     MarkdownApp.main()
 }
