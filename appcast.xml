@@ -19,7 +19,7 @@
                 length="45258174"
                 type="application/octet-stream" />
             <description><![CDATA[
-                <h2>更新内容</h2><h3>Fixed</h3><ul><li><strong>Letter sequence typography</strong> (#68): Preserve <code>(c)</code> / <code>(C)</code> after matching <code>(b)</code> / <code>(B)</code> sequence markers, including across paragraphs, list items and inline formatting. Independent copyright abbreviations and other smart typography retain their existing behavior.</li></ul><p><a href="https://github.com/xykong/flux-markdown/releases/tag/v1.46.779">查看完整更新日志</a></p>
+                <h2>更新内容</h2><h3>Fixed</h3><ul><li><strong>Letter sequence typography</strong> (#68): Preserve <code>(c)</code> / <code>(C)</code> after matching <code>(b)</code> / <code>(B)</code> sequence markers, including across paragraphs, list items and inline formatting. Independent copyright abbreviations and other smart typography retain their existing behavior. Thanks to <a href="https://github.com/lgsoltek">@lgsoltek</a> for reporting <a href="https://github.com/xykong/flux-markdown/issues/68">#68</a> and suggesting automatic sequence detection.</li></ul><p><a href="https://github.com/xykong/flux-markdown/releases/tag/v1.46.779">查看完整更新日志</a></p>
             ]]></description>
         </item>
         
