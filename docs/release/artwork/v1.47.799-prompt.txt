@@ -1,0 +1,10 @@
+Use case: ads-marketing
+Asset type: FluxMarkdown v1.47.799 GitHub release celebration banner, 1536x1024 landscape.
+Create a polished professional macOS developer-tool release artwork. Deep indigo and blue-violet background, tasteful gold fireworks near the edges, fine gold ribbon and confetti, with generous clean negative space. A luminous glass and brushed-metal Markdown document is the hero. Next to it, a floating glass diagram card contains a small crisp flowchart and subtle minus / 100% / plus controls; it symbolizes readable SVG and Mermaid diagrams with independent zoom. Include a modest history-list card and a path-copy glyph as secondary visual details, without tiny explanatory labels. Balanced premium 3D illustration, refined studio lighting, sharp clean geometry, calm composition rather than clutter.
+Exact visible typography, large and highly legible:
+"FluxMarkdown"
+"v1.47.799"
+"Readable diagrams. Smoother navigation."
+Smaller but clearly readable supporting line:
+"SVG + Mermaid zoom · Recent documents · Copy path"
+Preserve the exact product name, full version number and spelling. Separate the headline from the hero objects. Decorations must not obscure any text. No claims about performance, universal bug fixes, recovering lost history or availability on unsupported platforms. No other logos, watermarks or extra words. Professional celebratory release image consistent with an indigo-and-gold software launch series.
