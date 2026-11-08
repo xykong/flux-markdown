@@ -1,0 +1,595 @@
+[
+  {
+    "version": "1.46.779",
+    "reporters": [
+      {
+        "issue": 68,
+        "reporter": "lgsoltek",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.46.779"
+      }
+    ],
+    "release_changed": false,
+    "changelog_changed": false,
+    "appcast_changed": false,
+    "appcast_present": true
+  },
+  {
+    "version": "1.45.774",
+    "reporters": [
+      {
+        "issue": 49,
+        "reporter": "ajeantt12",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.45.774"
+      },
+      {
+        "issue": 58,
+        "reporter": "DevJayHay",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.45.774"
+      },
+      {
+        "issue": 64,
+        "reporter": "MxJ24",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.45.774"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.44.761",
+    "reporters": [
+      {
+        "issue": 61,
+        "reporter": "aFakeRobot",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.44.761"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.43.755",
+    "reporters": [
+      {
+        "issue": 64,
+        "reporter": "MxJ24",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.43.755"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.42.645",
+    "reporters": [
+      {
+        "issue": 65,
+        "reporter": "angedell",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.42.645"
+      }
+    ],
+    "release_changed": false,
+    "changelog_changed": false,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.40.622",
+    "reporters": [],
+    "release_changed": false,
+    "changelog_changed": false,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.39.614",
+    "reporters": [
+      {
+        "issue": 63,
+        "reporter": "zhengcan",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.39.614"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.38.608",
+    "reporters": [
+      {
+        "issue": 61,
+        "reporter": "aFakeRobot",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.38.608"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.36.582",
+    "reporters": [
+      {
+        "issue": 60,
+        "reporter": "ziadulhuq",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.36.582"
+      }
+    ],
+    "release_changed": false,
+    "changelog_changed": false,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.36.568",
+    "reporters": [
+      {
+        "issue": 49,
+        "reporter": "ajeantt12",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.36.568"
+      },
+      {
+        "issue": 58,
+        "reporter": "DevJayHay",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.36.568"
+      },
+      {
+        "issue": 59,
+        "reporter": "ziadulhuq",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.36.568"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.35.525",
+    "reporters": [
+      {
+        "issue": 53,
+        "reporter": "marshalfevzi",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.35.525"
+      },
+      {
+        "issue": 55,
+        "reporter": "dlaporte",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.35.525"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.35.521",
+    "reporters": [
+      {
+        "issue": 49,
+        "reporter": "ajeantt12",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.35.521"
+      },
+      {
+        "issue": 50,
+        "reporter": "dethpickle",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.35.521"
+      },
+      {
+        "issue": 51,
+        "reporter": "arman29-dev",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.35.521"
+      },
+      {
+        "issue": 52,
+        "reporter": "Baggydawg",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.35.521"
+      },
+      {
+        "issue": 53,
+        "reporter": "marshalfevzi",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.35.521"
+      },
+      {
+        "issue": 54,
+        "reporter": "milstev",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.35.521"
+      },
+      {
+        "issue": 55,
+        "reporter": "dlaporte",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.35.521"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.34.459",
+    "reporters": [
+      {
+        "issue": 38,
+        "reporter": "hynek",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.34.459"
+      },
+      {
+        "issue": 44,
+        "reporter": "hzt384232274",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.34.459"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.34.449",
+    "reporters": [
+      {
+        "issue": 40,
+        "reporter": "patro85",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.34.449"
+      },
+      {
+        "issue": 44,
+        "reporter": "hzt384232274",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.34.449"
+      },
+      {
+        "issue": 45,
+        "reporter": "hzt384232274",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.34.449"
+      },
+      {
+        "issue": 46,
+        "reporter": "vnl",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.34.449"
+      },
+      {
+        "issue": 47,
+        "reporter": "t-hayash",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.34.449"
+      },
+      {
+        "issue": 48,
+        "reporter": "echoparkbaby",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.34.449"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.34.445",
+    "reporters": [
+      {
+        "issue": 41,
+        "reporter": "marko-cancar",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.34.445"
+      }
+    ],
+    "release_changed": false,
+    "changelog_changed": false,
+    "appcast_changed": false,
+    "appcast_present": true
+  },
+  {
+    "version": "1.32.427",
+    "reporters": [
+      {
+        "issue": 36,
+        "reporter": "Killer545537",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.32.427"
+      }
+    ],
+    "release_changed": false,
+    "changelog_changed": false,
+    "appcast_changed": false,
+    "appcast_present": true
+  },
+  {
+    "version": "1.31.402",
+    "reporters": [],
+    "release_changed": false,
+    "changelog_changed": false,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.31.398",
+    "reporters": [],
+    "release_changed": false,
+    "changelog_changed": false,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.30.391",
+    "reporters": [
+      {
+        "issue": 30,
+        "reporter": "aFakeRobot",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.30.391"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.28.360",
+    "reporters": [
+      {
+        "issue": 27,
+        "reporter": "Ctrl-Alb",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.28.360"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.27.349",
+    "reporters": [
+      {
+        "issue": 26,
+        "reporter": "Ctrl-Alb",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.27.349"
+      },
+      {
+        "issue": 27,
+        "reporter": "Ctrl-Alb",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.27.349"
+      }
+    ],
+    "release_changed": false,
+    "changelog_changed": false,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.26.343",
+    "reporters": [
+      {
+        "issue": 26,
+        "reporter": "Ctrl-Alb",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.26.343"
+      },
+      {
+        "issue": 27,
+        "reporter": "Ctrl-Alb",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.26.343"
+      }
+    ],
+    "release_changed": false,
+    "changelog_changed": false,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.25.310",
+    "reporters": [
+      {
+        "issue": 21,
+        "reporter": "qns7",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.25.310"
+      },
+      {
+        "issue": 22,
+        "reporter": "ramysami",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.25.310"
+      },
+      {
+        "issue": 23,
+        "reporter": "3mrr4dy",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.25.310"
+      },
+      {
+        "issue": 24,
+        "reporter": "zackmezera",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.25.310"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.24.303",
+    "reporters": [
+      {
+        "issue": 19,
+        "reporter": "TheChasman",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.24.303"
+      },
+      {
+        "issue": 20,
+        "reporter": "jwadamson",
+        "evidence": "https://github.com/xykong/flux-markdown/issues/20#issuecomment-4272386230"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.23.297",
+    "reporters": [
+      {
+        "issue": 10,
+        "reporter": "MxJ24",
+        "evidence": "https://github.com/xykong/flux-markdown/issues/10#issuecomment-4270318994"
+      },
+      {
+        "issue": 17,
+        "reporter": "joergp",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.23.297"
+      },
+      {
+        "issue": 18,
+        "reporter": "MxJ24",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.23.297"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.21.266",
+    "reporters": [
+      {
+        "issue": 13,
+        "reporter": "Zhijian-Git",
+        "evidence": "https://github.com/xykong/flux-markdown/issues/13#issuecomment-4274017522"
+      },
+      {
+        "issue": 16,
+        "reporter": "aFakeRobot",
+        "evidence": "https://github.com/xykong/flux-markdown/issues/16#issuecomment-4182137088"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.20.261",
+    "reporters": [
+      {
+        "issue": 15,
+        "reporter": "h31105",
+        "evidence": "https://github.com/xykong/flux-markdown/issues/15#issuecomment-4169820099"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.19.250",
+    "reporters": [
+      {
+        "issue": 12,
+        "reporter": "upliftspice666",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.19.250"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.16.231",
+    "reporters": [
+      {
+        "issue": 11,
+        "reporter": "upliftspice666",
+        "evidence": "https://github.com/xykong/flux-markdown/issues/11#issuecomment-3976347108"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.16.204",
+    "reporters": [
+      {
+        "issue": 10,
+        "reporter": "MxJ24",
+        "evidence": "https://github.com/xykong/flux-markdown/issues/10#issuecomment-3976285985"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.16.195",
+    "reporters": [
+      {
+        "issue": 8,
+        "reporter": "upliftspice666",
+        "evidence": "https://github.com/xykong/flux-markdown/releases/tag/v1.16.195"
+      },
+      {
+        "issue": 10,
+        "reporter": "MxJ24",
+        "evidence": "https://github.com/xykong/flux-markdown/issues/10#issuecomment-3976285985"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.12.136",
+    "reporters": [
+      {
+        "issue": 7,
+        "reporter": "csaper",
+        "evidence": "https://github.com/xykong/flux-markdown/issues/7#issuecomment-3884421712"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": false,
+    "appcast_present": false
+  },
+  {
+    "version": "1.10.119",
+    "reporters": [
+      {
+        "issue": 6,
+        "reporter": "sxmad",
+        "evidence": "https://github.com/xykong/flux-markdown/issues/6#issuecomment-3869240924"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": true,
+    "appcast_present": true
+  },
+  {
+    "version": "1.5.87",
+    "reporters": [
+      {
+        "issue": 4,
+        "reporter": "aFakeRobot",
+        "evidence": "https://github.com/xykong/flux-markdown/issues/4#issuecomment-3976380511"
+      }
+    ],
+    "release_changed": true,
+    "changelog_changed": true,
+    "appcast_changed": false,
+    "appcast_present": false
+  }
+]

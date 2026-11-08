@@ -28,4 +28,11 @@ is evaluated as Perl/Shell. Complete sections are retained and replacement is
 limited to the exact version item. Four generator integration cases pass
 (three failed against the old script), as do five publication tests. CI now
 runs the generator regression after installing the existing renderer dependencies.
-Historical reconciliation and remote verification are in progress.
+Historical reconciliation completed: 24 GitHub release bodies read back with
+unchanged release metadata/assets; 24 CHANGELOG sections and 29 appcast
+descriptions repaired. All 69 appcast item identities, versions, dates and
+enclosures remain identical. All mapped reporters have full clickable profiles
+in existing feed entries. See
+[the repair record](../release/REPORTER_CREDIT_REPAIR_2026-11-08.md) and its
+machine-readable evidence map. Two early releases had no appcast item and no
+obsolete item was manufactured. No artifacts or bound notes changed.

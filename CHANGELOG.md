@@ -15,9 +15,17 @@ _无待发布的变更_
 - **RTL contents**: Follow each heading’s own text direction for contents alignment, indentation and the active marker, independently of interface language. Give Arabic/Hebrew-only headings nonempty, unique navigation targets while preserving existing nonempty anchors.
 - **Quick Look self-test accuracy**: Require the expected extension executable, version and build, plus a completed current render with visible test content. Other app copies, missing/error output, hidden content and stale/source-mode renders no longer qualify as a verified preview. This improves diagnostics; it does not establish a fix for the unresolved Finder fallback reports #49/#58.
 
+### Acknowledgments
+- Thanks to [@ajeantt12](https://github.com/ajeantt12) for the report or suggestion in [#49](https://github.com/xykong/flux-markdown/issues/49).
+- Thanks to [@DevJayHay](https://github.com/DevJayHay) for the report or suggestion in [#58](https://github.com/xykong/flux-markdown/issues/58).
+- Thanks to [@MxJ24](https://github.com/MxJ24) for the report or suggestion in [#64](https://github.com/xykong/flux-markdown/issues/64).
+
 ## [1.44.761] - 2026-11-06
 ### Fixed
 - **Automatic update startup**: Upgrade Sparkle to 2.9.3 so an on-demand progress helper is actively woken after submission, preventing the reproduced `4005 → 10` agent-connection timeout tracked in [#61](https://github.com/xykong/flux-markdown/issues/61). Existing installations whose old updater already fails need a manual DMG or Homebrew upgrade first.
+
+### Acknowledgments
+- Thanks to [@aFakeRobot](https://github.com/aFakeRobot) for the report or suggestion in [#61](https://github.com/xykong/flux-markdown/issues/61).
 
 ## [1.43.755] - 2026-11-05
 
@@ -28,6 +36,9 @@ _无待发布的变更_
 ### Fixed
 - **Reading and export**: Keep oversized formulas locally scrollable under native zoom, preserve mathematical direction in RTL documents, and retain vector mathematics and equation links in exports.
 - **Mathematical failures**: Preserve source and reject incomplete mathematical exports. Explain unsupported image-backed MathML, and keep copy recovery usable in narrow previews with localized live status messages.
+
+### Acknowledgments
+- Thanks to [@MxJ24](https://github.com/MxJ24) for the report or suggestion in [#64](https://github.com/xykong/flux-markdown/issues/64).
 
 ## [1.42.645] - 2026-10-29
 ### Added
@@ -60,6 +71,9 @@ _无待发布的变更_
 ### Fixed
 - **Relative HTML images** (#63): Preserve directory-based relative image and link URLs during HTML sanitization. The reported pure-Markdown image failure still requires affected-file/environment evidence.
 
+### Acknowledgments
+- Thanks to [@zhengcan](https://github.com/zhengcan) for the report or suggestion in [#63](https://github.com/xykong/flux-markdown/issues/63).
+
 ## [1.38.608] - 2026-10-26
 ### Fixed
 - **Quick Look statistics**: Send queued usage through the authenticated helper when the preview host blocks direct networking, without requiring the main app to open. Preserve shared hourly throttling and opt-out.
@@ -74,6 +88,9 @@ _无待发布的变更_
 - **Usage statistics**: Optional daily usage statistics, enabled by default with a direct opt-out. Count reading time and document views by UTC date, app/macOS version and App/Quick Look source; never collect document names, paths or contents. Persist cumulative counters and upload at most hourly while in use, with offline retry and duplicate-safe analysis.
 - **Contextual error feedback**: Offer recovery actions and one-click prefilled GitHub reports from app, Quick Look and renderer errors. Capture bounded, privacy-filtered error-time diagnostics; allow optional review/exclusion and copy/save fallback. Native recovery remains available when WebKit cannot render.
 - **Update diagnostics**: Include the latest update failure's timestamp, versions, and underlying error codes in issue reports and application logs, without retaining private paths or error descriptions.
+
+### Acknowledgments
+- Thanks to [@aFakeRobot](https://github.com/aFakeRobot) for the report or suggestion in [#61](https://github.com/xykong/flux-markdown/issues/61).
 
 ## [1.36.582] - 2026-10-18
 ### Fixed
@@ -92,6 +109,11 @@ _无待发布的变更_
 
 ### Added
 - **QuickLook troubleshooting**: Add an actual preview self-test and registration diagnostics to issue reports; distinguish registration repair from verified rendering. The original fallback reports #49/#58 still require confirmation on affected systems.
+
+### Acknowledgments
+- Thanks to [@ajeantt12](https://github.com/ajeantt12) for the report or suggestion in [#49](https://github.com/xykong/flux-markdown/issues/49).
+- Thanks to [@DevJayHay](https://github.com/DevJayHay) for the report or suggestion in [#58](https://github.com/xykong/flux-markdown/issues/58).
+- Thanks to [@ziadulhuq](https://github.com/ziadulhuq) for the report or suggestion in [#59](https://github.com/xykong/flux-markdown/issues/59).
 
 ## [1.36.561] - 2026-10-16
 ### Fixed
@@ -127,6 +149,10 @@ _无待发布的变更_
 ### Fixed
 - **Homebrew upgrades** (#53/#55): Preserve an explicit FluxMarkdown editor preference while Homebrew temporarily removes the previous application. Avoid mistaking LaunchServices' temporary Xcode fallback for the user's choice, while retaining registration failure checks and rollback.
 
+### Acknowledgments
+- Thanks to [@marshalfevzi](https://github.com/marshalfevzi) for the report or suggestion in [#53](https://github.com/xykong/flux-markdown/issues/53).
+- Thanks to [@dlaporte](https://github.com/dlaporte) for the report or suggestion in [#55](https://github.com/xykong/flux-markdown/issues/55).
+
 ## [1.35.521] - 2026-10-10
 
 ### Added
@@ -144,6 +170,15 @@ _无待发布的变更_
 - **Bare URL links** (#51): Recognize plain HTTP/HTTPS references as clickable links in the app and Quick Look while preserving code literals and explicit Markdown links.
 - **Quick Look full-screen scrollbar gestures**: Prevented Quick Look's double-click interception from blocking WebKit's native pan recognizer when dragging the full-screen document scrollbar.
   - Three-finger scrollbar drags can now yield to native WebKit scrolling without leaving subsequent trackpad scrolling unresponsive.
+
+### Acknowledgments
+- Thanks to [@ajeantt12](https://github.com/ajeantt12) for the report or suggestion in [#49](https://github.com/xykong/flux-markdown/issues/49).
+- Thanks to [@dethpickle](https://github.com/dethpickle) for the report or suggestion in [#50](https://github.com/xykong/flux-markdown/issues/50).
+- Thanks to [@arman29-dev](https://github.com/arman29-dev) for the report or suggestion in [#51](https://github.com/xykong/flux-markdown/issues/51).
+- Thanks to [@Baggydawg](https://github.com/Baggydawg) for the report or suggestion in [#52](https://github.com/xykong/flux-markdown/issues/52).
+- Thanks to [@marshalfevzi](https://github.com/marshalfevzi) for the report or suggestion in [#53](https://github.com/xykong/flux-markdown/issues/53).
+- Thanks to [@milstev](https://github.com/milstev) for the report or suggestion in [#54](https://github.com/xykong/flux-markdown/issues/54).
+- Thanks to [@dlaporte](https://github.com/dlaporte) for the report or suggestion in [#55](https://github.com/xykong/flux-markdown/issues/55).
 
 ## [1.34.475] - 2026-08-14
 
@@ -175,6 +210,10 @@ _无待发布的变更_
 - **Markdown paragraph line breaks** (#38, thanks [@timokox](https://github.com/timokox)): Reflowed single source line breaks within paragraphs while preserving explicit hard breaks written with two trailing spaces ([#39](https://github.com/xykong/flux-markdown/pull/39)).
 - **Standalone app toolbar visibility** (#44): Fixed toolbar controls becoming invisible when the selected Markdown preview appearance differs from the macOS window appearance.
 
+### Acknowledgments
+- Thanks to [@hynek](https://github.com/hynek) for the report or suggestion in [#38](https://github.com/xykong/flux-markdown/issues/38).
+- Thanks to [@hzt384232274](https://github.com/hzt384232274) for the report or suggestion in [#44](https://github.com/xykong/flux-markdown/issues/44).
+
 ## [1.34.449] - 2026-06-29
 
 ### Fixed
@@ -186,6 +225,14 @@ _无待发布的变更_
 - **iA Writer Markdown type support** (#40): Added the `net.ia.markdown` UTI to the app and QuickLook extension file type declarations.
 - **Homebrew tap validation** (#46): Documented Homebrew trust instructions and moved the official cask draft out of the live tap casks so tap validation is not broken by the submission draft.
 - **Toolbar button visibility** (#44): Covered the native adaptive toolbar controls with regression tests so toolbar buttons stay visible across appearances.
+
+### Acknowledgments
+- Thanks to [@patro85](https://github.com/patro85) for the report or suggestion in [#40](https://github.com/xykong/flux-markdown/issues/40).
+- Thanks to [@hzt384232274](https://github.com/hzt384232274) for the report or suggestion in [#44](https://github.com/xykong/flux-markdown/issues/44).
+- Thanks to [@hzt384232274](https://github.com/hzt384232274) for the report or suggestion in [#45](https://github.com/xykong/flux-markdown/issues/45).
+- Thanks to [@vnl](https://github.com/vnl) for the report or suggestion in [#46](https://github.com/xykong/flux-markdown/issues/46).
+- Thanks to [@t-hayash](https://github.com/t-hayash) for the report or suggestion in [#47](https://github.com/xykong/flux-markdown/issues/47).
+- Thanks to [@echoparkbaby](https://github.com/echoparkbaby) for the report or suggestion in [#48](https://github.com/xykong/flux-markdown/issues/48).
 
 ## [1.34.445] - 2026-06-03
 
@@ -261,6 +308,9 @@ _无待发布的变更_
 - **Line Numbers in Source View**: The Source View already displays line numbers via the built-in diff gutter; the gutter is hidden when line numbers are disabled in Settings.
 - **Settings toggle**: Added "Line Numbers" toggle in Settings → Rendering section.
 
+### Acknowledgments
+- Thanks to [@aFakeRobot](https://github.com/aFakeRobot) for the report or suggestion in [#30](https://github.com/xykong/flux-markdown/issues/30).
+
 ## [1.29.368] - 2026-04-20
 
 ### Added
@@ -284,6 +334,9 @@ _无待发布的变更_
 - **App Zoom: trackpad inertia triggers zoom** (#27): `scrollWheel` handler now ignores `.mayBegin`, `.cancelled` phases and any non-zero `momentumPhase` events
 - **App Zoom: content overflow instead of reflow** (#27): Switched from `webView.magnification` (visual-only scale) to `webView.pageZoom` (triggers proper layout reflow)
 - **App Zoom: zoom resets when switching files** (#27): `Coordinator.render()` resets `pageZoom = 1.0` on each new document load
+
+### Acknowledgments
+- Thanks to [@Ctrl-Alb](https://github.com/Ctrl-Alb) for the report or suggestion in [#27](https://github.com/xykong/flux-markdown/issues/27).
 
 ## [1.27.349] - 2026-04-20
 
@@ -338,7 +391,7 @@ _无待发布的变更_
   - 切换回 LTR 内容时自动移除方向属性，不影响中英文等 LTR 语言
 
 ### Fixed
-- **窗口最小尺寸限制**: 修复窗口无法缩小到 800×600 以下的问题 (#24, thanks @rebelporg)
+- **窗口最小尺寸限制**: 修复窗口无法缩小到 800×600 以下的问题 (#24, thanks [@zackmezera](https://github.com/zackmezera))
   - 将最小宽度从 800 降低至 320，最小高度从 600 降低至 200
   - 允许用户灵活布局多窗口工作区（如分屏并排显示）
   - 修复两处硬编码的窗口最小尺寸：SwiftUI `.frame()` 和 `NSWindow.minSize` 设置
@@ -356,6 +409,10 @@ _无待发布的变更_
 - **CSS 样式丢失（macOS 26 Tahoe）**: 修复在 macOS 26 Tahoe 上预览时样式表完全失效的问题 (#19)
   - 修复 `<base>` 标签插入导致样式表 URL 被重定向至用户文件目录的时序 bug
   - 将样式表预加载从异步 `fetch()` 改为同步读取 `cssRules`，避免 WKWebView 安全策略拦截
+
+### 致谢
+- 感谢 [@TheChasman](https://github.com/TheChasman) 在 [#19](https://github.com/xykong/flux-markdown/issues/19) 中提供的问题报告或建议。
+- 感谢 [@jwadamson](https://github.com/jwadamson) 在 [#20](https://github.com/xykong/flux-markdown/issues/20) 中提供的问题报告或建议。
 
 ## [1.23.297] - 2026-04-17
 
@@ -376,6 +433,9 @@ _无待发布的变更_
   - 导出后不再影响应用内预览的字体大小
 - **键盘快捷键**: 修复 Cmd+Shift+P / Cmd+Shift+E 等快捷键在非活跃窗口也会触发的问题
 
+### 致谢
+- 感谢 [@MxJ24](https://github.com/MxJ24) 在 [#10](https://github.com/xykong/flux-markdown/issues/10) 中提供的问题报告或建议。
+
 ## [1.22.275] - 2026-04-09
 
 ### Added
@@ -388,6 +448,10 @@ _无待发布的变更_
 
 ### Fixed
 - **目录面板底部截断**: 修复 TOC 侧边栏滚动到底部时最后一项显示不全的问题
+
+### 致谢
+- 感谢 [@Zhijian-Git](https://github.com/Zhijian-Git) 在 [#13](https://github.com/xykong/flux-markdown/issues/13) 中提供的问题报告或建议。
+- 感谢 [@aFakeRobot](https://github.com/aFakeRobot) 在 [#16](https://github.com/xykong/flux-markdown/issues/16) 中提供的问题报告或建议。
 
 ## [1.20.261] - 2026-04-01
 
@@ -456,6 +520,9 @@ _无待发布的变更_
 ### Changed
 - **Troubleshooting 文档优化**: 在 `docs/user/TROUBLESHOOTING.md` 顶部添加提示，引导普通用户先看 HELP.md
 
+### 致谢
+- 感谢 [@MxJ24](https://github.com/MxJ24) 在 [#10](https://github.com/xykong/flux-markdown/issues/10) 中提供的问题报告或建议。
+
 ## [1.20.261] - 2026-04-01
 
 ### Fixed
@@ -468,6 +535,9 @@ _无待发布的变更_
   - 在 `ResizableWKWebView` 中添加 `scrollWheel(with:)` 方法拦截 Cmd+scroll 事件
   - 缩放范围限制在 0.5x–3.0x，与 QuickLook 扩展保持一致
   - 缩放级别自动持久化到用户偏好设置
+
+### 致谢
+- 感谢 [@h31105](https://github.com/h31105) 在 [#15](https://github.com/xykong/flux-markdown/issues/15) 中提供的问题报告或建议。
 
 ## [1.19.256] - 2026-03-26
 
@@ -506,6 +576,9 @@ _无待发布的变更_
 
 ### Changed
 - **帮助面板 badge 逻辑修正**: App 专属快捷键显示 "App" badge，两平台通用的功能不再显示 badge
+
+### 致谢
+- 感谢 [@upliftspice666](https://github.com/upliftspice666) 在 [#12](https://github.com/xykong/flux-markdown/issues/12) 中提供的问题报告或建议。
 
 ## [1.18.246] - 2026-03-21
 
@@ -561,6 +634,10 @@ _无待发布的变更_
   - 添加 `autocorrect="off"` 属性禁用自动纠正
   - 添加 `autocomplete="off"` 属性禁用自动完成
   - 添加 `spellcheck="false"` 属性禁用拼写检查
+
+### 致谢
+- 感谢 [@upliftspice666](https://github.com/upliftspice666) 在 [#11](https://github.com/xykong/flux-markdown/issues/11) 中提供的问题报告或建议。
+
 ## [1.16.226] - 2026-02-28
 
 ### Added
@@ -628,6 +705,10 @@ _无待发布的变更_
 - **代码高亮主题不生效**: 修复 Editor 中切换代码主题后文档无变化的问题
 - **KaTeX 开关不生效**: 修复 Rendering 中关闭 KaTeX 后公式仍然渲染的问题（动态重建 MarkdownIt 实例）
 - **Emoji 开关不生效**: 修复 Rendering 中关闭 Emoji 后 `:name:` 格式仍然转换为图标的问题
+
+### 致谢
+- 感谢 [@upliftspice666](https://github.com/upliftspice666) 在 [#8](https://github.com/xykong/flux-markdown/issues/8) 中提供的问题报告或建议。
+- 感谢 [@MxJ24](https://github.com/MxJ24) 在 [#10](https://github.com/xykong/flux-markdown/issues/10) 中提供的问题报告或建议。
 
 ## [1.15.165] - 2026-02-22
 
@@ -751,3 +832,24 @@ _无待发布的变更_
     - 手写目录小错误不再影响跳转
     - 不需要精确记住下划线还是连字符
     - 容错设计，减少用户认知负担
+
+## [1.12.136] - 2026-02-11
+
+### 致谢
+- 感谢 [@csaper](https://github.com/csaper) 在 [#7](https://github.com/xykong/flux-markdown/issues/7) 中提供的问题报告或建议。
+
+完整历史说明见 [GitHub Release](https://github.com/xykong/flux-markdown/releases/tag/v1.12.136)。
+
+## [1.10.119] - 2026-02-09
+
+### 致谢
+- 感谢 [@sxmad](https://github.com/sxmad) 在 [#6](https://github.com/xykong/flux-markdown/issues/6) 中提供的问题报告或建议。
+
+完整历史说明见 [GitHub Release](https://github.com/xykong/flux-markdown/releases/tag/v1.10.119)。
+
+## [1.5.87] - 2026-02-03
+
+### 致谢
+- 感谢 [@aFakeRobot](https://github.com/aFakeRobot) 在 [#4](https://github.com/xykong/flux-markdown/issues/4) 中提供的问题报告或建议。
+
+完整历史说明见 [GitHub Release](https://github.com/xykong/flux-markdown/releases/tag/v1.5.87)。
