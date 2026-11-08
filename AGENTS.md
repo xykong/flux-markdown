@@ -65,6 +65,12 @@ macOS QuickLook extension for Markdown files. Hybrid architecture: Native Swift 
 - **Homebrew Distribution**: Two tracks — tap version (full features) and official homebrew-cask (compliant, no formula deps). See `docs/release/HOMEBREW_SUBMISSION.md`.
 
 ## CONVENTIONS
+- **Own Development — No PRs**: For the maintainer's own development work,
+  including agent-authored fixes and features, verify locally, merge directly
+  into `master`, and push. Do not create a GitHub PR unless the user explicitly
+  requests one. PR workflows in other project documents apply to external
+  contributions or explicitly requested PRs, not our own development work.
+  This rule also applies when preparing a release. (Maintainer decision: 2026-11-08.)
 - **TDD**: Write tests/metrics *before* implementation (see `.clinerules`).
 - **Docs**: Create `docs/debug/DEBUG_*.md` for hard problems.
 - **Logs**: Use `os_log` via the JS bridge. Do not rely on `console.log` alone.
