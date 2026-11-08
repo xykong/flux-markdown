@@ -1,4 +1,5 @@
 import './math-compat';
+import { preserveLetterSequences } from './typography';
 import { installBlockCopy, blockCopyResult, CopyController } from './block-copy';
 import './styles/block-copy.css';
 import { installErrorFeedback, setFeedbackGeneration, feedbackGeneration } from './error-feedback';
@@ -416,6 +417,7 @@ function buildMd(enableTypst = true): MarkdownIt {
         return originalValidateLink(url);
     };
 
+    instance.use(preserveLetterSequences);
     instance.use(footnote);
     instance.use(taskLists);
     instance.use(mark);
