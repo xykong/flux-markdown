@@ -1,0 +1,18 @@
+{
+  "build": "Debug built from current source through 72fd7f4",
+  "host": "FluxMarkdown.app real document window, macOS 27.0.1 arm64",
+  "document": "derived valid issue64 math corpus",
+  "observed": [
+    "Actual native title and controls present",
+    "TOC M08 activation followed by settled heading breadcrumb M08 and position 72%",
+    "Screenshot shows complete 2x2 matrix and both cases rows",
+    "Native accessibility tree exposes semantic formula containers and named reference link (1)"
+  ],
+  "notProven": [
+    "Numbered reference action in this actual app window: background clicks did not demonstrate target navigation",
+    "VoiceOver speech and math exploration",
+    "QuickLook/Finder extension behavior",
+    "minimum-system and Intel behavior"
+  ],
+  "interruption": "Test window disappeared from current window list before foreground retry; unrelated replacement window was not read or operated."
+}

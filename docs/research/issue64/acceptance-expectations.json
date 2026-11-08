@@ -1,0 +1,178 @@
+{
+  "status": "Expectations authored from original source and mathematics before product implementation; independent human reviewer sign-off remains required.",
+  "originalCases": [
+    {
+      "id": "M01",
+      "form": "inline",
+      "expect": [
+        "E equals m times c squared"
+      ]
+    },
+    {
+      "id": "M02",
+      "form": "inline",
+      "expect": [
+        "x greater than zero"
+      ]
+    },
+    {
+      "id": "M03",
+      "form": "inline",
+      "expect": [
+        "square root encloses x squared",
+        "equals x"
+      ]
+    },
+    {
+      "id": "M04",
+      "form": "inline",
+      "expect": [
+        "a squared plus b squared equals c squared"
+      ]
+    },
+    {
+      "id": "M05",
+      "form": "display",
+      "expect": [
+        "integral bounds minus infinity and infinity",
+        "e raised to minus x squared",
+        "thin space before dx",
+        "equals square root of pi"
+      ]
+    },
+    {
+      "id": "M06",
+      "form": "display",
+      "expect": [
+        "sum lower bound k equals 1 and upper bound n",
+        "n(n+1) over 2"
+      ]
+    },
+    {
+      "id": "M07",
+      "form": "display",
+      "expect": [
+        "aligned table has three rows",
+        "equals signs aligned",
+        "limit n tends to infinity",
+        "literal Chinese text 条件概率"
+      ]
+    },
+    {
+      "id": "M08",
+      "form": "display",
+      "expect": [
+        "bmatrix has rows [1,2] and [3,4]",
+        "cases has two rows",
+        "x squared for x greater than or equal to zero",
+        "minus x for x less than zero"
+      ]
+    },
+    {
+      "id": "M09",
+      "form": "display",
+      "expect": [
+        "a squared plus b squared equals c squared",
+        "visible tag (1)",
+        "label eq:pythagoras uniquely identifies this equation"
+      ]
+    },
+    {
+      "id": "M10",
+      "form": "reference",
+      "expect": [
+        "visible text (1)",
+        "target is M09",
+        "pointer and keyboard activation reach M09"
+      ]
+    },
+    {
+      "id": "M11",
+      "form": "display",
+      "expect": [
+        "divergence of bold E",
+        "equals rho divided by epsilon with subscript zero"
+      ]
+    },
+    {
+      "id": "M12",
+      "form": "error",
+      "expect": [
+        "unknown command diagnosed",
+        "source preserved",
+        "following content remains readable"
+      ]
+    },
+    {
+      "id": "M13",
+      "form": "mathml",
+      "expect": [
+        "x squared plus y squared equals z squared",
+        "one mrow with three msup children",
+        "each exponent is 2"
+      ]
+    }
+  ],
+  "contracts": [
+    {
+      "id": "REF-FORWARD",
+      "source": "\\eqref{oracle:forward} before \\tag{A}\\label{oracle:forward}",
+      "expected": "(A), target exists after whole-document processing"
+    },
+    {
+      "id": "TAG-STAR",
+      "source": "\\tag*{B}\\label{oracle:tagstar}",
+      "expected": "tag B; ref B; eqref (B)"
+    },
+    {
+      "id": "AMS-COUNTER",
+      "source": "explicit tag 1, then numbered equation, then numbered align row with notag second row",
+      "expected": "explicit (1), automatic (1), align (2); explicit tags do not consume automatic counter"
+    },
+    {
+      "id": "KEY-SPACE",
+      "source": "\\label{a b} and \\label{a_b}",
+      "expected": "distinct target IDs; references resolve independently"
+    },
+    {
+      "id": "KEY-PROTOTYPE",
+      "source": "\\label{constructor}, \\label{__proto__}, \\label{toString}",
+      "expected": "valid distinct keys, no inherited-property false duplicates or prototype mutation"
+    },
+    {
+      "id": "MISSING",
+      "source": "\\eqref{absent}",
+      "expected": "unresolved diagnostic, no link to #"
+    },
+    {
+      "id": "UNTAGGED",
+      "source": "\\[x=1\\label{untagged}\\] followed by \\eqref{untagged}",
+      "expected": "valid unnumbered equation; unresolved reference diagnostic"
+    },
+    {
+      "id": "FAILED-TARGET",
+      "source": "\\tag{A}\\label{failed}\\unknownCommand followed by \\eqref{failed}",
+      "expected": "equation error and unresolved reference; never link to a failed target"
+    },
+    {
+      "id": "MACRO-ISOLATION",
+      "source": "file A: \\newcommand{\\shared}{42}\\shared; file B: \\shared",
+      "expected": "A renders 42; B reports undefined command; no macro leakage"
+    },
+    {
+      "id": "PROTECTED-SOURCE",
+      "source": "escaped currency, ordinary code, HTML attributes, YAML, incomplete delimiters",
+      "expected": "no mathematics detected in protected source"
+    },
+    {
+      "id": "SANITIZER",
+      "source": "generated SVG with local use, equation target, assistive MathML",
+      "expected": "preserve visible glyphs and semantics; reject active content and external glyph URLs"
+    },
+    {
+      "id": "FONT-SETTLEMENT",
+      "source": "render CHTML followed by immediate export",
+      "expected": "force layout and wait until needed fonts settle, not only an earlier fonts.ready promise"
+    }
+  ]
+}

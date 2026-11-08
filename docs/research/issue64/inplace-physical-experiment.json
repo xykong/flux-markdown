@@ -1,0 +1,15 @@
+{
+  "change": "Sanitize detached MathJax-generated nodes in place, but continue publishing only serialized strings. Do not transfer live engine objects.",
+  "acceptance": {
+    "roundedPeakMax": "1.1G",
+    "warm100P95MaxMs": 150,
+    "warm1000P95MaxMs": 2000,
+    "outputAndSanitizerContracts": "unchanged"
+  },
+  "reasonToRevisit": "Prior in-place experiment used residual RSS; this run uses owned-process physical footprint.",
+  "testsPassed": 559,
+  "physicalFootprint": "121.6M",
+  "physicalPeak": "2.1G",
+  "completed": true,
+  "decision": "In-place sanitization alone failed the peak target; next isolated variant tests transfer of the sanitized engine nodes as well."
+}

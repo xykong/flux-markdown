@@ -1,0 +1,7 @@
+{
+  "recordedAt": "2026-11-05T13:11:41.155790+00:00",
+  "userStatement": "压力场景约 1.7G 没有问题. 不必优化了.",
+  "acceptedScope": "Existing SVG implementation, 1000 formulas rendered ten times in the measured standalone WebContent process. Three complete runs report rounded 1.7G peaks; earlier partial runs observed 1.8G. This is not a universal hard memory cap.",
+  "decision": "Accept measured stress cost and stop memory optimization. Keep validated production implementation; discard experimental renderer changes.",
+  "reference": "owned-process-memory-comparison.json"
+}

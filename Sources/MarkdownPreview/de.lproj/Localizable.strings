@@ -112,3 +112,7 @@
 "Thank you. The source is linked to this installation. Effective use and return visits are measured separately when usage statistics are enabled." = "Vielen Dank. Die Quelle ist mit dieser Installation verknüpft. Tatsächliche Nutzung und spätere Besuche werden bei aktivierten Nutzungsstatistiken getrennt erfasst.";
 
 "Open Promotion Page" = "Aktionsseite öffnen";
+
+/* Block copy failures */
+"Text could not be copied" = "Text konnte nicht kopiert werden";
+"Select the text to copy it manually, or try the copy button again." = "Wähle den Text zum manuellen Kopieren aus oder versuche die Kopierschaltfläche erneut.";

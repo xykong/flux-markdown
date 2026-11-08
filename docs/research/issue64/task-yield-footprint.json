@@ -1,0 +1,109 @@
+{
+  "baseCommit": "e461dd0",
+  "method": "Fresh processes; same formulas, count checks, output profile and automatic physical snapshot ten seconds after clearing. Single has one render; others have ten. Production scheduler uses the original ten-render workload without caller-inserted yields.",
+  "priorControl": "incremental-teardown-footprint.json (1.6G rounded peak)",
+  "runs": {
+    "single": {
+      "rawDirectory": "/tmp/flux-issue64-single-footprint",
+      "completed": true,
+      "webContentPid": 27758,
+      "footprint": "156.6M",
+      "peak": "783.8M"
+    },
+    "taskBoundaryWorkload": {
+      "rawDirectory": "/tmp/flux-issue64-task-boundary-footprint",
+      "completed": true,
+      "webContentPid": 28200,
+      "footprint": "212.3M",
+      "peak": "949.2M"
+    },
+    "productionScheduler": {
+      "rawDirectory": "/tmp/flux-issue64-scheduler-footprint",
+      "completed": true,
+      "webContentPid": 31370,
+      "footprint": "214.4M",
+      "peak": "991.3M"
+    }
+  },
+  "scope": "Reference-machine diagnostic, not minimum-system or actual QuickLook-host memory acceptance. Snapshots remain subject to collection variance; task boundaries offer a GC/event-processing opportunity, not a forced-GC guarantee.",
+  "latencySamples": {
+    "100": {
+      "domBytes": 776770,
+      "samples": [
+        94,
+        82,
+        80,
+        84,
+        81,
+        82,
+        78,
+        80,
+        77,
+        78,
+        80,
+        78,
+        80,
+        80,
+        80,
+        84,
+        80,
+        82,
+        82,
+        80,
+        80,
+        81,
+        82,
+        81,
+        83,
+        80,
+        77,
+        84,
+        85,
+        86
+      ]
+    },
+    "1000": {
+      "domBytes": 8809288,
+      "samples": [
+        1288,
+        1326,
+        1389,
+        1338,
+        1366,
+        1343,
+        1346,
+        1344,
+        1342,
+        1408,
+        1430,
+        1325,
+        1368,
+        1343,
+        1394,
+        1344,
+        1396,
+        1395,
+        5738,
+        1501,
+        6198,
+        1462,
+        4358,
+        1439,
+        4797,
+        1489,
+        5325,
+        1422,
+        6067,
+        1481
+      ]
+    }
+  },
+  "decision": "Rejected and reverted: 1000-item warm p95 6067 ms violates the frozen 2000 ms gate, despite lower physical peak. No production scheduler adopted.",
+  "experimentalValidation": {
+    "jestSuites": 60,
+    "jestTests": 533,
+    "nativeCases": 30,
+    "productionAndOfflineRunnerPassed": true
+  },
+  "patch": "task-yield-experiment.patch"
+}

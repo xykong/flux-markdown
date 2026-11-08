@@ -1,0 +1,426 @@
+{
+  "exit": 0,
+  "webpid": 46013,
+  "samples": [
+    {
+      "seconds": 1.11,
+      "rssKiB": 187120,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 2.17,
+      "rssKiB": 187280,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 3.22,
+      "rssKiB": 978960,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 4.27,
+      "rssKiB": 1196336,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 5.32,
+      "rssKiB": 1429584,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 6.37,
+      "rssKiB": 1636816,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 7.43,
+      "rssKiB": 1762032,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 8.49,
+      "rssKiB": 2060976,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 9.54,
+      "rssKiB": 2087184,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 10.6,
+      "rssKiB": 2208816,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 11.65,
+      "rssKiB": 2252512,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 12.7,
+      "rssKiB": 2281600,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 13.75,
+      "rssKiB": 2312768,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 14.81,
+      "rssKiB": 2343792,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 15.86,
+      "rssKiB": 2344816,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 16.91,
+      "rssKiB": 2353008,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 17.97,
+      "rssKiB": 2391744,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 19.02,
+      "rssKiB": 2404256,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 20.08,
+      "rssKiB": 2417024,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 21.13,
+      "rssKiB": 2417792,
+      "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 22.19,
+      "rssKiB": 2417792,
+      "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 23.23,
+      "rssKiB": 2417792,
+      "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 24.29,
+      "rssKiB": 2417792,
+      "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 25.34,
+      "rssKiB": 2417792,
+      "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 26.39,
+      "rssKiB": 2417760,
+      "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 27.45,
+      "rssKiB": 2417712,
+      "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 28.52,
+      "rssKiB": 2417712,
+      "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 29.56,
+      "rssKiB": 2417712,
+      "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 30.62,
+      "rssKiB": 2419216,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 31.67,
+      "rssKiB": 2418768,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 32.72,
+      "rssKiB": 2419520,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 33.77,
+      "rssKiB": 2419520,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 34.82,
+      "rssKiB": 2423088,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 35.87,
+      "rssKiB": 2423328,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 36.92,
+      "rssKiB": 2424256,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 37.98,
+      "rssKiB": 2425264,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 39.03,
+      "rssKiB": 2456032,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 40.08,
+      "rssKiB": 2457104,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 41.13,
+      "rssKiB": 2457280,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 42.18,
+      "rssKiB": 2457488,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 43.23,
+      "rssKiB": 2462128,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 44.28,
+      "rssKiB": 2486624,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 45.33,
+      "rssKiB": 2488160,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 46.38,
+      "rssKiB": 2488176,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 47.43,
+      "rssKiB": 2488656,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 48.5,
+      "rssKiB": 2510432,
+      "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 49.57,
+      "rssKiB": 2510432,
+      "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 50.62,
+      "rssKiB": 2510448,
+      "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 51.69,
+      "rssKiB": 2510448,
+      "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 52.76,
+      "rssKiB": 2510448,
+      "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 53.82,
+      "rssKiB": 2510416,
+      "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 54.89,
+      "rssKiB": 2510368,
+      "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 55.95,
+      "rssKiB": 2510368,
+      "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 57.02,
+      "rssKiB": 2510368,
+      "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 58.07,
+      "rssKiB": 2510848,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 59.12,
+      "rssKiB": 2510848,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 60.17,
+      "rssKiB": 2511216,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 61.22,
+      "rssKiB": 2511216,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 62.27,
+      "rssKiB": 2511392,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 63.32,
+      "rssKiB": 2511344,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 64.37,
+      "rssKiB": 2511344,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 65.43,
+      "rssKiB": 2511872,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 66.48,
+      "rssKiB": 2511936,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 67.53,
+      "rssKiB": 2551984,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 68.58,
+      "rssKiB": 2569696,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 69.63,
+      "rssKiB": 2569728,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 70.69,
+      "rssKiB": 2571968,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 71.74,
+      "rssKiB": 2574240,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 72.79,
+      "rssKiB": 2678432,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 73.84,
+      "rssKiB": 2694032,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 74.9,
+      "rssKiB": 2694096,
+      "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 75.96,
+      "rssKiB": 2694176,
+      "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 77.01,
+      "rssKiB": 2694192,
+      "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 78.06,
+      "rssKiB": 2694192,
+      "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 79.12,
+      "rssKiB": 2694192,
+      "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 80.18,
+      "rssKiB": 2694160,
+      "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 81.25,
+      "rssKiB": 2694160,
+      "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 82.32,
+      "rssKiB": 2694160,
+      "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 83.39,
+      "rssKiB": 2694112,
+      "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 84.45,
+      "rssKiB": 2694112,
+      "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    }
+  ],
+  "phaseEvents": [
+    "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}",
+    "JS: MEMPHASE loaded-0 {\"nodes\":66988,\"math\":1000,\"stages\":0}",
+    "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}",
+    "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}",
+    "JS: MEMPHASE loaded-1 {\"nodes\":66983,\"math\":1000,\"stages\":0}",
+    "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}",
+    "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}",
+    "JS: MEMPHASE loaded-2 {\"nodes\":66983,\"math\":1000,\"stages\":0}",
+    "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}",
+    "JS: MEMPHASE idle-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+  ],
+  "environment": {
+    "platform": "macOS 27.0.1 arm64",
+    "hardware": "Apple M5 Max 128 GiB",
+    "workload": "3 cycles; 10 consecutive renders of 1000 formulas per cycle; clear to plain text; 10s idle",
+    "sourceCommit": "7b569fd",
+    "sampling": "ps RSS once per second; identified unique new WebContent PID; no forced GC or memory pressure",
+    "limitation": "current system renderer harness only; RSS not JS retained heap and short stable run does not prove bounded lifetime memory"
+  }
+}

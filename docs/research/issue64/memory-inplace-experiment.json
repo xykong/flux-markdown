@@ -1,0 +1,417 @@
+{
+  "exit": 0,
+  "webpid": 48981,
+  "bundle": "/Users/xykong/workspace/xykong/flux-markdown/web-renderer/dist",
+  "workload": "/Users/xykong/workspace/xykong/flux-markdown/scripts/research/issue64-math/memory-common-corpus.js",
+  "samples": [
+    {
+      "seconds": 1.12,
+      "rssKiB": 186736,
+      "processExists": true,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 2.17,
+      "rssKiB": 186880,
+      "processExists": true,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 3.22,
+      "rssKiB": 839888,
+      "processExists": true,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 4.28,
+      "rssKiB": 1166752,
+      "processExists": true,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 5.33,
+      "rssKiB": 1370448,
+      "processExists": true,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 6.39,
+      "rssKiB": 1545680,
+      "processExists": true,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 7.45,
+      "rssKiB": 1737520,
+      "processExists": true,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 8.51,
+      "rssKiB": 1986080,
+      "processExists": true,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 9.56,
+      "rssKiB": 2238352,
+      "processExists": true,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 10.61,
+      "rssKiB": 2317728,
+      "processExists": true,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 11.66,
+      "rssKiB": 2397568,
+      "processExists": true,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 12.72,
+      "rssKiB": 2434272,
+      "processExists": true,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 13.77,
+      "rssKiB": 2440384,
+      "processExists": true,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 14.82,
+      "rssKiB": 2497200,
+      "processExists": true,
+      "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 15.88,
+      "rssKiB": 2498528,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 16.95,
+      "rssKiB": 2498560,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 18.0,
+      "rssKiB": 2498560,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 19.07,
+      "rssKiB": 2498560,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 20.14,
+      "rssKiB": 2498560,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 21.22,
+      "rssKiB": 2498496,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 22.29,
+      "rssKiB": 2498480,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 23.36,
+      "rssKiB": 2498384,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 24.42,
+      "rssKiB": 2498384,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 25.49,
+      "rssKiB": 2498624,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 26.54,
+      "rssKiB": 2507440,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 27.6,
+      "rssKiB": 2510784,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 28.65,
+      "rssKiB": 2512832,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 29.7,
+      "rssKiB": 2514240,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 30.76,
+      "rssKiB": 2515648,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 31.81,
+      "rssKiB": 2518256,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 32.86,
+      "rssKiB": 2518640,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 33.92,
+      "rssKiB": 2519776,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 34.97,
+      "rssKiB": 2519808,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 36.02,
+      "rssKiB": 2520496,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 37.08,
+      "rssKiB": 2526816,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 38.13,
+      "rssKiB": 2639920,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 39.21,
+      "rssKiB": 2669680,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 40.3,
+      "rssKiB": 2669824,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 41.39,
+      "rssKiB": 2669824,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 42.47,
+      "rssKiB": 2669824,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 43.52,
+      "rssKiB": 2669824,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 44.59,
+      "rssKiB": 2669744,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 45.68,
+      "rssKiB": 2669760,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 46.73,
+      "rssKiB": 2669664,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 47.78,
+      "rssKiB": 2669664,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 48.84,
+      "rssKiB": 2669616,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 49.89,
+      "rssKiB": 2672944,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 50.95,
+      "rssKiB": 2673424,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 52.0,
+      "rssKiB": 2673520,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 53.06,
+      "rssKiB": 2673488,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 54.11,
+      "rssKiB": 2673888,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 55.16,
+      "rssKiB": 2674288,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 56.21,
+      "rssKiB": 2674480,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 57.27,
+      "rssKiB": 2675472,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 58.32,
+      "rssKiB": 2691664,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 59.37,
+      "rssKiB": 2761120,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 60.42,
+      "rssKiB": 2814432,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 61.47,
+      "rssKiB": 2849104,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 62.55,
+      "rssKiB": 2866016,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 63.61,
+      "rssKiB": 2866016,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 64.66,
+      "rssKiB": 2866016,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 65.75,
+      "rssKiB": 2865984,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 66.83,
+      "rssKiB": 2865984,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 67.92,
+      "rssKiB": 2865952,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 69.01,
+      "rssKiB": 2865952,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 70.09,
+      "rssKiB": 2865952,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 71.15,
+      "rssKiB": 2865904,
+      "processExists": true,
+      "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    },
+    {
+      "seconds": 72.25,
+      "rssKiB": 0,
+      "processExists": true,
+      "phase": "JS: MEMPHASE idle-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+    }
+  ],
+  "experiment": "Detached in-place DOMPurify on generated math output instead of reparse. Same policy and common corpus. Reverted because residual RSS increased."
+}

@@ -3,6 +3,28 @@ import XCTest
 import Sparkle
 
 final class UpdateErrorPresentationTests: XCTestCase {
+    func testPublicStageSelectorsAndFrozenPresentationHistory() throws {
+        let delegate = UpdateDelegate.shared
+        for selector in ["updater:mayPerformUpdateCheck:error:", "updater:didFinishLoadingAppcast:",
+                         "updater:willDownloadUpdate:withRequest:", "updater:didDownloadUpdate:",
+                         "updater:failedToDownloadUpdate:error:", "userDidCancelDownload:",
+                         "updater:willExtractUpdate:", "updater:didExtractUpdate:"] {
+            XCTAssertTrue(delegate.responds(to: NSSelectorFromString(selector)), selector)
+        }
+        UpdateDiagnostics.shared.beginSession()
+        UpdateDiagnostics.shared.event(.downloadCompleted)
+        let driver = UpdateErrorUserDriver(presentAlert: { _ in
+            UpdateDiagnostics.shared.event(.cycleFinished)
+            return .alertSecondButtonReturn
+        }, reportIncident: { draft in
+            XCTAssertEqual(draft.incident.updateSession?.events.map(\.stage), [.checkStarted, .downloadCompleted, .failed])
+            XCTAssertTrue(draft.incident.isValid)
+        })
+        driver.showUpdaterError(NSError(domain: "SUSparkleErrorDomain", code: 4005)) {
+            UpdateDiagnostics.shared.beginSession()
+        }
+    }
+
     func testDownloadActionShowsRecoveryAndAcknowledgesOnce() {
         var opened: URL?
         var acknowledgements = 0

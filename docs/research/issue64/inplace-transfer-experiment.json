@@ -1,0 +1,14 @@
+{
+  "hypothesis": "Transfer the already sanitized engine DOM rather than a cloned sanitizer DOM, excluding transferred fragments from staging teardown.",
+  "acceptance": {
+    "roundedPeakMax": "1.1G",
+    "warm100P95MaxMs": 150,
+    "warm1000P95MaxMs": 2000,
+    "securityAndSemantics": "all tests and native resource boundaries unchanged"
+  },
+  "testsPassed": 560,
+  "physicalFootprint": "55.6M",
+  "physicalPeak": "1.8G",
+  "completed": true,
+  "decision": "Rejected and reverted: 1.8G peak does not improve the 1.7G control or meet the predeclared 1.1G target."
+}

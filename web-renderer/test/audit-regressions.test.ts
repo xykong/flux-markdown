@@ -37,13 +37,15 @@ test('passive HTML, task lists and math styling survive sanitization', async () 
  await window.renderMarkdown('<details><summary>More</summary><table><tr><td>ok</td></tr></table></details>\n\n- [x] task\n\n$\\frac{a}{b}$');
  expect(document.querySelector('details summary')?.textContent).toBe('More');
  expect(document.querySelector('input[disabled][type=checkbox]')).not.toBeNull();
- expect(document.querySelector('.katex [style]')).not.toBeNull();
+ expect(document.querySelector('mjx-container svg[style]')).not.toBeNull();
+ expect(document.querySelector('mjx-assistive-mml mfrac')).not.toBeNull();
 });
 
 test('active HTML and unsafe URLs are removed', async () => {
  document.body.innerHTML = '<div id="markdown-preview"></div>';
  await window.renderMarkdown('<iframe srcdoc="x"></iframe><svg onload="alert(1)"></svg><a href="javascript:alert(1)">x</a><style>body{display:none}</style>');
- expect(document.querySelector('iframe, style, [onload], [href^="javascript:"]')).toBeNull();
+ expect(document.getElementById('markdown-preview')?.querySelector('iframe, style, [onload], [href^="javascript:"]')).toBeNull();
+ expect(Array.from(document.querySelectorAll('style')).some(style => style.textContent?.includes('body{display:none}'))).toBe(false);
 });
 
 import { sanitizeDiagramHTML } from '../src/safe-html';

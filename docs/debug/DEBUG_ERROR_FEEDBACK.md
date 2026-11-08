@@ -27,15 +27,22 @@ Verified the repository's real logged-in GitHub editor with a non-private title/
 
 | Surface | Implementation / verification |
 | --- | --- |
+| Quick Look diagnostic CLI | Uses existing native ErrorIncident/ErrorFeedback for app failures; new stage markers contain only dedicated fixture/request UUIDs, mode, validated version/build and allowlisted error domain/code. The standalone collector preserves partial evidence and offers explicit output-folder, inspect/share and ZIP-failure alternatives; no report is sent. Evidence/privacy/interruption/timeout tests and real positive/negative session capture pass. |
+| Quick Look self-test | Failure continues through shared native ErrorFeedback. Verification now requires canonical extension identity/version/build and the completed visible fixture; missing root, caught errors, stale/source mode and wrong/hidden content are rejected. Covered by native evidence tests and the real WebKit probe case; actual candidate launch rejected a different installed extension without claiming success. |
 | Update errors | Real Sparkle user-driver path; failure captured before dismissal, report after acknowledgement; download/review/close remain accessible; unit checks include repeated failed update cycles. |
 | Document read/encoding/size | `DocumentReadFailure` exposes localized Foundation recovery options for choosing a file, reporting, review and closing; tested without opening another modal. OS-owned inaccessible failures still use Help fallback. |
 | Reload | Main app/extension attach native persistent notice; main app retry retains current content. Registry deduplicates repeated same-kind/code errors within one document. |
-| HTML/PDF export | Explicit foreground failure paths now attach native retry/save-location guidance; no feedback is generated for cancelled save panels. Generic action tests cover both operation kinds; CLI invalid-input probe separately verifies text-only guidance. |
+| HTML/PDF export | Foreground failures retain operation-specific titles. A closed renderer preparation result identifies mathematical blockers, offers Open in Editor, and records only the typed blocker in shared ErrorIncident. Other failures retain retry/save-location recovery; cancelled panels generate no feedback. Native notice/action, strict payload/incident validation, real WK invalid→valid recovery and actual App CLI PDF checks pass. Actual foreground editor/report activation and VoiceOver remain unverified under desktop lock. |
 | Renderer load/navigation/timeout/termination | Native notice survives failed JS; main app bounded handshake timer plus retry preserving queued content; extension offers matching host app. Narrow native layout tested at 360 px. |
 | Local images/preview limit | Native extension notice offers host opening; web images have inline feedback removed on successful load. Known limits remain classified separately. |
 | Quick Look repair/self-test | Failed outcomes use shared guidance/feedback; successful behavior unchanged. Actual installed Release self-test passed. |
 | Search and external destinations | Inline regex guidance and focus recovery; search launcher/native link failures use shared notices; editor child-process failures checked after termination. |
 | Renderer/Source/Mermaid/Typst/GraphViz/Vega/KaTeX | Existing error classes wired to bounded metadata-only bridge; technical details folded; direct editor/reload/host recovery; module-load failures get reload/reinstall guidance. DOM coverage tests and real Mermaid WebKit/Finder path pass. |
+| MathJax mathematical input limits (issue 64 implementation) | Shared math incident/feedback entry with six-language simplification/split guidance and existing editor/host recovery. Original source retained; error prevents complete-success export. UTF-8/count/aggregate boundary and real-engine tests pass. Native limit recovery/report activation remains part of final issue-64 acceptance. |
+| MathJax missing bundled glyph (issue 64) | Native WK transport probe in six languages × three renderer contexts checks source preservation, named recovery/report/inspect actions, fixed five-field diagnostics, incident identity, stale-control rejection and valid-document recovery. The opt-in receiver records only; actual native recovery/report execution, trusted keyboard and VoiceOver remain separate acceptance. See `scripts/issue64/resource-failure.js`. |
+| Unsupported image-backed mathematics | MathML `mglyph`, nested SVG `image` and HTML `img` retain formula source, reject successful export and preserve following formulas. Shared math/resourceUnavailable incident, six-language explanation and existing editor recovery; diagnostic tests exclude source. Native bundle and loopback HTTP probes verify zero requests for the mathematical images, with an ordinary-image positive control. Actual host recovery/report activation and VoiceOver remain separate gates. |
+| Mathematical source-copy failure at narrow zoom | Real native Space activation with an injected negative copy reply; inline/display formulas in English/German/Arabic at 320 points and 2x page zoom retain exact selectable source, bounded recovery controls and clean export. Real Enter selects all source without replacing the isolated pasteboard. Shared feedback UI is retained; actual report/editor execution and VoiceOver are separate gates. See `copy-failure-recovery.json`. |
+| Copy-result live status | Pending, localized failure and success update the same polite status node; failure instructions appear once and successful retry removes recovery UI. Six-language tests plus native failed-copy transport verify the DOM behavior. Actual VoiceOver speech remains unverified. |
 | Feedback failures | Injected browser failure preserves same draft; report opt-out, Unicode URL budget, missing store, copyable summary and no recursive feedback verified. |
 | CLI | stderr adds actionable input/output guidance and a prefilled report URL with safe summary; no GUI feedback launch. |
 | OS windows / extension not invoked / crash before capture | Cannot add a button to code that never runs; Help feedback remains the documented fallback. These are not represented as captured incidents. |
@@ -91,8 +98,32 @@ Arabic is covered in both native error/feedback bundles, including usage-statist
 
 ## TSV preview coverage (2026-10-28)
 
-TSV uses the existing read and renderer failure paths. Read failures remain native `ErrorIncident`/`ErrorFeedback` incidents; bounded preview truncation is an inline, non-failure notice and contains no document content in diagnostics. Renderer failures retain the existing recovery/report controls. Automated coverage includes safe TSV rendering, bounded UTF-8 decoding, native file-type registration, and 23 real WebKit cases. Host table/source UI was observed. Signed-install Finder/QuickLook feedback UI is not claimed as verified; see docs/design/TSV_PREVIEW.md.
+TSV uses the existing read and renderer failure paths. Read failures remain native `ErrorIncident`/`ErrorFeedback` incidents; bounded preview truncation is an inline, non-failure notice and contains no document content in diagnostics. Renderer failures retain the existing recovery/report controls. Automated coverage includes safe TSV rendering, bounded UTF-8 decoding, native file-type registration, and 23 real WebKit cases. Host table/source UI was observed. Signed-install Finder TSV preview and QuickLook-to-host search handoff subsequently passed; error-report submission was not performed. See docs/design/TSV_PREVIEW.md.
 
+## Block copy failures (Issue #65)
+
+`FailureKind.copy` uses the shared native incident registry and validated renderer
+`errorFeedback` bridge in both app and Quick Look. Inline failures offer Select
+Text, explicit reactivation of Copy, and contextual report/inspection; native
+recovery opens the editor (app) or FluxMarkdown (Quick Look). Oversize/missing
+bridge/timeout/failed writes never show success, and document text is excluded
+from diagnostics. Both native bundles and renderer controls cover all six
+languages. See `DEBUG_BLOCK_COPY.md` for clipboard readback, lifecycle, privacy,
+export and actual QuickLook acceptance evidence.
+
+## Update diagnostic sessions (2026-11-02)
+
+- Update failures now freeze a typed session in the existing ErrorIncident before the error UI is shown. The public Sparkle check/appcast/download/extraction/install/abort/cycle callbacks record safe stages through os_log and a bounded persisted history (32 events/session, three sessions). Unknown error descriptions are not exported; recognized code-10 descriptions map through an exact allowlist.
+- The user-driver and abort callback share an idempotent frozen snapshot. A later check gets a new session; error dialogs retain their original context. Startup errors without a check callback use `observationStarted`, not an invented check event. The existing recovery/report/dismiss UI and diagnostic opt-out remain unchanged.
+- Coverage: real Sparkle selector tests, before-acknowledgement capture, repeated real failed checks, persistence/restart, history limits, invalid decoded history and private error rejection. Existing incident/feedback tests and MacPorts export are included.
+- Old installed versions can be observed with `scripts/diagnose-update.sh`; `collect-update-evidence.sh --live` forwards to it. System evidence remains outside the normal automatic report, with an allowlisted local ZIP and a separately private raw directory. See `docs/debug/DEBUG_UPDATE_DIAGNOSTIC_SESSION.md` for operating instructions and limits.
+
+
+Issue 64 actual App menu verification found native overlays missing from WebKit's external AX tree and an untranslated editor caption. NativeMagnifyingWebView now exposes IncidentNotice groups alongside its remote document tree; the App reuses the translated Open in External Editor key. Thirty targeted native tests pass, and actual HTML export on invalid math now exposes the translated recovery and contextual report controls in the external AX tree. This is not VoiceOver speech or report-delivery proof.
+
+## Document path clipboard
+File → Copy Document Path (Command-Option-C) uses the focused saved document. Clipboard rejection captures `.copy` before presenting the shared native `ErrorFeedback` recovery/report surface; Retry retains the original URL and diagnostics contain no path. Unicode, spaces and shell punctuation are tested with an isolated pasteboard. No document/non-file URLs disable the action.
+Recent-document reopening retains unavailable entries. Failed opens capture `.fileRead` and present shared native feedback with “Choose Another File”; the action opens the native file picker. The report excludes the document path.
 
 ## Promotion source association (implementation in progress)
 

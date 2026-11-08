@@ -1,0 +1,28 @@
+const input=JSON.parse(source);
+const assert=(condition,message)=>{if(!condition)throw new Error(message);};
+for(let i=0;i<150&&typeof window.renderMarkdown!=='function';i++)await new Promise(r=>setTimeout(r,20));
+assert(typeof window.renderMarkdown==='function','Renderer handshake did not complete');
+await window.renderMarkdown(input.original,{context:'app',showCopyButtons:true,imageData:input.imageData});
+const root=document.getElementById('markdown-preview');
+const original={math:root.querySelectorAll('mjx-container').length,errors:root.querySelectorAll('.math-error').length,mermaid:root.querySelectorAll('.mermaid svg').length,graphviz:root.querySelectorAll('.graphviz-diagram svg').length,vega:root.querySelectorAll('.vega-diagram svg').length,end:root.textContent.includes('文档结束标记')};
+assert(original.math===14 && original.errors===1,'Original formula/expected-error count changed');
+assert(original.mermaid===8 && original.graphviz===1 && original.vega===1,'Original diagram output missing');
+assert(original.end && !root.querySelector('.render-error,.mermaid-error,.graphviz-error,.vega-error'),'Full original document did not complete');
+const matrix=root.querySelector('math[data-latex*="bmatrix"]');
+assert(matrix && matrix.querySelectorAll('mtable').length===2 && [...matrix.querySelectorAll('mtable')].every(table=>table.querySelectorAll('mtr').length===2),'Matrix/cases semantic rows are incomplete');
+assert(root.textContent.includes('条件概率'),'Chinese mathematical text missing');
+await window.renderMarkdown(input.valid,{context:'app',showCopyButtons:true});
+await window.waitForExportReady();
+assert(root.querySelectorAll('mjx-container').length===12 && !root.querySelector('.math-error'),'Valid mathematical corpus failed');
+const reference=root.querySelector('a.math-reference-link');
+assert(reference && reference.getAttribute('aria-label')==='(1)','Incorrect reference label');
+assert(document.getElementById(decodeURIComponent(reference.getAttribute('href').slice(1))),'Reference target missing');
+const html=window.exportHTML();
+await window.renderMarkdown(input.invalid,{context:'app'});
+let rejected=false;try{await window.waitForExportReady();}catch{rejected=true;}
+assert(rejected,'Invalid mathematics falsely allowed successful export');
+assert(JSON.stringify(await window.prepareExport())===JSON.stringify({status:'mathematics'}),'Native preparation did not return the closed mathematical blocker');
+await window.renderMarkdown(input.valid,{context:'app'});await window.waitForExportReady();
+assert(!root.querySelector('.math-error'),'Valid document did not recover after invalid input');
+assert(JSON.stringify(await window.prepareExport())===JSON.stringify({status:'ready'}),'Native preparation did not recover');
+return {exportPreparation:true,original,validMath:12,invalidExportRejected:rejected,recovery:true,html};

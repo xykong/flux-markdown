@@ -1,0 +1,45 @@
+{
+  "date": "2026-11-04",
+  "commit": "ea86caf",
+  "host": "actual Debug FluxMarkdown CLI, local deployment target 12.0, macOS 27.0.1 arm64",
+  "validInput": "derived 12 valid original math items, intentional M12 excluded",
+  "pdfSha256": "d3e7f8a9da6d4d2cec4c4bb9c909a8c14e636d6d9f01c1f088e25eee4c15f2c1",
+  "pdfBytes": 116790,
+  "pages": 3,
+  "result": "visual acceptance failed",
+  "observations": [
+    "All 12 valid case headings present",
+    "M08 cases second row absent/clipped in rendered PDF despite semantic tree containing two rows",
+    "Source-line gutter remains in PDF",
+    "M09 tag (1) and M10 visible reference (1) present",
+    "Chinese conditional-probability text visible"
+  ],
+  "invalidInputResult": {
+    "command": "actual CLI with unknownMarkdownPreviewCommand",
+    "exit": "nonzero",
+    "outputFileCreated": false
+  },
+  "next": "inspect print overflow and SVG layout; remove source gutter from print; repeat actual CLI output and all-page review",
+  "printOverflowFix": {
+    "pdfSha256": "4d0fc76e0c9190429d4209019bf791c0b01bc76203d1b20dffa74e720006fa50",
+    "bytes": 111765,
+    "pagesReviewed": 3,
+    "passed": [
+      "M08 cases second row now visible, including minus x and x less than zero",
+      "source line numbers absent",
+      "all 12 valid mathematical cases present"
+    ],
+    "remaining": [
+      "M05 heading and formula separated across pages",
+      "source gutter border/space remains",
+      "PDF link/tagged accessibility inspection"
+    ]
+  },
+  "paginationFix": {
+    "sha256": "86654ffb2db34e17d7e2e24fc5ab4183956a91e65c8b3977f4a14bab6691c7ad",
+    "bytes": 110613,
+    "pages": 3,
+    "review": "All three pages inspected after actual CLI export; all 12 valid mathematical items complete, M05 and M09 headings remain with their formulas, no source gutter or numbers.",
+    "scope": "current macOS arm64 CLI print path only; not minimum-platform or VoiceOver proof"
+  }
+}

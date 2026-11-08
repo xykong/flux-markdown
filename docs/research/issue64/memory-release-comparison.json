@@ -1,0 +1,716 @@
+{
+  "method": "Identical dollar-delimited payloads, 1000 formulas, 3 cycles of 10 renders and 10-second cleared idle; fresh native process for each version, sequential runs",
+  "versions": {
+    "baseline": {
+      "exit": 0,
+      "webpid": 43156,
+      "bundle": "/Users/xykong/workspace/xykong/flux-markdown/build/issue64-baseline/web-renderer/dist",
+      "workload": "/Users/xykong/workspace/xykong/flux-markdown/scripts/research/issue64-math/memory-common-corpus.js",
+      "samples": [
+        {
+          "seconds": 1.12,
+          "rssKiB": 181488,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 2.19,
+          "rssKiB": 181632,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 3.24,
+          "rssKiB": 998560,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 4.29,
+          "rssKiB": 1299792,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 5.34,
+          "rssKiB": 1334736,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 6.39,
+          "rssKiB": 1347856,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 7.44,
+          "rssKiB": 1385184,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 8.49,
+          "rssKiB": 1394000,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-0 {\"nodes\":197,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 9.55,
+          "rssKiB": 1394048,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-0 {\"nodes\":197,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 10.62,
+          "rssKiB": 1394048,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-0 {\"nodes\":197,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 11.71,
+          "rssKiB": 1394048,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-0 {\"nodes\":197,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 12.79,
+          "rssKiB": 1394048,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-0 {\"nodes\":197,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 13.88,
+          "rssKiB": 1394032,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-0 {\"nodes\":197,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 14.97,
+          "rssKiB": 1393984,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-0 {\"nodes\":197,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 16.05,
+          "rssKiB": 1393936,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-0 {\"nodes\":197,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 17.14,
+          "rssKiB": 1393888,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-0 {\"nodes\":197,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 18.19,
+          "rssKiB": 1394256,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-0 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 19.24,
+          "rssKiB": 1406960,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-0 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 20.29,
+          "rssKiB": 1421904,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-0 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 21.35,
+          "rssKiB": 1427360,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-0 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 22.4,
+          "rssKiB": 1431824,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-0 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 23.46,
+          "rssKiB": 1502752,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-0 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 24.51,
+          "rssKiB": 1552864,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 25.56,
+          "rssKiB": 1552864,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 26.61,
+          "rssKiB": 1552864,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 27.67,
+          "rssKiB": 1552864,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 28.72,
+          "rssKiB": 1552864,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 29.77,
+          "rssKiB": 1552832,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 30.82,
+          "rssKiB": 1552832,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 31.87,
+          "rssKiB": 1552800,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 32.93,
+          "rssKiB": 1552800,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 33.98,
+          "rssKiB": 1552800,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 35.03,
+          "rssKiB": 1553152,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-1 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 36.1,
+          "rssKiB": 1553472,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-1 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 37.15,
+          "rssKiB": 1553296,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-1 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 38.2,
+          "rssKiB": 1553312,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-1 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 39.25,
+          "rssKiB": 1556032,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-1 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 40.3,
+          "rssKiB": 1556160,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 41.39,
+          "rssKiB": 1556160,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 42.48,
+          "rssKiB": 1556160,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 43.53,
+          "rssKiB": 1556160,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 44.62,
+          "rssKiB": 1556160,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 45.7,
+          "rssKiB": 1556160,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 46.78,
+          "rssKiB": 1556128,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 47.86,
+          "rssKiB": 1556128,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 48.95,
+          "rssKiB": 1556128,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 50.04,
+          "rssKiB": 1556096,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":192,\"math\":0,\"stages\":0}"
+        }
+      ],
+      "postClearMiB": [
+        1361.2,
+        1516.4,
+        1519.6
+      ]
+    },
+    "current": {
+      "exit": 0,
+      "webpid": 44161,
+      "bundle": "/Users/xykong/workspace/xykong/flux-markdown/web-renderer/dist",
+      "workload": "/Users/xykong/workspace/xykong/flux-markdown/scripts/research/issue64-math/memory-common-corpus.js",
+      "samples": [
+        {
+          "seconds": 1.14,
+          "rssKiB": 186016,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 2.23,
+          "rssKiB": 186160,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 3.28,
+          "rssKiB": 873360,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 4.33,
+          "rssKiB": 1165424,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 5.39,
+          "rssKiB": 1346560,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 6.44,
+          "rssKiB": 1499792,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 7.49,
+          "rssKiB": 1643344,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 8.54,
+          "rssKiB": 1750448,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 9.6,
+          "rssKiB": 1809952,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 10.65,
+          "rssKiB": 1860688,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 11.7,
+          "rssKiB": 1945712,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 12.76,
+          "rssKiB": 2040032,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 13.81,
+          "rssKiB": 2055696,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 14.87,
+          "rssKiB": 2059072,
+          "processExists": true,
+          "phase": "JS: MEMPHASE baseline {\"nodes\":191,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 15.92,
+          "rssKiB": 2070192,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 16.99,
+          "rssKiB": 2070192,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 18.05,
+          "rssKiB": 2070144,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 19.12,
+          "rssKiB": 2070144,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 20.17,
+          "rssKiB": 2070128,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 21.26,
+          "rssKiB": 2070112,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 22.34,
+          "rssKiB": 2070112,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 23.41,
+          "rssKiB": 2070016,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 24.5,
+          "rssKiB": 2070016,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 25.55,
+          "rssKiB": 2072352,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 26.6,
+          "rssKiB": 2074096,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 27.66,
+          "rssKiB": 2074256,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 28.71,
+          "rssKiB": 2075184,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 29.77,
+          "rssKiB": 2075344,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 30.82,
+          "rssKiB": 2075392,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 31.88,
+          "rssKiB": 2075520,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 32.93,
+          "rssKiB": 2075888,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 33.99,
+          "rssKiB": 2076064,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 35.04,
+          "rssKiB": 2076624,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 36.09,
+          "rssKiB": 2076816,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 37.14,
+          "rssKiB": 2078064,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 38.19,
+          "rssKiB": 2079216,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-0 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 39.25,
+          "rssKiB": 2079296,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 40.3,
+          "rssKiB": 2079296,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 41.35,
+          "rssKiB": 2079296,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 42.4,
+          "rssKiB": 2079296,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 43.48,
+          "rssKiB": 2079264,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 44.57,
+          "rssKiB": 2079264,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 45.66,
+          "rssKiB": 2079264,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 46.75,
+          "rssKiB": 2079264,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 47.83,
+          "rssKiB": 2079216,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 48.88,
+          "rssKiB": 2079264,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 49.94,
+          "rssKiB": 2080112,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 50.99,
+          "rssKiB": 2080320,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 52.04,
+          "rssKiB": 2080000,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 53.1,
+          "rssKiB": 2080000,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 54.15,
+          "rssKiB": 2100608,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 55.2,
+          "rssKiB": 2100896,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 56.25,
+          "rssKiB": 2101392,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 57.3,
+          "rssKiB": 2118576,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 58.35,
+          "rssKiB": 2161072,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 59.4,
+          "rssKiB": 2179648,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 60.46,
+          "rssKiB": 2180512,
+          "processExists": true,
+          "phase": "JS: MEMPHASE idle-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 61.52,
+          "rssKiB": 2182512,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 62.61,
+          "rssKiB": 2182512,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 63.7,
+          "rssKiB": 2182528,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 64.75,
+          "rssKiB": 2182528,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 65.84,
+          "rssKiB": 2182528,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 66.9,
+          "rssKiB": 2182496,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 67.95,
+          "rssKiB": 2182496,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 69.02,
+          "rssKiB": 2182496,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 70.09,
+          "rssKiB": 2182464,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "seconds": 71.15,
+          "rssKiB": 2182464,
+          "processExists": true,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        }
+      ],
+      "postClearMiB": [
+        2021.5,
+        2030.5,
+        2131.3
+      ]
+    }
+  },
+  "deltaThirdCycleMiB": 611.7
+}

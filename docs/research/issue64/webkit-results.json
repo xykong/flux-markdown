@@ -1,0 +1,577 @@
+{
+  "edge" : {
+    "elapsedMs" : 10,
+    "items" : [
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "height" : 22.609375,
+        "id" : "forward",
+        "refs" : [
+          {
+            "attrs" : {
+              "data-mjx-href" : "#mjx-eqn%3Aeq%3Aforward"
+            },
+            "href" : null,
+            "mathJaxTargetExists" : true,
+            "nativeHrefTargetExists" : false,
+            "text" : ""
+          }
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "height" : 32.1875,
+        "id" : "definition",
+        "refs" : [
+
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 1,
+        "errorText" : [
+          "Label 'eq:forward' multiply defined"
+        ],
+        "height" : 32.359375,
+        "id" : "duplicate",
+        "refs" : [
+
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+          "Label 'eq:forward' multiply defined"
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "height" : 22.609375,
+        "id" : "missing",
+        "refs" : [
+          {
+            "attrs" : {
+              "data-mjx-href" : "#"
+            },
+            "href" : null,
+            "mathJaxTargetExists" : false,
+            "nativeHrefTargetExists" : false,
+            "text" : ""
+          }
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      }
+    ],
+    "labels" : {
+      "eq:forward" : {
+        "id" : "mjx-eqn:eq:forward",
+        "tag" : "A"
+      }
+    }
+  },
+  "full" : {
+    "elapsedMs" : 216,
+    "items" : [
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 23.203125,
+        "id" : "M01",
+        "refs" : [
+
+        ],
+        "svgCount" : 2,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 22.65625,
+        "id" : "M02",
+        "refs" : [
+
+        ],
+        "svgCount" : 2,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 26.8125,
+        "id" : "M03",
+        "refs" : [
+
+        ],
+        "svgCount" : 2,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 23.203125,
+        "id" : "M04",
+        "refs" : [
+
+        ],
+        "svgCount" : 3,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 61.21875,
+        "id" : "M05",
+        "refs" : [
+
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 70.265625,
+        "id" : "M06",
+        "refs" : [
+
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 170.796875,
+        "id" : "M07",
+        "refs" : [
+
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+          "条件概率"
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 62.171875,
+        "id" : "M08",
+        "refs" : [
+
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 35.046875,
+        "id" : "M09",
+        "refs" : [
+
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+          ""
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 22.609375,
+        "id" : "M10",
+        "refs" : [
+          {
+            "attrs" : {
+              "data-mjx-href" : "#mjx-eqn%3Aeq%3Apythagoras"
+            },
+            "href" : null,
+            "mathJaxTargetExists" : true,
+            "nativeHrefTargetExists" : false,
+            "text" : ""
+          }
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 52.953125,
+        "id" : "M11",
+        "refs" : [
+
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 1,
+        "errorText" : [
+          "Undefined control sequence \\unknownMarkdownPreviewCommand"
+        ],
+        "expect" : "error",
+        "height" : 21.578125,
+        "id" : "M12",
+        "refs" : [
+
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+          "Undefined control sequence \\unknownMarkdownPreviewCommand"
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 22.25,
+        "id" : "M13",
+        "refs" : [
+
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      }
+    ],
+    "labels" : {
+      "eq:pythagoras" : {
+        "id" : "mjx-eqn:eq:pythagoras",
+        "tag" : "1"
+      }
+    }
+  },
+  "repeat" : {
+    "elapsedMs" : 98,
+    "items" : [
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 23.203125,
+        "id" : "M01",
+        "refs" : [
+
+        ],
+        "svgCount" : 2,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 22.65625,
+        "id" : "M02",
+        "refs" : [
+
+        ],
+        "svgCount" : 2,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 26.8125,
+        "id" : "M03",
+        "refs" : [
+
+        ],
+        "svgCount" : 2,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 23.203125,
+        "id" : "M04",
+        "refs" : [
+
+        ],
+        "svgCount" : 3,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 61.21875,
+        "id" : "M05",
+        "refs" : [
+
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 70.265625,
+        "id" : "M06",
+        "refs" : [
+
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 170.796875,
+        "id" : "M07",
+        "refs" : [
+
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+          "条件概率"
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 62.171875,
+        "id" : "M08",
+        "refs" : [
+
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 35.046875,
+        "id" : "M09",
+        "refs" : [
+
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+          ""
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 22.609375,
+        "id" : "M10",
+        "refs" : [
+          {
+            "attrs" : {
+              "data-mjx-href" : "#mjx-eqn%3Aeq%3Apythagoras"
+            },
+            "href" : null,
+            "mathJaxTargetExists" : true,
+            "nativeHrefTargetExists" : false,
+            "text" : ""
+          }
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 52.953125,
+        "id" : "M11",
+        "refs" : [
+
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 1,
+        "errorText" : [
+          "Undefined control sequence \\unknownMarkdownPreviewCommand"
+        ],
+        "expect" : "error",
+        "height" : 21.578125,
+        "id" : "M12",
+        "refs" : [
+
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+          "Undefined control sequence \\unknownMarkdownPreviewCommand"
+        ],
+        "width" : 912
+      },
+      {
+        "errorCount" : 0,
+        "errorText" : [
+
+        ],
+        "expect" : "render",
+        "height" : 22.25,
+        "id" : "M13",
+        "refs" : [
+
+        ],
+        "svgCount" : 1,
+        "visibleText" : [
+
+        ],
+        "width" : 912
+      }
+    ],
+    "labels" : {
+      "eq:pythagoras" : {
+        "id" : "mjx-eqn:eq:pythagoras",
+        "tag" : "1"
+      }
+    }
+  },
+  "resources" : [
+
+  ],
+  "version" : "4.1.3"
+}

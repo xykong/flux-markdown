@@ -107,3 +107,7 @@
 "Thank you. The source is linked to this installation. Effective use and return visits are measured separately when usage statistics are enabled." = "شكرًا لك. تم ربط المصدر بهذا التثبيت. يُقاس الاستخدام الفعلي والزيارات اللاحقة بشكل منفصل عند تفعيل إحصاءات الاستخدام.";
 
 "Open Promotion Page" = "فتح صفحة الترويج";
+
+/* Block copy failures */
+"Text could not be copied" = "تعذر نسخ النص";
+"Select the text to copy it manually, or try the copy button again." = "حدد النص لنسخه يدويًا، أو جرّب زر النسخ مجددًا.";

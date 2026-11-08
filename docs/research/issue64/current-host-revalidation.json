@@ -1,0 +1,45 @@
+{
+  "observedAt": "2026-11-04T20:05:45.968691+00:00",
+  "sourceCommit": "bfee31bfd5de3f22e0e10096b3c8dd12b832dd18",
+  "systemPreview": {
+    "newProviderPid": 61880,
+    "providerExecutable": "/Applications/FluxMarkdown.app/Contents/PlugIns/MarkdownPreview.appex/Contents/MacOS/MarkdownPreview",
+    "qlmanagePid": 61878,
+    "ownedPreviewProcessStopped": true,
+    "currentCandidateSelected": false,
+    "renderingVerified": false,
+    "rawEvidenceDirectory": "/var/folders/31/2k2kp17n2f7blhy25xr06r9h0000gn/T/flux-issue64-system-host-f0cqxdxq"
+  },
+  "candidateApp": {
+    "pid": 62107,
+    "testWindowId": 6286,
+    "testWindowTitle": "Issue64-Candidate-Validation.md",
+    "explicitTestWindowObserved": true,
+    "accessibilityRead": "permission_denied",
+    "permissionStatusReported": "granted",
+    "retryRead": "permission_denied",
+    "screenshotCaptured": false,
+    "referenceActivationVerified": false,
+    "ownedCandidateExited": true,
+    "restoredUnrelatedContentNotInspected": true
+  },
+  "installedApplicationReplaced": false,
+  "permissionsChangedByAgent": false,
+  "limitations": [
+    "system selected installed older extension",
+    "actual candidate App content could not be inspected",
+    "no VoiceOver activation attempted"
+  ],
+  "sessionState": {
+    "screenLocked": true,
+    "loginComplete": true,
+    "source": "allowlisted CGSessionCopyCurrentDictionary fields"
+  },
+  "userAccessibilityRefreshInitiallyRequested": true,
+  "currentUserActionRequested": "Unlock the desktop first; do not change accessibility permissions until reads are rechecked.",
+  "latestInteractiveSuite": {
+    "passed": false,
+    "failure": "Environment: native test window did not become active",
+    "log": "/var/folders/31/2k2kp17n2f7blhy25xr06r9h0000gn/T/flux-issue64-e2e.yBolZR/native-suite.log"
+  }
+}

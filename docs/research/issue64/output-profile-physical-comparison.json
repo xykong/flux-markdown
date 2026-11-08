@@ -1,0 +1,14 @@
+{
+  "scope": "Prototype output-backend comparison, not production acceptance",
+  "chtml": {
+    "footprint": "260.8M",
+    "peak": "934.0M",
+    "rawEvidence": "build/issue64-output-profiles/chtml-complete"
+  },
+  "svg": {
+    "footprint": "228.6M",
+    "peak": "955.5M",
+    "rawEvidence": "build/issue64-output-profiles/svg-complete"
+  },
+  "decision": "No backend change: the small prototype difference does not establish a material production memory improvement."
+}

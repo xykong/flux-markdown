@@ -1,6 +1,63 @@
 ## [Unreleased]
 _无待发布的变更_
 
+## [1.47.799] - 2026-11-08
+### Fixed
+- **Referenced SVG sizing**: Keep percentage-width SVG images within their drawing dimensions and readable text scale on wide/fullscreen windows, center standalone diagrams in the reading column, and preserve inline icons, explicit alignment and exported layout.
+- **Recent documents**: Keep app-owned recent-document history across development signing changes and upgrades, migrate available system history, preserve temporarily unavailable files, and honor explicit clearing. System history already invalidated before migration cannot be recovered.
+- **Mermaid sizing**: Cap automatic diagram labels at body-text size and fit available width instead of stretching small diagrams across wide windows.
+
+### Added
+- **Copy document path**: Copy the active saved document's plain filesystem path from the File menu or with Command-Option-C, including Unicode and spaces.
+- **Per-diagram zoom**: Mermaid and standalone SVG images share localized zoom-out/reset/zoom-in controls on hover or keyboard focus. Each diagram scales independently, with local scrolling when enlarged; controls are excluded from copying, search and exports.
+
+## [1.46.779] - 2026-11-08
+### Fixed
+- **Letter sequence typography** (#68): Preserve `(c)` / `(C)` after matching `(b)` / `(B)` sequence markers, including across paragraphs, list items and inline formatting. Independent copyright abbreviations and other smart typography retain their existing behavior. Thanks to [@lgsoltek](https://github.com/lgsoltek) for reporting [#68](https://github.com/xykong/flux-markdown/issues/68) and suggesting automatic sequence detection.
+
+## [1.45.774] - 2026-11-07
+### Added
+- **Lightweight Markdown extensions** (#64): Render definition lists, document-scoped abbreviation titles and `++inserted text++`, preserving code literals and semantic HTML/PDF output. This addresses the first non-math compatibility batch, not all dialects in the supplied corpus. Thanks to [@MxJ24](https://github.com/MxJ24) for the feedback in [#64](https://github.com/xykong/flux-markdown/issues/64).
+- **Quick Look diagnostic session**: Collect one bounded self-test/Finder comparison into a local, allowlisted ZIP without repairs or uploads. Trace dedicated test fixtures by extension identity, request and preview mode; keep missing evidence and user-observed outcomes separate. Supports investigation of #58 and the historical #49 report without claiming either root cause is fixed. Thanks to [@ajeantt12](https://github.com/ajeantt12) for the feedback in [#49](https://github.com/xykong/flux-markdown/issues/49). Thanks to [@DevJayHay](https://github.com/DevJayHay) for the feedback in [#58](https://github.com/xykong/flux-markdown/issues/58).
+
+### Fixed
+- **Runtime dependency security**: Update DOMPurify to 3.4.17 and markdown-it to the compatible 14.3.3 patch; runtime npm audit reports no findings at verification.
+- **RTL contents**: Follow each heading’s own text direction for contents alignment, indentation and the active marker, independently of interface language. Give Arabic/Hebrew-only headings nonempty, unique navigation targets while preserving existing nonempty anchors.
+- **Quick Look self-test accuracy**: Require the expected extension executable, version and build, plus a completed current render with visible test content. Other app copies, missing/error output, hidden content and stale/source-mode renders no longer qualify as a verified preview. This improves diagnostics; it does not establish a fix for the unresolved Finder fallback reports #49/#58.
+
+## [1.44.761] - 2026-11-06
+### Fixed
+- **Automatic update startup**: Upgrade Sparkle to 2.9.3 so an on-demand progress helper is actively woken after submission, preventing the reproduced `4005 → 10` agent-connection timeout tracked in [#61](https://github.com/xykong/flux-markdown/issues/61). Existing installations whose old updater already fails need a manual DMG or Homebrew upgrade first. Thanks to [@aFakeRobot](https://github.com/aFakeRobot) for the feedback in [#61](https://github.com/xykong/flux-markdown/issues/61).
+
+## [1.43.755] - 2026-11-05
+
+### Added
+- **Expanded mathematics**: Support parenthesis/bracket math delimiters, `math` fences, selected AMS equation environments and presentation MathML, alongside dollar-delimited formulas. Addresses the test corpus in [#64](https://github.com/xykong/flux-markdown/issues/64). Thanks to [@MxJ24](https://github.com/MxJ24) for the feedback in [#64](https://github.com/xykong/flux-markdown/issues/64).
+- **Equation navigation and source**: Add document-scoped numbering, labels, forward references, explicit/starred tags, formula-source search and source copying.
+
+### Fixed
+- **Reading and export**: Keep oversized formulas locally scrollable under native zoom, preserve mathematical direction in RTL documents, and retain vector mathematics and equation links in exports.
+- **Mathematical failures**: Preserve source and reject incomplete mathematical exports. Explain unsupported image-backed MathML, and keep copy recovery usable in narrow previews with localized live status messages.
+
+## [1.42.645] - 2026-10-29
+### Added
+- **Copy code and quotes**: Copy ordinary code blocks, blockquotes and GitHub alerts in FluxMarkdown and full Finder Quick Look. Preserve code indentation and line breaks, and copy quotes as readable plain text without Markdown quote markers. Thanks to [@angedell](https://github.com/angedell) for [#65](https://github.com/xykong/flux-markdown/issues/65); implemented in [#66](https://github.com/xykong/flux-markdown/pull/66).
+- **Hover copy controls**: Reveal copy buttons on hover or keyboard focus, then fade them out after a short delay. Keep copy feedback and recovery actions visible. Enabled by default, with an opt-out under Settings → Rendering; existing opt-outs are preserved. Compact Finder previews and HTML/PDF exports remain free of copy controls.
+
+### Changed
+- **Settings layout**: Move usage-statistics sharing and GitHub support reminders to the bottom of the Appearance settings page.
+
+### Fixed
+- **Typst setting**: Display Typst source as ordinary code when Typst rendering is disabled instead of leaving a loading placeholder.
+
+## [1.41.635] - 2026-10-28
+### Added
+- **TSV table previews**: View `.tsv` files as tables in Finder Quick Look and FluxMarkdown, with source view, text selection, search handoff, themes and export support. Preserve empty cells and keep the first record as data.
+- **Bounded table viewing**: Limit TSV previews to 500 KiB, 1,000 rows, 100 columns and 20,000 cells, with explicit truncation notices in previews and exports. UTF-8 and LF/CRLF/CR are supported; quotes, HTML and formulas remain literal text. Initial host-app opening still uses the system-provided full file buffer.
+
+### Fixed
+- **MacPorts installation**: Use the Xcode PortGroup and preserve versioned source-archive paths for the MacPorts package.
+
 ## [1.40.622] - 2026-10-26
 ### Added
 - **Arabic interface**: Add Arabic localization and right-to-left interface text in the app and Quick Look, keeping documents, code and math in their appropriate reading direction. Thanks to [@abdelhaqelamraoui](https://github.com/abdelhaqelamraoui) for [#62](https://github.com/xykong/flux-markdown/pull/62).
@@ -11,13 +68,13 @@ _无待发布的变更_
 
 ## [1.39.614] - 2026-10-26
 ### Fixed
-- **Relative HTML images** (#63): Preserve directory-based relative image and link URLs during HTML sanitization. The reported pure-Markdown image failure still requires affected-file/environment evidence.
+- **Relative HTML images** (#63): Preserve directory-based relative image and link URLs during HTML sanitization. The reported pure-Markdown image failure still requires affected-file/environment evidence. Thanks to [@zhengcan](https://github.com/zhengcan) for the feedback in [#63](https://github.com/xykong/flux-markdown/issues/63).
 
 ## [1.38.608] - 2026-10-26
 ### Fixed
 - **Quick Look statistics**: Send queued usage through the authenticated helper when the preview host blocks direct networking, without requiring the main app to open. Preserve shared hourly throttling and opt-out.
 - **Telemetry time**: Send Unix-second upload and UTC-day timestamps, independent of user timezone or daylight saving time. Preserve existing counters and compatibility with earlier uploads.
-- **Updater configuration**: Use Sparkle's direct installer launcher for the non-sandboxed host app and remove obsolete installer sandbox exceptions. The reported update failure in #61 still needs confirmation on the affected machine.
+- **Updater configuration**: Use Sparkle's direct installer launcher for the non-sandboxed host app and remove obsolete installer sandbox exceptions. The reported update failure in #61 still needs confirmation on the affected machine. Thanks to [@aFakeRobot](https://github.com/aFakeRobot) for the feedback in [#61](https://github.com/xykong/flux-markdown/issues/61).
 - **Update failure guidance**: Offer the official download page, explain manual DMG installation, and tell users how to report a persistent failure. Provide a copyable download link if the browser cannot open. Localized in English, Simplified Chinese, German, French, and Spanish.
 - **Update failure reporting**: Connect diagnostics to Sparkle's actual abort callback and exclude normal no-update/cancellation outcomes.
 - **Local images**: Allow referenced images up to the existing 8 MiB document resource budget, so the README demo GIF is no longer blocked by the previous 2 MiB per-image limit.
@@ -40,11 +97,11 @@ _无待发布的变更_
 
 ## [1.36.568] - 2026-10-16
 ### Fixed
-- **QuickLook local images** (#59): Restore portable read-only access for referenced images in the user home folder; retain image limits and report actual read failures. Locations outside the home directory still depend on host/system permissions.
+- **QuickLook local images** (#59): Restore portable read-only access for referenced images in the user home folder; retain image limits and report actual read failures. Locations outside the home directory still depend on host/system permissions. Thanks to [@ziadulhuq](https://github.com/ziadulhuq) for the feedback in [#59](https://github.com/xykong/flux-markdown/issues/59).
 - **Incomplete previews**: Keep a persistent native notice when a document exceeds the 500 KiB QuickLook limit, even when truncation occurs inside a code block or image URI.
 
 ### Added
-- **QuickLook troubleshooting**: Add an actual preview self-test and registration diagnostics to issue reports; distinguish registration repair from verified rendering. The original fallback reports #49/#58 still require confirmation on affected systems.
+- **QuickLook troubleshooting**: Add an actual preview self-test and registration diagnostics to issue reports; distinguish registration repair from verified rendering. The original fallback reports #49/#58 still require confirmation on affected systems. Thanks to [@ajeantt12](https://github.com/ajeantt12) for the feedback in [#49](https://github.com/xykong/flux-markdown/issues/49). Thanks to [@DevJayHay](https://github.com/DevJayHay) for the feedback in [#58](https://github.com/xykong/flux-markdown/issues/58).
 
 ## [1.36.561] - 2026-10-16
 ### Fixed
@@ -78,23 +135,23 @@ _无待发布的变更_
 ## [1.35.525] - 2026-10-10
 
 ### Fixed
-- **Homebrew upgrades** (#53/#55): Preserve an explicit FluxMarkdown editor preference while Homebrew temporarily removes the previous application. Avoid mistaking LaunchServices' temporary Xcode fallback for the user's choice, while retaining registration failure checks and rollback.
+- **Homebrew upgrades** (#53/#55): Preserve an explicit FluxMarkdown editor preference while Homebrew temporarily removes the previous application. Avoid mistaking LaunchServices' temporary Xcode fallback for the user's choice, while retaining registration failure checks and rollback. Thanks to [@marshalfevzi](https://github.com/marshalfevzi) for the feedback in [#53](https://github.com/xykong/flux-markdown/issues/53). Thanks to [@dlaporte](https://github.com/dlaporte) for the feedback in [#55](https://github.com/xykong/flux-markdown/issues/55).
 
 ## [1.35.521] - 2026-10-10
 
 ### Added
-- **Positioned document links** (#52): Open source lines or heading fragments through markdownpreview URLs, including already-open documents and original line numbers after front matter.
+- **Positioned document links** (#52): Open source lines or heading fragments through markdownpreview URLs, including already-open documents and original line numbers after front matter. Thanks to [@Baggydawg](https://github.com/Baggydawg) for the feedback in [#52](https://github.com/xykong/flux-markdown/issues/52).
 - **Reading status**: Show the current chapter path and scroll position in spare toolbar space, with responsive truncation, QuickLook filenames and brief content-update notices.
-- **Contents sidebar** (#50): Reserve space beside wide previews for a persistent directory. Keep docked preferences separate from temporary narrow-window navigation; selecting a heading closes the narrow overlay. Choose a persisted left/right directory position with its entrance on the same side. Place right-side contents controls beside the existing top tools with a small gap, retain a centered floating search panel without document reflow, and omit controls and spacing from printed/exported output.
-- **Quick Look recovery** (#49): Add a registration/priority repair action that preserves existing Markdown editor handlers and reports failures.
+- **Contents sidebar** (#50): Reserve space beside wide previews for a persistent directory. Keep docked preferences separate from temporary narrow-window navigation; selecting a heading closes the narrow overlay. Choose a persisted left/right directory position with its entrance on the same side. Place right-side contents controls beside the existing top tools with a small gap, retain a centered floating search panel without document reflow, and omit controls and spacing from printed/exported output. Thanks to [@dethpickle](https://github.com/dethpickle) for the feedback in [#50](https://github.com/xykong/flux-markdown/issues/50).
+- **Quick Look recovery** (#49): Add a registration/priority repair action that preserves existing Markdown editor handlers and reports failures. Thanks to [@ajeantt12](https://github.com/ajeantt12) for the feedback in [#49](https://github.com/xykong/flux-markdown/issues/49).
 - **Feedback diagnostics**: Keep the latest 200 settings changes without time expiration and prepare reviewable bug reports.
 
 
 ### Fixed
 - **YAML date values** (thanks [@xluffy](https://github.com/xluffy), [#56](https://github.com/xykong/flux-markdown/pull/56)): Display dates in metadata fields, arrays and nested values.
-- **Homebrew installation** (#53/#55): Prepare a vendor installer with checked registration and rollback, replacing deprecated flight hooks when the new package is published.
-- **Quick Look search alternative** (#54): Use the preview search button to open the current document with focused, editable search in FluxMarkdown. Repeated requests retain the query and inherit the preview display and window position. Direct Command-F inside Finder Quick Look remains constrained by the system; Command-F works in the standalone app.
-- **Bare URL links** (#51): Recognize plain HTTP/HTTPS references as clickable links in the app and Quick Look while preserving code literals and explicit Markdown links.
+- **Homebrew installation** (#53/#55): Prepare a vendor installer with checked registration and rollback, replacing deprecated flight hooks when the new package is published. Thanks to [@marshalfevzi](https://github.com/marshalfevzi) for the feedback in [#53](https://github.com/xykong/flux-markdown/issues/53). Thanks to [@dlaporte](https://github.com/dlaporte) for the feedback in [#55](https://github.com/xykong/flux-markdown/issues/55).
+- **Quick Look search alternative** (#54): Use the preview search button to open the current document with focused, editable search in FluxMarkdown. Repeated requests retain the query and inherit the preview display and window position. Direct Command-F inside Finder Quick Look remains constrained by the system; Command-F works in the standalone app. Thanks to [@milstev](https://github.com/milstev) for the feedback in [#54](https://github.com/xykong/flux-markdown/issues/54).
+- **Bare URL links** (#51): Recognize plain HTTP/HTTPS references as clickable links in the app and Quick Look while preserving code literals and explicit Markdown links. Thanks to [@arman29-dev](https://github.com/arman29-dev) for the feedback in [#51](https://github.com/xykong/flux-markdown/issues/51).
 - **Quick Look full-screen scrollbar gestures**: Prevented Quick Look's double-click interception from blocking WebKit's native pan recognizer when dragging the full-screen document scrollbar.
   - Three-finger scrollbar drags can now yield to native WebKit scrolling without leaving subsequent trackpad scrolling unresponsive.
 
@@ -125,20 +182,20 @@ _无待发布的变更_
 
 ### Fixed
 - **Mermaid Gantt task labels**: Preserved visible colons inside Gantt task labels without confusing them with Mermaid's task-metadata delimiter.
-- **Markdown paragraph line breaks** (#38, thanks [@timokox](https://github.com/timokox)): Reflowed single source line breaks within paragraphs while preserving explicit hard breaks written with two trailing spaces ([#39](https://github.com/xykong/flux-markdown/pull/39)).
-- **Standalone app toolbar visibility** (#44): Fixed toolbar controls becoming invisible when the selected Markdown preview appearance differs from the macOS window appearance.
+- **Markdown paragraph line breaks** (#38, thanks [@timokox](https://github.com/timokox)): Reflowed single source line breaks within paragraphs while preserving explicit hard breaks written with two trailing spaces ([#39](https://github.com/xykong/flux-markdown/pull/39)). Thanks to [@hynek](https://github.com/hynek) for the feedback in [#38](https://github.com/xykong/flux-markdown/issues/38).
+- **Standalone app toolbar visibility** (#44): Fixed toolbar controls becoming invisible when the selected Markdown preview appearance differs from the macOS window appearance. Thanks to [@hzt384232274](https://github.com/hzt384232274) for the feedback in [#44](https://github.com/xykong/flux-markdown/issues/44).
 
 ## [1.34.449] - 2026-06-29
 
 ### Fixed
-- **QuickLook renderer loading** (#48): Fixed blank or fallback QuickLook previews by loading bundled renderer assets through a `WKURLSchemeHandler` custom scheme instead of relying on sandboxed `file://` module loading.
+- **QuickLook renderer loading** (#48): Fixed blank or fallback QuickLook previews by loading bundled renderer assets through a `WKURLSchemeHandler` custom scheme instead of relying on sandboxed `file://` module loading. Thanks to [@echoparkbaby](https://github.com/echoparkbaby) for the feedback in [#48](https://github.com/xykong/flux-markdown/issues/48).
   - The standalone app, QuickLook extension, and PDF exporter now share the same bundled renderer loading path.
   - Release builds now use release-only entitlements, and the release verifier rejects debug-only entitlements or build-machine home paths.
-- **QuickLook startup appearance** (#47): Fixed the initial QuickLook preview background matching neither Light nor Dark Mode during renderer startup.
-- **Keyboard zoom shortcuts** (#45): Added working `Cmd+=` / `Cmd+-` zoom shortcuts in the standalone app and QuickLook preview.
-- **iA Writer Markdown type support** (#40): Added the `net.ia.markdown` UTI to the app and QuickLook extension file type declarations.
-- **Homebrew tap validation** (#46): Documented Homebrew trust instructions and moved the official cask draft out of the live tap casks so tap validation is not broken by the submission draft.
-- **Toolbar button visibility** (#44): Covered the native adaptive toolbar controls with regression tests so toolbar buttons stay visible across appearances.
+- **QuickLook startup appearance** (#47): Fixed the initial QuickLook preview background matching neither Light nor Dark Mode during renderer startup. Thanks to [@t-hayash](https://github.com/t-hayash) for the feedback in [#47](https://github.com/xykong/flux-markdown/issues/47).
+- **Keyboard zoom shortcuts** (#45): Added working `Cmd+=` / `Cmd+-` zoom shortcuts in the standalone app and QuickLook preview. Thanks to [@hzt384232274](https://github.com/hzt384232274) for the feedback in [#45](https://github.com/xykong/flux-markdown/issues/45).
+- **iA Writer Markdown type support** (#40): Added the `net.ia.markdown` UTI to the app and QuickLook extension file type declarations. Thanks to [@patro85](https://github.com/patro85) for the feedback in [#40](https://github.com/xykong/flux-markdown/issues/40).
+- **Homebrew tap validation** (#46): Documented Homebrew trust instructions and moved the official cask draft out of the live tap casks so tap validation is not broken by the submission draft. Thanks to [@vnl](https://github.com/vnl) for the feedback in [#46](https://github.com/xykong/flux-markdown/issues/46).
+- **Toolbar button visibility** (#44): Covered the native adaptive toolbar controls with regression tests so toolbar buttons stay visible across appearances. Thanks to [@hzt384232274](https://github.com/hzt384232274) for the feedback in [#44](https://github.com/xykong/flux-markdown/issues/44).
 
 ## [1.34.445] - 2026-06-03
 
@@ -210,7 +267,7 @@ _无待发布的变更_
 ## [1.30.391] - 2026-04-28
 
 ### Added
-- **Line Numbers in Rendered Preview** (#30): Display source-file line numbers in a left gutter for all block elements (headings, paragraphs, lists, blockquotes, code blocks) in the rendered Markdown preview. Numbers correspond to the original source file line, making it easy to locate any section. Enabled by default; toggle off in Settings → Rendering → "Line Numbers in Code Blocks".
+- **Line Numbers in Rendered Preview** (#30): Display source-file line numbers in a left gutter for all block elements (headings, paragraphs, lists, blockquotes, code blocks) in the rendered Markdown preview. Numbers correspond to the original source file line, making it easy to locate any section. Enabled by default; toggle off in Settings → Rendering → "Line Numbers in Code Blocks". Thanks to [@aFakeRobot](https://github.com/aFakeRobot) for the feedback in [#30](https://github.com/xykong/flux-markdown/issues/30).
 - **Line Numbers in Source View**: The Source View already displays line numbers via the built-in diff gutter; the gutter is hidden when line numbers are disabled in Settings.
 - **Settings toggle**: Added "Line Numbers" toggle in Settings → Rendering section.
 
@@ -231,7 +288,7 @@ _无待发布的变更_
 ## [1.28.360] - 2026-04-20
 
 ### Fixed
-- **App Zoom: no reset button in toolbar** (#27): Added "Reset Zoom" button (arrow.uturn.backward) between Zoom Out and Zoom In buttons in the App window toolbar; `Cmd+0` shortcut also triggers reset
+- **App Zoom: no reset button in toolbar** (#27): Added "Reset Zoom" button (arrow.uturn.backward) between Zoom Out and Zoom In buttons in the App window toolbar; `Cmd+0` shortcut also triggers reset Thanks to [@Ctrl-Alb](https://github.com/Ctrl-Alb) for the feedback in [#27](https://github.com/xykong/flux-markdown/issues/27).
 - **App Zoom: zoom level persists across files** (#27): Each document now opens at 100% zoom — zoom is session-only, not saved to UserDefaults, WKProcessPool isolated per window to prevent WebKit zoom state inheritance
 - **App Zoom: no upper zoom limit** (#27): Zoom In is now capped at 300% (`min(3.0, ...)`)
 - **App Zoom: trackpad inertia triggers zoom** (#27): `scrollWheel` handler now ignores `.mayBegin`, `.cancelled` phases and any non-zero `momentumPhase` events
@@ -291,7 +348,7 @@ _无待发布的变更_
   - 切换回 LTR 内容时自动移除方向属性，不影响中英文等 LTR 语言
 
 ### Fixed
-- **窗口最小尺寸限制**: 修复窗口无法缩小到 800×600 以下的问题 (#24, thanks @rebelporg)
+- **窗口最小尺寸限制**: 修复窗口无法缩小到 800×600 以下的问题 (#24, thanks [@zackmezera](https://github.com/zackmezera))
   - 将最小宽度从 800 降低至 320，最小高度从 600 降低至 200
   - 允许用户灵活布局多窗口工作区（如分屏并排显示）
   - 修复两处硬编码的窗口最小尺寸：SwiftUI `.frame()` 和 `NSWindow.minSize` 设置
@@ -306,7 +363,9 @@ _无待发布的变更_
 ## [1.24.303] - 2026-04-18
 
 ### Fixed
-- **CSS 样式丢失（macOS 26 Tahoe）**: 修复在 macOS 26 Tahoe 上预览时样式表完全失效的问题 (#19)
+- **无界面 Homebrew 安装**：直接使用 pluginkit 注册扩展，无需 GUI 登录会话。（感谢 [@jwadamson](https://github.com/jwadamson) 在 [#20](https://github.com/xykong/flux-markdown/issues/20) 中提供反馈。）
+
+- **CSS 样式丢失（macOS 26 Tahoe）**: 修复在 macOS 26 Tahoe 上预览时样式表完全失效的问题 (#19)（感谢 [@TheChasman](https://github.com/TheChasman) 在 [#19](https://github.com/xykong/flux-markdown/issues/19) 中提供反馈。）
   - 修复 `<base>` 标签插入导致样式表 URL 被重定向至用户文件目录的时序 bug
   - 将样式表预加载从异步 `fetch()` 改为同步读取 `cssRules`，避免 WKWebView 安全策略拦截
 
@@ -322,7 +381,7 @@ _无待发布的变更_
 - **实时预览刷新**: 新增文件变更自动检测，保存后立即刷新预览；新增 Reload 按钮和 Cmd+R 快捷键支持手动刷新 (#17, thanks @joergp)
   - 使用 `DispatchSource` 监听文件系统事件，兼容 vim/Emacs 等原子写入方式
   - 支持轮询兜底，确保各类编辑器保存方式均能触发刷新
-- **多窗口 PDF 导出**: 修复同时打开多个 Markdown 文件时，Cmd+Shift+P 会弹出多个保存面板的问题（现在只导出当前活跃窗口）(#18, thanks @MxJ24)
+- **多窗口 PDF 导出**: 修复同时打开多个 Markdown 文件时，Cmd+Shift+P 会弹出多个保存面板的问题（现在只导出当前活跃窗口）(#18, thanks @MxJ24)（相关报告：[#10](https://github.com/xykong/flux-markdown/issues/10)。）
 - **PDF 导出内容分页**: 使用 NSPrintOperation 替换手动分页方案，PDF 内容不再出现截断或错位 (#18, thanks @MxJ24)
 - **PDF 导出字体大小**: 修复导出的 PDF 字体大小与应用预览不一致的问题 (#18, thanks @MxJ24)
   - 修复 `@media print` 中 `.markdown-body` 字体大小覆盖问题，所有 em/rem 间距现按选定字号等比缩放
@@ -340,12 +399,14 @@ _无待发布的变更_
 ## [1.21.266] - 2026-04-03
 
 ### Fixed
-- **目录面板底部截断**: 修复 TOC 侧边栏滚动到底部时最后一项显示不全的问题
+- **Quick Look 共享偏好**：使用文件存储共享偏好，避开 macOS 26 的 App Group 容器访问问题。（感谢 [@Zhijian-Git](https://github.com/Zhijian-Git) 在 [#13](https://github.com/xykong/flux-markdown/issues/13) 中提供反馈。）
+
+- **目录面板底部截断**: 修复 TOC 侧边栏滚动到底部时最后一项显示不全的问题（感谢 [@aFakeRobot](https://github.com/aFakeRobot) 在 [#16](https://github.com/xykong/flux-markdown/issues/16) 中提供反馈。）
 
 ## [1.20.261] - 2026-04-01
 
 ### Added
-- **Mermaid 文件支持**: 新增 `.mmd` 扩展名支持，直接预览 Mermaid 图表文件
+- **Mermaid 文件支持**: 新增 `.mmd` 扩展名支持，直接预览 Mermaid 图表文件（感谢 [@h31105](https://github.com/h31105) 在 [#15](https://github.com/xykong/flux-markdown/issues/15) 中提供反馈。）
   - 自动将 `.mmd` 文件内容包装为 Mermaid 代码块进行渲染
   - 支持所有 Mermaid 图表类型：flowchart、sequence、gantt、classDiagram 等
 - **更多 Markdown 变种扩展名**: 支持以下新扩展名
@@ -401,7 +462,7 @@ _无待发布的变更_
   - 将废弃的 Python LaunchServices 脚本替换为 Swift 原生实现
   - 修复 macOS 12+ 不再自带 LaunchServices Python 模块的问题
 
-- **应用图标透明通道修复**: 修复 macOS 12.7 和 15.7 上应用图标显示白色方形背景的问题
+- **应用图标透明通道修复**: 修复 macOS 12.7 和 15.7 上应用图标显示白色方形背景的问题（感谢 [@MxJ24](https://github.com/MxJ24) 在 [#10](https://github.com/xykong/flux-markdown/issues/10) 中提供反馈。）
   - 使用 AI 图像分割 (rembg) 精准移除白色背景，保留图标内部的白色纸张区域
   - 强制对齐图标边缘为数学直线，消除 AI 抠图产生的波浪边缘
   - 完美保留下拉阴影的半透明渐变效果
@@ -447,7 +508,7 @@ _无待发布的变更_
   - 支持 `### 标题` → `<h3>`、`**粗体**` → `<strong>`、`` `代码` `` → `<code>`、`- 列表` → `<ul><li>`
   - 批量修复 `appcast.xml` 中历史版本的 description 格式
   - 更新 `/publish` 命令文档，明确说明 description 必须是 HTML 格式
-- **帮助面板触发逻辑优化** (Issue #12): 修复 Cmd 长按触发功能指南时，在 Cmd+Tab、Cmd+Space、老板键等快捷键组合下误触发的问题
+- **帮助面板触发逻辑优化** (Issue #12): 修复 Cmd 长按触发功能指南时，在 Cmd+Tab、Cmd+Space、老板键等快捷键组合下误触发的问题（感谢 [@upliftspice666](https://github.com/upliftspice666) 在 [#12](https://github.com/xykong/flux-markdown/issues/12) 中提供反馈。）
   - 新增修饰键检测：按下非修饰键（如 Tab、Space、字母）时立即取消 Cmd-hold 计时器
   - 仅纯 Cmd 长按（不按其他功能键）才会触发帮助面板
 
@@ -509,11 +570,12 @@ _无待发布的变更_
 ## [1.16.231] - 2026-02-28
 
 ### Fixed
-- **搜索框自动大写修复**: 禁用 macOS 在搜索框中自动将句首字母大写的行为
+- **搜索框自动大写修复**: 禁用 macOS 在搜索框中自动将句首字母大写的行为（感谢 [@upliftspice666](https://github.com/upliftspice666) 在 [#11](https://github.com/xykong/flux-markdown/issues/11) 中提供反馈。）
   - 添加 `autocapitalize="off"` 属性禁用自动大写
   - 添加 `autocorrect="off"` 属性禁用自动纠正
   - 添加 `autocomplete="off"` 属性禁用自动完成
   - 添加 `spellcheck="false"` 属性禁用拼写检查
+
 ## [1.16.226] - 2026-02-28
 
 ### Added
@@ -549,7 +611,7 @@ _无待发布的变更_
   - 清理所有 `.DS_Store` 文件
 
 ### Fixed
-- **搜索功能导致文件被标记为已编辑**: 修复在 Host App 中使用搜索功能时，Markdown 文件被错误标记为「已编辑」且修改时间戳更新的问题 (#8)
+- **搜索功能导致文件被标记为已编辑**: 修复在 Host App 中使用搜索功能时，Markdown 文件被错误标记为「已编辑」且修改时间戳更新的问题 (#8)（感谢 [@upliftspice666](https://github.com/upliftspice666) 在 [#8](https://github.com/xykong/flux-markdown/issues/8) 中提供反馈。）
   - Host App: 为 `ResizableWKWebView` 隔离独立的 `UndoManager`，避免搜索输入触发 `DocumentGroup` 的 autosave
   - QuickLook Extension: 修复 security-scoped 资源访问泄漏，添加文件监控的 size/mtime 门禁
   - Web Renderer: 移除搜索框的 100ms 延迟 focus，添加 `stopPropagation()` 防止按键冒泡
@@ -567,7 +629,7 @@ _无待发布的变更_
 - **扩展代码高亮**: 新增 20+ 种语言支持（Scala、Perl、R、Dart、Lua、Haskell、Elixir、Groovy、Verilog、VHDL、Makefile、TOML、Protobuf、GraphQL、PowerShell、Objective-C 等）
 - **Vega/Vega-Lite 图表**: 支持 `vega` 和 `vega-lite` 代码块渲染为交互式 SVG 图表
 - **Graphviz 图表**: 支持 `dot`/`graphviz` 代码块渲染为 SVG 图
-- **导出功能**: 新增「导出为 HTML」和「导出为 PDF」菜单项（Cmd+Shift+E / Cmd+Shift+P）
+- **导出功能**: 新增「导出为 HTML」和「导出为 PDF」菜单项（Cmd+Shift+E / Cmd+Shift+P）（感谢 [@MxJ24](https://github.com/MxJ24) 在 [#10](https://github.com/xykong/flux-markdown/issues/10) 中提供反馈。）
 - **Settings 界面**: 全新设计的偏好设置窗口（Cmd+,），支持：
   - Appearance: Light / Dark / System 主题切换
   - Rendering: Mermaid / KaTeX / Emoji 开关
@@ -704,3 +766,18 @@ _无待发布的变更_
     - 手写目录小错误不再影响跳转
     - 不需要精确记住下划线还是连字符
     - 容错设计，减少用户认知负担
+
+## [1.12.136] - 2026-02-11
+
+### Fixed
+- **双模式显示**：实现预览模式与源码模式的快速切换。（感谢 [@csaper](https://github.com/csaper) 在 [#7](https://github.com/xykong/flux-markdown/issues/7) 中提供反馈。）
+
+## [1.10.119] - 2026-02-09
+
+### Fixed
+- **WKWebView 进程泄漏**：共享 WKProcessPool 并清理预览生命周期，避免 Web Content 进程累积。（感谢 [@sxmad](https://github.com/sxmad) 在 [#6](https://github.com/xykong/flux-markdown/issues/6) 中提供反馈。）
+
+## [1.5.87] - 2026-02-03
+
+### Fixed
+- **实时预览刷新**：监控文件变更并自动刷新预览，保留滚动位置和缩放级别。（感谢 [@aFakeRobot](https://github.com/aFakeRobot) 在 [#4](https://github.com/xykong/flux-markdown/issues/4) 中提供反馈。）

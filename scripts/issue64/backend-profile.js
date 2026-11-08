@@ -1,0 +1,10 @@
+const profile=JSON.parse(source).profile;
+if(!['current','legacy'].includes(profile))throw new Error('Unknown backend profile');
+for(let i=0;i<150&&typeof window.renderMarkdown!=='function';i++)await new Promise(r=>setTimeout(r,20));
+await window.renderMarkdown('$x^2$\n\n\\(y^2\\)\n\n```math\nz^2\n```',{context:'app',showCopyButtons:false});
+await window.waitForExportReady();
+const root=document.getElementById('markdown-preview');
+const result={profile,katex:root.querySelectorAll('.katex').length,mathjax:root.querySelectorAll('mjx-container').length,mathCodeFences:root.querySelectorAll('code.language-math').length};
+const expected=profile==='legacy'?{katex:1,mathjax:0,mathCodeFences:1}:{katex:0,mathjax:3,mathCodeFences:0};
+for(const key of Object.keys(expected))if(result[key]!==expected[key])throw new Error('Mixed or incorrect backend: '+JSON.stringify(result));
+return result;

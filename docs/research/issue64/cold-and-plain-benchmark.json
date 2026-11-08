@@ -1,0 +1,654 @@
+{
+  "baselineTag": "v1.42.645",
+  "baselineCommit": "4844b1505e7116cc7b16e2a0cbe891c600d00180",
+  "currentCommit": "c2b9cc955269e3c3500d04b4f77c136268bcaf6c",
+  "environment": {
+    "hardware": "Apple M5 Max 128 GiB",
+    "macOS": "27.0.1",
+    "viewport": [
+      960,
+      900
+    ],
+    "context": "QuickLook options in standalone native WKWebView, not extension process",
+    "cold": "fresh process/nonpersistent data store, OS file caches not flushed"
+  },
+  "plain": {
+    "baseline": {
+      "headings": 100,
+      "math": 0,
+      "samples": [
+        10,
+        9,
+        11,
+        9,
+        10,
+        9,
+        9,
+        8,
+        9,
+        8,
+        8,
+        9,
+        8,
+        9,
+        8,
+        9,
+        9,
+        8,
+        8,
+        9,
+        8,
+        8,
+        8,
+        9,
+        8,
+        9,
+        9,
+        8,
+        9,
+        8
+      ],
+      "assetLog": [
+        "ASSET 4132 flux-renderer://bundle/index.html",
+        "ASSET 475807 flux-renderer://bundle/assets/main-QfH2XRNl.js",
+        "ASSET 835473 flux-renderer://bundle/assets/mermaid-DtbPAsdw.js",
+        "ASSET 98409 flux-renderer://bundle/assets/main-CoQAwpB9.css",
+        "Page loaded"
+      ]
+    },
+    "current": {
+      "headings": 100,
+      "math": 0,
+      "samples": [
+        9,
+        10,
+        12,
+        9,
+        9,
+        9,
+        9,
+        8,
+        9,
+        8,
+        9,
+        8,
+        9,
+        8,
+        9,
+        8,
+        9,
+        8,
+        9,
+        8,
+        9,
+        8,
+        9,
+        8,
+        9,
+        8,
+        9,
+        8,
+        9,
+        8
+      ],
+      "assetLog": [
+        "ASSET 4132 flux-renderer://bundle/index.html",
+        "ASSET 486954 flux-renderer://bundle/assets/main-CO4x1655.js",
+        "ASSET 835473 flux-renderer://bundle/assets/mermaid-BeJQZadT.js",
+        "ASSET 99692 flux-renderer://bundle/assets/main-DzEqoIZ4.css",
+        "Page loaded"
+      ]
+    }
+  },
+  "coldMath": [
+    {
+      "elapsedMs": 132,
+      "errors": 0,
+      "math": 12,
+      "assets": [
+        {
+          "bytes": 4132,
+          "url": "flux-renderer://bundle/index.html"
+        },
+        {
+          "bytes": 486954,
+          "url": "flux-renderer://bundle/assets/main-CO4x1655.js"
+        },
+        {
+          "bytes": 835473,
+          "url": "flux-renderer://bundle/assets/mermaid-BeJQZadT.js"
+        },
+        {
+          "bytes": 99692,
+          "url": "flux-renderer://bundle/assets/main-DzEqoIZ4.css"
+        },
+        {
+          "bytes": 1390922,
+          "url": "flux-renderer://bundle/assets/math-engine-D5wIU5tG.js"
+        }
+      ]
+    },
+    {
+      "elapsedMs": 123,
+      "errors": 0,
+      "math": 12,
+      "assets": [
+        {
+          "bytes": 4132,
+          "url": "flux-renderer://bundle/index.html"
+        },
+        {
+          "bytes": 486954,
+          "url": "flux-renderer://bundle/assets/main-CO4x1655.js"
+        },
+        {
+          "bytes": 835473,
+          "url": "flux-renderer://bundle/assets/mermaid-BeJQZadT.js"
+        },
+        {
+          "bytes": 99692,
+          "url": "flux-renderer://bundle/assets/main-DzEqoIZ4.css"
+        },
+        {
+          "bytes": 1390922,
+          "url": "flux-renderer://bundle/assets/math-engine-D5wIU5tG.js"
+        }
+      ]
+    },
+    {
+      "elapsedMs": 124,
+      "errors": 0,
+      "math": 12,
+      "assets": [
+        {
+          "bytes": 4132,
+          "url": "flux-renderer://bundle/index.html"
+        },
+        {
+          "bytes": 486954,
+          "url": "flux-renderer://bundle/assets/main-CO4x1655.js"
+        },
+        {
+          "bytes": 835473,
+          "url": "flux-renderer://bundle/assets/mermaid-BeJQZadT.js"
+        },
+        {
+          "bytes": 99692,
+          "url": "flux-renderer://bundle/assets/main-DzEqoIZ4.css"
+        },
+        {
+          "bytes": 1390922,
+          "url": "flux-renderer://bundle/assets/math-engine-D5wIU5tG.js"
+        }
+      ]
+    },
+    {
+      "elapsedMs": 124,
+      "errors": 0,
+      "math": 12,
+      "assets": [
+        {
+          "bytes": 4132,
+          "url": "flux-renderer://bundle/index.html"
+        },
+        {
+          "bytes": 486954,
+          "url": "flux-renderer://bundle/assets/main-CO4x1655.js"
+        },
+        {
+          "bytes": 835473,
+          "url": "flux-renderer://bundle/assets/mermaid-BeJQZadT.js"
+        },
+        {
+          "bytes": 99692,
+          "url": "flux-renderer://bundle/assets/main-DzEqoIZ4.css"
+        },
+        {
+          "bytes": 1390922,
+          "url": "flux-renderer://bundle/assets/math-engine-D5wIU5tG.js"
+        }
+      ]
+    },
+    {
+      "elapsedMs": 127,
+      "errors": 0,
+      "math": 12,
+      "assets": [
+        {
+          "bytes": 4132,
+          "url": "flux-renderer://bundle/index.html"
+        },
+        {
+          "bytes": 486954,
+          "url": "flux-renderer://bundle/assets/main-CO4x1655.js"
+        },
+        {
+          "bytes": 835473,
+          "url": "flux-renderer://bundle/assets/mermaid-BeJQZadT.js"
+        },
+        {
+          "bytes": 99692,
+          "url": "flux-renderer://bundle/assets/main-DzEqoIZ4.css"
+        },
+        {
+          "bytes": 1390922,
+          "url": "flux-renderer://bundle/assets/math-engine-D5wIU5tG.js"
+        }
+      ]
+    },
+    {
+      "elapsedMs": 126,
+      "errors": 0,
+      "math": 12,
+      "assets": [
+        {
+          "bytes": 4132,
+          "url": "flux-renderer://bundle/index.html"
+        },
+        {
+          "bytes": 486954,
+          "url": "flux-renderer://bundle/assets/main-CO4x1655.js"
+        },
+        {
+          "bytes": 835473,
+          "url": "flux-renderer://bundle/assets/mermaid-BeJQZadT.js"
+        },
+        {
+          "bytes": 99692,
+          "url": "flux-renderer://bundle/assets/main-DzEqoIZ4.css"
+        },
+        {
+          "bytes": 1390922,
+          "url": "flux-renderer://bundle/assets/math-engine-D5wIU5tG.js"
+        }
+      ]
+    },
+    {
+      "elapsedMs": 129,
+      "errors": 0,
+      "math": 12,
+      "assets": [
+        {
+          "bytes": 4132,
+          "url": "flux-renderer://bundle/index.html"
+        },
+        {
+          "bytes": 486954,
+          "url": "flux-renderer://bundle/assets/main-CO4x1655.js"
+        },
+        {
+          "bytes": 835473,
+          "url": "flux-renderer://bundle/assets/mermaid-BeJQZadT.js"
+        },
+        {
+          "bytes": 99692,
+          "url": "flux-renderer://bundle/assets/main-DzEqoIZ4.css"
+        },
+        {
+          "bytes": 1390922,
+          "url": "flux-renderer://bundle/assets/math-engine-D5wIU5tG.js"
+        }
+      ]
+    },
+    {
+      "elapsedMs": 128,
+      "errors": 0,
+      "math": 12,
+      "assets": [
+        {
+          "bytes": 4132,
+          "url": "flux-renderer://bundle/index.html"
+        },
+        {
+          "bytes": 486954,
+          "url": "flux-renderer://bundle/assets/main-CO4x1655.js"
+        },
+        {
+          "bytes": 835473,
+          "url": "flux-renderer://bundle/assets/mermaid-BeJQZadT.js"
+        },
+        {
+          "bytes": 99692,
+          "url": "flux-renderer://bundle/assets/main-DzEqoIZ4.css"
+        },
+        {
+          "bytes": 1390922,
+          "url": "flux-renderer://bundle/assets/math-engine-D5wIU5tG.js"
+        }
+      ]
+    },
+    {
+      "elapsedMs": 129,
+      "errors": 0,
+      "math": 12,
+      "assets": [
+        {
+          "bytes": 4132,
+          "url": "flux-renderer://bundle/index.html"
+        },
+        {
+          "bytes": 486954,
+          "url": "flux-renderer://bundle/assets/main-CO4x1655.js"
+        },
+        {
+          "bytes": 835473,
+          "url": "flux-renderer://bundle/assets/mermaid-BeJQZadT.js"
+        },
+        {
+          "bytes": 99692,
+          "url": "flux-renderer://bundle/assets/main-DzEqoIZ4.css"
+        },
+        {
+          "bytes": 1390922,
+          "url": "flux-renderer://bundle/assets/math-engine-D5wIU5tG.js"
+        }
+      ]
+    },
+    {
+      "elapsedMs": 128,
+      "errors": 0,
+      "math": 12,
+      "assets": [
+        {
+          "bytes": 4132,
+          "url": "flux-renderer://bundle/index.html"
+        },
+        {
+          "bytes": 486954,
+          "url": "flux-renderer://bundle/assets/main-CO4x1655.js"
+        },
+        {
+          "bytes": 835473,
+          "url": "flux-renderer://bundle/assets/mermaid-BeJQZadT.js"
+        },
+        {
+          "bytes": 99692,
+          "url": "flux-renderer://bundle/assets/main-DzEqoIZ4.css"
+        },
+        {
+          "bytes": 1390922,
+          "url": "flux-renderer://bundle/assets/math-engine-D5wIU5tG.js"
+        }
+      ]
+    },
+    {
+      "elapsedMs": 129,
+      "errors": 0,
+      "math": 12,
+      "assets": [
+        {
+          "bytes": 4132,
+          "url": "flux-renderer://bundle/index.html"
+        },
+        {
+          "bytes": 486954,
+          "url": "flux-renderer://bundle/assets/main-CO4x1655.js"
+        },
+        {
+          "bytes": 835473,
+          "url": "flux-renderer://bundle/assets/mermaid-BeJQZadT.js"
+        },
+        {
+          "bytes": 99692,
+          "url": "flux-renderer://bundle/assets/main-DzEqoIZ4.css"
+        },
+        {
+          "bytes": 1390922,
+          "url": "flux-renderer://bundle/assets/math-engine-D5wIU5tG.js"
+        }
+      ]
+    },
+    {
+      "elapsedMs": 130,
+      "errors": 0,
+      "math": 12,
+      "assets": [
+        {
+          "bytes": 4132,
+          "url": "flux-renderer://bundle/index.html"
+        },
+        {
+          "bytes": 486954,
+          "url": "flux-renderer://bundle/assets/main-CO4x1655.js"
+        },
+        {
+          "bytes": 835473,
+          "url": "flux-renderer://bundle/assets/mermaid-BeJQZadT.js"
+        },
+        {
+          "bytes": 99692,
+          "url": "flux-renderer://bundle/assets/main-DzEqoIZ4.css"
+        },
+        {
+          "bytes": 1390922,
+          "url": "flux-renderer://bundle/assets/math-engine-D5wIU5tG.js"
+        }
+      ]
+    },
+    {
+      "elapsedMs": 126,
+      "errors": 0,
+      "math": 12,
+      "assets": [
+        {
+          "bytes": 4132,
+          "url": "flux-renderer://bundle/index.html"
+        },
+        {
+          "bytes": 486954,
+          "url": "flux-renderer://bundle/assets/main-CO4x1655.js"
+        },
+        {
+          "bytes": 835473,
+          "url": "flux-renderer://bundle/assets/mermaid-BeJQZadT.js"
+        },
+        {
+          "bytes": 99692,
+          "url": "flux-renderer://bundle/assets/main-DzEqoIZ4.css"
+        },
+        {
+          "bytes": 1390922,
+          "url": "flux-renderer://bundle/assets/math-engine-D5wIU5tG.js"
+        }
+      ]
+    },
+    {
+      "elapsedMs": 127,
+      "errors": 0,
+      "math": 12,
+      "assets": [
+        {
+          "bytes": 4132,
+          "url": "flux-renderer://bundle/index.html"
+        },
+        {
+          "bytes": 486954,
+          "url": "flux-renderer://bundle/assets/main-CO4x1655.js"
+        },
+        {
+          "bytes": 835473,
+          "url": "flux-renderer://bundle/assets/mermaid-BeJQZadT.js"
+        },
+        {
+          "bytes": 99692,
+          "url": "flux-renderer://bundle/assets/main-DzEqoIZ4.css"
+        },
+        {
+          "bytes": 1390922,
+          "url": "flux-renderer://bundle/assets/math-engine-D5wIU5tG.js"
+        }
+      ]
+    },
+    {
+      "elapsedMs": 126,
+      "errors": 0,
+      "math": 12,
+      "assets": [
+        {
+          "bytes": 4132,
+          "url": "flux-renderer://bundle/index.html"
+        },
+        {
+          "bytes": 486954,
+          "url": "flux-renderer://bundle/assets/main-CO4x1655.js"
+        },
+        {
+          "bytes": 835473,
+          "url": "flux-renderer://bundle/assets/mermaid-BeJQZadT.js"
+        },
+        {
+          "bytes": 99692,
+          "url": "flux-renderer://bundle/assets/main-DzEqoIZ4.css"
+        },
+        {
+          "bytes": 1390922,
+          "url": "flux-renderer://bundle/assets/math-engine-D5wIU5tG.js"
+        }
+      ]
+    },
+    {
+      "elapsedMs": 123,
+      "errors": 0,
+      "math": 12,
+      "assets": [
+        {
+          "bytes": 4132,
+          "url": "flux-renderer://bundle/index.html"
+        },
+        {
+          "bytes": 486954,
+          "url": "flux-renderer://bundle/assets/main-CO4x1655.js"
+        },
+        {
+          "bytes": 835473,
+          "url": "flux-renderer://bundle/assets/mermaid-BeJQZadT.js"
+        },
+        {
+          "bytes": 99692,
+          "url": "flux-renderer://bundle/assets/main-DzEqoIZ4.css"
+        },
+        {
+          "bytes": 1390922,
+          "url": "flux-renderer://bundle/assets/math-engine-D5wIU5tG.js"
+        }
+      ]
+    },
+    {
+      "elapsedMs": 126,
+      "errors": 0,
+      "math": 12,
+      "assets": [
+        {
+          "bytes": 4132,
+          "url": "flux-renderer://bundle/index.html"
+        },
+        {
+          "bytes": 486954,
+          "url": "flux-renderer://bundle/assets/main-CO4x1655.js"
+        },
+        {
+          "bytes": 835473,
+          "url": "flux-renderer://bundle/assets/mermaid-BeJQZadT.js"
+        },
+        {
+          "bytes": 99692,
+          "url": "flux-renderer://bundle/assets/main-DzEqoIZ4.css"
+        },
+        {
+          "bytes": 1390922,
+          "url": "flux-renderer://bundle/assets/math-engine-D5wIU5tG.js"
+        }
+      ]
+    },
+    {
+      "elapsedMs": 127,
+      "errors": 0,
+      "math": 12,
+      "assets": [
+        {
+          "bytes": 4132,
+          "url": "flux-renderer://bundle/index.html"
+        },
+        {
+          "bytes": 486954,
+          "url": "flux-renderer://bundle/assets/main-CO4x1655.js"
+        },
+        {
+          "bytes": 835473,
+          "url": "flux-renderer://bundle/assets/mermaid-BeJQZadT.js"
+        },
+        {
+          "bytes": 99692,
+          "url": "flux-renderer://bundle/assets/main-DzEqoIZ4.css"
+        },
+        {
+          "bytes": 1390922,
+          "url": "flux-renderer://bundle/assets/math-engine-D5wIU5tG.js"
+        }
+      ]
+    },
+    {
+      "elapsedMs": 125,
+      "errors": 0,
+      "math": 12,
+      "assets": [
+        {
+          "bytes": 4132,
+          "url": "flux-renderer://bundle/index.html"
+        },
+        {
+          "bytes": 486954,
+          "url": "flux-renderer://bundle/assets/main-CO4x1655.js"
+        },
+        {
+          "bytes": 835473,
+          "url": "flux-renderer://bundle/assets/mermaid-BeJQZadT.js"
+        },
+        {
+          "bytes": 99692,
+          "url": "flux-renderer://bundle/assets/main-DzEqoIZ4.css"
+        },
+        {
+          "bytes": 1390922,
+          "url": "flux-renderer://bundle/assets/math-engine-D5wIU5tG.js"
+        }
+      ]
+    },
+    {
+      "elapsedMs": 124,
+      "errors": 0,
+      "math": 12,
+      "assets": [
+        {
+          "bytes": 4132,
+          "url": "flux-renderer://bundle/index.html"
+        },
+        {
+          "bytes": 486954,
+          "url": "flux-renderer://bundle/assets/main-CO4x1655.js"
+        },
+        {
+          "bytes": 835473,
+          "url": "flux-renderer://bundle/assets/mermaid-BeJQZadT.js"
+        },
+        {
+          "bytes": 99692,
+          "url": "flux-renderer://bundle/assets/main-DzEqoIZ4.css"
+        },
+        {
+          "bytes": 1390922,
+          "url": "flux-renderer://bundle/assets/math-engine-D5wIU5tG.js"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "plainBaselineP95Ms": 10,
+    "plainCurrentP95Ms": 10,
+    "coldMathP50Ms": 126,
+    "coldMathP95Ms": 130,
+    "mathChunkBytes": 1390922,
+    "plainMathResourceRequests": 0,
+    "scope": "valid derived 12-item math corpus; original invalid command is covered separately"
+  }
+}

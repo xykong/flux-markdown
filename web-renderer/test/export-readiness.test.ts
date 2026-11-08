@@ -6,7 +6,7 @@ test('export readiness waits for pending images', async () => {
  Object.defineProperty(img, 'complete', {value: false});
  let done = false;
  const wait = (window as any).waitForExportReady(1000).then(() => {done = true;});
- await Promise.resolve();
+ await new Promise(resolve => setTimeout(resolve, 0));
  expect(done).toBe(false);
  img.dispatchEvent(new Event('load'));
  await wait;

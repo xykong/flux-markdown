@@ -1,0 +1,10 @@
+diff --git a/web-renderer/src/math-engine.ts b/web-renderer/src/math-engine.ts
+index 6fe8a05..b77840d 100644
+--- a/web-renderer/src/math-engine.ts
++++ b/web-renderer/src/math-engine.ts
+@@ -17,0 +18 @@ installMathFontLoader();
++let sharedFont: SVG<HTMLElement, Text, Document>['font'] | undefined;
+@@ -70 +71,2 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
+-    const svg = new SVG<HTMLElement, Text, Document>({ fontCache: 'none', linebreaks: { inline: false }, displayOverflow: 'scroll' });
++    const svg = new SVG<HTMLElement, Text, Document>({ fontCache: 'none', linebreaks: { inline: false }, displayOverflow: 'scroll', ...(sharedFont ? {fontData: sharedFont} : {}) });
++    sharedFont = svg.font;

@@ -90,7 +90,19 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     var webView: InteractiveWebView!
     private var truncationNotice: NSTextField?
     private let errorRegistry = RendererErrorRegistry()
+    private let blockCopyBridge = BlockCopyBridge()
+    private var diagnosticAttempt = UUID()
+    private func logDiagnosticStage(_ stage: QuickLookDiagnosticStage, error: Error? = nil) {
+        guard let url = currentURL, let token = QuickLookProbeEvidence.token(for: url) else { return }
+        let bundle = Bundle(for: type(of: self))
+        guard let version = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
+              let build = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String,
+              let marker = QuickLookProbeEvidence.diagnosticMarker(token: token, version: version, build: build, stage: stage, attempt: diagnosticAttempt, context: currentPreviewMode == .compact ? .compact : .quicklook, error: error) else { return }
+        os_log("%{public}@", log: logger, type: .default, marker)
+    }
+
     private func showFailure(_ kind: FailureKind, error: Error? = nil) {
+        if kind == .renderer || kind == .rendererResources { logDiagnosticStage(.rendererFailed, error: error) }
         let incident = errorRegistry.nativeFailure(kind, error: error)
         IncidentNotice.attach(to: view, incident: incident, recoveryTitle: "Open in FluxMarkdown", recovery: { [weak self] in
             guard let self, let url = self.currentURL else { return }
@@ -419,6 +431,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         userContentController.add(self, name: "linkClicked")
         userContentController.add(self, name: "readingToolsLayout")
         userContentController.add(self, name: "errorFeedback")
+        userContentController.add(self, name: "blockCopy")
         webConfiguration.userContentController = userContentController
         
         let schemeHandler = LocalSchemeHandler()
@@ -668,6 +681,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "linkClicked")
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "readingToolsLayout")
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "errorFeedback")
+        webView.configuration.userContentController.removeScriptMessageHandler(forName: "blockCopy")
         
         for recognizer in webView.gestureRecognizers where recognizer is NSClickGestureRecognizer {
             webView.removeGestureRecognizer(recognizer)
@@ -1067,6 +1081,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     }
     
     private func renderSourceView() {
+        logDiagnosticStage(.sourceMode)
         let usageRenderVersion = renderVersion.next()
         usage.rendering()
         usageReady = false
@@ -1315,6 +1330,9 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         previewHasUnreadableImages = false
         updateTruncationNotice(false)
         self.currentURL = url
+        diagnosticAttempt = UUID()
+        logDiagnosticStage(.prepared)
+        if isWebViewLoaded { logDiagnosticStage(.handshake) }
         usageReady = false
         usage.attach(view, document: url)
         
@@ -1369,6 +1387,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                     }
                     switch result {
                     case .success(let snapshot):
+                        self.logDiagnosticStage(.fileRead)
                         self.pendingMarkdown = snapshot.content
                         self.previewHasUnreadableImages = false
                         self.updateTruncationNotice(snapshot.isTruncated)
@@ -1378,6 +1397,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                         self.startFileMonitoring()
                         handler(nil)
                     case .failure(let error):
+                        self.logDiagnosticStage(.fileReadFailed, error: error)
                         os_log("Failed to read preview: %{public}@", log: self.logger, type: .error, error.localizedDescription)
                         self.showFailure(.fileRead, error: error)
                         handler(nil)
@@ -1426,6 +1446,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         let capturedUILanguage = AppearancePreference.shared.uiLanguage
         let capturedCollapseBlockquotes = AppearancePreference.shared.collapseBlockquotesByDefault
         let capturedContentsSide = AppearancePreference.shared.contentsSide.rawValue
+        let capturedShowCopyButtons = AppearancePreference.shared.showCopyButtons
         let capturedShowLineNumbers = AppearancePreference.shared.showLineNumbers
         let capturedPrevMarkdown = self.prevMarkdown
         let capturedPreviewMode = self.currentPreviewMode
@@ -1443,7 +1464,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
             guard let self = self else { return }
             
             let contextValue = capturedPreviewMode == .compact ? "finder" : "quicklook"
-            var options: [String: Any] = ["theme": theme, "context": contextValue, "uiLanguage": capturedUILanguage, "collapseBlockquotes": capturedCollapseBlockquotes, "showLineNumbers": capturedShowLineNumbers, "contentsSide": capturedContentsSide, "fontSize": capturedFontSize, "renderVersion": capturedRenderVersion]
+            var options: [String: Any] = ["theme": theme, "context": contextValue, "uiLanguage": capturedUILanguage, "collapseBlockquotes": capturedCollapseBlockquotes, "showLineNumbers": capturedShowLineNumbers, "showCopyButtons": capturedShowCopyButtons, "contentsSide": capturedContentsSide, "fontSize": capturedFontSize, "renderVersion": capturedRenderVersion]
             if capturedURL?.pathExtension.lowercased() == "tsv" {
                 options["format"] = "tsv"
                 options["isTruncated"] = capturedTruncated
@@ -1469,16 +1490,20 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                 return
             }
             
-            let callJs = "return window.renderMarkdown(\(safeContentArg), \(optionsJson));"
+            let probeToken = capturedURL.flatMap { QuickLookProbeEvidence.token(for: $0) }
+            let callJs = probeToken == nil
+                ? "return window.renderMarkdown(\(safeContentArg), \(optionsJson));"
+                : "await window.renderMarkdown(\(safeContentArg), \(optionsJson)); return window.verifyQuickLookProbe(probeHeading, probeBoldText);"
             
             await MainActor.run {
                 guard self.renderVersion.isCurrent(capturedRenderVersion), self.currentURL == capturedURL else { return }
                 let feedbackGeneration = self.errorRegistry.beginDocument()
                 ErrorFeedback.capture(.renderer, phase: .started, scope: self.errorRegistry.scope)
                 self.webView.evaluateJavaScript("window.setFeedbackGeneration && window.setFeedbackGeneration('\(feedbackGeneration)');", completionHandler: nil)
+                self.logDiagnosticStage(.renderStarted)
                 self.webView.callAsyncJavaScript(
                     callJs,
-                    arguments: [:],
+                    arguments: ["probeHeading": QuickLookProbeEvidence.heading, "probeBoldText": QuickLookProbeEvidence.boldText],
                     in: nil,
                     in: WKContentWorld.page
                 ) { result in
@@ -1488,13 +1513,21 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                         os_log("🔴 JS Execution Error (renderMarkdown): %{public}@", log: self.logger, type: .error, error.localizedDescription)
                 self.showFailure(.renderer, error: error)
                     case .success(let value):
+                        if probeToken != nil && (value as? Bool) != true {
+                            self.logDiagnosticStage(.renderUnverified)
+                            os_log("Quick Look probe did not verify the rendered fixture", log: self.logger, type: .default)
+                            break
+                        }
                         self.usageReady = true
                         self.usage.rendered()
                         os_log("🔵 renderMarkdown completed successfully, result: %{public}@", log: self.logger, type: .debug, String(describing: value))
-                        if let url = self.currentURL, let token = QuickLookProbeEvidence.token(for: url) {
-                            let version = Bundle(for: type(of: self)).object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
+                        if let token = probeToken, (value as? Bool) == true {
+                            self.logDiagnosticStage(.rendered)
+                            let bundle = Bundle(for: type(of: self))
+                            let version = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
+                            let build = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "unknown"
                             os_log("%{public}@", log: self.logger, type: .default,
-                                   QuickLookProbeEvidence.marker(token: token, version: version, stage: "rendered"))
+                                   QuickLookProbeEvidence.marker(token: token, version: version, build: build, stage: "rendered"))
                         }
                         self.isSearchReady = true
                         self.completePendingSearchRequest()
@@ -1611,6 +1644,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard RendererBridgePolicy.accepts(message) else { return }
+        if message.name == "blockCopy" { blockCopyBridge.handle(message, generation: errorRegistry.scope.uuidString, enabled: AppearancePreference.shared.showCopyButtons && currentPreviewMode != .compact); return }
         if message.name == "errorFeedback" { errorRegistry.handle(message.body); return }
         if message.name == "logger", let body = message.body as? String {
             os_log("🟢 JS Log: %{public}@", log: logger, type: .debug, body)
@@ -1620,6 +1654,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                 cancelHandshakeTimeout()
                 
                 isWebViewLoaded = true
+                logDiagnosticStage(.handshake)
                 renderCurrentMode()
             }
         } else if message.name == "readingToolsLayout" {
@@ -1781,6 +1816,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         let item = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
             if !self.isWebViewLoaded {
+                self.logDiagnosticStage(.handshakeTimeout)
                 os_log("🔴 Renderer Handshake Timeout (%{public}.1fs)! Showing non-destructive error.", log: self.logger, type: .error, self.handshakeTimeoutInterval)
                 
                 self.showFailure(.renderer)

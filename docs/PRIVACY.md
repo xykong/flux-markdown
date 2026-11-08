@@ -62,3 +62,40 @@ location or nationality. Unknown/non-IANA fixed-offset settings are omitted rath
 than guessed. Timezone reports count each installation once using its latest
 reported timezone in the selected Unix-time interval; unavailable metadata is
 reported as unknown. Historical UTC daily totals are not reassigned to local days.
+
+## Optional promotion source association
+
+Supporting clients also record the first effective use of a new statistics identity:
+its random event identifier, Unix timestamp, app or Quick Look source, and whether
+the identity is fresh, upgraded from an older state, or reset after opting back in.
+Opening an association dialog is not effective use. Older states do not invent a
+first-use date, and reset identities are not counted as newly acquired installations.
+This lifecycle fact is acknowledged independently of daily counters and shares the
+same hourly upload lease and 90-day local retention limit.
+
+When available on a promotion landing page, you may explicitly prepare a short-lived
+source link and open FluxMarkdown to confirm it. Confirmation sends the one-time
+code, random claim ID, installation ID and app version to the fixed HTTPS endpoint
+`t.xykong.cc/v1/claims`. The code expires after ten minutes and is kept only in app
+memory. Retrying uses the same claim ID. No document information, browser history,
+hardware identifier or arbitrary callback URL is sent. The page cannot tell whether
+the app is installed or whether you completed confirmation. Skipping association
+never blocks downloading or reading. Statistics must be enabled; association does
+not silently enable them. Opt-out cancels pending local association work, although
+an already transmitted request may still reach the service.
+
+The service joins confirmed promotion evidence to eligible first effective use and
+UTC activity days to report source coverage and D1/D7 return activity. Website clicks
+are not completed downloads, installs, people or proof of causal growth. Unknown
+sources remain unknown. Existing installations and opt-in resets are not presented
+as new acquisition. Distribution channel (such as Homebrew) is separate from the
+promotion source. No IP fingerprint or cross-device identity matching is used for
+this association.
+
+Raw promotion page events and touches are retained for up to 30 days. Optional
+browser association contexts expire after seven days; the current page's explicit
+association flow does not require such a cookie. Redeemed minimal association
+records are retained for up to 180 days. Turning statistics off does not erase
+previously received records; the installation-ID deletion process described above
+also applies to associated facts. Server-side feature availability can be disabled
+independently while downloads and ordinary usage continue to work.

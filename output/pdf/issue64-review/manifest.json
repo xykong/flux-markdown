@@ -1,0 +1,216 @@
+{
+  "layout": "one item per row; reference / actual output / feedback",
+  "candidateCommit": "868237a",
+  "reviewerSignOff": true,
+  "originalCases": 13,
+  "referencePDF": "output/pdf/issue64-independent-reference.pdf",
+  "referenceCropBoxes": {
+    "M01": [
+      64,
+      157,
+      114,
+      176
+    ],
+    "M02": [
+      64,
+      196,
+      99,
+      214
+    ],
+    "M03": [
+      64,
+      230,
+      114,
+      251
+    ],
+    "M04": [
+      64,
+      267,
+      129,
+      289
+    ],
+    "M05": [
+      248,
+      309,
+      346,
+      350
+    ],
+    "M06": [
+      252,
+      380,
+      342,
+      423
+    ],
+    "M07": [
+      185,
+      451,
+      410,
+      548
+    ],
+    "M08": [
+      201,
+      571,
+      394,
+      620
+    ],
+    "M09": [
+      265,
+      650,
+      532,
+      678
+    ],
+    "M10": [
+      64,
+      699,
+      84,
+      718
+    ],
+    "M11": [
+      267,
+      744,
+      327,
+      780
+    ]
+  },
+  "candidateCropBoxes": {
+    "M01": [
+      0,
+      [
+        169.8,
+        305,
+        242.2,
+        332
+      ]
+    ],
+    "M02": [
+      0,
+      [
+        357,
+        307,
+        409,
+        331
+      ]
+    ],
+    "M03": [
+      0,
+      [
+        442.8,
+        303,
+        514,
+        332
+      ]
+    ],
+    "M04": [
+      0,
+      [
+        186,
+        347,
+        285.5,
+        373
+      ]
+    ],
+    "M05": [
+      0,
+      [
+        218,
+        431,
+        378,
+        484
+      ]
+    ],
+    "M06": [
+      0,
+      [
+        222,
+        540,
+        372,
+        599
+      ]
+    ],
+    "M07": [
+      1,
+      [
+        113,
+        118,
+        485,
+        271
+      ]
+    ],
+    "M08": [
+      1,
+      [
+        134,
+        325,
+        460,
+        381
+      ]
+    ],
+    "M09": [
+      1,
+      [
+        244,
+        432,
+        540,
+        465
+      ]
+    ],
+    "M10": [
+      1,
+      [
+        170.5,
+        476,
+        193.2,
+        503
+      ]
+    ],
+    "M11": [
+      1,
+      [
+        247,
+        558,
+        348,
+        605
+      ]
+    ],
+    "M13": [
+      0,
+      [
+        53,
+        200,
+        163,
+        229
+      ]
+    ]
+  },
+  "files": {
+    "output/pdf/issue64-independent-reference.pdf": "ecec0311ce91d2b346bf8ca98dcd02eb6cfd752791c27e82eed034242f76fd19",
+    "output/pdf/issue64-review/candidate.pdf": "d1a1bca530ca347a7b1780cff359694716851caed042cad3a9978d08730c2ab0",
+    "output/pdf/issue64-review/app-export-evidence.json": "c161ab92e0c2f3ac79978a74b5c1b11b0bf9ab54451b7807119b23ca29ceb9f7",
+    "output/pdf/issue64-review/index.html": "0050e6e6934f4bb3976e6b137f56643789592034a2e12c43dbf9e37679ee9b7f",
+    "output/pdf/issue64-review/items/M01-app.png": "757445acea68bdfb2228d50061221dab16553aa8ded3166687f05d608d1ad23a",
+    "output/pdf/issue64-review/items/M01-reference.png": "50c6662eb92e06aaed0591d005855ee40963b85575f8a2e0c03dafab2ecae13c",
+    "output/pdf/issue64-review/items/M02-app.png": "864eee90cb0cf169b49338682ee13aa2a50dfb4d6de7b2939b24926bafb9ac7c",
+    "output/pdf/issue64-review/items/M02-reference.png": "1ceb54cef53fc186b18fc370a35c35f7cc335bc52c34af054c05a143d82603f7",
+    "output/pdf/issue64-review/items/M03-app.png": "bcc87a8a2d1587d6d74d464b0815dc2a3f9c79cb5a58a08abde4f1a513fbd73e",
+    "output/pdf/issue64-review/items/M03-reference.png": "f447d3c3ed01d2d5ec4878520b584aca4fb183ab9dbfb402ee0ebb8d52dc90c7",
+    "output/pdf/issue64-review/items/M04-app.png": "4e1b586a3e586010f0c8a5b73ba74c0490785f4330d72bc50278246dfaf6dd0a",
+    "output/pdf/issue64-review/items/M04-reference.png": "cf32cb4f329c5cc9f88eefa108b07437a2283d0c1cb250ecbcd75d922906bf59",
+    "output/pdf/issue64-review/items/M05-app.png": "a8c3a6c81aa3b04ea8698ab116535dacaf0e15c6966eaf2b20094196f0b2609d",
+    "output/pdf/issue64-review/items/M05-reference.png": "d7dd7327bb0aafdc1963777f2ab81ed0b833199aa98de6d9c145b80cb69ba8cc",
+    "output/pdf/issue64-review/items/M06-app.png": "93b9d7757ac2f0ca7629ab47d7ddfee73878b2851b0c156966d74883200c6649",
+    "output/pdf/issue64-review/items/M06-reference.png": "1e0d2c2b041c16db365468c13890bdb6c4de4f199d2b49a0f4e18c04f7c7e53b",
+    "output/pdf/issue64-review/items/M07-app.png": "70695dd28cdf42031d6f18dd9d05b5ba1fd6382d9e31c4cbab62dca4bb52b86a",
+    "output/pdf/issue64-review/items/M07-reference.png": "f1088fea01add5df0b7b4545762cafbf06cbf0c8fde6ff44b9394e9bdc58724a",
+    "output/pdf/issue64-review/items/M08-app.png": "e1c41da930da9ee335acb5358811b262341d59259f05838cac3c8dd6a7289bc9",
+    "output/pdf/issue64-review/items/M08-reference.png": "bea51d82ce56e390569efcf869a40d83c58d5257916817617644572d919334c8",
+    "output/pdf/issue64-review/items/M09-app.png": "e8ab6a8af4d3b54a5892cc5d5bd03f1b2368d6c1adf4f82d9386a80a2de9e34b",
+    "output/pdf/issue64-review/items/M09-reference.png": "7078244e7c3fd62538f10343a13cd0a91c0be1c69054dac0d6937cfe958ecfdd",
+    "output/pdf/issue64-review/items/M10-app.png": "c7f37c5a21610b9ae8c7ac368e513bf1573c8178d2871906cc43d5090092c1a8",
+    "output/pdf/issue64-review/items/M10-reference.png": "0804c347f511060b6168702d31cfe004f40a3975cc87485d8469178590689e4b",
+    "output/pdf/issue64-review/items/M11-app.png": "ab580020d45eaee974aab95ea7c2a9fa6cc1a25e6c3dff4e36bef40199fac677",
+    "output/pdf/issue64-review/items/M11-reference.png": "6117ad8fff9206a54f8c836e2ed8642dfa5582ec2bb3f2ee4fca842378814bb3",
+    "output/pdf/issue64-review/items/M13-app.png": "fe34f3356e4ccd8e437c69f16f896d67dc33af1a62a046fec4fe57e02fc485c4"
+  },
+  "reviewScope": "Original thirteen review rows: visual formula comparison, MathML comparison and the M12 export-rejection behavior displayed in the packet.",
+  "reviewReceipt": "output/pdf/issue64-review/human-review.json"
+}

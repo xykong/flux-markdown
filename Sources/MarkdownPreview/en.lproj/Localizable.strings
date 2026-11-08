@@ -112,3 +112,7 @@
 "Thank you. The source is linked to this installation. Effective use and return visits are measured separately when usage statistics are enabled." = "Thank you. The source is linked to this installation. Effective use and return visits are measured separately when usage statistics are enabled.";
 
 "Open Promotion Page" = "Open Promotion Page";
+
+/* Block copy failures */
+"Text could not be copied" = "Text could not be copied";
+"Select the text to copy it manually, or try the copy button again." = "Select the text to copy it manually, or try the copy button again.";

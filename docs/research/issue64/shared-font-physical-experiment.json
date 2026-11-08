@@ -1,0 +1,16 @@
+{
+  "hypothesis": "Reuse only immutable/allowlisted SVG font data, retaining independent TeX input, SVG output and document sessions. Earlier font experiment measured RSS rather than physical footprint.",
+  "acceptanceBeforeRun": {
+    "roundedPeakMax": "1.1G (near original 1.0G control within one reported decimal step)",
+    "warm100P95MaxMs": 150,
+    "warm1000P95MaxMs": 2000,
+    "unchangedSemanticAndSecurityTests": true
+  },
+  "otherwise": "revert; do not accept because of latency alone",
+  "testsPassed": 557,
+  "physicalFootprint": "57.2M",
+  "physicalPeak": "1.8G",
+  "completed": true,
+  "decision": "Rejected and reverted: 1.8G peak did not meet the predeclared near-baseline target.",
+  "rawEvidence": "build/issue64-shared-font"
+}

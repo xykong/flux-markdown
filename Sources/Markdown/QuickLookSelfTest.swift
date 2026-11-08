@@ -12,16 +12,16 @@ final class QuickLookSelfTest {
     private var completion: ((Bool) -> Void)?
     private var attempts = 0
 
-    func start(completion: @escaping (Bool) -> Void) {
+    func start(probeToken: UUID = UUID(), completion: @escaping (Bool) -> Void) {
         guard self.completion == nil else { completion(false); return }
         self.completion = completion
-        generation = UUID(); token = UUID().uuidString; attempts = 0
+        generation = UUID(); token = probeToken.uuidString; attempts = 0
         do {
             let directory = FileManager.default.temporaryDirectory.appendingPathComponent("FluxMarkdown-QuickLook-\(token)")
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
             self.directory = directory
             let file = directory.appendingPathComponent("\(QuickLookProbeEvidence.prefix)\(token).md")
-            try "# FluxMarkdown Quick Look Test\n\n**Rendered Markdown** confirms the extension was selected.\n\nThis temporary document contains no personal data.\n".write(to: file, atomically: true, encoding: .utf8)
+            try QuickLookProbeEvidence.fixture.write(to: file, atomically: true, encoding: .utf8)
             let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 800, height: 600),
                                   styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
             window.title = NSLocalizedString("Test Quick Look", comment: "QuickLook self-test")
@@ -41,12 +41,17 @@ final class QuickLookSelfTest {
 
     private func poll() {
         let generation = self.generation, token = self.token
-        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
+        let extensionURL = Bundle.main.bundleURL.appendingPathComponent("Contents/PlugIns/MarkdownPreview.appex")
+        guard let bundle = Bundle(url: extensionURL), let executableURL = bundle.executableURL,
+              let version = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
+              let build = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String else {
+            finish(false); return
+        }
         attempts += 1
         DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 2) {
             let result = QuickLookRegistration.run("/usr/bin/log", ["show", "--last", "1m", "--style", "json", "--predicate",
                 "subsystem == 'com.markdownquicklook.app' AND eventMessage CONTAINS '\(token)'"])
-            let success = result.status == 0 && QuickLookProbeEvidence.rendered(in: result.output, token: token, version: version)
+            let success = result.status == 0 && QuickLookProbeEvidence.rendered(in: result.output, token: token, version: version, build: build, executableURL: executableURL)
             DispatchQueue.main.async {
                 guard generation == self.generation, self.completion != nil else { return }
                 if success { self.finish(true) }

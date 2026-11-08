@@ -5,12 +5,14 @@ enum IncidentSource: String, Codable { case app, quicklook, cli }
 enum IncidentReason: String, Codable { case operationFailed, invalidInput, moduleUnavailable, resourceUnavailable }
 enum IncidentPhase: String, Codable { case started, failed, completed, timeout }
 enum FailureKind: String, Codable, CaseIterable {
-    case attribution, usageSettings, update, fileRead, fileTooLarge, reload, exportHTML, exportPDF, renderer, rendererResources, source
+    case attribution, copy, usageSettings, update, fileRead, fileTooLarge, reload, exportHTML, exportPDF, renderer, rendererResources, source
     case mermaid, typst, graphviz, vega, math, search, quickLook, images, previewLimit, link, browser
 
     var title: String {
         switch self {
         case .attribution: return "Promotion source could not be linked"
+
+        case .copy: return "Text could not be copied"
         case .usageSettings: return "Usage statistics preference could not be saved"
         case .update: return "Update could not be completed"
         case .fileRead, .fileTooLarge: return "Document could not be opened"
@@ -29,6 +31,8 @@ enum FailureKind: String, Codable, CaseIterable {
     var guidance: String {
         switch self {
         case .attribution: return "Source association is optional. Try again if the connection failed, or return to the promotion page for a fresh link. Your documents are unaffected."
+
+        case .copy: return "Select the text to copy it manually, or try the copy button again."
         case .usageSettings: return "Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again."
         case .update: return "You can download the latest version and install it manually."
         case .fileRead: return "Choose a readable UTF-8 Markdown file, or open it in your editor to check it."
@@ -68,6 +72,39 @@ struct IncidentSettingChange: Codable {
     }
 }
 
+/// Only public callback stages and recognized categories cross the feedback boundary.
+enum UpdateStage: String, Codable {
+    case observationStarted, checkStarted, appcastLoaded, updateFound, noUpdate, downloadStarted, downloadCompleted
+    case downloadFailed, cancelled, extractionStarted, extractionCompleted, installHandoff
+    case failed, cycleFinished
+}
+enum UpdateFailureCategory: String, Codable {
+    case agentConnectionTimeout, installationDataTimeout, agentInvalidated, unclassified
+}
+struct UpdateSessionEvent: Codable {
+    let stage: UpdateStage
+    let date: Date
+    let elapsed: TimeInterval
+}
+struct UpdateSessionSnapshot: Codable {
+    let id: UUID
+    var events: [UpdateSessionEvent]
+    var failure: UpdateFailureCategory?
+    var truncated: Bool
+    var isValid: Bool {
+        !events.isEmpty && events.count <= 32 && events.allSatisfy {
+            (-62135596800...253402300799).contains($0.date.timeIntervalSince1970) &&
+            $0.elapsed.isFinite && (0...604800).contains($0.elapsed)
+        } && zip(events, events.dropFirst()).allSatisfy { $0.elapsed <= $1.elapsed }
+    }
+    var report: [String] {
+        ["", "## Update session", "Session: \(id.uuidString)",
+         "Failure category: \(failure?.rawValue ?? "unclassified")", "Events truncated: \(truncated)"] + events.map {
+            "- \(ISO8601DateFormatter().string(from: $0.date)) (+\(String(format: "%.3f", $0.elapsed))s): \($0.stage.rawValue)"
+        }
+    }
+}
+
 struct ErrorIncident: Codable {
     let schema: Int
     let id: UUID
@@ -84,7 +121,9 @@ struct ErrorIncident: Codable {
     var previewTest: String?
     var historyUnavailable: Bool?
     var reason: IncidentReason?
+    var renderingBlocker: FailureKind?
     var quickLookCheck: IncidentQuickLookCheck?
+    var updateSession: UpdateSessionSnapshot?
 
     init(kind: FailureKind, source: IncidentSource, phase: IncidentPhase = .failed, scope: UUID? = nil,
          error: Error? = nil, environment: [String: String] = [:], settings: [String: String] = [:]) {
@@ -121,7 +160,7 @@ struct ErrorIncident: Codable {
         values.filter { key, value in
             switch key {
             case "baseFontSize", "finderPaneFontSize": return Double(value).map { $0.isFinite && (8...72).contains($0) } ?? false
-            case "enableMermaid", "enableKatex", "enableEmoji", "enableTypst", "showLineNumbers", "collapseBlockquotesByDefault": return ["true", "false"].contains(value)
+            case "enableMermaid", "enableKatex", "enableEmoji", "enableTypst", "showLineNumbers", "showCopyButtons", "collapseBlockquotesByDefault": return ["true", "false"].contains(value)
             case "preferredAppearanceMode": return ["system", "light", "dark"].contains(value)
             case "uiLanguage": return ["system", "en", "zh-Hans", "zh", "de", "fr", "es", "ar"].contains(value)
             case "contentsSide": return ["left", "right"].contains(value)
@@ -130,9 +169,12 @@ struct ErrorIncident: Codable {
             }
         }
     }
+    var guidance: String { renderingBlocker == .math ? FailureKind.math.guidance : kind.guidance }
+
     var isValid: Bool {
+        (renderingBlocker == nil || (renderingBlocker == .math && [.exportHTML, .exportPDF].contains(kind))) &&
         schema == 1 && (-62135596800...253402300799).contains(date.timeIntervalSince1970) && codes.count <= 8 && steps.count <= 12 &&
-        (quickLookCheck?.isValid ?? true) && settingChanges.count <= 5 && settingChanges.allSatisfy(\.isValid) &&
+        (quickLookCheck?.isValid ?? true) && (updateSession?.isValid ?? true) && settingChanges.count <= 5 && settingChanges.allSatisfy(\.isValid) &&
         (previewTest == nil || ["rendered", "unconfirmed", "not-run"].contains(previewTest!)) &&
         codes.allSatisfy { IncidentCode.domains.contains($0.domain) } &&
         steps.allSatisfy { (-62135596800...253402300799).contains($0.date.timeIntervalSince1970) } &&
@@ -151,7 +193,9 @@ struct ErrorIncident: Codable {
         lines += ["", "## Environment at failure"] + environment.keys.sorted().map { "- \($0): \(environment[$0]!)" }
         lines += ["", "## Settings at failure"] + settings.keys.sorted().map { "- \($0): \(settings[$0]!)" }
         lines += ["", "## Related operation events"] + steps.map { "- \(formatter.string(from: $0.date)): \($0.kind.rawValue) / \($0.phase.rawValue)" }
+        if let updateSession { lines += updateSession.report }
         if let reason { lines += ["Failure category: \(reason.rawValue)"] }
+        if let renderingBlocker { lines += ["Rendering blocker: \(renderingBlocker.rawValue)"] }
         if historyUnavailable == true { lines += ["", "Some diagnostic information is unavailable. This report includes the current incident."] }
         if let previewTest { lines += ["", "Last explicit preview test (historical, not proof of current rendering): \(previewTest)"] }
         lines += ["", "## Recent related settings changes"] + settingChanges.map { "- \(formatter.string(from: $0.date)): \($0.key) \($0.before) → \($0.after)" }

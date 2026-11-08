@@ -1,0 +1,10 @@
+const fs=require('node:fs'),Module=require('node:module'),path=require('node:path');
+const project=process.argv[2],req=Module.createRequire(path.join(project,'web-renderer/package.json'));
+const {JSDOM}=req('jsdom');global.window=new JSDOM('').window;global.document=window.document;
+const sourcePath=path.join(project,'web-renderer/src/safe-html.ts'),ts=req('typescript');
+const compiled=ts.transpileModule(fs.readFileSync(sourcePath,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,esModuleInterop:true}}).outputText;
+const mod=new Module(sourcePath);mod.filename=sourcePath;mod.paths=Module._nodeModulePaths(path.dirname(sourcePath));mod._compile(compiled,sourcePath);
+const html=fs.readFileSync(process.argv[3],'utf8');
+const summarize=html=>{const root=document.createElement('div');root.innerHTML=html;return {containers:root.querySelectorAll('mjx-container').length,svgs:root.querySelectorAll('svg').length,uses:root.querySelectorAll('use').length,paths:root.querySelectorAll('path').length,refs:root.querySelectorAll('a[href]').length,styles:root.querySelectorAll('style').length};};
+const result={source:summarize(html),document:summarize(mod.exports.sanitizeDocumentHTML(html)),diagram:summarize(mod.exports.sanitizeDiagramHTML(html)),math:summarize(mod.exports.sanitizeMathHTML(html))};
+console.log(JSON.stringify(result,null,2));

@@ -1,0 +1,12 @@
+{
+  "normal": "960-point native view at 1x, original valid corpus, no copy controls/gutters; ordinary inline baselines and matrix/cases visually inspected.",
+  "narrow-dark": "320-point native view at 2x, Dark Aqua, forced RTL containing block, gutters/copy controls enabled; local clipping/scrolling of wide display is intentional, no whole-page overflow. Snapshot shows the lower document, not every formula.",
+  "images": {
+    "normal.png": "ce8ad4ed9d62427d6622582ac6a94a3ef6ecf950caa91cb256e275e5f78e08e7",
+    "narrow-dark.png": "0145c1c215ff92b5b59009a117579f225e94ea6cdc217ea6e62bc28ff2f4bfef"
+  },
+  "limitations": [
+    "native renderer probe, not actual selected QuickLook",
+    "snapshot is not VoiceOver verification"
+  ]
+}

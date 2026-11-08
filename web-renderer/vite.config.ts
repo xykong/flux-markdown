@@ -8,6 +8,7 @@ export default defineConfig({
     transformIndexHtml: { order: 'post', handler: (html) => html.replace(/\s+crossorigin(?:="[^"]*")?/g, '') },
   }],
   build: {
+    manifest: true,
     target: 'safari14',
     outDir: 'dist',
     assetsDir: 'assets',
@@ -19,6 +20,9 @@ export default defineConfig({
       },
       output: {
         manualChunks: {
+          // The preload helper must not pull a renderer dependency ahead of
+          // the compatibility bootstrap. Keep this chunk dependency-free.
+          'renderer-compat': [path.resolve(__dirname, 'src/math-compat.ts'), '\0vite/preload-helper.js'],
           mermaid: ['mermaid'],
           'typst-wasm': [
             '@myriaddreamin/typst.ts',

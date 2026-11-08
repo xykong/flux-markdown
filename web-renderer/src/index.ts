@@ -1,8 +1,31 @@
-import { installErrorFeedback, setFeedbackGeneration } from './error-feedback';
-import { waitForExportReady } from './export-readiness';
-window.waitForExportReady = waitForExportReady;
-import { sanitizeDocumentHTML, sanitizeDiagramHTML } from './safe-html';
+import './math-compat';
+import { installSVGZoom } from './svg-zoom';
+import { constrainSVGImage } from './svg-image-layout';
+import { installMermaidLayout } from './mermaid-layout';
+import './styles/mermaid-layout.css';
+import { preserveLetterSequences } from './typography';
+import { installBlockCopy, blockCopyResult, CopyController } from './block-copy';
+import './styles/block-copy.css';
+import { installErrorFeedback, setFeedbackGeneration, feedbackGeneration } from './error-feedback';
+import { waitForExportReady, prepareExport, ExportPreparation } from './export-readiness';
+import { sanitizeDocumentFragment, sanitizeDiagramHTML } from './safe-html';
 import { renderTSVTable } from './tsv';
+import { installMathSyntax } from './math-syntax';
+import { rememberMathSource, uniqueMathTargets } from './math-source-store';
+import { prepareMathPrint } from './math-print';
+import { separateMathLinks } from './math-reference-links';
+import { installMathLayout } from './math-layout';
+import './styles/math.css';
+let restoreMathPrint: (() => void) | undefined;
+let disposeMathLayout: (() => void) | undefined;
+let disposeSVGZoom: (() => void) | undefined;
+let disposeMermaidLayout: (() => void) | undefined;
+window.addEventListener('beforeprint', () => {
+    restoreMathPrint?.();
+    const root = document.getElementById('markdown-preview');
+    restoreMathPrint = root ? prepareMathPrint(root) : undefined;
+});
+window.addEventListener('afterprint', () => { restoreMathPrint?.(); restoreMathPrint = undefined; });
 import './styles/tsv.css';
 /**
  * Escapes colons inside Gantt task labels when the metadata delimiter is
@@ -275,9 +298,12 @@ import sup from 'markdown-it-sup';
 // @ts-ignore
 import anchor from 'markdown-it-anchor';
 import githubAlerts from 'markdown-it-github-alerts';
+import definitionLists from 'markdown-it-deflist';
+import abbreviations from 'markdown-it-abbr';
+import insertions from 'markdown-it-ins';
 
 import { findSourceLineTarget, DocumentPosition } from './position-navigation';
-import { extractHeadings, buildHeadingTree } from './outline';
+import { extractHeadings, buildHeadingTree, headingSlug } from './outline';
 import { TableOfContents } from './table-of-contents';
 import { ReadingStatus } from './reading-status';
 import { ReadingControls, updateReadingControlsLayout, captureReadingAnchor, restoreReadingAnchor } from './reading-controls';
@@ -361,7 +387,7 @@ function copySourceRange(from: HTMLElement, to: HTMLElement): void {
     }
 }
 
-function buildMd(): MarkdownIt {
+function buildMd(enableTypst = true): MarkdownIt {
     const instance = new MarkdownIt({
         html: true,
         breaks: false,
@@ -371,7 +397,7 @@ function buildMd(): MarkdownIt {
             const resolvedLang = resolveLanguage(lang);
 
             // Typst math blocks — render as placeholder, post-processed async
-            if (lang === 'typst' || lang === 'typst-math') {
+            if (enableTypst && (lang === 'typst' || lang === 'typst-math')) {
                 return '<div class="typst-placeholder" data-typst-source="' +
                     str.replace(/"/g, '&quot;').replace(/\n/g, '&#10;') +
                     '"><div class="typst-loading">' + rendererLabels().typstLoading + '</div></div>';
@@ -397,6 +423,7 @@ function buildMd(): MarkdownIt {
         return originalValidateLink(url);
     };
 
+    instance.use(preserveLetterSequences);
     instance.use(footnote);
     instance.use(taskLists);
     instance.use(mark);
@@ -404,9 +431,13 @@ function buildMd(): MarkdownIt {
     instance.use(sup);
     instance.use(anchor, {
         permalink: false,
-        slugify: (s: string) => s.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-').replace(/^-+|-+$/g, '')
+        getTokensText: (tokens: Array<{type:string;content:string}>) => tokens.filter(token => ['text', 'code_inline', 'flux_math_inline'].includes(token.type)).map(token => token.content).join(''),
+        slugify: headingSlug
     });
     instance.use(githubAlerts);
+    instance.use(definitionLists);
+    instance.use(abbreviations);
+    instance.use(insertions);
 
     const defaultImageRender = instance.renderer.rules.image || function(tokens: any, idx: any, options: any, env: any, self: any) {
         return self.renderToken(tokens, idx, options);
@@ -443,13 +474,34 @@ function buildMd(): MarkdownIt {
 
 const md: MarkdownIt = buildMd();
 let renderGeneration = 0;
+let completedRenderGeneration = -1;
 let currentRender: Promise<void> = Promise.resolve();
+window.waitForExportReady = async (timeoutMs = 15000) => {
+    const generation = renderGeneration;
+    const started = Date.now();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const checkCurrent = () => {
+        if (generation !== renderGeneration) throw new Error('Document changed during export');
+    };
+    try {
+        await Promise.race([
+            currentRender,
+            new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error('Export rendering timed out')), timeoutMs); }),
+        ]);
+        checkCurrent();
+        await waitForExportReady(Math.max(1, timeoutMs - (Date.now() - started)), checkCurrent);
+        checkCurrent();
+    } finally {
+        if (timer !== undefined) clearTimeout(timer);
+    }
+};
+window.prepareExport = () => prepareExport(() => window.waitForExportReady());
 window.waitForRenderComplete = async () => {
     const generation = renderGeneration;
     await currentRender;
     if (generation !== renderGeneration) throw new Error("Document changed during export");
 };
-window.invalidateRender = () => { ++renderGeneration; };
+window.invalidateRender = () => { disposeBlockCopy(); ++renderGeneration; };
 const diffAnimator = new DiffAnimator();
 
 let toc: TableOfContents | null = null;
@@ -458,10 +510,12 @@ let readingStatus: ReadingStatus | null = null;
 let searchEngine: SearchEngine | null = null;
 let searchUI: SearchUI | null = null;
 let helpOverlay: HelpOverlay | null = null;
+let blockCopy: CopyController | null = null;
+function disposeBlockCopy(): void { blockCopy?.dispose(); blockCopy = null; }
 let blockquoteCollapse: BlockquoteCollapse | null = null;
 let mermaidInstance: typeof import('mermaid')['default'] | null = null;
 let mermaidCurrentTheme: string | null = null;
-let katexPlugin: ((md: MarkdownIt) => void) | null = null;
+
 let graphvizInstance: { dot: (src: string) => string } | null = null;
 let lastShowLineNumbers: boolean = false;
 
@@ -482,6 +536,7 @@ interface RenderOptions {
     collapseBlockquotes?: boolean;
     prevContent?: string;
     showLineNumbers?: boolean;
+    showCopyButtons?: boolean;
     renderVersion?: number;
     format?: 'markdown' | 'tsv';
     isTruncated?: boolean;
@@ -517,7 +572,7 @@ function prepareRenderedImages(root: HTMLElement, options: RenderOptions): void 
 
         const source = img.getAttribute('src');
         if (!source) return;
-        const resolvedSource = resolveImageSource(source, options);
+        const resolvedSource = constrainSVGImage(img, resolveImageSource(source, options));
         if (resolvedSource !== source) img.setAttribute('src', resolvedSource);
     });
 }
@@ -584,7 +639,9 @@ declare global {
         navigateDocumentPosition: (position: DocumentPosition) => boolean;
         waitForRenderComplete: () => Promise<void>;
         waitForExportReady: (timeoutMs?: number) => Promise<void>;
+        prepareExport: () => Promise<ExportPreparation>;
         invalidateRender: () => void;
+        verifyQuickLookProbe: (heading: string, boldText: string) => boolean;
         renderMarkdown: (text: string, options?: RenderOptions) => Promise<void>;
         renderSource: (text: string, theme: string, prevContent?: string, options?: RenderOptions) => void;
         clearDiffMarks: () => void;
@@ -700,12 +757,13 @@ async function renderGraphvizDiagrams(container: HTMLElement, isCurrent: () => b
 
 let cachedCssText = '';
 
-function collectStylesheetRules(): string {
+function collectStylesheetRules(includeWebFonts = true): string {
     let css = '';
     for (const sheet of Array.from(document.styleSheets)) {
         try {
             if (sheet.cssRules) {
                 for (const rule of Array.from(sheet.cssRules)) {
+                    if (!includeWebFonts && rule.type === CSSRule.FONT_FACE_RULE) continue;
                     if (!css.includes(rule.cssText)) {
                         css += rule.cssText + '\n';
                     }
@@ -724,14 +782,20 @@ function preloadStylesheets() {
 setTimeout(preloadStylesheets, 500);
 
 window.exportHTML = function(): string {
-    let cssText = collectStylesheetRules();
+    // SVG mathematics contains its glyph definitions. Unused application font
+    // faces otherwise leave broken app-relative requests in standalone HTML.
+    let cssText = collectStylesheetRules(!!document.querySelector('#markdown-preview .katex'));
 
     // Get the core rendered markdown content
     const previewDiv = document.getElementById('markdown-preview');
     // Ensure we clone the content so we don't modify the active DOM
     const clone = previewDiv ? (previewDiv.cloneNode(true) as HTMLElement) : document.createElement('div');
     
+    clone.querySelectorAll('.block-copy-tools, .mermaid-tools, .diagram-tools').forEach(control => control.remove());
+    clone.querySelectorAll('.block-copy-host').forEach(host => host.replaceWith(...Array.from(host.childNodes)));
     clone.querySelectorAll('.error-feedback-controls').forEach(control => control.remove());
+    clone.querySelectorAll('.search-highlight').forEach(mark => mark.replaceWith(document.createTextNode(mark.textContent || '')));
+    clone.querySelectorAll('.math-search-highlight, .search-highlight-active').forEach(node => node.classList.remove('math-search-highlight', 'search-highlight-active'));
     clone.querySelectorAll<HTMLElement>('.blockquote-placeholder').forEach(placeholder => {
         const quote = placeholder.nextElementSibling as HTMLElement | null;
         if (quote?.matches('blockquote, .markdown-alert')) quote.style.display = '';
@@ -814,7 +878,32 @@ function applyInterfaceDirection(language?: string): boolean {
     return isRtl;
 }
 
+// A resolved JS call alone does not prove that Markdown was rendered.
+window.verifyQuickLookProbe = (heading, boldText) => {
+    const root = document.getElementById('markdown-preview');
+    if (completedRenderGeneration !== renderGeneration || !root?.isConnected ||
+        root.classList.contains('source-mode') || root.querySelector('.render-error')) return false;
+    const title = root.querySelector('h1');
+    const strong = root.querySelector('p strong');
+    const visible = (element: Element | null): boolean => {
+        if (!element) return false;
+        const box = element.getBoundingClientRect();
+        if (box.width <= 0 || box.height <= 0) return false;
+        for (let node: Element | null = element; node; node = node.parentElement) {
+            const style = getComputedStyle(node);
+            if (style.display === 'none' || style.visibility === 'hidden' ||
+                style.visibility === 'collapse' || style.opacity === '0') return false;
+        }
+        return true;
+    };
+    return title?.textContent === heading && strong?.textContent === boldText &&
+        visible(root) && visible(title) && visible(strong);
+};
+
 window.renderMarkdown = async function (text: string, options: RenderOptions = {}) {
+    disposeBlockCopy();
+    disposeMermaidLayout?.(); disposeMermaidLayout = undefined;
+    disposeSVGZoom?.(); disposeSVGZoom = undefined;
     const callId = ++renderGeneration;
     const isCurrent = () => callId === renderGeneration;
     logToSwift(`[renderMarkdown:${callId}] START textLen=${text.length}`);
@@ -933,17 +1022,11 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         const sourceLineOffset = text.slice(0, text.length - body.length).split('\n').length - 1;
         const frontMatterHtml = yaml ? `<div data-source-line="1" data-source-line-end="${sourceLineOffset}">${renderFrontMatterHtml(yaml)}</div>` : '';
 
-        const parser = buildMd();
+        const parser = buildMd(options.enableTypst !== false);
         if (options.enableEmoji !== false) parser.use(emoji);
         const enableTypst = options.enableTypst !== false;
-        if (options.enableKatex !== false && /\$[\s\S]+?\$/.test(body)) {
-            if (!katexPlugin) {
-                const m = await import('@iktakahiro/markdown-it-katex');
-                if (!isCurrent()) return;
-                katexPlugin = m.default;
-            }
-            parser.use(katexPlugin);
-        }
+        const mathNamespace = `fxeq-${callId}-${Array.from(crypto.getRandomValues(new Uint32Array(2))).join('-')}`;
+        const mathSources = installMathSyntax(parser, mathNamespace);
 
         const renderBody = body;
 
@@ -958,7 +1041,55 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         const html = parser.renderer.render(tokens, parser.options, environment);
 
         const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = sanitizeDocumentHTML(frontMatterHtml + html);
+        const documentFragment = sanitizeDocumentFragment(frontMatterHtml + html);
+
+        if (options.enableKatex !== false) {
+            documentFragment.querySelectorAll('math').forEach(math => {
+                if (math.closest('pre, code, mjx-assistive-mml') || math.parentElement?.closest('math')) return;
+                const raw = math.outerHTML;
+                const display = math.getAttribute('display') === 'block';
+                const sourceBlock = math.closest('[data-source-line]');
+                const firstLine = Number(sourceBlock?.getAttribute('data-source-line') || 1);
+                const id = `${mathNamespace}-mml-${mathSources.length}`;
+                mathSources.push({ id, kind: 'mathml', raw, payload: raw, display, firstLine, lastLine: firstLine });
+                const holder = document.createElement(display ? 'div' : 'span');
+                holder.className = 'flux-math-source';
+                holder.dataset.mathId = id;
+                math.replaceWith(holder);
+                holder.textContent = raw;
+            });
+        }
+        tempDiv.appendChild(documentFragment);
+
+        if (options.enableKatex !== false && mathSources.length) {
+            const placeholders = uniqueMathTargets(tempDiv, mathSources.map(source => source.id));
+            try {
+                const { renderMathSources } = await import('./math-engine');
+                if (!isCurrent()) return;
+                const result = await renderMathSources(mathSources, mathNamespace, outputDiv, isCurrent);
+                if (!isCurrent()) return;
+                let style = document.getElementById('flux-math-styles');
+                if (!style) { style = document.createElement('style'); style.id = 'flux-math-styles'; document.head.appendChild(style); }
+                style.textContent = result.css;
+                for (const item of result.items) {
+                    const target = placeholders.get(item.id);
+                    if (!target) continue;
+                    target.innerHTML = item.html;
+                    target.classList.add('flux-math');
+                    separateMathLinks(target);
+                    const failure = result.errors.find(error => error.sourceId === item.id);
+                    if (failure) {
+                        target.classList.add('math-error');
+                        if (failure.code === 'input-limit') target.classList.add('math-input-limit');
+                        if (failure.code === 'unsupported-resource') target.classList.add('math-resource-unsupported');
+                    }
+                }
+            } catch (error) {
+                if (!isCurrent()) return;
+                logToSwift('Math module/render failed: ' + String(error));
+                for (const target of placeholders.values()) target?.classList.add('math-error', 'module-load-error');
+            }
+        }
 
         const enableMermaid = options.enableMermaid !== false;
         const mermaidBlocks = enableMermaid
@@ -980,10 +1111,26 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         logToSwift(`[renderMarkdown:${callId}] UPDATING DOM innerHTML`);
         if (!isCurrent()) return;
         searchEngine?.clear();
-        outputDiv.innerHTML = tempDiv.innerHTML;
+        // The staged tree is already sanitized. Move it into the live preview
+        // rather than serializing/reparsing thousands of mathematical SVG nodes.
+        const renderedFragment = document.createDocumentFragment();
+        while (tempDiv.firstChild) renderedFragment.appendChild(tempDiv.firstChild);
+        outputDiv.replaceChildren(renderedFragment);
+        disposeMathLayout?.();
+        const sourceTargets = uniqueMathTargets(outputDiv, mathSources.map(source => source.id));
+        for (const source of mathSources) {
+            const target = sourceTargets.get(source.id);
+            if (target) rememberMathSource(target, source.raw);
+        }
+        disposeMathLayout = mathSources.length ? installMathLayout(outputDiv) : undefined;
         if (toc) toc.render(outline);
         prepareRenderedImages(outputDiv, options);
+        disposeSVGZoom = installSVGZoom(outputDiv);
         logToSwift(`[renderMarkdown:${callId}] DOM UPDATED successfully`);
+
+        if (options.showCopyButtons === true && currentContext !== 'finder') {
+            blockCopy = installBlockCopy(outputDiv, feedbackGeneration());
+        }
 
         if (showLineNumbers) {
             addLineNumbersToCodeBlocks(outputDiv);
@@ -1042,6 +1189,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
                         </div>`;
                     }
                 }
+                disposeMermaidLayout = installMermaidLayout(outputDiv);
             } catch (err) {
                 logToSwift("JS Error loading/running mermaid: " + err);
                 if (isCurrent()) outputDiv.querySelectorAll(".mermaid").forEach(block => block.classList.add("mermaid-error", "module-load-error"));
@@ -1100,6 +1248,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         readingStatus?.render(text, options.filename, options.prevContent);
         // Refresh the shared active-heading selection after asynchronous diagrams settle.
         window.dispatchEvent(new Event('scroll'));
+        completedRenderGeneration = callId;
         logToSwift(`[renderMarkdown:${callId}] COMPLETE`);
     } catch (e) {
         if (!isCurrent()) return;
@@ -1117,8 +1266,12 @@ window.renderMarkdown = (text, options) => {
 };
 
 window.renderSource = function(text: string, theme: string, prevContent?: string, options: RenderOptions = {}) {
+    disposeMathLayout?.(); disposeMathLayout = undefined;
     window.__fluxLang = options.uiLanguage === "system" ? undefined : options.uiLanguage ?? window.__fluxLang;
     applyInterfaceDirection();
+    disposeBlockCopy();
+    disposeMermaidLayout?.(); disposeMermaidLayout = undefined;
+    disposeSVGZoom?.(); disposeSVGZoom = undefined;
     currentRender = Promise.resolve();
     ++renderGeneration;
     searchEngine?.clear();
@@ -1278,7 +1431,12 @@ function handleAnchorClick(e: Event) {
         const targetId = decodeURIComponent(href.substring(1));
         const targetElement = findElementByAnchor(targetId);
         if (targetElement) {
-            targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // MathJax labels live inside SVG groups; scroll the complete formula so
+            // its source wrapper's reading-toolbar clearance applies to navigation.
+            const scrollTarget = anchor.classList.contains('math-reference-link')
+                ? targetElement.closest<HTMLElement>('.flux-math-source') || targetElement
+                : targetElement;
+            scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
         return;
     }
@@ -1446,6 +1604,6 @@ window.navigateDocumentPosition = function(position: DocumentPosition): boolean 
     return true;
 };
 
-Object.assign(window, { setFeedbackGeneration });
+Object.assign(window, { blockCopyResult, setFeedbackGeneration: (value: string) => { disposeBlockCopy(); setFeedbackGeneration(value); } });
 if (document.body) installErrorFeedback(document.body);
 else document.addEventListener("DOMContentLoaded", () => installErrorFeedback(document.body), { once: true });

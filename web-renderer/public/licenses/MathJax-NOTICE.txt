@@ -1,0 +1,21 @@
+MathJax mathematical rendering
+
+Runtime package: @mathjax/src 4.1.3
+Source: https://github.com/mathjax/MathJax-src
+Copyright (c) 2017-2026 The MathJax Consortium
+License: Apache License 2.0; see MathJax-Apache-2.0.txt.
+The runtime is bundled from its published modules. FluxMarkdown adds separate
+Markdown/session/identity adapters; upstream source is not edited in place.
+
+Glyph-data package: @mathjax/mathjax-newcm-font 4.1.3
+The package metadata declares Apache-2.0 for its MathJax packaging/code.
+The underlying font metadata in mjx-ncm-n.woff2 states:
+Copyright (c) 2024 MathJax, Inc. (www.mathjax.org)
+Original copyright:
+(C) 2019-2021 Antonis Tsolomitis.
+This work is released under the GUST Font License -- see
+http://tug.org/fonts/licenses/GUST-FONT-LICENSE.txt for details.
+
+FluxMarkdown uses the package's SVG glyph data and locally bundled dynamic
+ranges. See NewComputerModern.txt for the GUST Font License text. The separate
+Typst OTF resources retain their own NewComputerModern-NOTICE.txt provenance.

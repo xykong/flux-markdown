@@ -1,0 +1,106 @@
+[
+  {
+    "id": "M01",
+    "line": 677,
+    "tex": "E = mc^2",
+    "display": false,
+    "kind": "tex",
+    "expect": "render"
+  },
+  {
+    "id": "M02",
+    "line": 677,
+    "tex": "x > 0",
+    "display": false,
+    "kind": "tex",
+    "expect": "render"
+  },
+  {
+    "id": "M03",
+    "line": 677,
+    "tex": "\\sqrt{x^2} = x",
+    "display": false,
+    "kind": "tex",
+    "expect": "render"
+  },
+  {
+    "id": "M04",
+    "line": 679,
+    "tex": "a^2 + b^2 = c^2",
+    "display": false,
+    "kind": "tex",
+    "expect": "render"
+  },
+  {
+    "id": "M05",
+    "line": 684,
+    "tex": "\\int_{-\\infty}^{\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}",
+    "display": true,
+    "kind": "tex",
+    "expect": "render"
+  },
+  {
+    "id": "M06",
+    "line": 690,
+    "tex": "\\sum_{k=1}^{n} k = \\frac{n(n+1)}{2}",
+    "display": true,
+    "kind": "tex",
+    "expect": "render"
+  },
+  {
+    "id": "M07",
+    "line": 696,
+    "tex": "\\begin{aligned}\nf(x) &= \\frac{x^2 + 1}{x - 1} \\\\\n\\lim_{n\\to\\infty}\\left(1+\\frac{1}{n}\\right)^n &= e \\\\\nP(A\\mid B) &= \\frac{P(B\\mid A)P(A)}{P(B)} \\quad \\text{条件概率}\n\\end{aligned}",
+    "display": true,
+    "kind": "tex",
+    "expect": "render"
+  },
+  {
+    "id": "M08",
+    "line": 706,
+    "tex": "A = \\begin{bmatrix}1 & 2 \\\\ 3 & 4\\end{bmatrix},\\qquad\ng(x) = \\begin{cases}x^2, & x \\ge 0 \\\\ -x, & x < 0\\end{cases}",
+    "display": true,
+    "kind": "tex",
+    "expect": "render"
+  },
+  {
+    "id": "M09",
+    "line": 713,
+    "tex": "a^2 + b^2 = c^2 \\tag{1}\\label{eq:pythagoras}",
+    "display": true,
+    "kind": "tex",
+    "expect": "render"
+  },
+  {
+    "id": "M10",
+    "line": 716,
+    "tex": "\\eqref{eq:pythagoras}",
+    "display": false,
+    "kind": "tex",
+    "expect": "render"
+  },
+  {
+    "id": "M11",
+    "line": 721,
+    "tex": "\\nabla \\cdot \\mathbf{E} = \\frac{\\rho}{\\varepsilon_0}",
+    "display": true,
+    "kind": "tex",
+    "expect": "render"
+  },
+  {
+    "id": "M12",
+    "line": 726,
+    "tex": "\\unknownMarkdownPreviewCommand{x}",
+    "display": false,
+    "kind": "tex",
+    "expect": "error"
+  },
+  {
+    "id": "M13",
+    "line": 664,
+    "tex": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><msup><mi>y</mi><mn>2</mn></msup><mo>=</mo><msup><mi>z</mi><mn>2</mn></msup></mrow></math>",
+    "display": false,
+    "kind": "mathml",
+    "expect": "render"
+  }
+]

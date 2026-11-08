@@ -1,0 +1,4 @@
+for(let i=0;i<100&&typeof window.renderMarkdown!=='function';i++)await new Promise(r=>setTimeout(r,20));
+const count=200;const refs=Array.from({length:count},(_,i)=>'\\(\\eqref{eq:'+i+'}\\)');const equations=Array.from({length:count},(_,i)=>'\\[x='+i+'\\tag{'+i+'}\\label{eq:'+i+'}\\]');const input=refs.concat(equations).join('\n\n');const samples=[];
+for(let i=0;i<15;i++) {const t=performance.now();await window.renderMarkdown(input,{context:'quicklook',showCopyButtons:false,showLineNumbers:false});await window.waitForExportReady();const elapsed=performance.now()-t;const root=document.getElementById('markdown-preview');if(root.querySelectorAll('a.math-reference-link').length!==count||root.querySelectorAll('mjx-container').length!==count*2||root.querySelector('.math-error'))throw Error('Reference benchmark lost output');if(i>=5)samples.push(elapsed);}
+return {count,items:count*2,samples};

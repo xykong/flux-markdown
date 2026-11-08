@@ -1,4 +1,15 @@
 @media print {
+  html[data-line-numbers="true"] body #markdown-preview:not(.source-mode) {
+    padding-left: 0 !important;
+    border-left: none !important;
+  }
+  .math-print-group {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  html[data-line-numbers="true"] #markdown-preview:not(.source-mode) > [data-source-line]::before {
+    display: none !important;
+  }
   .error-feedback-controls { display: none !important; }
   @page {
     margin: 15mm 15mm 15mm 15mm;

@@ -1,0 +1,65 @@
+{
+  "assistive": 12,
+  "controls": 0,
+  "formulas": 12,
+  "links": [
+    {
+      "exists": true,
+      "href": "#fxeq-1-1764442163-307278037-l-65713a7079746861676f726173"
+    }
+  ],
+  "missingGlyphs": 0,
+  "scripts": 0,
+  "svgSizes": [
+    [
+      73.296875,
+      16.09375
+    ],
+    [
+      45.828125,
+      13.578125
+    ],
+    [
+      71.765625,
+      20.1875
+    ],
+    [
+      100.15625,
+      17.46875
+    ],
+    [
+      152.5,
+      44.875
+    ],
+    [
+      144.90625,
+      52.921875
+    ],
+    [
+      359.953125,
+      142.375
+    ],
+    [
+      319.5625,
+      45.71875
+    ],
+    [
+      826,
+      21.59375
+    ],
+    [
+      24.34375,
+      18.96875
+    ],
+    [
+      95.03125,
+      37.515625
+    ],
+    [
+      103.734375,
+      19.796875
+    ]
+  ],
+  "method": "Production bundle export reopened in fresh WKWebView under default-src none, fonts none, scripts none; only inline styles and data images allowed",
+  "exportSha256": "c3b7dcbc8bab793454eeb805dd1781cfea574620346e51b6bee7931dc9c0248e"
+}

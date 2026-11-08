@@ -51,7 +51,7 @@
 "Enable or disable rendering capabilities" = "启用或禁用渲染功能";
 "Mermaid Diagrams" = "Mermaid 图表";
 "Flowcharts, sequence diagrams, and more" = "流程图、时序图等";
-"KaTeX Math" = "KaTeX 数学";
+"Mathematical Formulas" = "数学公式";
 "Mathematical expressions and equations" = "数学表达式与公式";
 "Emoji Support" = "Emoji 支持";
 "GitHub flavored emoji codes like :smile:" = "GitHub 风格的 emoji 代码,如 :smile:";
@@ -255,3 +255,19 @@
 "Thank you. The source is linked to this installation. Effective use and return visits are measured separately when usage statistics are enabled." = "谢谢，来源已与此次安装关联。开启使用统计时，有效使用和后续回访会另行统计。";
 
 "Open Promotion Page" = "打开推广页面";
+
+/* Block copy controls */
+"Show Copy Buttons" = "显示复制按钮";
+"Copy code and quotes. Reload open Quick Look previews to apply." = "复制代码和引用。请重新载入已打开的快速查看预览以应用。";
+"Text could not be copied" = "无法复制文本";
+"Select the text to copy it manually, or try the copy button again." = "可以选择文本手动复制，或再次点击复制按钮。";
+
+"Copy Document Path" = "拷贝文档路径";
+
+"New Document" = "新建文档";
+
+"Open…" = "打开…";
+
+"Open Recent" = "打开最近使用";
+
+"Clear Menu" = "清除菜单";

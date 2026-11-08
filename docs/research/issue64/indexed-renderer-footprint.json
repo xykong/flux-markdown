@@ -1,0 +1,10 @@
+{
+  "sourceCommit": "33ece88",
+  "scope": "Indexed renderer before the inline-overflow change; unchanged 10-render physical-footprint workload.",
+  "completed": true,
+  "webContentPid": 49678,
+  "physicalFootprint": "57.8M",
+  "physicalPeak": "1.7G",
+  "rawDirectory": "/tmp/flux-issue64-indexed-footprint",
+  "conclusion": "Lower CPU time does not establish lower physical peak. Memory budget acceptance remains open."
+}

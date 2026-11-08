@@ -112,3 +112,7 @@
 "Thank you. The source is linked to this installation. Effective use and return visits are measured separately when usage statistics are enabled." = "Merci. La source est associée à cette installation. L’utilisation effective et les retours sont mesurés séparément lorsque les statistiques sont activées.";
 
 "Open Promotion Page" = "Ouvrir la page promotionnelle";
+
+/* Block copy failures */
+"Text could not be copied" = "Le texte n’a pas pu être copié";
+"Select the text to copy it manually, or try the copy button again." = "Sélectionnez le texte pour le copier manuellement ou réessayez le bouton de copie.";

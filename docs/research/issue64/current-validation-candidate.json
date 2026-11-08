@@ -1,0 +1,58 @@
+{
+  "observedAt": "2026-11-05T05:48:49.524145+00:00",
+  "sourceCommit": "868237a",
+  "candidate": "build/issue64-host-validation/candidate-868237a.app",
+  "candidateInfo": {
+    "version": "1.42.645",
+    "build": "645",
+    "executableSha256": "e0c39140a9c8ba74d68c6d08ac374782a2edbc4df06f009128bf06453b234f29",
+    "codeResourcesSha256": "59ac6eb37218d2ecb304226d4e802fc2aceda116e696be3c4f474a381dabab8a",
+    "minimumSystemVersion": "12.0",
+    "architectures": [
+      "arm64"
+    ]
+  },
+  "candidateAppAndExtensionRendererSha256": "7b888fd2f47aeda558c3df144e73ef278484307517969def684e842503d791a1",
+  "installed": {
+    "version": "1.42.645",
+    "build": "645",
+    "executableSha256": "e45dbd67acd99a9dd82ad146ea9bf2da92a412fcf53efc60884e9a38bcc4f9d5",
+    "codeResourcesSha256": "724d12be147149ef27e63df20195fcfb2b45c95083ad39e6ddf7d3f78ae82383"
+  },
+  "originalBackup": {
+    "version": "1.42.645",
+    "build": "645",
+    "executableSha256": "e45dbd67acd99a9dd82ad146ea9bf2da92a412fcf53efc60884e9a38bcc4f9d5",
+    "codeResourcesSha256": "724d12be147149ef27e63df20195fcfb2b45c95083ad39e6ddf7d3f78ae82383"
+  },
+  "installedMatchesOriginalBackup": true,
+  "candidateSignatureVerified": true,
+  "installedAndBackupSignaturesVerified": true,
+  "installedApplicationReplaced": false,
+  "selfHostedRunners": {
+    "total_count": 0,
+    "source": "GET /repos/xykong/flux-markdown/actions/runners",
+    "scope": "Self-hosted runner inventory only; does not inventory GitHub-hosted machines."
+  },
+  "workflowRuntime": "macos-15; not proof of macOS 11 runtime",
+  "limitations": [
+    "Actual system QuickLook confirmed; Finder preview-pane not yet exercised",
+    "VoiceOver and independent human sign-off remain open",
+    "Old-system/physical Intel validation waived by user; compatibility remains unverified"
+  ],
+  "appAndExtensionExactResourceMatch": {
+    "filesEach": 173,
+    "extraFiles": 0,
+    "missingFiles": 0,
+    "contentDifferences": 0
+  },
+  "providerSelectionExplicitlyModified": false,
+  "actualProviderSelectionRevalidated": true,
+  "actualProviderEvidence": "authorized-native-host-validation.json",
+  "pendingSourceAtBuild": {},
+  "candidateRuntimeScope": "Local Debug build; not a macOS 11/Intel validation artifact.",
+  "workingTreeDirtyAtBuild": true,
+  "buildProvenance": "Built from native e5e859b and renderer sources subsequently committed in 868237a; temporary installed candidate moved back to staging after original restoration.",
+  "temporaryReplacementPerformed": true,
+  "originalInstallationRestored": true
+}

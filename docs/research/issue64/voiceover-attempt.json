@@ -1,0 +1,32 @@
+{
+  "scope": "Dedicated native WKWebView window with public fraction, powers and reference examples; not an unrelated user document",
+  "initialState": {
+    "VoiceOverRunning": false,
+    "allowAppleScriptControl": false
+  },
+  "observed": [
+    "Actual VoiceOver process started after welcome dialog",
+    "Read-only last-phrase requests timed out (-1712)",
+    "VoiceOver Utility AX checkbox initially 0; semantic activation did not change it",
+    "One coordinate attempt timed out; subsequent observation also timed out",
+    "VoiceOver quit; dedicated probe terminated",
+    "Utility reopened and fresh AX readback confirmed AppleScript control remains 0; utility closed afterward"
+  ],
+  "result": "Speech verification not achieved; no formula-reading correctness claim",
+  "restoredState": {
+    "VoiceOverRunning": false,
+    "allowAppleScriptControl": false
+  },
+  "limitations": [
+    "Assistive MathML tree exists, but actual spoken math/exploration remains unverified",
+    "No screenshots or text of unrelated user documents were read for this attempt"
+  ],
+  "secondAttempt": {
+    "foregroundSettingChange": "enabled and verified as 1 for the bounded test, then restored and verified as 0",
+    "readingControl": "AppleScript became responsive after enablement, but VO focus did not reliably stay in dedicated test window",
+    "systemEvents": "foreground-control AppleEvent explicitly denied (-1743); no bypass attempted",
+    "result": "no claimed mathematical speech acceptance",
+    "cleanup": "VoiceOver and test probe stopped; utility setting readback 0, utility closed",
+    "privacy": "No unrelated spoken content retained in evidence"
+  }
+}

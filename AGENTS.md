@@ -46,9 +46,11 @@ macOS QuickLook extension for Markdown files. Hybrid architecture: Native Swift 
 | **Host UI** | `Sources/Markdown/MarkdownApp.swift` | Minimal SwiftUI container. |
 | **Rendering** | `web-renderer/src/index.ts` | Markdown parsing (see subdir AGENTS.md). |
 | **Rules** | `.clinerules` | TDD & Doc-first requirements. |
-| **Release Process** | `docs/release/RELEASE_PROCESS.md` | Complete PR handling and release workflow. |
+| **Release Policy** | `docs/release/RELEASE_PROCESS.md` | Authoritative release, attribution and acceptance rules. |
+| **Release Runbook** | `docs/release/RELEASE_RUNBOOK.md` | Preparation, publication, correction and recovery commands. |
+| **Release Record** | `docs/release/RELEASE_RECORD_TEMPLATE.md` | Evidence and pending-state template; never prefill success. |
 | **Homebrew Cask (tap)** | `../homebrew-tap/Casks/flux-markdown.rb` | Full-featured version. Updated automatically by `update-homebrew-cask.sh`. |
-| **Homebrew Cask (official)** | `../homebrew-tap/Casks/flux-markdown-official.rb` | Official-compliant draft for homebrew/homebrew-cask submission. No formula deps. |
+| **Homebrew Cask (official)** | `../homebrew-tap/Drafts/flux-markdown-official.rb` | Official-compliant draft; updating it is not an upstream submission. |
 | **Homebrew Submission Guide** | `docs/release/HOMEBREW_SUBMISSION.md` | How to submit and maintain the official cask. |
 
 ## ARCHITECTURE & PATTERNS
@@ -56,14 +58,22 @@ macOS QuickLook extension for Markdown files. Hybrid architecture: Native Swift 
 - **Ephemeral Project**: `.xcodeproj` is ignored. Always use `xcodegen` (`make generate`).
 - **Versioning**: `.version` file stores full version (e.g., `1.13.149`). Build number (third part) aligns with git commit count.
 - **Sandbox**: App Sandbox enabled. Read-only access to files.
-- **Release Flow**: 
-  1. **PR Merged**: Run `./scripts/analyze-pr.sh <PR_NUMBER>` to generate CHANGELOG entry, add to `[Unreleased]` section.
-  2. **Release**: Run `make release [major|minor|patch]` → Updates `.version`, `CHANGELOG.md`, builds DMG, creates GitHub release.
-  3. **Homebrew**: Run `./scripts/update-homebrew-cask.sh` to update both tap and official cask files automatically.
-  4. See `docs/release/RELEASE_PROCESS.md` for complete workflow.
+- **Release Flow**:
+  1. **Prepare changes**: Verify issue/report authors, credit them inside the corresponding CHANGELOG items, test, and directly merge own work into master. PR analysis is only for external or explicitly requested PRs.
+  2. **Prepare artifacts**: Default to `RELEASE_REMOTE_BUILD=1 RELEASE_PREPARE_ONLY=1 make release minor`. The script owns version/build calculation, commits the version before tagging, and binds final artifacts in a manifest.
+  3. **Verify and publish**: Validate the final tag build, tests, macOS 11/universal targets, signatures and manifest, then run `scripts/publish-release.sh`. Explicitly commit/push noninteractive Homebrew changes and verify both remote cask files.
+  4. **Celebration artwork (required)**: Generate version-specific artwork, inspect the original and final 1200×800 WebP (target 100–200 KB), upload it at the top of Release Notes, verify public download and actual browser rendering. Broken/unavailable rendering remains pending.
+  5. **Close out**: Read back GitHub, the actual public Sparkle feed and Homebrew; verify inline credits, record evidence and remaining limits, and perform applicable issue follow-up. Published channels or a successful script do not imply all acceptance checks passed.
+  6. Read `docs/release/RELEASE_PROCESS.md` and `docs/release/RELEASE_RUNBOOK.md` before any release/correction. Use `docs/release/RELEASE_RECORD_TEMPLATE.md` for the result. Metadata corrections never rebuild published artifacts or rewrite manifest-bound notes.
 - **Homebrew Distribution**: Two tracks — tap version (full features) and official homebrew-cask (compliant, no formula deps). See `docs/release/HOMEBREW_SUBMISSION.md`.
 
 ## CONVENTIONS
+- **Own Development — No PRs**: For the maintainer's own development work,
+  including agent-authored fixes and features, verify locally, merge directly
+  into `master`, and push. Do not create a GitHub PR unless the user explicitly
+  requests one. PR workflows in other project documents apply to external
+  contributions or explicitly requested PRs, not our own development work.
+  This rule also applies when preparing a release. (Maintainer decision: 2026-11-08.)
 - **TDD**: Write tests/metrics *before* implementation (see `.clinerules`).
 - **Docs**: Create `docs/debug/DEBUG_*.md` for hard problems.
 - **Logs**: Use `os_log` via the JS bridge. Do not rely on `console.log` alone.
@@ -138,7 +148,9 @@ or a link to an empty feedback form does not satisfy them.
   - State which version fixed it and link to the release tag.
   - List the specific fixes relevant to that issue.
   - Provide update instructions (Homebrew + DMG link).
-- **No closing issues**: Only add `done` label + comment. The issue author decides when to close.
+- **Resolved issues**: Add `done` and a release reply; leave closure to the reporter.
+- **Inactive unresolved reports (maintainer decision, 2026-11-06)**: When the reporter's latest message (including the original issue if they never replied) is more than one calendar month old and needed evidence is still missing, close as `not planned`, not as fixed, without adding `done`. Maintainer replies do not reset the reporter's inactivity clock. Preserve the history; fresh evidence can justify reopening. Apply during issue reviews; this rule does not itself schedule or authorize an unattended closing job.
+- **Related reports**: Share investigation/tooling and cross-reference evidence; do not declare duplicate root causes solely from similar symptoms.
 
 ### Workflow for Closing Out Fixed Issues
 ```bash
@@ -148,7 +160,7 @@ gh issue edit <NUMBER> --add-label "done"
 # 2. Post reply (in the issue's language)
 gh issue comment <NUMBER> --body "..."
 
-# DO NOT run: gh issue close <NUMBER>
+# Unresolved inactive reports may be closed under the inactivity rule above.
 ```
 
 ### Issue Reply Template (English)
@@ -198,6 +210,15 @@ log stream --predicate 'subsystem == "com.markdownquicklook.app"' --level debug
 ```
 
 ## RELEASE VERSION POLICY
+
+- Release attribution must credit verified issue reporters as well as implementation
+  contributors, with profile and issue links. Keep GitHub Release Notes,
+  `CHANGELOG.md`, and the corresponding Sparkle description consistent. Verify
+  that complete `@handles` survive generated HTML; never infer a report is fixed
+  merely because it is credited. See `docs/release/RELEASE_PROCESS.md`.
+- Put each reporter/contributor credit directly in the corresponding feature or
+  fix item. Do not create a separate Acknowledgments/致谢 section or collective
+  thank-you list, including when repairing historical release notes.
 
 - Regular user-requested releases increment the minor version by default. Do not
   choose patch-only releases unless the user explicitly requests one. The third

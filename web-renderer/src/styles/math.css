@@ -1,0 +1,89 @@
+/* Mathematical order is independent of the surrounding document's direction. */
+.flux-math-source {
+    direction: ltr;
+    unicode-bidi: isolate;
+}
+div.flux-math-source {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    text-align: center;
+}
+.flux-math mjx-container {
+    direction: ltr;
+    color: inherit;
+}
+span.math-inline-overflow {
+    display: inline-block;
+    max-width: 100%;
+    overflow-x: auto;
+    vertical-align: middle;
+}
+.flux-math mjx-container:focus-visible,
+.flux-math-source:focus-visible,
+.flux-math a:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+}
+.math-reference-links {
+    display: inline-flex;
+    gap: .5em;
+    margin-inline-start: .5em;
+}
+.math-search-highlight {
+    outline: 2px solid #d4a017;
+    outline-offset: 2px;
+}
+.math-search-highlight.search-highlight-active {
+    outline-width: 3px;
+    outline-color: #bf8700;
+}
+.math-copy-inline > .block-copy-tools {
+    display: inline-flex;
+    margin-inline-start: 4px;
+    vertical-align: middle;
+}
+.math-copy-host > .block-copy-tools[data-copy-state="error"] {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    margin-inline-start: 0;
+}
+.math-copy-host .block-copy-error,
+.math-copy-host .block-copy-error button {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+}
+.math-copy-source {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    font: 12px ui-monospace, monospace;
+    direction: ltr;
+    -webkit-user-select: text;
+    user-select: text;
+}
+@media print {
+    span.math-inline-overflow {
+        display: inline;
+        max-width: none;
+        overflow: visible;
+        vertical-align: baseline;
+    }
+    div.flux-math-source {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        overflow: visible !important;
+    }
+    .flux-math mjx-container,
+    .flux-math mjx-container > svg {
+        overflow: visible !important;
+    }
+}

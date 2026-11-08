@@ -2,6 +2,15 @@ import AppKit
 import WebKit
 
 class NativeMagnifyingWebView: WKWebView {
+    override func accessibilityChildren() -> [Any]? {
+        var children = super.accessibilityChildren() ?? []
+        // WebKit normally exposes its remote document tree, omitting native overlays.
+        for notice in subviews.compactMap({ $0 as? IncidentNotice }) where !notice.isHidden {
+            if !children.contains(where: { ($0 as? NSView) === notice }) { children.append(notice) }
+        }
+        return children
+    }
+
     private var magnificationGestureRecognizer: NSMagnificationGestureRecognizer?
     private var magnificationBase: CGFloat = 1.0
 

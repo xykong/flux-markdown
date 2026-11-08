@@ -1,0 +1,28 @@
+{
+  "sourceImplementation": "031cc65",
+  "candidate": "build/issue64-host-validation/candidate-031cc65.app",
+  "nativeCasesPassed": 29,
+  "nativeLog": "/tmp/flux-issue64-resumed-native.log",
+  "actualAppObservation": {
+    "window": "Issue64-Candidate-Validation.md",
+    "screenshotAndAXRead": true,
+    "referenceActivation": "background AXPress; subsequent settled screenshot shows numbered equation (1), scroll position changes from 0% to 100%",
+    "screenshots": {
+      "state": {
+        "file": "resumed-app-state.png",
+        "sha256": "2e85ead3a4adea7cd629bb3430eacd9ee66ddb1f713443788158745c3adc9167"
+      },
+      "reference-settled": {
+        "file": "resumed-app-reference-settled.png",
+        "sha256": "64b958b31b01c4044f4c3d4f26249b689c014711832b04ff6228e3e1d0d123e3"
+      }
+    }
+  },
+  "notProven": [
+    "VoiceOver speech/exploration",
+    "system-selected candidate QuickLook/Finder",
+    "minimum macOS/physical Intel",
+    "memory budget acceptance",
+    "independent human sign-off"
+  ]
+}

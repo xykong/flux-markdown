@@ -102,3 +102,32 @@ extension UsageAttributionLifecycleTests {
         XCTAssertEqual(upload.snapshots.count, 1)
     }
 }
+
+
+extension UsageAttributionLifecycleTests {
+    func testAppAndQuickLookShareExactlyOneFirstUseAndBrokerLease() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let app = UsageTelemetry(directory: root)
+        let preview = UsageTelemetry(directory: root)
+        let now = Date()
+        let lock = NSLock()
+        var ids = Set<String>()
+        DispatchQueue.concurrentPerform(iterations: 40) { index in
+            let store = index % 2 == 0 ? app : preview
+            let id = store.transaction { state -> String? in
+                state.record(source: index % 2 == 0 ? "app" : "quicklook",
+                             version: "1.0.0", os: "12.0", at: now, seconds: 0, views: 1)
+                return state.lifecycle?.event_id
+            }
+            if let id = id ?? nil { lock.lock(); ids.insert(id); lock.unlock() }
+        }
+        XCTAssertEqual(ids.count, 1)
+        XCTAssertEqual(app.transaction { $0.buckets.reduce(0) { $0 + $1.documents_viewed } }, 40)
+        let upload = try XCTUnwrap(try XCTUnwrap(preview.transaction { $0.prepare(at: now) }))
+        XCTAssertEqual(upload.lifecycle?.event_id, ids.first)
+        XCTAssertNil(try XCTUnwrap(app.transaction { $0.prepare(at: now) }))
+        XCTAssertTrue(app.setEnabled(false))
+        XCTAssertNil(try XCTUnwrap(preview.transaction { $0.lifecycle }))
+    }
+}

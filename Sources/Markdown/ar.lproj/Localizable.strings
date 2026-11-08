@@ -51,7 +51,7 @@
 "Enable or disable rendering capabilities" = "تفعيل أو تعطيل إمكانات العرض";
 "Mermaid Diagrams" = "مخططات Mermaid";
 "Flowcharts, sequence diagrams, and more" = "المخططات الانسيابية ومخططات التسلسل والمزيد";
-"KaTeX Math" = "رياضيات KaTeX";
+"Mathematical Formulas" = "الصيغ الرياضية";
 "Mathematical expressions and equations" = "التعبيرات الرياضية والمعادلات";
 "Emoji Support" = "دعم الرموز التعبيرية";
 "GitHub flavored emoji codes like :smile:" = "رموز تعبيرية بنمط GitHub مثل :smile:";
@@ -250,3 +250,19 @@
 "Thank you. The source is linked to this installation. Effective use and return visits are measured separately when usage statistics are enabled." = "شكرًا لك. تم ربط المصدر بهذا التثبيت. يُقاس الاستخدام الفعلي والزيارات اللاحقة بشكل منفصل عند تفعيل إحصاءات الاستخدام.";
 
 "Open Promotion Page" = "فتح صفحة الترويج";
+
+/* Block copy controls */
+"Show Copy Buttons" = "إظهار أزرار النسخ";
+"Copy code and quotes. Reload open Quick Look previews to apply." = "نسخ التعليمات البرمجية والاقتباسات. أعد تحميل معاينات Quick Look المفتوحة لتطبيق التغيير.";
+"Text could not be copied" = "تعذر نسخ النص";
+"Select the text to copy it manually, or try the copy button again." = "حدد النص لنسخه يدويًا، أو جرّب زر النسخ مجددًا.";
+
+"Copy Document Path" = "نسخ مسار المستند";
+
+"New Document" = "مستند جديد";
+
+"Open…" = "فتح…";
+
+"Open Recent" = "فتح الأخيرة";
+
+"Clear Menu" = "مسح القائمة";

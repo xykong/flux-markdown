@@ -5,10 +5,273 @@ let app = NSApplication.shared
 app.setActivationPolicy(.prohibited)
 final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private var webView: WKWebView!
+    private var focusWindow: NSWindow?
+    private var previousApplication: NSRunningApplication?
+    private let mathPasteboard = NSPasteboard.withUniqueName()
+    private let mathCopyBridge = BlockCopyBridge()
+    private var failNextMathCopy = false
     private var started = false
     private var index = 0
     private var feedbackEvents: [[String: Any]] = []
-    private let cases: [(String, String)] = [
+    private var cases: [(String, String)] = [
+        ("SVG and Mermaid shared zoom controls", """
+        for(const context of ['app','quicklook']) {
+          await window.renderMarkdown('Body text\\n\\n![Diagram](diagram.svg)\\n\\n[![Linked](diagram.svg)](https://example.com)\\n\\n```mermaid\\ngraph TD; A-->B\\n```',{context,fontSize:16,imageData:{'diagram.svg':sizingSVGData}});
+          await window.waitForExportReady();
+          const root=document.getElementById('markdown-preview');
+          const images=root.querySelectorAll('img'), mermaid=root.querySelector('.mermaid svg');
+          const hosts=root.querySelectorAll('.svg-image-diagram');
+          if(hosts.length!==2)throw new Error('SVG controls missing');
+          const base=images[0].getBoundingClientRect().width, other=images[1].getBoundingClientRect().width, mermaidBase=mermaid.getBoundingClientRect().width;
+          const buttons=hosts[0].querySelectorAll('button');
+          buttons[2].click();
+          if(Math.abs(images[0].getBoundingClientRect().width/base-1.25)>0.01)throw new Error('SVG zoom factor mismatch');
+          if(images[1].getBoundingClientRect().width!==other || mermaid.getBoundingClientRect().width!==mermaidBase)throw new Error('SVG zoom changed another diagram');
+          buttons[1].click();
+          if(Math.abs(images[0].getBoundingClientRect().width-base)>1)throw new Error('SVG reset changed automatic size');
+          const rect=images[0].getBoundingClientRect(), viewport=hosts[0].querySelector('.svg-image-viewport').getBoundingClientRect();
+          if(Math.abs(rect.left-viewport.left-(viewport.right-rect.right))>1)throw new Error('SVG reset lost centering');
+          buttons[0].click();if(images[0].getBoundingClientRect().width>=base)throw new Error('SVG zoom out failed');
+          buttons[1].click();buttons[2].focus();
+          if(getComputedStyle(hosts[0].querySelector('.diagram-tools')).opacity!=='1')throw new Error('SVG keyboard controls hidden');
+          root.querySelector('.mermaid .diagram-tools button:last-child').click();
+          if(mermaid.getBoundingClientRect().width<=mermaidBase || images[0].getBoundingClientRect().width!==base)throw new Error('Mermaid zoom not independent');
+          if(images[1].closest('a')?.href!=='https://example.com/')throw new Error('SVG link lost');
+          root.style.width='360px';root.style.maxWidth='none';
+          buttons[2].click();buttons[2].click();
+          await new Promise(r=>setTimeout(r,50));
+          const scroll=hosts[0].querySelector('.svg-image-viewport');
+          if(scroll.scrollWidth<=scroll.clientWidth)throw new Error('enlarged SVG cannot scroll locally');
+          const exported=new DOMParser().parseFromString(window.exportHTML(),'text/html');
+          if(exported.querySelector('.diagram-tools'))throw new Error('diagram controls leaked into export');
+          root.style.width='';root.style.maxWidth='';
+        }
+        await window.renderMarkdown('# Replacement');
+        if(document.querySelector('.svg-image-diagram,.diagram-tools'))throw new Error('stale diagram controls');
+        return true;
+        """),
+        ("Referenced SVG intrinsic sizing at fullscreen widths", """
+        const source=new DOMParser().parseFromString(atob(sizingSVGData.split(',')[1]),'image/svg+xml');
+        const box=source.documentElement.getAttribute('viewBox').split(/[ ,]+/).map(Number);
+        for(const context of ['app','quicklook','finder']) {
+          await window.renderMarkdown('Body text\\n\\n![Diagram](diagram.svg)\\n\\n<img src="diagram.svg" width="96">',{context,fontSize:16,imageData:{'diagram.svg':sizingSVGData}});
+          await window.waitForExportReady();
+          const root=document.getElementById('markdown-preview'), img=root.querySelector('img');
+          if(Math.abs(img.naturalWidth-box[2])>1 || Math.abs(img.naturalHeight-box[3])>1)throw new Error('SVG internal viewport differs from drawing: '+img.naturalWidth+'x'+img.naturalHeight);
+          for(const width of [360,1800]) {
+            root.style.width=width+'px';root.style.maxWidth='none';
+            const rect=img.getBoundingClientRect();
+            const parent=img.parentElement.getBoundingClientRect();
+            if(Math.abs((rect.left-parent.left)-(parent.right-rect.right))>1)throw new Error('standalone SVG not centered in reading column');
+            if(rect.width>Math.min(width,box[2])+1)throw new Error('SVG expanded beyond drawing width: '+rect.width);
+            if(width===1800 && rect.width<box[2]*0.8)throw new Error('SVG shrank below readable native size: '+rect.width);
+            if(Math.abs(rect.width/rect.height-box[2]/box[3])>0.01)throw new Error('SVG aspect ratio changed');
+            if(16*rect.width/box[2]>parseFloat(getComputedStyle(root).fontSize)+0.1)throw new Error('SVG labels larger than body');
+          }
+          root.style.fontSize='12px';
+          if(img.getBoundingClientRect().width>box[2]*0.75+1)throw new Error('SVG font-size change ignored');
+          root.style.fontSize='24px';
+          if(img.getBoundingClientRect().width>box[2]+1)throw new Error('SVG enlarged with larger body text');
+          root.style.fontSize='16px';
+          if(root.querySelectorAll('img')[1].getBoundingClientRect().width>97)throw new Error('explicit icon size enlarged');
+          const exported=new DOMParser().parseFromString(window.exportHTML(),'text/html');
+          if(!exported.querySelector('img').style.maxWidth.includes('px'))throw new Error('SVG export cap missing');
+          if(!exported.querySelector('img').classList.contains('svg-standalone'))throw new Error('SVG export alignment missing');
+          root.style.width='';root.style.maxWidth='';
+        }
+        await window.renderMarkdown('# Reset'); return true;
+        """),
+        ("Mermaid body-size cap and independent zoom at narrow/fullscreen widths", """
+        const sources=['graph TD; A[Small diagram]-->B[Second node]', 'sequenceDiagram\\nAlice->>Bob: Hello\\nBob-->>Alice: Hi', 'gantt\\ntitle Schedule\\ndateFormat YYYY-MM-DD\\nsection Work\\nTask :2026-01-01, 3d', 'classDiagram\\nAnimal <|-- Duck\\nAnimal : +int age'];
+        for(const source of sources) {
+          await window.renderMarkdown('Body text\\n\\n```mermaid\\n'+source+'\\n```\\n\\n```mermaid\\ngraph TD; X-->Y\\n```',{fontSize:16,context:'app'});
+          const root=document.getElementById('markdown-preview');
+          for(const width of [360,1600]) {
+            root.style.width=width+'px';root.style.maxWidth='none';
+            window.dispatchEvent(new Event('resize'));
+            await new Promise(resolve=>setTimeout(resolve,50));
+            for(const host of root.querySelectorAll('.mermaid')) {
+              const svg=host.querySelector('svg');if(!svg)throw new Error('diagram failed');
+              const scale=svg.getBoundingClientRect().width/svg.viewBox.baseVal.width;
+              const body=parseFloat(getComputedStyle(root).fontSize);
+              for(const label of svg.querySelectorAll('text,tspan,foreignObject *')) {
+                if(![...label.childNodes].some(n=>n.nodeType===3&&n.textContent.trim()))continue;
+                if(parseFloat(getComputedStyle(label).fontSize)*scale>body+0.5)throw new Error('label exceeds body size');
+              }
+              if(svg.getBoundingClientRect().width>host.clientWidth+1)throw new Error('automatic diagram overflows');
+            }
+          }
+          const diagrams=root.querySelectorAll('.mermaid');
+          const first=diagrams[0].querySelector('svg'), second=diagrams[1].querySelector('svg');
+          const before=first.getBoundingClientRect().width, other=second.getBoundingClientRect().width;
+          const buttons=diagrams[0].querySelectorAll('button');
+          buttons[2].click();
+          if(first.getBoundingClientRect().width<=before||second.getBoundingClientRect().width!==other)throw new Error('zoom not isolated');
+          buttons[1].click();if(Math.abs(first.getBoundingClientRect().width-before)>1)throw new Error('reset mismatch');
+          buttons[0].focus();if(getComputedStyle(diagrams[0].querySelector('.mermaid-tools')).opacity!=='1')throw new Error('keyboard controls hidden');
+          const exported=new DOMParser().parseFromString(window.exportHTML(),'text/html');
+          if(exported.querySelector('.mermaid-tools'))throw new Error('controls leaked into export');
+          root.style.width='';root.style.maxWidth='';
+        }
+        await window.renderMarkdown('# Reset');return true;
+        """),
+        ("lightweight definition abbreviation and insertion syntax", """
+        const source='Term\\n: Definition **bold**\\n\\nHTML and ++inserted++ and `++literal++`\\n\\n*[HTML]: HyperText Markup Language';
+        for(const context of ['app','quicklook','finder']) for(const theme of ['light','dark']) {
+          await window.renderMarkdown(source,{context,theme});
+          const root=document.getElementById('markdown-preview');
+          if(root.querySelector('dt')?.textContent!=='Term'||root.querySelector('dd strong')?.textContent!=='bold')throw new Error('definition list lost');
+          if(root.querySelector('abbr')?.title!=='HyperText Markup Language'||root.querySelector('ins')?.textContent!=='inserted'||root.querySelector('code')?.textContent!=='++literal++')throw new Error('inline extension mismatch');
+          for(const el of root.querySelectorAll('dt,dd,abbr,ins')) {
+            const box=el.getBoundingClientRect();if(box.width<=0||box.height<=0)throw new Error('invisible extension');
+          }
+          await window.waitForExportReady();
+          const exported=new DOMParser().parseFromString(window.exportHTML(),'text/html');
+          if(!exported.querySelector('dl')||!exported.querySelector('abbr[title]')||!exported.querySelector('ins'))throw new Error('export lost extensions');
+        }
+        await window.renderMarkdown('HTML',{context:'app',theme:'light'});
+        if(document.querySelector('#markdown-preview abbr'))throw new Error('abbreviation leaked across documents');
+        await window.renderMarkdown(source,{context:'app'});window.showSearch();
+        const input=document.querySelector('.search-input');input.value='inserted';input.dispatchEvent(new Event('input',{bubbles:true}));
+        if(!document.querySelector('.search-match-counter').textContent.includes('/1'))throw new Error('inserted text not searchable');
+        window.hideSearch();await window.renderMarkdown('# Reset');return true;
+        """),
+        ("mixed-language contents direction and targets", """
+        for(const uiLanguage of ['en','ar']) for(const contentsSide of ['left','right']) {
+          await window.renderMarkdown('# مقدمة\\n\\n## שלום עולם\\n\\n## English title\\n\\n## التفاصيل\\n\\n## التفاصيل',{context:'app',uiLanguage,contentsSide});
+          const links=[...document.querySelectorAll('.toc-link')];
+          if(links.length!==5)throw new Error('missing headings');
+          if(new Set(links.map(a=>a.hash)).size!==5)throw new Error('duplicate anchors');
+          for(let i=0;i<links.length;i++) {
+            const link=links[i], rtl=i!==2;
+            const target=document.getElementById(decodeURIComponent(link.hash.slice(1)));
+            if(!target)throw new Error('missing target');
+            const style=getComputedStyle(link);
+            if(style.direction!==(rtl?'rtl':'ltr'))throw new Error('wrong heading direction');
+            if(!(rtl?parseFloat(style.paddingRight)>parseFloat(style.paddingLeft):parseFloat(style.paddingLeft)>parseFloat(style.paddingRight)))throw new Error('wrong indentation');
+            link.classList.add('active');
+            const marker=getComputedStyle(link,'::before');
+            if((rtl?marker.right:marker.left)!=='0px')throw new Error('wrong active edge');
+            link.click();
+            if(link.getAttribute('aria-current')!=='location')throw new Error('navigation did not activate target');
+          }
+          if(document.documentElement.dataset.tocSide!==contentsSide)throw new Error('physical side changed');
+        }
+        await window.renderMarkdown('# Reset',{uiLanguage:'en',contentsSide:'right'}); return true;
+        """),
+        ("Quick Look probe requires completed visible current fixture", """
+        const heading='FluxMarkdown Quick Look Test', bold='Rendered Markdown';
+        const fixture='# '+heading+'\\n\\n**'+bold+'** confirms the extension was selected.';
+        const verify=()=>window.verifyQuickLookProbe(heading,bold);
+        await window.renderMarkdown(fixture,{context:'quicklook'});
+        if(!verify())throw new Error('valid fixture rejected');
+        window.invalidateRender();
+        if(verify())throw new Error('stale generation accepted');
+        await window.renderMarkdown(fixture,{context:'quicklook'});
+        window.renderSource(fixture,'light');
+        if(verify())throw new Error('source accepted');
+        await window.renderMarkdown(fixture,{context:'quicklook'});
+        const root=document.getElementById('markdown-preview');
+        root.style.display='none';
+        if(verify())throw new Error('hidden fixture accepted');
+        root.style.display='';
+        root.id='temporarily-missing-preview';
+        await window.renderMarkdown(fixture,{context:'quicklook'});
+        if(verify())throw new Error('missing root accepted');
+        root.id='markdown-preview';
+        if(verify())throw new Error('old content accepted after failed render');
+        await window.renderMarkdown('# Wrong',{context:'quicklook'});
+        if(verify())throw new Error('wrong fixture accepted');
+        await window.renderMarkdown(fixture,{context:'quicklook'});
+        const random=crypto.getRandomValues;
+        crypto.getRandomValues=()=>{throw new Error('injected probe failure')};
+        try{await window.renderMarkdown(fixture,{context:'quicklook'});}finally{crypto.getRandomValues=random;}
+        if(verify() || !root.querySelector('.render-error'))throw new Error('caught failure accepted');
+        await window.renderMarkdown('# Restored',{context:'app'});
+        return true;
+        """),
+        ("block copy delayed visibility and focus", """
+        await window.renderMarkdown('```\\nhello\\n```',{context:'app',showCopyButtons:true});
+        const nativeFocusDeadline=performance.now()+4000;
+        while(!document.hasFocus() && performance.now()<nativeFocusDeadline)await new Promise(r=>setTimeout(r,50));
+        if(!document.hasFocus())throw new Error('Environment: native test window did not become active');
+        const tools=document.querySelector('.block-copy-tools'),button=tools.querySelector('button');
+        const opacity=()=>Number(getComputedStyle(tools).opacity);
+        const hoverless=matchMedia('(hover: none)').matches;
+        const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const waitForOpacity=async expected=>{
+          const deadline=performance.now()+4000;
+          while(Math.abs(opacity()-expected)>0.001 && performance.now()<deadline)await new Promise(r=>setTimeout(r,50));
+        };
+        await waitForOpacity(0);
+        if(!hoverless && opacity()!==0) throw new Error('Idle copy button is visible '+JSON.stringify({opacity:opacity(),active:document.activeElement?.outerHTML,hover:tools.parentElement.matches(':hover'),focus:tools.matches(':focus-within'),state:tools.dataset.copyState,hoverless,reduced}));
+        button.focus();
+        await new Promise(r=>setTimeout(r,30));
+        if(opacity()!==1) throw new Error('Keyboard focus did not reveal copy '+JSON.stringify({opacity:opacity(),active:document.activeElement?.outerHTML,focus:tools.matches(':focus-within'),hoverless}));
+        button.blur();
+        if(!hoverless && !reduced) {
+          await new Promise(r=>setTimeout(r,300));
+          if(opacity()!==1)throw new Error('Copy hid before exit delay');
+          button.focus();
+          await new Promise(r=>setTimeout(r,700));
+          if(opacity()!==1)throw new Error('Reentry did not cancel hiding');
+          button.blur();
+          await waitForOpacity(0);
+          if(opacity()!==0)throw new Error('Copy did not fade out');
+        }
+        tools.dataset.copyState='error';
+        if(opacity()!==1)throw new Error('Failure recovery is hidden');
+        delete tools.dataset.copyState;
+        await window.renderMarkdown('# Reset',{showCopyButtons:false}); return true;
+        """),
+        ("block copy contexts, accessibility, export and synthetic-event rejection", """
+        window.setFeedbackGeneration('33333333-3333-3333-3333-333333333333');
+        const sample='```sh\\n\\techo "中文 & 😀"\\n\\n```\\n\\n> Quote\\n>\\n> > Nested\\n\\n> [!NOTE]\\n> Body';
+        let writes=0;
+        const original=window.webkit.messageHandlers.blockCopy;
+        window.webkit.messageHandlers.blockCopy={postMessage:()=>{writes++}};
+        for (const context of ['app','quicklook','finder']) {
+          await window.renderMarkdown(sample,{context,showCopyButtons:true,showLineNumbers:true,uiLanguage:'en'});
+          const buttons=[...document.querySelectorAll('.block-copy-tools > button')];
+          if(context==='finder') {if(buttons.length) return false;continue;}
+          if(buttons.length!==4 || buttons.some(b=>!b.getAttribute('aria-label')||b.type!=='button')) return false;
+          buttons[0].click();
+          if(writes!==0) return false;
+          const html=new DOMParser().parseFromString(window.exportHTML(),'text/html');
+          if(html.querySelector('.block-copy-tools,.block-copy-host') || !html.querySelector('code').textContent.includes('中文')) return false;
+          const pre=document.querySelector('pre').getBoundingClientRect();
+          const toolbar=buttons[0].parentElement.getBoundingClientRect();
+          if(toolbar.bottom>pre.top+1) throw new Error('Copy toolbar overlaps code');
+        }
+        window.webkit.messageHandlers.blockCopy=original;
+        await window.renderMarkdown(sample,{context:'app',showCopyButtons:false});
+        return !document.querySelector('.block-copy-tools,.block-copy-host');
+        """),
+        ("block copy narrow RTL geometry", """
+        for(const uiLanguage of ['en','ar']) for(const theme of ['light','dark']) {
+          await window.renderMarkdown('```\\n'+'LongCode'.repeat(400)+'\\n```\\n\\n> Quote',{context:'app',showCopyButtons:true,uiLanguage,theme});
+          for(const button of document.querySelectorAll('.block-copy-tools > button')) {
+            const rect=button.getBoundingClientRect();
+            if(rect.width<20 || rect.left<0 || rect.right>window.innerWidth+1) return false;
+            if(!button.getAttribute('aria-label'))return false;
+          }
+          const pre=document.querySelector('pre');
+          if(pre.scrollWidth<=pre.clientWidth || document.documentElement.scrollWidth>window.innerWidth+1)return false;
+        }
+        await window.renderMarkdown('# Reset',{context:'app',uiLanguage:'en',theme:'light'});return true;
+        """),
+        ("block copy large document timing", """
+        const text=Array(300).fill('```sh\\n  echo hello\\n```\\n\\n> A quoted paragraph.\\n').join('\\n');
+        const samples={off:[],on:[]};
+        for(let i=0;i<3;i++) for(const enabled of [false,true]) {
+          const start=performance.now();
+          await window.renderMarkdown(text,{context:'app',showCopyButtons:enabled,showLineNumbers:false});
+          samples[enabled?'on':'off'].push(performance.now()-start);
+          if(document.querySelectorAll('.block-copy-tools').length!==(enabled?600:0))return false;
+        }
+        window.webkit.messageHandlers.logger.postMessage('COPY performance ms '+JSON.stringify(samples));
+        await window.renderMarkdown('# Reset',{showCopyButtons:false}); return true;
+        """),
         ("TSV safe bounded table and source", """
         const row=Array(100).fill('<img src=x>').join('\\t');
         const start=performance.now();
@@ -36,6 +299,96 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         """),
         ("passive HTML", "await window.renderMarkdown('<img src=\"missing.png\" onerror=\"window.pwned=true\"><details><summary>ok</summary></details>'); return !document.querySelector('[onerror]') && !window.pwned && !!document.querySelector('details');"),
         ("new render wins", "const a=window.renderMarkdown('# OLD\\n\\n$x$'); const b=window.renderMarkdown('# NEW',{enableKatex:false}); await Promise.all([a,b]); return document.querySelector('h1').textContent==='NEW';"),
+        ("math native keyboard copy and reference", """
+        window.setFeedbackGeneration('math-keyboard');
+        const source=String.raw`\\(\\frac{x}{2}\\)`;
+        await window.renderMarkdown(source+'\\n\\n'+String.raw`\\(\\eqref{x}\\)`+'\\n\\n'+Array(60).fill('Spacer paragraph.').join('\\n\\n')+'\\n\\n'+String.raw`\\[x=1\\tag{A}\\label{x}\\]`,{context:'app',showCopyButtons:true});
+        const nativeFocusDeadline=performance.now()+4000;
+        while(!document.hasFocus() && performance.now()<nativeFocusDeadline)await new Promise(r=>setTimeout(r,50));
+        if(!document.hasFocus())throw new Error('Environment: native test window did not become active');
+        const button=document.querySelector('.math-copy-inline .block-copy-tools > button');
+        button.focus();
+        window.webkit.messageHandlers.nativeMathKey.postMessage('space');
+        const deadline=performance.now()+5000;
+        while(!document.querySelector('.math-copy-inline [data-copy-state="success"]') && performance.now()<deadline)await new Promise(r=>setTimeout(r,30));
+        if(!document.querySelector('.math-copy-inline [data-copy-state="success"]'))throw new Error('Native key copy was not acknowledged');
+        const link=document.querySelector('a.math-reference-link');
+        const target=document.getElementById(decodeURIComponent(link.getAttribute('href').slice(1)));
+        const before=target.getBoundingClientRect().top;
+        link.focus();window.webkit.messageHandlers.nativeMathKey.postMessage('enter');
+        const until=performance.now()+3000;
+        while(target.getBoundingClientRect().top>window.innerHeight && performance.now()<until)await new Promise(r=>setTimeout(r,30));
+        if(!(before>window.innerHeight && target.getBoundingClientRect().top<window.innerHeight))throw new Error('Reference did not scroll into view');
+        await window.renderMarkdown('$'+Array(80).fill('x').join('+')+'$',{context:'app',showCopyButtons:false});
+        const scrolling=document.querySelector('.math-inline-overflow');
+        if(!scrolling || scrolling.tabIndex!==0)throw new Error('Wide inline formula lacks focusable scroll surface');
+        scrolling.scrollLeft=0;scrolling.focus();
+        const scrollKeyEvidence=[];
+        scrolling.addEventListener('keydown',event=>{scrollKeyEvidence.push({key:event.key,trusted:event.isTrusted,focused:document.hasFocus(),prevented:event.defaultPrevented});},{once:true});
+        window.webkit.messageHandlers.nativeMathKey.postMessage('right');
+        const scrollDeadline=performance.now()+3000;
+        while(scrolling.scrollLeft===0 && performance.now()<scrollDeadline)await new Promise(r=>setTimeout(r,30));
+        if(!(scrolling.scrollLeft>0 && window.scrollX===0))throw new Error(JSON.stringify({scrollLeft:scrolling.scrollLeft,width:scrolling.clientWidth,scrollWidth:scrolling.scrollWidth,windowX:window.scrollX,active:document.activeElement?.className,tabIndex:scrolling.tabIndex,documentFocused:document.hasFocus(),keys:scrollKeyEvidence}));
+        window.webkit.messageHandlers.nativeMathKey.postMessage('narrow');
+        const narrowDeadline=performance.now()+3000;
+        while(window.innerWidth>160 && performance.now()<narrowDeadline)await new Promise(r=>setTimeout(r,30));
+        if(window.innerWidth>160)throw new Error('Native narrow zoom did not settle');
+        for(const uiLanguage of ['en','de','ar']) for(const failedSource of [source, '$$'+String.fromCharCode(10)+String.raw`\\frac{x}{2}`+String.fromCharCode(10)+'$$']) {
+          await window.renderMarkdown(failedSource,{context:'app',showCopyButtons:true,uiLanguage});
+          document.querySelector('.math-copy-host .block-copy-tools > button').focus();
+          window.webkit.messageHandlers.nativeMathKey.postMessage('failed-space');
+          const failureDeadline=performance.now()+3000;
+          while(!document.querySelector('.math-copy-source') && performance.now()<failureDeadline)await new Promise(r=>setTimeout(r,30));
+          const recovery=document.querySelector('.math-copy-source');
+          if(!recovery || recovery.value!==failedSource || !recovery.readOnly)throw new Error('Copy failure lost original formula');
+          const live=document.querySelector('.math-copy-host [role="status"]');
+          if(!live?.textContent.trim() || live.getAttribute('aria-live')!=='polite')throw new Error('Copy failure lacks a live status update');
+          if(document.querySelector('.math-copy-host').textContent.split(live.textContent).length!==2)throw new Error('Copy failure instruction is duplicated');
+          if(document.documentElement.scrollWidth>window.innerWidth+1)throw new Error('Copy failure causes whole-page horizontal overflow: '+uiLanguage);
+          for(const control of document.querySelectorAll('.block-copy-error button,.math-copy-source')) {
+            const rect=control.getBoundingClientRect();
+            if(rect.width<=0 || rect.left< -1 || rect.right>innerWidth+1)throw new Error('Copy recovery control escapes the viewport');
+          }
+          const select=document.querySelector('.block-copy-error > button');
+          select.focus();window.webkit.messageHandlers.nativeMathKey.postMessage('enter');
+          const selectionDeadline=performance.now()+3000;
+          while((document.activeElement!==recovery || recovery.selectionStart!==0 || recovery.selectionEnd!==failedSource.length) && performance.now()<selectionDeadline)await new Promise(r=>setTimeout(r,30));
+          if(document.activeElement!==recovery || recovery.selectionStart!==0 || recovery.selectionEnd!==failedSource.length)throw new Error('Native select-source recovery failed');
+          await window.waitForExportReady();
+          const exported=new DOMParser().parseFromString(window.exportHTML(),'text/html');
+          if(exported.querySelector('.math-copy-source,.block-copy-error,.error-feedback-controls,.math-copy-host') || exported.querySelectorAll('mjx-container').length!==1)throw new Error('Copy failure polluted mathematical export');
+        }
+        window.webkit.messageHandlers.nativeMathKey.postMessage('restore-size');
+        const restoreDeadline=performance.now()+3000;
+        while(window.innerWidth<800 && performance.now()<restoreDeadline)await new Promise(r=>setTimeout(r,30));
+        if(window.innerWidth<800)throw new Error('Native view size was not restored');
+        await window.renderMarkdown('# Restored',{context:'app',uiLanguage:'en',showCopyButtons:false});
+        return true;
+        """),
+        ("math baseline API compatibility and reference export", """
+        const descriptor=Object.getOwnPropertyDescriptor(Object,'hasOwn');
+        Reflect.deleteProperty(Object,'hasOwn');
+        try {
+          const source=String.raw`\\[x^2\\tag{A}\\label{constructor}\\]`+'\\n\\n'+String.raw`\\(\\eqref{constructor}\\)`;
+          const rendering=window.renderMarkdown(source,{context:'quicklook'});
+          await window.waitForExportReady();await rendering;
+          const root=document.getElementById('markdown-preview');
+          if(root.querySelectorAll('mjx-container').length!==2 || root.querySelector('.math-error'))return false;
+          const html=new DOMParser().parseFromString(window.exportHTML(),'text/html');
+          const link=html.querySelector('a[href^="#"]');
+          return typeof Object.hasOwn==='function' && !!link && !!html.getElementById(decodeURIComponent(link.getAttribute('href').slice(1))) && !html.querySelector('script');
+        } finally {if(descriptor)Object.defineProperty(Object,'hasOwn',descriptor);}
+        """),
+        ("letter sequences and copyright typography", """
+        for (const context of ['app','quicklook']) {
+          await window.renderMarkdown('(a) first\\n\\n**(b)** second\\n\\n(c) third\\n\\n(c) 2026 (tm)',{context});
+          const text=document.getElementById('markdown-preview').textContent;
+          if(!text.includes('(c) third') || !text.includes('© 2026 ™')) return false;
+          const html=new DOMParser().parseFromString(window.exportHTML(),'text/html');
+          if(!html.body.textContent.includes('(c) third')) return false;
+        }
+        return true;
+        """),
         ("math and emoji", "await window.renderMarkdown('$x$ :smile:'); await window.renderMarkdown(':smile:',{enableKatex:false}); return !document.getElementById('markdown-preview').textContent.includes(':smile:');"),
         ("native Typst offline", "const oldFetch=window.fetch; window.fetch=(url,...args)=>{if(/^https?:/.test(String(url))) throw new Error('Unexpected network font/package request'); return oldFetch(url,...args)}; await window.renderMarkdown('```typst\\nsum_(i=1)^n i\\n```',{context:'app'}); window.fetch=oldFetch; return !!document.querySelector('.typst-native svg use') && !document.querySelector('.typst-native style') && !document.querySelector('pre .typst-native');"),
         ("Mermaid", "await window.renderMarkdown('```mermaid\\ngraph TD; A-->B\\n```'); return !!document.querySelector('.mermaid svg') && !document.querySelector('.mermaid-error');"),
@@ -54,7 +407,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         return true;
         """),
         ("local image", "await window.renderMarkdown('![Image](pixel.png)',{baseUrl:imageBase}); await window.waitForExportReady(); return document.querySelector('#markdown-preview img').naturalWidth===1;"),
-        ("export ready", "await window.renderMarkdown('# Export\\n\\n$\\\\frac{a}{b}$'); await window.waitForExportReady(5000); return !!document.querySelector('.katex');"),
+        ("export ready", "await window.renderMarkdown('# Export\\n\\n$\\\\frac{a}{b}$'); await window.waitForExportReady(5000); return !!document.querySelector('mjx-container svg') && !!document.querySelector('mjx-assistive-mml mfrac');"),
         ("search and refresh", "await window.renderMarkdown('# Search\\n\\nAlpha Alpha',{context:'app'});window.showSearch(); const input=document.querySelector('.search-input');input.value='Alpha';input.dispatchEvent(new Event('input',{bubbles:true}));if(!document.querySelector('.search-match-counter').textContent.includes('/2'))return false; await window.renderMarkdown('# Search\\n\\nAlpha Alpha Alpha',{context:'app'});const ok=input.value==='Alpha'&&document.querySelector('.search-match-counter').textContent.includes('/3');window.hideSearch();return ok;"),
         ("outline and positioned source", "await window.renderMarkdown('---\\ntitle: Test\\n---\\n# One\\n\\n## Two',{context:'app'});if(!document.querySelector('#toc-container a[href=\"#two\"]'))return false;if(!window.navigateDocumentPosition({line:6}))return false;window.renderSource('# One\\n\\n## Two','light');return document.getElementById('markdown-preview').classList.contains('source-mode') && window.navigateDocumentPosition({line:3});"),
         ("theme font zoom and RTL", "await window.renderMarkdown('# مرحبا بالعالم\\n\\nهذا نص عربي لاختبار اتجاه القراءة',{context:'app',theme:'dark'});window.setFontSize(18);window.setZoomLevel(1.25);const root=document.getElementById('markdown-preview');const ok=root.getAttribute('dir')==='rtl'&&document.documentElement.dataset.theme==='dark'&&root.style.fontSize==='18px';window.setZoomLevel(1);return ok;"),
@@ -137,9 +490,29 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     ![](plugin/assets/plugin.svg)
     """
     var svgImageData: [String: String] = [:]
+    var sizingSVGData = ""
+
     func run() {
+        if let filter = ProcessInfo.processInfo.environment["FLUX_WEBKIT_CASE_FILTER"] {
+            cases = cases.filter { $0.0.localizedCaseInsensitiveContains(filter) }
+            guard !cases.isEmpty else { fputs("FAIL no matching integration cases\n", stderr); exit(1) }
+        }
+        let sizingSVG: Data
+        if let fixture = ProcessInfo.processInfo.environment["FLUX_SVG_SIZING_FIXTURE"] {
+            sizingSVG = try! BoundedFileReader.read(URL(fileURLWithPath: fixture), maxBytes: 8 * 1024 * 1024)
+        } else {
+            sizingSVG = Data(#"<svg xmlns="http://www.w3.org/2000/svg" width="100%" style="max-width:586.5px" viewBox="4 4 586.5 1088"><style>text {font-size:16px}</style><rect x="4" y="4" width="586.5" height="1088" fill="lightgray"/><text x="20" y="40">Diagram label</text></svg>"#.utf8)
+        }
+        let sizingDirectory = URL(fileURLWithPath: CommandLine.arguments[2])
+        try! sizingSVG.write(to: sizingDirectory.appendingPathComponent("diagram.svg"))
+        let sizingImages = MarkdownImageDataCollector.collectImageData(
+            from: sizingDirectory.appendingPathComponent("sizing.md"), content: "![Diagram](diagram.svg)", fileExtensions: ["svg"])
+        guard let sizingData = sizingImages["diagram.svg"] else { fatalError("SVG sizing collector failed") }
+        sizingSVGData = sizingData
         let config = WKWebViewConfiguration()
         config.userContentController.add(self, name: "logger")
+        config.userContentController.add(self, name: "blockCopy")
+        config.userContentController.add(self, name: "nativeMathKey")
         config.userContentController.add(self, name: "errorFeedback")
         config.setURLSchemeHandler(RendererBundleSchemeHandler(rootDirectory: URL(fileURLWithPath: CommandLine.arguments[1])), forURLScheme: RendererBundleSchemeHandler.scheme)
         let imageDirectory = URL(fileURLWithPath: CommandLine.arguments[2])
@@ -161,24 +534,85 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     }
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
         guard RendererBridgePolicy.accepts(message) else { print("FAIL bridge origin"); exit(1) }
+        if message.name == "blockCopy" {
+            if failNextMathCopy, let body = message.body as? [String: Any],
+               let id = body["id"] as? String, let generation = body["generation"] as? String {
+                failNextMathCopy = false
+                webView.callAsyncJavaScript("window.blockCopyResult(id, generation, false)", arguments: ["id":id,"generation":generation], in: nil, in: .page) { _ in }
+                return
+            }
+            mathCopyBridge.handle(message, generation: "math-keyboard", enabled: true, pasteboard: mathPasteboard)
+            return
+        }
+        if message.name == "nativeMathKey", let key = message.body as? String, let window = focusWindow {
+            if key == "narrow" || key == "restore-size" {
+                let narrow = key == "narrow"
+                window.setContentSize(NSSize(width: narrow ? 320 : 800, height: 600))
+                webView.pageZoom = narrow ? 2 : 1
+                return
+            }
+            guard ["space", "enter", "right", "failed-space"].contains(key) else { exit(1) }
+            if key == "failed-space" { failNextMathCopy = true }
+            let space = key == "space" || key == "failed-space"
+            let characters = space ? " " : key == "right" ? "\u{F703}" : "\r"
+            let code: UInt16 = space ? 49 : key == "right" ? 124 : 36
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                for type in [NSEvent.EventType.keyDown, .keyUp] {
+                    if let event = NSEvent.keyEvent(with: type, location: .zero, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: window.windowNumber, context: nil, characters: characters, charactersIgnoringModifiers: characters, isARepeat: false, keyCode: code) {
+                        window.sendEvent(event)
+                    }
+                }
+            }
+            return
+        }
         if message.name == "errorFeedback", let body = message.body as? [String: Any] { feedbackEvents.append(body); return }
         guard let text = message.body as? String else { return }
-        if text.contains("Error") || text.contains("fallback") || text.hasPrefix("TSV 20,000") { print(text) }
+        if text.contains("Error") || text.contains("fallback") || text.hasPrefix("TSV 20,000") || text.hasPrefix("COPY performance") { print(text) }
         if text == "rendererReady" && !started { started = true; next() }
     }
     private func next() {
         if index == cases.count { print("PASS all \(cases.count) real WebKit cases"); exit(0) }
         let (name, js) = cases[index]
+        if name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
+            // :focus-within requires an active WebKit page, not just activeElement
+            // in the otherwise windowless integration harness.
+            guard let policy = TestWindowPolicy(environment: ProcessInfo.processInfo.environment), policy.allowsFocus else {
+                fputs("FAIL Environment: foreground test interaction is disabled by window policy\n", stderr); exit(1)
+            }
+            let window = NSWindow(contentRect: webView.frame, styleMask: [.titled], backing: .buffered, defer: false)
+            guard let frame = policy.frame(size: window.frame.size, screens: NSScreen.screens.map { $0.visibleFrame }) else {
+                fputs("FAIL Environment: required test display is unavailable or too small\n", stderr); exit(1)
+            }
+            window.setFrame(frame, display: false)
+            previousApplication = NSWorkspace.shared.frontmostApplication
+            app.setActivationPolicy(.accessory)
+            window.contentView = webView
+            window.makeKeyAndOrderFront(nil)
+            window.makeFirstResponder(webView)
+            app.activate(ignoringOtherApps: true)
+            focusWindow = window
+        }
         if name == "wide reading layout" || name == "RTL wide geometry" { webView.setFrameSize(NSSize(width: 1800, height: 900)) }
-        if name == "narrow reading layout" || name == "RTL narrow geometry" { webView.setFrameSize(NSSize(width: 600, height: 600)) }
-        webView.callAsyncJavaScript(js, arguments: ["imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData], in: nil, in: .page) { result in
+        if name == "narrow reading layout" || name == "RTL narrow geometry" || name == "block copy narrow RTL geometry" { webView.setFrameSize(NSSize(width: 600, height: 600)) }
+        webView.callAsyncJavaScript(js, arguments: ["imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData, "sizingSVGData": sizingSVGData], in: nil, in: .page) { result in
             switch result {
             case .success(let value) where value as? Bool == true:
+                if name == "math native keyboard copy and reference" {
+                    guard self.mathPasteboard.string(forType: .string) == #"\(\frac{x}{2}\)"# else { print("FAIL mathematical clipboard source"); exit(1) }
+                    self.mathPasteboard.releaseGlobally()
+                }
                 if name == "contextual feedback bridge" {
                     let reports = self.feedbackEvents.filter { $0["action"] as? String == "report" }
                     guard reports.count == 1, reports[0]["kind"] as? String == "mermaid",
                           reports[0]["generation"] as? String == "11111111-1111-1111-1111-111111111111",
                           !String(describing: self.feedbackEvents).contains("SAMPLE-DO-NOT-INCLUDE") else { print("FAIL feedback payload or stale action"); exit(1) }
+                }
+                if name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
+                    self.focusWindow?.contentView = nil
+                    self.focusWindow?.orderOut(nil)
+                    self.focusWindow = nil
+                    self.previousApplication?.activate(options: [.activateIgnoringOtherApps])
+                    app.setActivationPolicy(.prohibited)
                 }
                 print("PASS \(name)"); self.index += 1; self.next()
             default: print("FAIL \(name): \(result)"); exit(1)

@@ -3,6 +3,12 @@
  * Extracts heading structure from markdown-it tokens to build a table of contents
  */
 
+/** Preserve existing nonempty anchors; give non-Latin-only titles a usable fallback. */
+export function headingSlug(text: string): string {
+    const legacy = text.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-').replace(/^-+|-+$/g, '');
+    return legacy || text.toLowerCase().replace(/[^\p{L}\p{N}_]+/gu, '-').replace(/^-+|-+$/g, '') || 'section';
+}
+
 export interface HeadingNode {
     level: number;        // 1-6 for h1-h6
     text: string;         // Heading text content
@@ -42,7 +48,7 @@ export function extractHeadings(tokens: any[]): HeadingNode[] {
             
             // If no id found, generate one (fallback)
             if (!id) {
-                id = text.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-').replace(/^-+|-+$/g, '');
+                id = headingSlug(text);
             }
             
             headings.push({

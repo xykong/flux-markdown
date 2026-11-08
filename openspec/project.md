@@ -34,9 +34,12 @@ FluxMarkdown 是一个 macOS QuickLook 扩展，让用户在 Finder 中按 Space
 - 新功能必须有对应测试；性能优化必须跑 benchmark 对比
 
 ### Git Workflow
-- 分支: feature 分支 → PR → master
+- 自有开发（包括 Agent 实现的修复/功能）: feature 分支 → 验证 → 本地直接合并 master → push；除非用户明确要求，否则不创建 PR。PR 流程仅用于外部贡献或明确要求的 PR。
 - Commit 规范: Conventional Commits（`feat:`, `fix:`, `perf:`, `docs:`, `chore:` 等）
 - `.xcodeproj` 不提交（XcodeGen 生成）；`dist/` 不提交（Vite 构建产物）
+- 发布、恢复和已发布文案纠错统一遵循 `docs/release/RELEASE_PROCESS.md` 与
+  `docs/release/RELEASE_RUNBOOK.md`，包括默认 minor、条目内署名、三处同步和实际验收。
+  自有文档及 OpenSpec 归档同样直接提交，不另建 PR；历史记录不覆盖当前发布规则。
 
 ## Domain Context
 

@@ -1,0 +1,84 @@
+import { TextEncoder } from 'util';
+Object.assign(globalThis,{TextEncoder});
+jest.mock('mermaid',()=>({initialize:jest.fn(),render:jest.fn()}));
+import '../src/index';
+import { installBlockCopy, blockPlainText } from '../src/block-copy';
+
+beforeEach(()=>{ document.body.innerHTML='<div id="markdown-preview"></div>'; });
+test('copies exact inline and fenced math source through the existing copy controller',async()=>{
+    const inline=String.raw`\(\frac{x}{2}\)`;
+    const fence='```math\n'+String.raw`x^2\tag{1}`+'\n```';
+    await window.renderMarkdown(inline+'\n\n'+fence,{showCopyButtons:false});
+    const root=document.getElementById('markdown-preview')!;
+    const formulas=Array.from(root.querySelectorAll<HTMLElement>('.flux-math-source'));
+    const send=jest.fn(async()=>true);
+    const controller=installBlockCopy(root,'math-copy',send);
+    expect(root.querySelectorAll('.block-copy-tools')).toHaveLength(2);
+    await controller.copy(formulas[0]);
+    expect(send).toHaveBeenLastCalledWith(expect.objectContaining({text:inline}));
+    await controller.copy(formulas[1]);
+    expect(send).toHaveBeenLastCalledWith(expect.objectContaining({text:fence}));
+    expect(blockPlainText(formulas[0])).toBe(inline);
+    controller.dispose();
+});
+test('copying a quote includes math source once and failure exposes selectable source',async()=>{
+    const math=String.raw`\(x^2\)`;
+    await window.renderMarkdown('> Formula '+math,{showCopyButtons:false});
+    const root=document.getElementById('markdown-preview')!;
+    expect(blockPlainText(root.querySelector('blockquote')!)).toBe('Formula '+math);
+    const controller=installBlockCopy(root,'failure',async()=>false);
+    const formula=root.querySelector<HTMLElement>('.flux-math-source')!;
+    await controller.copy(formula);
+    const source=root.querySelector<HTMLTextAreaElement>('.math-copy-source');
+    expect(source?.value).toBe(math);
+    expect(source?.readOnly).toBe(true);
+    expect(formula.querySelector('svg')).not.toBeNull();
+    controller.dispose();
+});
+test('math fence source is preserved with front matter and CRLF line endings',async()=>{
+    const fence='```math\r\nx=1\r\n```';
+    await window.renderMarkdown('---\r\ntitle: Test\r\n---\r\n\r\n'+fence,{showCopyButtons:false});
+    const formula=document.querySelector('.flux-math-source')!;
+    expect(blockPlainText(formula)).toBe(fence);
+});
+test('nested formula copies the original container prefixes',async()=>{
+    const block='> \\[\r\n> x=1\r\n> \\]';
+    await window.renderMarkdown(block,{showCopyButtons:false});
+    expect(blockPlainText(document.querySelector('.flux-math-source')!)).toBe(block);
+});
+test('multiline inline mathematics retains its original CRLF sequence',async()=>{
+    const formula='\\(x +\r\ny\\)';
+    await window.renderMarkdown('Prefix '+formula+' suffix',{showCopyButtons:false});
+    expect(blockPlainText(document.querySelector('.flux-math-source')!)).toBe(formula);
+});
+test('table formula copies preserve the original escaped pipe in each cell',async()=>{
+    await window.renderMarkdown('| First | Second |\n| --- | --- |\n| $a\\|b$ | $c\\|d$ |',{showCopyButtons:false});
+    const formulas=Array.from(document.querySelectorAll('.flux-math-source'));
+    expect(formulas.map(blockPlainText)).toEqual(['$a\\|b$','$c\\|d$']);
+});
+test('table source mapping distinguishes literal code and repeated mathematical cells',async()=>{
+    await window.renderMarkdown('A | B | C\n--- | --- | ---\n`$a\\|b$` | **$a\\|b$** | $a\\|b$',{showCopyButtons:false});
+    expect(Array.from(document.querySelectorAll('.flux-math-source')).map(blockPlainText)).toEqual(['$a\\|b$','$a\\|b$']);
+});
+
+test.each([['en','Copy failed.'],['zh-Hans','复制失败。'],['de','Kopieren fehlgeschlagen.'],['fr','Échec de la copie.'],['es','No se pudo copiar.'],['ar','تعذر النسخ.']])('copy failure updates the persistent live status once and retry replaces it (%s)', async (uiLanguage, expectedFailure) => {
+    await window.renderMarkdown('$x$', {showCopyButtons:false,uiLanguage});
+    const root=document.getElementById('markdown-preview')!;
+    let success=false;
+    const controller=installBlockCopy(root,'live-copy',async()=>success);
+    const status=root.querySelector('[role="status"]')!;
+    const formula=root.querySelector<HTMLElement>('.flux-math-source')!;
+    await controller.copy(formula);
+    expect(root.querySelector('[role="status"]')).toBe(status);
+    expect(status.getAttribute('aria-live')).toBe('polite');
+    const failure=status.textContent!;
+    expect(failure).toContain(expectedFailure);
+    expect(root.textContent!.split(failure)).toHaveLength(2);
+    expect(root.querySelector('textarea')?.value).toBe('$x$');
+    success=true;await controller.copy(formula);
+    expect(status.textContent).not.toBe(failure);
+    expect(status.textContent!.length).toBeGreaterThan(0);
+    expect(root.querySelector('.block-copy-error')).toBeNull();
+    expect(status.parentElement?.getAttribute('data-copy-state')).toBe('success');
+    controller.dispose();
+});

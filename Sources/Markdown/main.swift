@@ -35,8 +35,16 @@ LocalizationManager.bootstrap(initialPreference: AppearancePreference.shared.uiL
 if CommandLine.arguments.contains("--quicklook-self-test") {
     let app = NSApplication.shared
     app.setActivationPolicy(.regular)
+    var probeToken = UUID()
+    if let index = CommandLine.arguments.firstIndex(of: "--probe-token") {
+        guard CommandLine.arguments.indices.contains(index + 1),
+              let token = UUID(uuidString: CommandLine.arguments[index + 1]) else {
+            fputs("Invalid --probe-token; use a UUID or omit the option.\n", stderr); exit(2)
+        }
+        probeToken = token
+    }
     DispatchQueue.main.async {
-        QuickLookSelfTest.shared.start { passed in
+        QuickLookSelfTest.shared.start(probeToken: probeToken) { passed in
             print("quicklook_preview=\(passed ? "rendered" : "unconfirmed")")
             exit(passed ? 0 : 1)
         }

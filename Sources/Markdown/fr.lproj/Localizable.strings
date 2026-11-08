@@ -51,7 +51,7 @@
 "Enable or disable rendering capabilities" = "Activer ou désactiver les capacités de rendu";
 "Mermaid Diagrams" = "Diagrammes Mermaid";
 "Flowcharts, sequence diagrams, and more" = "Organigrammes, diagrammes de séquence, etc.";
-"KaTeX Math" = "Maths KaTeX";
+"Mathematical Formulas" = "Formules mathématiques";
 "Mathematical expressions and equations" = "Expressions et équations mathématiques";
 "Emoji Support" = "Prise en charge des emojis";
 "GitHub flavored emoji codes like :smile:" = "Codes emoji style GitHub comme :smile:";
@@ -255,3 +255,19 @@
 "Thank you. The source is linked to this installation. Effective use and return visits are measured separately when usage statistics are enabled." = "Merci. La source est associée à cette installation. L’utilisation effective et les retours sont mesurés séparément lorsque les statistiques sont activées.";
 
 "Open Promotion Page" = "Ouvrir la page promotionnelle";
+
+/* Block copy controls */
+"Show Copy Buttons" = "Afficher les boutons de copie";
+"Copy code and quotes. Reload open Quick Look previews to apply." = "Copier le code et les citations. Rechargez les aperçus Quick Look ouverts pour appliquer.";
+"Text could not be copied" = "Le texte n’a pas pu être copié";
+"Select the text to copy it manually, or try the copy button again." = "Sélectionnez le texte pour le copier manuellement ou réessayez le bouton de copie.";
+
+"Copy Document Path" = "Copier le chemin du document";
+
+"New Document" = "Nouveau document";
+
+"Open…" = "Ouvrir…";
+
+"Open Recent" = "Ouvrir un document récent";
+
+"Clear Menu" = "Effacer le menu";

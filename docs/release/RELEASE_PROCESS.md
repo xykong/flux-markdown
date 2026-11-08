@@ -1,519 +1,155 @@
-# Release Process
+# 发布流程与验收要求
 
-本文档记录完整的版本发布流程，包括 PR 处理、CHANGELOG 生成和 Homebrew 分发。
+本文件是当前发布规则的唯一依据；具体操作见 [发布操作手册](RELEASE_RUNBOOK.md)，
+`/publish` 入口见 [项目命令](../../.opencode/commands/publish.md)。
+历史发布记录用于追溯当时的事实，不覆盖本流程。规则更新于 2026-11-08。
 
-## 概述
+## 1. 授权、合并与版本
 
-发布流程分为三个阶段：
-1. **PR 合并前**: 收集和记录变更
-2. **版本发布**: 自动化构建和发布
-3. **发布后**: 更新 Homebrew Cask 和验证
+- 自有开发（包括 Agent 实现的功能、修复和发布文档）验证后直接合并到 `master`
+  并推送。除非用户明确要求，不创建 PR。外部贡献和明确要求的 PR 单独处理，保留署名。
+- 用户已经要求发布，或已授权“测试通过后发布”时，完成必要检查后继续执行，
+  不再机械地重复请求确认。缺少必要信息或遇到实际阻塞时，说明具体缺项。
+- 普通发布默认 **minor**。只有用户明确指定才使用 patch 或 major。
+  完整版本号及第三位 commit-count build 由 `scripts/release.sh` 生成，不手写。
+- `release.sh` 先计算版本，再提交 `.version`/CHANGELOG，然后给该发布提交打标签。
+  后续构建、签名、更新源均读取已冻结的 `.version`。不按后续 HEAD 的提交数重算。
+- 发布准备要求 `master` 上已跟踪文件干净。只提交本任务文件；保留无关改动。
+  构建产物、生成的 Xcode 工程和原始服务响应不提交。
 
----
+## 2. 变更条目与署名
 
-## 阶段 1: PR 合并前的处理
+### 建立可核查的对应关系
 
-### 1.1 PR Review 和分析
+每项用户变更记录对应 issue、发起人、实现者、提交及验证结果。通过 GitHub 核实
+issue/PR 作者；历史版本可使用维护者明确写出的发布确认作为证据。
+没有证据的报告不分配到猜测的版本，不能仅凭相似症状认定同一根因。
 
-当收到 PR 时，需要：
+问题发起人与实现贡献者分别核实、分别致谢。PR 作者署名不能替代 issue 发起人。
+自有工作不为取得 PR 编号而创建 PR。现有贡献者署名和历史说明必须保留。
 
-1. **获取 PR 元数据**:
-   ```bash
-   gh pr view <PR_NUMBER> --json title,body,author,number
-   ```
+### 致谢直接写在对应条目内
 
-2. **分析代码变更**:
-   ```bash
-   # 查看 PR 的所有提交
-   gh pr view <PR_NUMBER> --json commits
-   
-   # 查看具体的代码变更
-   git log --oneline <BASE_COMMIT>..<PR_COMMIT>
-   git show <PR_COMMIT> --stat
-   git show <PR_COMMIT>
-   ```
+三个用户可见位置都适用：GitHub Release Notes、CHANGELOG、Sparkle `description`。
+**不得单独建立 Acknowledgments、Acknowledgements、致谢章节或统一感谢名单。**
+署名使用完整 `@用户名`、可点击的个人主页和对应 issue/PR 链接。
 
-3. **提取 PR 信息**:
-   - PR 编号
-   - PR 标题
-   - PR 作者 GitHub 用户名
-   - PR 描述
-   - 修改的文件和行数
-   - 具体的代码变更
-
-### 1.2 生成 CHANGELOG 条目
-
-基于 PR 分析，生成符合格式的 CHANGELOG 条目：
-
-**格式模板**:
-```markdown
-### [Added|Fixed|Changed|Removed]
-- **[Scope]**: [简短描述]。（感谢 [@username](https://github.com/username) 的贡献 [#PR_NUMBER](https://github.com/xykong/flux-markdown/pull/PR_NUMBER)）
-  - [技术实现细节 1]
-  - [技术实现细节 2]
-  - [技术实现细节 3]
-```
-
-**示例**:
 ```markdown
 ### Fixed
-- **QuickLook**: 修复双击 Markdown 文件时意外触发"使用默认应用打开"的问题。（感谢 [@sxmad](https://github.com/sxmad) 的贡献 [#2](https://github.com/xykong/flux-markdown/pull/2)）
-  - 通过自定义 `InteractiveWebView` 子类拦截鼠标事件，防止事件冒泡到 QuickLook 宿主。
-  - 添加 `NSClickGestureRecognizer` 拦截双击手势，确保 WebView 内的交互（如文本选择）不受影响。
-  - 实现 `acceptsFirstMouse(for:)` 方法，允许 WebView 直接响应首次点击事件。
+- **字母序列排版**：保留字母序列中的 `(c)`，支持跨段落和列表。（感谢 [@lgsoltek](https://github.com/lgsoltek) 在 [#68](https://github.com/xykong/flux-markdown/issues/68) 中提供反馈和自动识别建议。）
 ```
 
-### 1.3 更新 CHANGELOG
-
-**重要**: PR 合并后，立即将生成的条目添加到 `CHANGELOG.md` 的 `## [Unreleased]` 部分：
-
-```bash
-# 编辑 CHANGELOG.md，在 [Unreleased] 下添加新条目
-vim CHANGELOG.md
-
-# 提交更新
-git add CHANGELOG.md
-git commit -m "docs(changelog): add PR #<NUMBER> to unreleased section"
-git push origin master
-```
-
----
-
-## 阶段 2: 版本发布
-
-### 2.1 执行发布命令
-
-使用 `make release` 命令发布新版本：
-
-```bash
-# Patch 版本 (1.2.69 -> 1.2.70)
-make release patch
-
-# Minor 版本 (1.2.69 -> 1.3.70)
-make release minor
-
-# Major 版本 (1.2.69 -> 2.0.70)
-make release major
-```
-
-### 2.2 发布脚本自动执行的步骤
-
-`scripts/release.sh` 会自动执行：
-
-1. **更新版本号**:
-   - 读取 `.version` 文件
-   - 根据 bump 类型更新 major/minor
-   - 计算新的完整版本号（base_version.commit_count）
-
-2. **提取发布说明**:
-   - 从 `CHANGELOG.md` 的 `[Unreleased]` 部分提取内容
-   - 过滤掉内部变更（架构、构建、测试等）
-   - 生成 `release_notes_tmp.md`
-
-3. **更新 CHANGELOG**:
-   - 将 `[Unreleased]` 替换为新版本号和日期
-   - 保留空的 `[Unreleased]` 部分供下次使用
-
-4. **提交和打标签**:
-   ```bash
-   git add .version CHANGELOG.md
-   git commit -m "chore(release): bump version to <VERSION>"
-   git tag "v<VERSION>"
-   git push origin master
-   git push origin "v<VERSION>"
-   ```
-
-5. **构建 DMG**:
-   - 构建 TypeScript 渲染器
-   - 生成 Xcode 项目
-   - 编译 macOS 应用
-   - 创建 DMG 安装包
-
-6. **创建 GitHub Release**:
-   ```bash
-gh release create "v<VERSION>" build/artifacts/FluxMarkdown.dmg \
-     --title "v<VERSION>" \
-     --notes-file release_notes_tmp.md
-   ```
-
-### 2.3 验证发布
-
-检查以下内容：
-
-- [ ] GitHub Release 已创建: https://github.com/xykong/flux-markdown/releases/tag/v<VERSION>
-- [ ] DMG 文件已上传
-- [ ] Release Notes 包含所有 PR 的感谢信息
-- [ ] Git tag 已推送
-- [ ] CHANGELOG.md 已更新
-
----
-
-## 阶段 3: 发布后的 Homebrew 更新
-
-### 3.1 计算 DMG 的 SHA256
-
-```bash
-shasum -a 256 build/artifacts/FluxMarkdown.dmg
-```
-
-输出示例：
-```
-ca72b7201410962f0f5d272149b2405a5d191a8e692d9526f23ecad3882cd306  build/artifacts/FluxMarkdown.dmg
-```
-
-### 3.2 更新 Homebrew Cask
-
-编辑 `../homebrew-tap/Casks/flux-markdown.rb`：
-
-```ruby
-cask 'flux-markdown' do
-  version '1.3.73'  # 更新版本号
-  sha256 'ca72b7201410962f0f5d272149b2405a5d191a8e692d9526f23ecad3882cd306'  # 更新 SHA256
-  
-  # ... 其余内容保持不变
-end
-```
-
-### 3.3 提交和推送 Homebrew Cask
-
-```bash
-cd ../homebrew-tap
-git add Casks/flux-markdown.rb
-git commit -m "chore(cask): update flux-markdown to v<VERSION>"
-git push origin master
-```
-
-### 3.4 验证 Homebrew 安装
-
-```bash
-# 更新本地 tap
-brew update
-
-# 升级应用
-brew upgrade flux-markdown
-
-# 或全新安装测试
-brew install --cask flux-markdown
-```
-
----
-
-## 完整示例: v1.3.73 发布流程
-
-### 实际执行的命令和输出
-
-```bash
-# 1. 分析合并的 PR #2
-$ gh pr view 2 --json title,body,author
-{
-  "author": {"login": "sxmad", "name": "asdfq"},
-  "body": "Use NSClickGestureRecognizer to intercept double-click events.",
-  "title": "fix double click"
-}
-
-$ git show 790e41b --stat
-commit 790e41bddc3abfdc0c2ea45702aed24d37424e22
-Author: xiaoxin.sun <xiaoxin.sun@happyelements.com>
-Date:   Tue Jan 13 12:25:58 2026 +0800
-
-    fix double click
-
- Sources/MarkdownPreview/PreviewViewController.swift | 31 +++++++++++++++++++---
- 1 file changed, 28 insertions(+), 3 deletions(-)
-
-# 2. 手动添加到 CHANGELOG.md [Unreleased] 部分
-# （本次因为漏掉了这步，所以发布后需要回填）
-
-# 3. 执行 minor 版本发布
-$ make release minor
-🚀 Bumping Minor Version: 1.2 -> 1.3
-🎯 Target Version: 1.3.73
-✅ DMG created successfully at: build/artifacts/FluxMarkdown.dmg
-🎉 Successfully released v1.3.73!
-
-# 4. 回填 CHANGELOG（修正漏掉的步骤）
-$ vim CHANGELOG.md  # 添加 PR #2 的详细说明和感谢
-$ git add CHANGELOG.md
-$ git commit -m "docs(changelog): backfill v1.3.73 release notes with PR #2 fix"
-$ git push origin master
-
-# 5. 更新 GitHub Release
-$ gh release edit v1.3.73 --notes-file /tmp/release_notes_v1.3.73_updated.md
-
-# 6. 计算 SHA256
-$ shasum -a 256 build/artifacts/FluxMarkdown.dmg
-ca72b7201410962f0f5d272149b2405a5d191a8e692d9526f23ecad3882cd306
-
-# 7. 更新 Homebrew Cask
-$ cd ../homebrew-tap
-$ vim Casks/flux-markdown.rb  # 更新 version 和 sha256
-$ git add Casks/flux-markdown.rb
-$ git commit -m "chore(cask): update flux-markdown to v1.3.73"
-$ git push origin master
-
-# 8. 验证
-$ brew upgrade flux-markdown
-```
-
----
-
-## 自动化改进建议
-
-### 短期改进（手动执行，规范流程）
-
-**创建 PR 合并后的 Checklist**:
-
-```bash
-# scripts/pr-merged-checklist.sh
-#!/bin/bash
-
-PR_NUMBER=$1
-if [ -z "$PR_NUMBER" ]; then
-    echo "Usage: $0 <PR_NUMBER>"
-    exit 1
-fi
-
-echo "✅ PR #$PR_NUMBER Merged - Post-Merge Checklist"
-echo ""
-echo "1. 分析 PR 内容："
-echo "   gh pr view $PR_NUMBER --json title,body,author,commits"
-echo ""
-echo "2. 查看代码变更："
-echo "   gh pr diff $PR_NUMBER"
-echo ""
-echo "3. 生成 CHANGELOG 条目（手动）："
-echo "   - 确定类型: Added/Fixed/Changed/Removed"
-echo "   - 确定范围: QuickLook/渲染器/构建系统等"
-echo "   - 提取作者信息和 PR 链接"
-echo ""
-echo "4. 更新 CHANGELOG.md [Unreleased] 部分"
-echo "   vim CHANGELOG.md"
-echo ""
-echo "5. 提交更新："
-echo "   git add CHANGELOG.md"
-echo "   git commit -m 'docs(changelog): add PR #$PR_NUMBER to unreleased section'"
-echo "   git push origin master"
-```
-
-### 中期改进（脚本辅助）
-
-**创建 PR 分析和 CHANGELOG 生成脚本**:
-
-```bash
-# scripts/analyze-pr.sh
-#!/bin/bash
-set -e
-
-PR_NUMBER=$1
-if [ -z "$PR_NUMBER" ]; then
-    echo "Usage: $0 <PR_NUMBER>"
-    exit 1
-fi
-
-echo "📊 Analyzing PR #$PR_NUMBER..."
-
-# 获取 PR 信息
-PR_INFO=$(gh pr view $PR_NUMBER --json title,body,author,files)
-PR_TITLE=$(echo "$PR_INFO" | jq -r '.title')
-PR_AUTHOR=$(echo "$PR_INFO" | jq -r '.author.login')
-PR_BODY=$(echo "$PR_INFO" | jq -r '.body')
-
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "PR #$PR_NUMBER: $PR_TITLE"
-echo "Author: @$PR_AUTHOR"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "Description:"
-echo "$PR_BODY"
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-
-# 获取修改的文件
-echo "Modified Files:"
-gh pr view $PR_NUMBER --json files --jq '.files[].path'
-echo ""
-
-# 查看 diff
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "Code Changes:"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-gh pr diff $PR_NUMBER
-
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "📝 Suggested CHANGELOG Entry:"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "### [TODO: Category]"
-echo "- **[TODO: Scope]**: $PR_TITLE。（感谢 [@$PR_AUTHOR](https://github.com/$PR_AUTHOR) 的贡献 [#$PR_NUMBER](https://github.com/xykong/flux-markdown/pull/$PR_NUMBER)）"
-echo "  - [TODO: 技术实现细节 1]"
-echo "  - [TODO: 技术实现细节 2]"
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "⚠️  请根据以上信息手动完善 CHANGELOG 条目，然后："
-echo "    1. 编辑 CHANGELOG.md"
-echo "    2. git add CHANGELOG.md"
-echo "    3. git commit -m 'docs(changelog): add PR #$PR_NUMBER to unreleased section'"
-echo "    4. git push origin master"
-```
-
-### 长期改进（完全自动化）
-
-使用 AI 辅助或 GitHub Actions 自动化：
-
-1. **PR 合并时自动生成 CHANGELOG 草稿**:
-   - GitHub Action 监听 PR merge 事件
-   - 使用 GPT API 分析代码变更
-   - 自动生成 CHANGELOG 条目并创建 commit
-
-2. **发布时自动更新 Homebrew Cask**:
-   - 在 `scripts/release.sh` 末尾添加 Homebrew 更新逻辑
-   - 自动计算 SHA256
-   - 自动提交到 homebrew-tap 仓库
-
----
-
-## 常见问题
-
-### Q1: 发布后发现遗漏了 PR 的 CHANGELOG 怎么办？
-
-**回填流程**（如 v1.3.73）:
-
-1. 分析遗漏的 PR
-2. 编辑 CHANGELOG.md，在对应版本下添加条目
-3. 提交: `git commit -m "docs(changelog): backfill v<VERSION> with PR #<NUMBER>"`
-4. 更新 GitHub Release: `gh release edit v<VERSION> --notes-file <new_notes.md>`
-5. 推送: `git push origin master`
-
-### Q2: 如何判断 PR 属于哪个类型（Added/Fixed/Changed）？
-
-- **Added**: 全新功能或特性
-- **Fixed**: Bug 修复
-- **Changed**: 现有功能的改进或重构
-- **Removed**: 删除的功能
-- **Deprecated**: 即将废弃的功能
-
-### Q3: 如何确定 CHANGELOG 的 Scope？
-
-根据修改的文件路径：
-- `Sources/MarkdownPreview/` → **QuickLook** 或 **Extension**
-- `Sources/Markdown/` → **App** 或 **Host App**
-- `web-renderer/` → **渲染器 (Renderer)** 或 **预览 (Preview)**
-- `Makefile`, `project.yml`, `scripts/` → **构建系统 (Build)**
-- `docs/` → **文档 (Documentation)**
-
-### Q4: 什么样的变更不应该出现在 Release Notes 中？
-
-根据 `scripts/release.sh` 的过滤逻辑，以下类型会被过滤：
-- 架构 (Architecture)
-- 内部 (Internal)
-- 构建 (Build)
-- 测试 (Test)
-- CI
-- Refactor（除非影响用户体验）
-
-这些变更保留在 CHANGELOG.md 中，但不出现在 GitHub Release 的发布说明中。
-
----
-
-## 阶段 4: Issue 回复规范
-
-### 4.1 核心原则
-
-| 规则 | 说明 |
-|------|------|
-| **语言匹配** | **永远用 issue 的语言回复**。英文 issue → 英文回复；中文 issue → 中文回复。无需询问。 |
-| **不关闭 issue** | 只添加 `done` 标签 + 回复。由 issue 作者决定是否关闭。 |
-| **不重复打开** | 若 issue 被误关闭，先 reopen，再补标签和回复。 |
-
-### 4.2 已修复 Issue 的处理流程
-
-```bash
-# 1. 确认修复已包含在已发布版本中
-git tag --contains <fix-commit>  # 确认 tag 存在
-gh release view v<VERSION>       # 确认 release 已发布
-
-# 2. 添加 done 标签
-gh issue edit <NUMBER> --add-label "done"
-
-# 3. 用 issue 的语言回复（英文或中文，见模板）
-gh issue comment <NUMBER> --body "..."
-
-# 禁止执行:
-# gh issue close <NUMBER>
-```
-
-### 4.3 回复模板
-
-**英文 issue**:
-```
-Fixed in [vX.Y.Z](https://github.com/xykong/flux-markdown/releases/tag/vX.Y.Z).
-
-**What changed:**
-- [specific fix relevant to this issue]
-
-**To update:**
-\`\`\`bash
-brew update && brew upgrade --cask flux-markdown
-\`\`\`
-Or download the DMG from the [Releases page](https://github.com/xykong/flux-markdown/releases/tag/vX.Y.Z).
-```
-
-**中文 issue**:
-```
-已在 [vX.Y.Z](https://github.com/xykong/flux-markdown/releases/tag/vX.Y.Z) 中修复。
-
-**修复内容：**
-- [与此 issue 相关的具体修复]
-
-**更新方式：**
-\`\`\`bash
-brew update && brew upgrade --cask flux-markdown
-\`\`\`
-或从 [Releases 页面](https://github.com/xykong/flux-markdown/releases/tag/vX.Y.Z) 直接下载 DMG。
-```
-
----
-
-## 参考资料
-
-- [Keep a Changelog](https://keepachangelog.com/)
-- [Semantic Versioning](https://semver.org/)
-- [Conventional Commits](https://www.conventionalcommits.org/)
-- [GitHub CLI Manual](https://cli.github.com/manual/)
-
-## Building when the local Xcode no longer supports macOS 11
-
-Use `RELEASE_REMOTE_BUILD=1 make release minor` to build the tagged commit with
-`.github/workflows/release-build.yml` (Xcode 16.4 on macos-15), retaining the macOS
-11 deployment target and both arm64/x86_64 architectures. The downloader verifies
-the workflow SHA, bundled provenance/version, archive checksum, nested signatures
-and all three product deployment targets before locally packaging the DMG.
-`RELEASE_APP_PATH` is only for an already verified matching-version bundle; DMG
-creation rejects version mismatch. Sparkle signing continues to use the local
-Keychain. Do not override the deployment target to publish with a newer Xcode.
-
-To validate the final versioned payload before publication, run:
-
-```bash
-RELEASE_REMOTE_BUILD=1 RELEASE_PREPARE_ONLY=1 make release minor
-# Verify the final package and Homebrew upgrade, then:
-./scripts/publish-release.sh
-```
-
-Preparation writes `build/artifacts/release-manifest.json`, binding the release tag,
-DMG, MacPorts source archive and release notes to their SHA-256 values. Publication
-refuses changed/missing artifacts and does not bump the version a second time.
-
-## Recovering interrupted preparation and publication
-
-`./scripts/release.sh --resume` reuses the version/tag and preserved release notes after a failed build. It verifies the tag's version and ancestry before rebuilding; it does not bump again. Initial preparation requires a clean tracked worktree on master and rejects an existing target tag before changing version files.
-
-`./scripts/publish-release.sh` verifies the prepared manifest and entitlements and generates the signed appcast before creating a release. If the release already exists, it downloads and byte-compares each asset; mismatches fail instead of replacing published artifacts. Notes remain available because the manifest and retries require them.
-
-Each stage records progress in `build/artifacts/publication-status.txt`. A Sparkle push or Homebrew error exits unsuccessfully and names the failed stage. Rerun publication after resolving it; it verifies the existing release and retries channel updates. This is resumable publication, not an atomic transaction across services. The GitHub release may already be public when a later channel fails.
-
-The Homebrew updater returns status 2 when cask changes are prepared but not committed/pushed. In non-interactive use, complete that explicit tap publication step and rerun; unchanged cask files are compared with the fetched tap remote before reporting completion.
+同一条目涉及多个报告时，署名和各自的 issue 一起写入该条目。已有实现者署名
+继续保留。独立版权缩写仍转换等实际限制要写清楚，不因补致谢而扩大修复范围。
+
+诊断工具、部分修复和仍需复测的报告可以致谢，但应保留“用于调查”“尚待确认”
+等事实；致谢不等于问题已经解决。
+
+### 三处同步校验
+
+1. CHANGELOG 的目标版本中，署名位于正确条目；检查重复版本标题，避免定位到另一段。
+2. GitHub Release 保留同一用户变更的署名、链接、限制说明及已有宣传图。
+3. Sparkle 对应版本渲染为 HTML；署名在同一 `<li>` 或功能段落中，链接可点击。
+   检查 `@Ctrl-Alb` 等用户名未丢失，也没有空链接标签、原始 Markdown 链接或被截断的尾部。
+
+生成器使用 `scripts/render-release-notes.cjs` 中的已锁定 markdown-it，
+完整内容经标准输入传入 `scripts/write-appcast-item.py`。禁止把文案插入
+Perl/Shell 可执行代码。GitHub 说明会过滤部分内部条目，Sparkle 使用完整目标版本；
+必须逐条检查用户变更和署名，而非假设自动同步成功。
+
+## 3. 发布阶段与完成条件
+
+| 阶段 | 必须取得的证据 | 允许报告的状态 |
+| --- | --- | --- |
+| 变更准备 | 已验证的提交、作者/issue 对应关系、条目内署名、直接合并结果 | 变更已准备 |
+| 产物准备 | 最终标签构建、测试结果、版本/架构/最低系统/签名、manifest | 产物已准备，未公开 |
+| 渠道发布 | GitHub 公共附件、Sparkle、tap 及官方 cask 草稿的远端回读 | 指定渠道已发布 |
+| 宣传图验收 | 原图和 WebP 视觉检查、公开下载一致、发布页实际显示 | 宣传图已验收 |
+| 收尾 | 所有适用检查通过、记录已推送、需要的 issue 跟进已回读 | 发布及验收完成 |
+
+`make release`、`publish-release.sh` 退出成功或 GitHub 已公开，都不是全部验收完成。
+`publication-status.txt` 只记录脚本阶段，不覆盖人工内容、宣传图及页面验收。
+
+### 产物与测试
+
+- 默认采用 prepare-only 流程。正式包保持 macOS 11、arm64/x86_64；本地 Xcode
+  不支持 macOS 11 时使用固定 Xcode 16.4 的远程发布构建，不能提高正式部署目标绕过。
+- 验证工作流对应最终标签 SHA，不把旧提交的绿灯当作新代码通过。
+  纯文档收尾提交可引用同一产品/脚本内容的验证，并说明对应提交。
+- 记录真实的通过数、跳过数和失败原因。CI 失败先看日志；外部依赖失败可以针对
+  失败任务重跑，保留两次结果。测试未启动就不能声称原生测试已通过。
+- `release-manifest.json` 绑定标签提交、DMG、MacPorts 源码包和原始 notes 的字节。
+  发布前验证它；发布后补文案不得改写绑定文件来“修复”校验。
+- 产品安装、真实升级、更新签名、包内资源测试分别记录。未做安装测试不能称为
+  “已验证 Homebrew 安装”；校验 updater 签名不能代替真实升级测试。
+
+### 分发渠道
+
+- GitHub：非草稿、非预发布；版本和标签正确，正式附件可公开下载且与 manifest 一致。
+- Sparkle：版本、build、最低系统、下载 URL、文件长度和签名一致；实际公共 feed
+  回读正确，HTML 中的条目内署名可见。缺少签名工具或 Keychain 密钥时阻止发布，
+  不静默跳过 Sparkle。
+- Homebrew：tap 与 `Drafts/flux-markdown-official.rb` 的版本、DMG SHA-256 及远端
+  内容一致。草稿更新不等于已向官方 homebrew-cask 提交或已获接收。
+  非交互脚本退出 2 后显式提交推送；“本地已是最新”不能替代远端验证。
+
+## 4. 每版宣传图（必做）
+
+- 内容只表达本版已确认的用户价值，包含产品名、完整版本号和简短主题。
+- 延续深靛蓝/蓝紫背景、金色烟花/丝带/彩屑、玻璃与金属 Markdown 文档的专业
+  庆祝视觉；留白清楚，装饰不遮挡文字，不加入未经验证的性能或全面修复宣称。
+- 使用 Animal MediaKit、`gpt-image-2.5-flare`、1536×1024、high 质量。
+  不可用时如实记录实际替代工具/模型；不能把替代结果写成 Flare 生成。
+- prompt 提交到 `docs/release/artwork/v<VERSION>-prompt.txt`；原图与生成日志放在
+  ignored 的 `build/release-artwork-<VERSION>/`。
+- 从原图缩放为 1200×800 WebP，目标 100–200 KB，通常不超过 250 KB。
+  分别查看原图与最终压缩图，确认版本、拼写、清晰度及压缩伪影。
+- 上传本版 Release asset，使用公开下载 URL 放在 Release Notes 顶部。迭代图使用
+  新文件名，保留已有说明；不要嵌入多 MB 原始 PNG。
+- 公开下载核对字节、SHA-256、MIME、尺寸及大小；还要在浏览器中确认页面上的图片
+  真正显示。Markdown 引用正确、附件存在或 curl 下载成功不能代替页面验收。
+- 504、CDN 缓存或浏览器不可用时记录具体状态。可以报告“版本已发布，页面验收待完成”，
+  不能勾选视觉验收。保留最终工作区图片及截图证据。
+
+## 5. 发布后纠错
+
+纠正文案属于既有版本的元数据维护，不发新版本，不重建或覆盖已发布安装包。
+必须同步检查 Release、CHANGELOG 和相应 Sparkle 说明，不能只改其中一个位置。
+
+- 先保存远端正文、附件 ID/名称/大小/digest、发布状态和本地 feed 快照。
+- 核实发起人、实现者及条目关系；去掉独立致谢章节时，将每个人移入正确条目，
+  不能直接删除署名。全历史任务扫描全部版本、完整 CHANGELOG 与所有 feed items。
+- 修改前再次比较线上正文，发现并发修改则重新合并。用独立 notes 文件或 JSON
+  payload 更新；不使用 shell 插值拼接多行正文，不覆盖 manifest 绑定的原始 notes。
+- appcast 只改目标版本的 `description`。对全部 items 做结构化对比，版本、日期、
+  签名、URL、大小、顺序和非目标说明均须不变。不存在的旧 item 不凭空补签名。
+- 修改后逐版回读正文、署名链接及附件不变性；推送后核对实际公共
+  `master/appcast.xml`。固定提交 URL 或 GitHub API 可用于定位 CDN 缓存，但不是
+  默认 feed 已刷新的证据。等待或说明尚未刷新，不能误称应用已获取新内容。
+- 记录修复前后证据与验证结果。后续 CI 或访问恢复时追加结果，保留原失败历史，
+  同时明确它是否仍是未完成项。
+
+## 6. Issue 跟进与交付状态
+
+确认修复已包含于公开版本并完成适用发布验收后，用 issue 原语言回复具体修复、
+版本链接、Homebrew 命令及 DMG 链接，添加 `done`，保留 issue 打开供作者确认。
+只发布诊断工具或仍缺少证据时，不称修复、不添加 `done`。
+
+沿用现有已解决 issue 的状态，不批量重新打开。若明确是本次误关闭，再纠正。
+未解决且长期缺证据的关闭规则按根 [AGENTS.md](../../AGENTS.md) 单独执行；
+它不是发布任务中批量关闭报告的理由。
+
+最终记录使用 [发布记录模板](RELEASE_RECORD_TEMPLATE.md)，保存到
+`docs/release/RELEASE_<VERSION>.md`。至少列出已完成项、未完成项、证据和真实限制：
+
+- 只有产物准备完成：报告“未公开”。
+- 部分渠道或图片已上传但验收失败：报告具体已发布内容与剩余项。
+- 所有适用门禁通过：才能报告“发布及验收全部完成”。
+- 用户询问当前是否完成时，重新核对未完成项与最新结果，不照抄过期状态。
+
+## 7. 维护入口
+
+- [发布操作手册](RELEASE_RUNBOOK.md)：命令顺序、恢复路径、元数据纠错和回读。
+- [流程实现说明](RELEASE_WORKFLOW_DESIGN.md)：与当前脚本一致的状态与限制。
+- [条目内致谢修正记录](REPORTER_CREDIT_INLINE_2026-11-08.md)：历史验证依据。
+- [Homebrew 官方提交说明](HOMEBREW_SUBMISSION.md)：官方上游流程单独处理。

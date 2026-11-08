@@ -1,0 +1,72 @@
+diff --git a/web-renderer/src/math-engine.ts b/web-renderer/src/math-engine.ts
+index 6fe8a05..aac6c39 100644
+--- a/web-renderer/src/math-engine.ts
++++ b/web-renderer/src/math-engine.ts
+@@ -6 +6 @@ import { AssistiveMmlHandler } from '@mathjax/src/js/a11y/assistive-mml.js';
+-import { SVG } from '@mathjax/src/js/output/svg.js';
++import { StagedSVG } from './math-metrics';
+@@ -70 +70 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
+-    const svg = new SVG<HTMLElement, Text, Document>({ fontCache: 'none', linebreaks: { inline: false }, displayOverflow: 'scroll' });
++    const svg = new StagedSVG({ fontCache: 'none', linebreaks: { inline: false }, displayOverflow: 'scroll' }, new Set(nodes));
+diff --git a/web-renderer/src/math-metrics.ts b/web-renderer/src/math-metrics.ts
+new file mode 100644
+index 0000000..3b70b5f
+--- /dev/null
++++ b/web-renderer/src/math-metrics.ts
+@@ -0,0 +1,34 @@
++import { SVG } from '@mathjax/src/js/output/svg.js';
++import { STATE } from '@mathjax/src/js/core/MathItem.js';
++import type { MathDocument } from '@mathjax/src/js/core/MathDocument.js';
++import type { ExtendedMetrics, MetricMap } from '@mathjax/src/js/output/common.js';
++import type { OptionList } from '@mathjax/src/js/util/Options.js';
++
++/** Only the engine's uniform, attribute-free staging wrappers share metrics. */
++export class StagedSVG extends SVG<HTMLElement, Text, Document> {
++    constructor(options: OptionList, private readonly stagingParents: ReadonlySet<HTMLElement>) {
++        super(options);
++    }
++
++    protected getMetricMaps(html: MathDocument<HTMLElement, Text, Document>): MetricMap<HTMLElement>[] {
++        const pending = Array.from(html.math).filter(math => math.state() < STATE.METRICS && math.start.node);
++        const parents = pending.map(math => this.adaptor.parent(math.start.node));
++        if (parents.some(parent => !parent || !this.stagingParents.has(parent) || parent.attributes.length !== 0)) {
++            return super.getMetricMaps(html);
++        }
++        const maps: MetricMap<HTMLElement>[] = [new Map(), new Map()];
++        const shared = new Map<string, ExtendedMetrics>();
++        pending.forEach((math, index) => {
++            const parent = parents[index];
++            const display = !!math.display;
++            const key = `${display}:${parent.localName}`;
++            let metrics = shared.get(key);
++            if (!metrics) {
++                metrics = this.getMetricsFor(parent, display);
++                shared.set(key, metrics);
++            }
++            maps[display ? 1 : 0].set(parent, metrics);
++        });
++        return maps;
++    }
++}
+diff --git a/web-renderer/test/math-shared-metrics.test.ts b/web-renderer/test/math-shared-metrics.test.ts
+new file mode 100644
+index 0000000..3b5381b
+--- /dev/null
++++ b/web-renderer/test/math-shared-metrics.test.ts
+@@ -0,0 +1,16 @@
++import { renderMathSources } from '../src/math-engine';
++import { SVG } from '@mathjax/src/js/output/svg.js';
++
++test('uniform staging parents share native measurements within a document',async()=>{
++    const measure=jest.spyOn(SVG.prototype as any,'measureMetrics');
++    try {
++        const sources=Array.from({length:42},(_,i)=>({id:'eq-'+i,raw:'x=1',payload:'x=1',display:i>=2,firstLine:1,lastLine:1}));
++        const result=await renderMathSources(sources,'shared-metrics');
++        expect(result.errors).toEqual([]);expect(result.items).toHaveLength(42);
++        expect(measure.mock.calls.length).toBeLessThanOrEqual(2);
++        expect(measure.mock.calls.length).toBeGreaterThan(0);
++        measure.mockClear();
++        await renderMathSources(sources,'next-document');
++        expect(measure.mock.calls.length).toBe(2);
++    } finally {measure.mockRestore();}
++});

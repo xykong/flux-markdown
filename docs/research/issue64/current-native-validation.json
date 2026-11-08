@@ -1,0 +1,22 @@
+{
+  "result": "Passed",
+  "passedTests": 22,
+  "failedTests": 0,
+  "skippedTests": 0,
+  "totalTestCount": 22,
+  "scope": [
+    "MarkdownTests/BlockCopyBridgeTests",
+    "MarkdownTests/SharedPreferenceStoreTests"
+  ],
+  "environment": {
+    "macOS": "27.0.1",
+    "architecture": "arm64",
+    "localDeploymentOverride": "12.0"
+  },
+  "sourceCommit": "e457b8778b9e84e83e71151cc3903b4bb38459a7",
+  "realWebKit": {
+    "cases": 29,
+    "result": "all passed",
+    "command": "scripts/test-renderer-webkit.sh"
+  }
+}

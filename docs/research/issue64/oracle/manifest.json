@@ -1,0 +1,59 @@
+{
+  "engine": "Tectonic 0.17.0 (XeTeX)",
+  "engineAsset": "https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%400.17.0/tectonic-0.17.0-aarch64-apple-darwin.tar.gz",
+  "engineArchiveSha256": "a3f1cac7c5678f01661a92212f58480ae3b0634115d880dbc59e2953ded45667",
+  "latex": "LaTeX2e 2021-11-15 patch level 1",
+  "amsmath": "2021/10/15 v2.17l",
+  "fontspec": "2022/01/15 v2.8a",
+  "textFont": "Songti SC",
+  "textFontSha256": "dd2f0628d302f322a2e9c3cf3253d5e73f418275e1f1421c84a7c65ce5a87777",
+  "texPasses": 2,
+  "offlineCacheRerunSucceeded": true,
+  "labelsExpected": {
+    "eq:pythagoras": "1",
+    "oracle:forward": "A",
+    "oracle:auto": "1",
+    "oracle:row": "2",
+    "oracle:tagstar": "B"
+  },
+  "labelsObserved": {
+    "eq:pythagoras": "1",
+    "oracle:forward": "A",
+    "oracle:auto": "1",
+    "oracle:row": "2",
+    "oracle:tagstar": "B"
+  },
+  "mathmlOriginalStructureVerified": true,
+  "pdfPages": 2,
+  "visualReview": "Both final pages rendered with pdftoppm and inspected; no clipping, overlap, missing Chinese glyphs or damaged equation structures observed. This is reference-PDF review, not product render acceptance.",
+  "files": {
+    "docs/research/issue64/oracle/reference.tex": {
+      "bytes": 2032,
+      "sha256": "7a6bc0335bbb755ed4f9b112a2c6c64c0b3ca82ee6d790c33d1dc9c80003071e"
+    },
+    "docs/research/issue64/oracle/reference.aux": {
+      "bytes": 198,
+      "sha256": "15659c903017563a1eb259808fce6930c119a128dd3a29b49e9ee5f9886808e5"
+    },
+    "output/pdf/issue64-independent-reference.pdf": {
+      "bytes": 30668,
+      "sha256": "ecec0311ce91d2b346bf8ca98dcd02eb6cfd752791c27e82eed034242f76fd19"
+    },
+    "docs/research/issue64/oracle/identities.tex": {
+      "bytes": 328,
+      "sha256": "0695e6c042604b81b33cfd3d854f9d2d2a96f13995596bf4bfeebc4c0bdfee01"
+    },
+    "docs/research/issue64/oracle/identities.aux": {
+      "bytes": 176,
+      "sha256": "8ae7cd1a697aa8847f4168ac774c1f910de8c44b6ad9d22a9de35fc78982e344"
+    }
+  },
+  "identityLabelsExpected": {
+    "a b": "A",
+    "a_b": "B",
+    "constructor": "C",
+    "__proto__": "D",
+    "toString": "E"
+  },
+  "wrongNumberNegativeControlRejected": true
+}

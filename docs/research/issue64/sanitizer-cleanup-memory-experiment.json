@@ -1,0 +1,64 @@
+{
+  "baseCommit": "9568f03f47e6e56486a6418806e3f118cb8c2efa",
+  "platform": "27.0.1",
+  "architecture": "arm64",
+  "workload": "scripts/research/issue64-math/memory-common-corpus.js",
+  "workloadSha256": "bbfc5007a98414dbefcaa77c9c18abdfddcb2a1787a6105ab0156bd9d87a1374",
+  "protocol": "Sequential fresh WK processes, 3 cycles of 10 renders of 1000 formulas, clear then 10 seconds idle; last sample in each cleared phase. Same probe and workload, separate production bundles.",
+  "change": "After serializing each sanitized mathematical fragment, call container.replaceChildren() and identities.clear() before returning. No other production changes.",
+  "runs": {
+    "control": {
+      "webpid": 10603,
+      "exit": 0,
+      "postClear": [
+        {
+          "cycle": 0,
+          "rssMiB": 2030.3,
+          "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+        },
+        {
+          "cycle": 1,
+          "rssMiB": 2069.0,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "cycle": 2,
+          "rssMiB": 2164.2,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        }
+      ],
+      "peakRssMiB": 2164.4,
+      "rawDirectory": "/tmp/flux-issue64-sanitizer-control"
+    },
+    "experiment": {
+      "webpid": 12055,
+      "exit": 0,
+      "postClear": [
+        {
+          "cycle": 0,
+          "rssMiB": 2056.0,
+          "phase": "JS: MEMPHASE cleared-0 {\"nodes\":198,\"math\":0,\"stages\":0}"
+        },
+        {
+          "cycle": 1,
+          "rssMiB": 2113.8,
+          "phase": "JS: MEMPHASE cleared-1 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        },
+        {
+          "cycle": 2,
+          "rssMiB": 2175.1,
+          "phase": "JS: MEMPHASE cleared-2 {\"nodes\":193,\"math\":0,\"stages\":0}"
+        }
+      ],
+      "peakRssMiB": 2175.3,
+      "rawDirectory": "/tmp/flux-issue64-sanitizer-experiment"
+    }
+  },
+  "decision": "Rejected and reverted: no RSS improvement in any cycle. No claim that RSS measures live heap or that this single comparison proves a leak.",
+  "semanticValidation": {
+    "suites": 2,
+    "tests": 23,
+    "passed": true
+  },
+  "memoryAcceptance": "unresolved"
+}

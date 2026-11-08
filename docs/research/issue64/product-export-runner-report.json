@@ -1,0 +1,88 @@
+{
+  "sourceCommit": "9af2af6cd1283ba024bda015791946b78032529b",
+  "worktreeDirty": true,
+  "platform": "27.0.1",
+  "architecture": "arm64",
+  "fixtureSha256": "51fcf97c86e8adb51b148975e13c4fe214ed50fe56623bcb3ba04e52c87e767d",
+  "bundleIndexSha256": "3497754a6219ea61c8a8db7d1eacf248e395a6d9bb9b579f3cbf822425c6eea8",
+  "executableSha256": "c8e66eea1ec7a5f1163989af3f684afbc5b01d61dee1b08a6f0a8ede503541aa",
+  "pdfSha256": "5a664c0e8e4a59c60442455f9d7a1c2c5060c61fb9c07e6179b8b9d386fed247",
+  "structure": {
+    "internalLinks": [
+      {
+        "destinationPage": 2,
+        "destinationPoint": [
+          514.8738000000001,
+          401.624
+        ],
+        "sourcePage": 2
+      }
+    ],
+    "pages": 2
+  },
+  "signatureVerified": true,
+  "invalidExport": {
+    "exitCode": 1,
+    "outputCreated": false
+  },
+  "notCovered": [
+    "visual review of this PDF",
+    "PDF viewer interaction/VoiceOver",
+    "actual selected QuickLook/Finder extension",
+    "minimum operating system"
+  ],
+  "assetClosure": {
+    "modules": [
+      "assets/PUA-cYpdg4Xe.js",
+      "assets/accents-b-i-Desn3qSR.js",
+      "assets/accents-hALMOlht.js",
+      "assets/arabic-DMhAnlAK.js",
+      "assets/arrows-GoWmm3x8.js",
+      "assets/braille-d-B45NHGoa.js",
+      "assets/braille-CVSRP3lE.js",
+      "assets/calligraphic-BdAvuNoK.js",
+      "assets/cherokee-Ci3PQoOf.js",
+      "assets/cyrillic-ss-DH9doFrf.js",
+      "assets/cyrillic-D68By50j.js",
+      "assets/devanagari-CVsRDSUK.js",
+      "assets/double-struck-r5FA6P1o.js",
+      "assets/fraktur-C05LZUy8.js",
+      "assets/greek-ss-CRRN31fk.js",
+      "assets/greek-CCvGQJX9.js",
+      "assets/hebrew-C-trYMww.js",
+      "assets/latin-b-CAlaBky9.js",
+      "assets/latin-bi-C7ucE5AL.js",
+      "assets/latin-i-CYzllygC.js",
+      "assets/latin-Nhavx2cg.js",
+      "assets/marrows-DyI-rJmh.js",
+      "assets/math-CT5THjF6.js",
+      "assets/monospace-ex-C8x2te_J.js",
+      "assets/monospace-l-C_L8ev7C.js",
+      "assets/monospace-90aiSCeS.js",
+      "assets/mshapes-CMbL04xr.js",
+      "assets/phonetics-ss-DAjaJvna.js",
+      "assets/phonetics-Bp1SIlom.js",
+      "assets/sans-serif-b-CM8e1gVX.js",
+      "assets/sans-serif-bi-DxSMgJD0.js",
+      "assets/sans-serif-ex-D4SxNSKH.js",
+      "assets/sans-serif-i-Bnr9MlSg.js",
+      "assets/sans-serif-r-CMM4ywvM.js",
+      "assets/sans-serif-RPft9i0_.js",
+      "assets/script-DPDzSE7a.js",
+      "assets/shapes-DCZYb1Sc.js",
+      "assets/symbols-b-i-DVQIN2EI.js",
+      "assets/symbols-fX2pvk0b.js",
+      "assets/variants-CziIFYZt.js"
+    ],
+    "manifestEntries": 166,
+    "licenses": {
+      "MathJax-Apache-2.0.txt": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "MathJax-NOTICE.txt": "8e244275e8265a832655438aabcd97cf1471a918764ecbbd5e6291b0703785f8",
+      "NewComputerModern.txt": "49ea6cb9257bbee0a3979c48a774cd221550ac1c20c95549efe45fc99cc18050"
+    }
+  },
+  "unsupportedMathImageExport": {
+    "exitCode": 1,
+    "outputCreated": false
+  }
+}

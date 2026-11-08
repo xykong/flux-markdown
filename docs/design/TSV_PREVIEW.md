@@ -47,4 +47,16 @@
 - 主应用实际打开 Tests/fixtures/test.tsv，屏幕与可访问性树均显示 Column 1/2、alpha/beta、one/two；源码按钮切换后保留原始 Tab 文本。
 - 首批四个 Jest 用例在最初实现后补入；后续“列截断未提示”和“截断首行误报空文件”的两项回归用例先失败、修复后通过。此记录不把最初实现声称为完整 TDD。
 - 全量原生运行进入已有 RenderBenchmarkTests 后出现系统服务噪声且未完成，已停止；本次相关原生测试改为明确选择上述三组运行。真实 WebKit 验证独立完成。
-- Finder 系统级扩展调用尚未在新安装的签名候选包上验收；本次没有替换 /Applications 中的现有应用。原生类型声明、桥接和真实渲染均已验证，但不将这些结果称为 Finder 安装验收。发布前应使用标准构建/签名流程验证空格预览与 QuickLook → 主应用交接。
+- Finder 签名安装验收已在后续补做通过，详见下节。
+
+## 签名安装与 Finder 实机验收（2026-10-28 补充）
+
+此前将系统级验收自行留到发布阶段是不完整的收尾；用户已授权完成全部内容，本机并无阻塞。现已完成：
+
+- 使用 `make app CONFIGURATION=Release LOCAL_DEPLOYMENT_TARGET=12.0` 生成本地候选包，版本仍由仓库 `.version` / Makefile 提供；仅设置 FMDisplayVersion 为 `1.40.622-tsv-acceptance-3404bbf` 以识别本次候选，不修改发布版本号。
+- 使用项目 Release entitlement 配置对 XPC、QuickLook 扩展及主应用逐层 ad-hoc 签名。`verify-release-entitlements.sh` 与严格深度签名验证通过。此为本机签名验收，不代表 Developer ID 公证或 macOS 11 发布兼容性验收。
+- 原应用备份至 ignored `build/tsv-acceptance/original.app`；通过保留编辑器设置的 vendor installer 安装候选到 `/Applications/FluxMarkdown.app`。安装前后 Markdown 默认编辑器状态逐字节一致。
+- 在真实 Finder 窗口定位 `Tests/fixtures/test.tsv`，按 Space。QuickLook 可访问性树显示 TSV 表格、Column 1/2、alpha/beta、one/two；截图可见候选标识 `v1.40.622-tsv-acceptance-3404bbf`，证明确实调用本次扩展，而非仅注册成功。
+- QuickLook 系统“打开”按钮仍显示原 TSV 编辑器 Orca。点击扩展内 `Search in FluxMarkdown` 后，主应用打开相同 `test.tsv`，显示相同候选标识与表格，并展开搜索栏；输入 alpha 得到 `1/1`，验证扩展 → XPC → 主应用交接及搜索。
+- 测试后关闭测试文档和 QuickLook 面板，通过 vendor installer 恢复原应用。恢复后严格深度签名验证通过，主程序与备份逐字节一致，Markdown 编辑器状态仍与测试前一致。TSV fixture 未修改。
+- 安装/恢复日志和状态文件保存在 ignored `build/tsv-acceptance/`；屏幕与可访问性观察记录在本次会话工具结果中。未发布版本或发送外部反馈。

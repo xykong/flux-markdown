@@ -1,0 +1,34 @@
+{
+  "captured": "2026-11-04",
+  "issue": "https://github.com/xykong/flux-markdown/issues/64",
+  "attachment": "https://github.com/user-attachments/files/34004097/markdown.zip",
+  "zipSha256": "950fca77dc6a37eb753978f10e492a0e47a6233c380972d4ae22f9237199a186",
+  "referenceComment": "https://github.com/xykong/flux-markdown/issues/64#issuecomment-6436556954",
+  "referenceRepoCommit": "2fe46cacb7e3979973aa9b97d87d5c1b12eb2a9b",
+  "referenceRepoCommitDate": "2018-05-13",
+  "productionVersion": "1.42.645",
+  "baselineCommit": "e3dd17e",
+  "candidateVersion": "4.1.3",
+  "files": [
+    {
+      "path": "markdown-preview-test.md",
+      "bytes": 31862,
+      "sha256": "897394f436058af2a69b73dc602b8c9b16a6fdb788816bf5235079d06b10154e"
+    },
+    {
+      "path": "markdown-preview-test-assets/file with spaces.txt",
+      "bytes": 125,
+      "sha256": "108016ad7161fbfa3eeff2d157c1e1cb8a344a30137cb2701204d4be59b4b01f"
+    },
+    {
+      "path": "markdown-preview-test-assets/sample.svg",
+      "bytes": 1160,
+      "sha256": "bff861e92fb28af4b7d6595a847511e0cb27d8ffc4e0732020b9066822ec52d7"
+    },
+    {
+      "path": "markdown-preview-test-assets/sample.txt",
+      "bytes": 121,
+      "sha256": "3c35672837331e7f6e43fe9414dc6ab9953678ee0ed8b29a5b79340319ee92ed"
+    }
+  ]
+}

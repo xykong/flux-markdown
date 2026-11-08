@@ -1,0 +1,140 @@
+App=com.xykong.Markdown (pid 313)
+Window: "flux-issue64-valid-export.md", App: FluxMarkdown.
+
+0 标准窗口 flux-issue64-valid-export.md
+	1 按钮 重新加载文件 (⌘R)
+	2 按钮 缩小
+	3 按钮 重置缩放 (⌘0)
+	4 按钮 放大
+	5 按钮 显示帮助
+	6 按钮 显示源码
+	7 按钮 切换主题(系统 / 浅色 / 深色)
+	8 文本, Value: v1.42.645
+	9 滚动区
+		10 HTML内容 Markdown Preview
+			11 container 阅读工具
+				12 文本, Value: Issue 64 — valid mathematical corpus › M08
+				13 文本, Value: 位置 72%
+				14 按钮 (expanded) 目录
+			15 标题 Issue 64 — valid mathematical corpus, Value: 1
+			16 文本, Value: Derived from original source; intentional invalid M12 is tested separately.
+			17 标题 M01, Value: 2
+			18 container
+				19 container, Text: E = m c 2
+				20 按钮 复制
+			21 标题 M02, Value: 2
+			22 container
+				23 container, Text: x > 0
+				24 按钮 复制
+			25 标题 M03, Value: 2
+			26 container
+				27 container, Text: x 2 =
+				28 按钮 复制
+			29 标题 M04, Value: 2
+			30 container
+				31 container, Text: a 2 + b = c
+				32 按钮 复制
+			33 标题 M05, Value: 2
+			34 按钮 复制
+			35 container
+				36 container, Text: ∫ − ∞
+				37 container, Text: e − x 2
+				38 文本, Value: d
+				39 文本, Value: x
+				40 文本, Value: =
+				41 文本, Value: π
+			42 标题 M06, Value: 2
+			43 按钮 复制
+			44 container, Text: ∑ k = 1 n ( + )
+			45 标题 M07, Value: 2
+			46 按钮 复制
+			47 container
+				48 container
+					49 container, Text: f ( x )
+					50 container
+						51 文本, Value: =
+						52 container, Text: x 2 + 1 −
+				53 container
+					54 container
+						55 container, Text: lim n → ∞
+						56 container, Text: ( 1 + n )
+					57 container, Text: = e
+				58 container
+					59 container, Text: P ( A ∣ B )
+					60 container, Text: = P ( B ∣ A ) 条件概率
+			61 标题 M08, Value: 2
+			62 按钮 复制
+			63 container
+				64 文本, Value: A
+				65 文本, Value: =
+				66 container
+					67 文本, Value: [
+					68 container, Text: 1 2 3 4
+					69 文本, Value: ]
+				70 文本, Value: ,
+				71 文本, Value: g
+				72 文本, Value: (
+				73 文本, Value: x
+				74 文本, Value: )
+				75 文本, Value: =
+				76 container
+					77 文本, Value: {
+					78 container
+						79 container, Text: x 2 , ≥ 0
+						80 container, Text: − x , < 0
+			81 标题 M09, Value: 2
+			82 按钮 复制
+			83 container, Text: ( 1 ) a 2 + b =
+			84 标题 M10, Value: 2
+			85 container
+				86 link (1)
+					87 文本, Value: (1)
+				88 按钮 复制
+			89 标题 M11, Value: 2
+			90 按钮 复制
+			91 container, Text: ∇ ⋅ E = ρ ε 0
+			92 标题 M13, Value: 2
+			93 container
+				94 container, Text: x 2 + y = z
+				95 按钮 复制
+			96 container 目录
+				97 文本, Value: 目录
+				98 按钮 关闭目录
+				99 内容列表
+					100 container
+						101 link Issue 64 — valid mathematical corpus
+							102 文本, Value: Issue 64 — valid mathematical corpus
+						103 内容列表
+							104 link M01
+								105 文本, Value: M01
+							106 link M02
+								107 文本, Value: M02
+							108 link M03
+								109 文本, Value: M03
+							110 link M04
+								111 文本, Value: M04
+							112 link M05
+								113 文本, Value: M05
+							114 link M06
+								115 文本, Value: M06
+							116 link M07
+								117 文本, Value: M07
+							118 link M08
+								119 文本, Value: M08
+							120 link M09
+								121 文本, Value: M09
+							122 link M10
+								123 文本, Value: M10
+							124 link M11
+								125 文本, Value: M11
+							126 link M13
+								127 文本, Value: M13
+		128 滚动条, Value: 0.7191157
+	129 关闭按钮
+	130 全屏幕按钮, Secondary Actions: zoom the window
+	131 最小化按钮
+	132 菜单按钮 (disabled) 文稿操作
+	133 图像 flux-issue64-valid-export.md
+	134 文本, Value: flux-issue64-valid-export.md
+
+No UI element is currently focused.

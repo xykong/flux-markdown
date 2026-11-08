@@ -2,6 +2,26 @@
 
 This project incorporates code and concepts from the following third-party projects.
 
+## MathJax and New Computer Modern glyph data
+
+The mathematical renderer bundles `@mathjax/src` 4.1.3 and
+`@mathjax/mathjax-newcm-font` 4.1.3 from the locked npm packages.
+Runtime source attribution is Copyright (c) 2017–2026 The MathJax Consortium,
+under Apache-2.0. The glyph package declares Apache-2.0 for its packaging/code;
+its font metadata also retains the GUST Font License and the MathJax, Inc. /
+Antonis Tsolomitis attribution for the underlying font.
+
+The distributed renderer includes the following source-preserved notices:
+
+- `licenses/MathJax-Apache-2.0.txt`
+- `licenses/MathJax-NOTICE.txt`
+- `licenses/NewComputerModern.txt`
+
+Sources: the installed runtime's `LICENSE` and `ts/mathjax.ts`, the glyph
+package's `package.json`, and the copyright name table of its
+`chtml/woff2/mjx-ncm-n.woff2`. MathJax's official font documentation identifies
+the default NewCM family: <https://docs.mathjax.org/en/latest/output/fonts.html>.
+
 ## markdown-preview-enhanced
 
 This project is inspired by and uses portions of [markdown-preview-enhanced](https://github.com/shd101wyy/markdown-preview-enhanced).

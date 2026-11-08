@@ -1,208 +1,44 @@
-# Release Workflow Design
+# 当前发布实现与恢复边界
 
-## Problem Statement
+此文件描述现有实现。规则见 [发布流程](RELEASE_PROCESS.md)，操作见
+[发布操作手册](RELEASE_RUNBOOK.md)。旧版“先打标签、再提交版本”的设计已经废止，
+不要按历史示例执行；本文件不提供另一套发布流程。
 
-### Version Inconsistency Issue
+## 版本与产物
 
-**Current problematic flow:**
-```
-Commit #136: "feat: some feature"
-Commit #137: "chore(release): bump version to 1.12.136"  ← VERSION MISMATCH!
-```
+`scripts/release.sh` 在干净的 master 上读取 `.version`，普通发布默认 minor。
+第三位取版本提交前的 git commit count；随后提交 `.version` 和 CHANGELOG、创建
+指向该发布提交的标签并推送。标签内包含正确的 `.version`，此后所有渠道沿用它。
+后续源码包校验和、appcast 和发布记录提交不改变这一冻结版本。
 
-**Result:**
-- Git tag: v1.12.136 (points to commit #137)
-- GitHub Release: v1.12.136
-- Sparkle appcast: v1.12.137 (calculated from commit #137)
-- **MISMATCH**: Sparkle users get version 137 but GitHub shows 136
+`RELEASE_REMOTE_BUILD=1` 从标签调用 `release-build.yml`，使用 Xcode 16.4 构建并
+验证 macOS 11 与双架构。下载器验证 SHA、版本、归档哈希、签名和部署目标后，
+本地生成 DMG。源码包与原始 notes 同时写入 release manifest。
+`RELEASE_PREPARE_ONLY=1` 在完成准备后停下，不自动创建公开 Release。
 
-### Root Cause
+## 发布顺序
 
-Version calculation: `FULL_VERSION = BASE_VERSION.COMMIT_COUNT`
-- The release commit increments commit count
-- Version number is calculated BEFORE the commit
-- Subsequent operations see different commit count
+`publish-release.sh` 验证 manifest 与权限，调用 Sparkle 签名生成，然后创建草稿
+并公开 GitHub Release，再推送 appcast，最后调用 Homebrew updater。
+已有 Release 的重试会比较附件字节，不覆盖发布包。整个过程不是跨服务原子事务：
+后续阶段失败时，GitHub 可能已经公开。
 
-## Solution: Tag-First Workflow
+署名与排版由 markdown-it 和 stdin 数据传递处理；不再把正文拼进 Perl。
+Homebrew 非交互修改返回 2，需要操作员提交推送。updater 的“版本/哈希相同”早退
+不能证明远端已经更新，必须独立 fetch/diff 两份 cask。
 
-### Design Principle
+## 实际限制与恢复
 
-**The git tag should point to the last feature commit, not the version bump commit.**
+- 准备失败用 `release.sh --resume`，沿用现有版本、标签及 notes；先检查其前置条件。
+  正式附件已发布后不再通过准备重跑来重建它们。
+- 发布重试会再次调用 `generate-appcast.sh`。若该版本已存在，它会询问是否替换；
+  不可假设无人值守重跑完全无提示。为补 Homebrew 或署名文案，不要重生成已签 feed。
+- 已完成的 GitHub/Sparkle 渠道只核对不重写；按操作手册补齐失败渠道。
+- `publication-status.txt` 不验证署名语义、宣传图或浏览器显示，不能当作最终验收单。
+- 历史正文纠错只修改 metadata；发布包、签名、版本与原始 manifest 不变。
+- CDN 缓存、网络错误和 CI 依赖失败分别记录；替代下载路径或一次成功请求不能
+  自动证明默认路径或页面渲染已经恢复。
 
-Rationale:
-- Tags represent code snapshots users will download
-- Version bump commits contain no functional changes
-- Appcast and Release must reference the same commit count
-
-### Correct Workflow (Tag-First)
-
-```
-Step 1: Calculate version from CURRENT commit
-   HEAD: commit #136 (last feature)
-   Version: 1.12.136
-
-Step 2: Update .version and CHANGELOG.md
-   .version: 1.11 → 1.12
-   CHANGELOG: Move [Unreleased] → [1.12.136]
-
-Step 3: Create tag at CURRENT commit (before version commit)
-   git tag v1.12.136
-   (Tag points to commit #136)
-
-Step 4: Build DMG
-   Uses commit #136, version 1.12.136
-
-Step 5: Create GitHub Release
-   Release v1.12.136 with DMG from commit #136
-
-Step 6: Update appcast.xml
-   sign_update generates signature for DMG
-   Appcast references commit #136 → version 1.12.136
-   ✅ CONSISTENT
-
-Step 7: Commit version changes
-   git add .version CHANGELOG.md appcast.xml
-   git commit -m "chore(release): release v1.12.136"
-   (This becomes commit #137, but tag already exists at #136)
-
-Step 8: Push
-   git push origin master
-   git push origin v1.12.136
-```
-
-### Key Changes from Old Workflow
-
-| Old Workflow | New Workflow |
-|--------------|--------------|
-| Commit → Tag → Build | Tag → Build → Commit |
-| Tag points to version commit (#137) | Tag points to feature commit (#136) |
-| Version in commit name is wrong | Version in commit name is correct |
-| appcast.xml committed separately | appcast.xml in same commit |
-
-## Implementation Details
-
-### Version Calculation
-
-```bash
-# Always calculate from CURRENT commit (before any changes)
-BASE_VERSION=$(cat .version)
-COMMIT_COUNT=$(git rev-list --count HEAD)
-FULL_VERSION="$BASE_VERSION.$COMMIT_COUNT"
-```
-
-### Tag Creation Timing
-
-```bash
-# Create tag BEFORE making any commits
-git tag "v$FULL_VERSION"
-
-# Then make version commit
-git add .version CHANGELOG.md appcast.xml
-git commit -m "chore(release): release v$FULL_VERSION"
-```
-
-### Build from Tag
-
-```bash
-# Build should checkout the tag
-git checkout "v$FULL_VERSION"
-make dmg
-git checkout master  # return to master
-```
-
-### Appcast Generation
-
-```bash
-# appcast.xml must be generated BEFORE committing
-./scripts/generate-appcast.sh build/artifacts/FluxMarkdown.dmg
-
-# Then include it in the release commit
-git add appcast.xml
-```
-
-## Verification Checklist
-
-After release, verify:
-- [ ] Git tag exists: `git tag -l "v1.12.136"`
-- [ ] Tag points to feature commit: `git show v1.12.136` (should NOT show version bump)
-- [ ] GitHub Release exists with correct version
-- [ ] DMG file uploaded to GitHub Release
-- [ ] appcast.xml contains entry with matching version
-- [ ] Homebrew Cask updated with matching version and SHA256
-- [ ] All version numbers match across:
-  - Git tag
-  - GitHub Release title
-  - DMG filename
-  - appcast.xml `<sparkle:shortVersionString>`
-  - Homebrew Cask `version`
-
-## Edge Cases
-
-### Case 1: Release Commit Pushed But Tag Not Pushed
-
-**Scenario:** Commit #137 pushed, but tag v1.12.136 not pushed yet.
-
-**Problem:** Others pulling master will see commit count #137+, creating version mismatch.
-
-**Solution:**
-- Always push tag immediately after pushing commit
-- Or push both atomically: `git push origin master v1.12.136`
-
-### Case 2: Need to Re-release Same Version
-
-**Scenario:** Release v1.12.136 failed, need to retry.
-
-**Solution:**
-- Delete tag: `git tag -d v1.12.136 && git push origin :refs/tags/v1.12.136`
-- Delete GitHub Release
-- Revert version commit: `git revert HEAD`
-- Start workflow again from Step 1
-
-### Case 3: Hotfix After Release
-
-**Scenario:** Released v1.12.136, need hotfix without version bump.
-
-**Solution:** Not supported with commit-count versioning. Must create new version:
-- Make fix commit (becomes #137)
-- Release v1.12.137
-
-## Migration Path
-
-For existing releases with version mismatch:
-1. **Do not retroactively fix**: Users may already have installed mismatched versions
-2. **Document in CHANGELOG**: Add note about version number change in next release
-3. **Start clean**: Apply new workflow for all future releases
-
-## Testing
-
-### Pre-release Dry Run
-
-```bash
-# Simulate workflow without pushing
-./scripts/release-dry-run.sh minor
-
-# Should output:
-# - Calculated version
-# - Git operations (without pushing)
-# - Build commands
-# - Verification checklist
-```
-
-### Post-release Verification
-
-```bash
-# Verify all version numbers match
-./scripts/verify-release.sh v1.12.136
-
-# Should check:
-# - Git tag exists
-# - GitHub Release exists
-# - appcast.xml contains version
-# - Homebrew Cask matches
-```
-
-## References
-
-- Semantic Versioning: https://semver.org/
-- Sparkle Documentation: https://sparkle-project.org/documentation/
-- Keep a Changelog: https://keepachangelog.com/
+本仓库没有 `release-dry-run.sh` 或 `verify-release.sh`；使用实际存在的
+manifest、权限、测试和公开回读步骤。失败恢复不删除既有标签/Release，不强制
+回退 master，也不重新分配已发布版本。

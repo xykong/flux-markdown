@@ -51,7 +51,7 @@
 "Enable or disable rendering capabilities" = "Enable or disable rendering capabilities";
 "Mermaid Diagrams" = "Mermaid Diagrams";
 "Flowcharts, sequence diagrams, and more" = "Flowcharts, sequence diagrams, and more";
-"KaTeX Math" = "KaTeX Math";
+"Mathematical Formulas" = "Mathematical Formulas";
 "Mathematical expressions and equations" = "Mathematical expressions and equations";
 "Emoji Support" = "Emoji Support";
 "GitHub flavored emoji codes like :smile:" = "GitHub flavored emoji codes like :smile:";
@@ -255,3 +255,19 @@
 "Thank you. The source is linked to this installation. Effective use and return visits are measured separately when usage statistics are enabled." = "Thank you. The source is linked to this installation. Effective use and return visits are measured separately when usage statistics are enabled.";
 
 "Open Promotion Page" = "Open Promotion Page";
+
+/* Block copy controls */
+"Show Copy Buttons" = "Show Copy Buttons";
+"Copy code and quotes. Reload open Quick Look previews to apply." = "Copy code and quotes. Reload open Quick Look previews to apply.";
+"Text could not be copied" = "Text could not be copied";
+"Select the text to copy it manually, or try the copy button again." = "Select the text to copy it manually, or try the copy button again.";
+
+"Copy Document Path" = "Copy Document Path";
+
+"New Document" = "New Document";
+
+"Open…" = "Open…";
+
+"Open Recent" = "Open Recent";
+
+"Clear Menu" = "Clear Menu";

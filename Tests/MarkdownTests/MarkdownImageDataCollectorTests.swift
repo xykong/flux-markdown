@@ -2,6 +2,21 @@ import XCTest
 
 final class MarkdownImageDataCollectorTests: XCTestCase {
 
+    func testSVGOnlyCollectionLeavesRasterImagesOnTheLocalScheme() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" viewBox=\"0 0 586.5 1088\"><text>A</text></svg>"
+        try Data(svg.utf8).write(to: root.appendingPathComponent("diagram.svg"))
+        try Data([0x89,0x50,0x4e,0x47]).write(to: root.appendingPathComponent("image.png"))
+        let images = MarkdownImageDataCollector.collectImageData(
+            from: root.appendingPathComponent("test.md"),
+            content: "![A](diagram.svg)\n![B](image.png)", fileExtensions: ["svg"])
+        XCTAssertNotNil(images["diagram.svg"])
+        XCTAssertNil(images["image.png"])
+        XCTAssertEqual(images.count, 2, "Only the SVG and its ./ alias are included")
+    }
+
     func testCollectsRelativeMarkdownImageAsDataURL() throws {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)

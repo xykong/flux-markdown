@@ -1,0 +1,38 @@
+{
+  "nativeTests": 30,
+  "redTest": "testNativeWebViewExposesIncidentActionsToAccessibility failed before fix",
+  "actualAppMenu": "File > Export as HTML",
+  "invalidFormulaExportBlocked": true,
+  "nativeNoticeAccessibleAfterFix": true,
+  "translatedRecovery": "在外部编辑器中打开",
+  "systemQuickLook": {
+    "extensionPath": "/Applications/FluxMarkdown.app/Contents/PlugIns/MarkdownPreview.appex/Contents/MacOS/MarkdownPreview",
+    "extensionPID": 27867,
+    "hostPID": 27865,
+    "hostFrame": [
+      1992,
+      11,
+      960,
+      832
+    ],
+    "validCorpusRendered": true,
+    "numberedReferenceActivation": true
+  },
+  "restorationPending": false,
+  "notVerified": [
+    "actual editor launch",
+    "VoiceOver speech",
+    "Finder preview pane",
+    "independent human sign-off"
+  ],
+  "restoration": {
+    "startedAt": "2026-11-05T05:15:49.464390+00:00",
+    "installedCandidate": "bdad849",
+    "originalPreserved": "/Applications/.FluxMarkdown-issue64-original",
+    "restorationRequired": false,
+    "restoredAt": "2026-11-05T05:45:36.472804+00:00",
+    "originalHashesMatch": true,
+    "signatureVerified": true,
+    "latestCandidate": "build/issue64-host-validation/candidate-868237a.app"
+  }
+}

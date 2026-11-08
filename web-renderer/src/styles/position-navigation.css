@@ -1,5 +1,6 @@
 /* Explicit positions and contents links stay clear of native preview controls. */
 #markdown-preview [data-source-line],
+#markdown-preview .flux-math-source,
 #markdown-preview h1[id], #markdown-preview h2[id], #markdown-preview h3[id],
 #markdown-preview h4[id], #markdown-preview h5[id], #markdown-preview h6[id] {
     scroll-margin-top: var(--reading-scroll-top, calc(var(--reading-content-top, 64px) + 16px));

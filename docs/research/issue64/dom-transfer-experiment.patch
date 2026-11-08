@@ -1,0 +1,85 @@
+diff --git a/web-renderer/src/index.ts b/web-renderer/src/index.ts
+index a0f0fe3..294c33c 100644
+--- a/web-renderer/src/index.ts
++++ b/web-renderer/src/index.ts
+@@ -1029 +1029 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
+-                const result = await renderMathSources(mathSources, mathNamespace, outputDiv, isCurrent);
++                const result = await renderMathSources(mathSources, mathNamespace, outputDiv, isCurrent, true);
+@@ -1037 +1037,2 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
+-                    target.innerHTML = item.html;
++                    if (item.fragment) target.replaceChildren(item.fragment);
++                    else target.innerHTML = item.html;
+diff --git a/web-renderer/src/math-engine.ts b/web-renderer/src/math-engine.ts
+index 6fe8a05..8e8c677 100644
+--- a/web-renderer/src/math-engine.ts
++++ b/web-renderer/src/math-engine.ts
+@@ -20 +20 @@ export interface MathEngineResult {
+-    items: Array<{ id: string; html: string }>;
++    items: Array<{ id: string; html: string; fragment?: DocumentFragment }>;
+@@ -26 +26 @@ export interface MathEngineResult {
+-export async function renderMathSources(sources: readonly MathSource[], namespace: string, host?: HTMLElement, isCurrent: () => boolean = () => true): Promise<MathEngineResult> {
++export async function renderMathSources(sources: readonly MathSource[], namespace: string, host?: HTMLElement, isCurrent: () => boolean = () => true, preserveDOM = false): Promise<MathEngineResult> {
+@@ -32,2 +32,2 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
+-        const result = accepted.length ? await renderMathSources(accepted, namespace, host, isCurrent) : { items: [], errors: [], css: '' } satisfies MathEngineResult;
+-        const rendered = new Map(result.items.map(item => [item.id, item.html]));
++        const result = accepted.length ? await renderMathSources(accepted, namespace, host, isCurrent, preserveDOM) : { items: [], errors: [], css: '' } satisfies MathEngineResult;
++        const rendered = new Map<string, MathEngineResult['items'][number]>(result.items.map(item => [item.id, item]));
+@@ -37 +37 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
+-            rendered.set(source.id, text.innerHTML);
++            rendered.set(source.id, { id: source.id, html: text.innerHTML });
+@@ -39 +39 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
+-        return { items: sources.map(source => ({ id: source.id, html: rendered.get(source.id)! })),
++        return { items: sources.map(source => rendered.get(source.id)!),
+@@ -140 +140 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
+-            const result = sanitizeMathOutput(node.innerHTML);
++            const result = sanitizeMathOutput(node.innerHTML, preserveDOM);
+@@ -175 +175 @@ export async function renderMathSources(sources: readonly MathSource[], namespac
+-                return {id:sources[index].id,html:item.html};
++                return {id:sources[index].id,html:item.html, ...(item.fragment ? {fragment:item.fragment} : {})};
+diff --git a/web-renderer/src/safe-html.ts b/web-renderer/src/safe-html.ts
+index 4b2656d..d20f54f 100644
+--- a/web-renderer/src/safe-html.ts
++++ b/web-renderer/src/safe-html.ts
+@@ -7 +7 @@ export function sanitizeMathHTML(html: string): string {
+-export function sanitizeMathOutput(html: string): { html: string; ids: string[]; links: string[]; paths: number; formulas: number; blockedResources: boolean } {
++export function sanitizeMathOutput(html: string, preserveDOM = false): { html: string; fragment?: DocumentFragment; ids: string[]; links: string[]; paths: number; formulas: number; blockedResources: boolean } {
+@@ -49 +49,7 @@ export function sanitizeMathOutput(html: string): { html: string; ids: string[];
+-    return { html: container.innerHTML, ids, links, paths, formulas, blockedResources };
++    const cleanHTML = container.innerHTML;
++    if (preserveDOM) {
++        const output = document.createDocumentFragment();
++        output.append(...Array.from(container.childNodes));
++        return { html: cleanHTML, fragment: output, ids, links, paths, formulas, blockedResources };
++    }
++    return { html: cleanHTML, ids, links, paths, formulas, blockedResources };
+diff --git a/web-renderer/test/math-dom-transfer.test.ts b/web-renderer/test/math-dom-transfer.test.ts
+new file mode 100644
+index 0000000..0acaf1d
+--- /dev/null
++++ b/web-renderer/test/math-dom-transfer.test.ts
+@@ -0,0 +1,25 @@
++jest.mock('mermaid', () => ({ initialize: jest.fn(), render: jest.fn() }));
++import '../src/index';
++
++test('publishes sanitized math without reparsing its serialized SVG and MathML', async () => {
++    document.body.innerHTML='<div id="markdown-preview"></div>';
++    const setter=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML')!.set!;
++    const reparsed: string[]=[];
++    const spy=jest.spyOn(Element.prototype,'innerHTML','set').mockImplementation(function(this:Element,value:string){
++        if(this.matches('.flux-math-source')&&value.includes('mjx-container')) {
++            reparsed.push(value);
++            throw new Error('Mathematical output was parsed a second time');
++        }
++        setter.call(this,value);
++    });
++    try {
++        await window.renderMarkdown(String.raw`\(\eqref{a}\)`+'\n\n'+String.raw`\[x=1\tag{A}\label{a}\]`);
++        expect(document.querySelectorAll('mjx-container')).toHaveLength(2);
++        expect(document.querySelector('.math-error')).toBeNull();
++        expect(reparsed).toHaveLength(0);
++        expect(document.querySelector('math')?.namespaceURI).toBe('http://www.w3.org/1998/Math/MathML');
++        const link=document.querySelector<HTMLAnchorElement>('a.math-reference-link')!;
++        expect(document.getElementById(decodeURIComponent(link.hash.slice(1)))).not.toBeNull();
++        await window.waitForExportReady();
++    } finally { spy.mockRestore(); }
++});

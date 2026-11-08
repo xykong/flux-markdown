@@ -1,0 +1,668 @@
+{
+  "method": {
+    "coldSamples": 20,
+    "warmup": 5,
+    "warmSamples": 30,
+    "viewport": [
+      960,
+      900
+    ],
+    "fontReadiness": "force layout, await font readiness, reflow and verify no loading fonts; no throttled setTimeout",
+    "coldMeaning": "new process and nonpersistent WebKit data store; OS disk cache not flushed"
+  },
+  "engines": {
+    "svg": {
+      "cold": [
+        {
+          "startupMs": 79,
+          "firstMs": 36,
+          "processWallMs": 387.866
+        },
+        {
+          "startupMs": 76,
+          "firstMs": 36,
+          "processWallMs": 248.68
+        },
+        {
+          "startupMs": 78,
+          "firstMs": 37,
+          "processWallMs": 250.006
+        },
+        {
+          "startupMs": 77,
+          "firstMs": 36,
+          "processWallMs": 248.077
+        },
+        {
+          "startupMs": 79,
+          "firstMs": 36,
+          "processWallMs": 246.218
+        },
+        {
+          "startupMs": 76,
+          "firstMs": 36,
+          "processWallMs": 243.667
+        },
+        {
+          "startupMs": 77,
+          "firstMs": 36,
+          "processWallMs": 242.372
+        },
+        {
+          "startupMs": 77,
+          "firstMs": 36,
+          "processWallMs": 244.987
+        },
+        {
+          "startupMs": 77,
+          "firstMs": 36,
+          "processWallMs": 244.18
+        },
+        {
+          "startupMs": 77,
+          "firstMs": 36,
+          "processWallMs": 243.826
+        },
+        {
+          "startupMs": 76,
+          "firstMs": 36,
+          "processWallMs": 242.248
+        },
+        {
+          "startupMs": 75,
+          "firstMs": 36,
+          "processWallMs": 242.851
+        },
+        {
+          "startupMs": 75,
+          "firstMs": 36,
+          "processWallMs": 242.318
+        },
+        {
+          "startupMs": 77,
+          "firstMs": 36,
+          "processWallMs": 245.053
+        },
+        {
+          "startupMs": 75,
+          "firstMs": 35,
+          "processWallMs": 245.105
+        },
+        {
+          "startupMs": 76,
+          "firstMs": 36,
+          "processWallMs": 242.747
+        },
+        {
+          "startupMs": 76,
+          "firstMs": 36,
+          "processWallMs": 245.484
+        },
+        {
+          "startupMs": 80,
+          "firstMs": 35,
+          "processWallMs": 249.476
+        },
+        {
+          "startupMs": 77,
+          "firstMs": 36,
+          "processWallMs": 245.71
+        },
+        {
+          "startupMs": 80,
+          "firstMs": 36,
+          "processWallMs": 249.974
+        }
+      ],
+      "firstRequestAssets": [
+        {
+          "bytes": 1071,
+          "url": "flux-renderer://bundle/svg.html?cold=1"
+        },
+        {
+          "bytes": 1849738,
+          "url": "flux-renderer://bundle/node_modules/mathjax/tex-mml-svg.js"
+        },
+        {
+          "bytes": 3639,
+          "url": "flux-renderer://bundle/node_modules/mathjax/a11y/assistive-mml.js"
+        }
+      ],
+      "sample": {
+        "assistiveCount": 13,
+        "domBytes": 87470,
+        "errors": 1,
+        "fontStatus": [
+          {
+            "family": "MJX-ZERO",
+            "status": "unloaded"
+          }
+        ],
+        "glyphUses": 152,
+        "mathCount": 13,
+        "refs": [
+          {
+            "href": "#mjx-eqn%3Aeq%3Apythagoras"
+          }
+        ]
+      },
+      "warm": {
+        "13": {
+          "domBytes": 87944,
+          "samplesMs": [
+            9,
+            8,
+            9,
+            9,
+            11,
+            8,
+            8,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            8,
+            7,
+            8,
+            7
+          ]
+        },
+        "100": {
+          "domBytes": 611497,
+          "samplesMs": [
+            39,
+            43,
+            36,
+            38,
+            37,
+            35,
+            35,
+            37,
+            36,
+            35,
+            35,
+            41,
+            37,
+            36,
+            38,
+            35,
+            37,
+            33,
+            39,
+            36,
+            35,
+            36,
+            34,
+            47,
+            38,
+            37,
+            38,
+            36,
+            37,
+            38
+          ]
+        },
+        "1000": {
+          "domBytes": 6675198,
+          "samplesMs": [
+            416,
+            404,
+            425,
+            401,
+            422,
+            387,
+            392,
+            423,
+            442,
+            428,
+            423,
+            422,
+            401,
+            422,
+            407,
+            403,
+            417,
+            412,
+            393,
+            423,
+            438,
+            409,
+            416,
+            399,
+            396,
+            445,
+            413,
+            431,
+            428,
+            415
+          ]
+        }
+      }
+    },
+    "chtml": {
+      "cold": [
+        {
+          "startupMs": 78,
+          "firstMs": 60,
+          "processWallMs": 274.725
+        },
+        {
+          "startupMs": 74,
+          "firstMs": 59,
+          "processWallMs": 265.472
+        },
+        {
+          "startupMs": 75,
+          "firstMs": 60,
+          "processWallMs": 268.723
+        },
+        {
+          "startupMs": 74,
+          "firstMs": 59,
+          "processWallMs": 265.864
+        },
+        {
+          "startupMs": 76,
+          "firstMs": 59,
+          "processWallMs": 268.643
+        },
+        {
+          "startupMs": 75,
+          "firstMs": 60,
+          "processWallMs": 267.989
+        },
+        {
+          "startupMs": 75,
+          "firstMs": 59,
+          "processWallMs": 265.504
+        },
+        {
+          "startupMs": 74,
+          "firstMs": 59,
+          "processWallMs": 266.077
+        },
+        {
+          "startupMs": 75,
+          "firstMs": 59,
+          "processWallMs": 263.273
+        },
+        {
+          "startupMs": 75,
+          "firstMs": 60,
+          "processWallMs": 268.411
+        },
+        {
+          "startupMs": 75,
+          "firstMs": 60,
+          "processWallMs": 267.425
+        },
+        {
+          "startupMs": 76,
+          "firstMs": 58,
+          "processWallMs": 270.593
+        },
+        {
+          "startupMs": 75,
+          "firstMs": 59,
+          "processWallMs": 265.638
+        },
+        {
+          "startupMs": 75,
+          "firstMs": 59,
+          "processWallMs": 265.083
+        },
+        {
+          "startupMs": 74,
+          "firstMs": 59,
+          "processWallMs": 264.777
+        },
+        {
+          "startupMs": 74,
+          "firstMs": 59,
+          "processWallMs": 265.94
+        },
+        {
+          "startupMs": 75,
+          "firstMs": 60,
+          "processWallMs": 269.609
+        },
+        {
+          "startupMs": 75,
+          "firstMs": 59,
+          "processWallMs": 268.394
+        },
+        {
+          "startupMs": 77,
+          "firstMs": 61,
+          "processWallMs": 329.139
+        },
+        {
+          "startupMs": 76,
+          "firstMs": 60,
+          "processWallMs": 285.74
+        }
+      ],
+      "firstRequestAssets": [
+        {
+          "bytes": 1073,
+          "url": "flux-renderer://bundle/chtml.html?cold=1"
+        },
+        {
+          "bytes": 997558,
+          "url": "flux-renderer://bundle/node_modules/mathjax/tex-mml-chtml.js"
+        },
+        {
+          "bytes": 3639,
+          "url": "flux-renderer://bundle/node_modules/mathjax/a11y/assistive-mml.js"
+        },
+        {
+          "bytes": 840,
+          "url": "flux-renderer://bundle/node_modules/@mathjax/mathjax-newcm-font/chtml/woff2/mjx-ncm-zero.woff2"
+        },
+        {
+          "bytes": 93764,
+          "url": "flux-renderer://bundle/node_modules/@mathjax/mathjax-newcm-font/chtml/woff2/mjx-ncm-n.woff2"
+        },
+        {
+          "bytes": 10124,
+          "url": "flux-renderer://bundle/node_modules/@mathjax/mathjax-newcm-font/chtml/woff2/mjx-ncm-lo.woff2"
+        },
+        {
+          "bytes": 4500,
+          "url": "flux-renderer://bundle/node_modules/@mathjax/mathjax-newcm-font/chtml/woff2/mjx-ncm-s5.woff2"
+        },
+        {
+          "bytes": 4488,
+          "url": "flux-renderer://bundle/node_modules/@mathjax/mathjax-newcm-font/chtml/woff2/mjx-ncm-s6.woff2"
+        }
+      ],
+      "sample": {
+        "assistiveCount": 13,
+        "domBytes": 33700,
+        "errors": 1,
+        "fontStatus": [
+          {
+            "family": "MJX-NCM-ZERO",
+            "status": "loaded"
+          },
+          {
+            "family": "MJX-BRK",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-N",
+            "status": "loaded"
+          },
+          {
+            "family": "MJX-NCM-B",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-I",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-BI",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-DS",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-F",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-FB",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-SS",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-SSB",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-SSI",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-SSBI",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-M",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-SO",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-LO",
+            "status": "loaded"
+          },
+          {
+            "family": "MJX-NCM-S3",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-S4",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-S5",
+            "status": "loaded"
+          },
+          {
+            "family": "MJX-NCM-S6",
+            "status": "loaded"
+          },
+          {
+            "family": "MJX-NCM-S7",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-MI",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-C",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-CB",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-OS",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-OB",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-V",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-LT",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-RB",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-EM",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-B-a",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-U",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-U-a",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-S",
+            "status": "unloaded"
+          },
+          {
+            "family": "MJX-NCM-SB",
+            "status": "unloaded"
+          }
+        ],
+        "glyphUses": 0,
+        "mathCount": 13,
+        "refs": [
+          {
+            "href": "#mjx-eqn%3Aeq%3Apythagoras"
+          }
+        ]
+      },
+      "warm": {
+        "13": {
+          "domBytes": 33700,
+          "samplesMs": [
+            8,
+            9,
+            12,
+            8,
+            8,
+            8,
+            8,
+            8,
+            7,
+            7,
+            7,
+            7,
+            8,
+            7,
+            7,
+            8,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            8,
+            7
+          ]
+        },
+        "100": {
+          "domBytes": 256110,
+          "samplesMs": [
+            43,
+            36,
+            35,
+            36,
+            34,
+            35,
+            34,
+            35,
+            34,
+            34,
+            34,
+            40,
+            34,
+            34,
+            35,
+            36,
+            35,
+            33,
+            37,
+            34,
+            35,
+            35,
+            35,
+            39,
+            35,
+            35,
+            34,
+            33,
+            34,
+            35
+          ]
+        },
+        "1000": {
+          "domBytes": 2787810,
+          "samplesMs": [
+            399,
+            408,
+            410,
+            387,
+            372,
+            398,
+            413,
+            403,
+            396,
+            395,
+            382,
+            391,
+            410,
+            396,
+            397,
+            390,
+            394,
+            388,
+            408,
+            427,
+            384,
+            408,
+            382,
+            390,
+            406,
+            397,
+            379,
+            405,
+            374,
+            385
+          ]
+        }
+      }
+    }
+  },
+  "environment": {
+    "architecture": "arm64",
+    "hardware": "Apple M5 Max",
+    "memoryGiB": 128,
+    "macOS": "27.0.1 (26A434)",
+    "mathjax": "4.1.3",
+    "nativeViewport": [
+      960,
+      900
+    ]
+  }
+}
