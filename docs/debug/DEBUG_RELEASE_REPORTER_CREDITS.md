@@ -36,3 +36,9 @@ in existing feed entries. See
 [the repair record](../release/REPORTER_CREDIT_REPAIR_2026-11-08.md) and its
 machine-readable evidence map. Two early releases had no appcast item and no
 obsolete item was manufactured. No artifacts or bound notes changed.
+
+The actual public `master/appcast.xml` URL was verified byte-for-byte after
+its 300-second CDN cache refreshed. Remote CI's docs/renderer/generator and
+production WebKit checks passed; native tests were blocked before execution
+by the Sparkle 2.9.3 SwiftPM artifact-cache/download error on both attempts.
+The detailed release repair record preserves this verification limit.

@@ -99,5 +99,22 @@ remain traceable to the evidence JSON, including the issue-comment associations.
 
 All 24 GitHub release edits were read back exactly. Asset IDs, names, sizes and
 digests, tag names, release titles, publication dates and draft/prerelease state
-were unchanged. No PR was created. Public feed verification follows the direct
-master push.
+were unchanged. No PR was created. GitHub master source and the public raw URL pinned to commit
+`e39d5976f304373306b4b3da0f75745bc58ce35b` match the repaired feed byte-for-byte.
+SHA-256: `4b2313b0bdb9c36046c149a29bc2fcc0444a242677ccd16dc77aeaf632aaef9d`.
+The unpinned `master/appcast.xml` URL initially returned the prior CDN-cached
+feed (`max-age=300`); after refresh its public response also matched the repaired
+feed byte-for-byte. The actual URL used by Sparkle is therefore verified.
+
+CI's docs/renderer/generator job passed. The initial native job stopped before
+compilation/tests while SwiftPM downloaded Sparkle 2.9.3: its artifact cache
+reported an existing destination (exit 74). Only the failed job was rerun on a
+fresh runner; no dependency or product code was changed to bypass the failure.
+
+The failed-job retry encountered the same SwiftPM artifact destination error
+before native compilation/tests. The [CI run](https://github.com/xykong/flux-markdown/actions/runs/42466219122)
+is therefore not wholly green: docs/renderer/generator and production WebKit
+checks passed, but native tests did not start. This external dependency-fetch
+failure is recorded rather than bypassed; it does not change the verified
+historical note/asset comparisons or the nine passing publication/generator
+regression tests. No native product source was changed in this repair.
