@@ -55,10 +55,29 @@ export function svgImageMetrics(source: string): SVGMetrics | undefined {
     return svg ? metricsForSVG(svg) : undefined;
 }
 
+/** Center a diagram paragraph without turning inline icons into blocks. */
+function centerStandaloneSVG(img: HTMLImageElement): void {
+    const onlyChild = (parent: Element, child: Element) => Array.from(parent.childNodes).every(node =>
+        node === child || node.nodeType === Node.COMMENT_NODE || (node.nodeType === Node.TEXT_NODE && !node.textContent?.trim()));
+    const container = img.parentElement;
+    const linked = container?.tagName === 'A' && onlyChild(container, img);
+    const paragraph = linked ? container.parentElement : container;
+    if (paragraph?.tagName !== 'P' || !onlyChild(paragraph, linked ? container : img)) return;
+    if (img.style.cssFloat || img.style.position || img.style.display || img.style.margin || img.style.marginLeft || img.style.marginRight || img.style.marginInline) return;
+    for (let node: HTMLElement | null = img; node; node = node.parentElement) {
+        if (node.hasAttribute('align') || node.style.textAlign) return;
+    }
+    // Also respect class-based author alignment. Default start/left in a plain
+    // paragraph remains eligible; explicit inline/attribute left was checked above.
+    if (['right', 'center', 'end'].includes(getComputedStyle(paragraph).textAlign)) return;
+    img.classList.add('svg-standalone');
+}
+
 export function constrainSVGImage(img: HTMLImageElement, source: string): string {
     const svg = readSVG(source);
     const metrics = svg ? metricsForSVG(svg) : undefined;
     if (metrics && svg) {
+        centerStandaloneSVG(img);
         const limits = ['100%', `${metrics.width}px`];
         if (metrics.textWidthInEm) limits.push(`${metrics.textWidthInEm}em`);
         if (img.style.maxWidth && img.style.maxWidth !== 'none') limits.push(img.style.maxWidth);
@@ -80,6 +99,7 @@ export function constrainSVGImage(img: HTMLImageElement, source: string): string
     // Non-inlined SVGs retain image isolation too. Use only the browser's
     // decoded intrinsic size rather than adding cross-origin/resource fetches.
     if (!/^data:image\/svg\+xml[;,]/i.test(source) && !/\.svg(?:[?#]|$)/i.test(source)) return source;
+    centerStandaloneSVG(img);
     const size = () => {
         if (img.naturalWidth > 0 && !img.style.maxWidth) img.style.maxWidth = `min(100%, ${img.naturalWidth}px)`;
     };

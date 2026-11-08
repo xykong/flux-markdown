@@ -25,6 +25,8 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
           for(const width of [360,1800]) {
             root.style.width=width+'px';root.style.maxWidth='none';
             const rect=img.getBoundingClientRect();
+            const parent=img.parentElement.getBoundingClientRect();
+            if(Math.abs((rect.left-parent.left)-(parent.right-rect.right))>1)throw new Error('standalone SVG not centered in reading column');
             if(rect.width>Math.min(width,box[2])+1)throw new Error('SVG expanded beyond drawing width: '+rect.width);
             if(width===1800 && rect.width<box[2]*0.8)throw new Error('SVG shrank below readable native size: '+rect.width);
             if(Math.abs(rect.width/rect.height-box[2]/box[3])>0.01)throw new Error('SVG aspect ratio changed');
@@ -38,6 +40,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
           if(root.querySelectorAll('img')[1].getBoundingClientRect().width>97)throw new Error('explicit icon size enlarged');
           const exported=new DOMParser().parseFromString(window.exportHTML(),'text/html');
           if(!exported.querySelector('img').style.maxWidth.includes('px'))throw new Error('SVG export cap missing');
+          if(!exported.querySelector('img').classList.contains('svg-standalone'))throw new Error('SVG export alignment missing');
           root.style.width='';root.style.maxWidth='';
         }
         await window.renderMarkdown('# Reset'); return true;

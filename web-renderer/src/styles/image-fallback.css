@@ -42,3 +42,9 @@ img.image-load-failed::after {
     color: #ffc107;
   }
 }
+
+/* Center only image-only SVG paragraphs; inline icons keep their text flow. */
+img.svg-standalone {
+  display: block;
+  margin-inline: auto;
+}

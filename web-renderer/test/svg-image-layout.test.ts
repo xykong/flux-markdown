@@ -46,3 +46,18 @@ test('normalizes the isolated SVG viewport as well as the HTML image box', () =>
     expect(root.getAttribute('viewBox')).toBe('4 4 586.5 1088');
     expect(document.querySelector('svg')).toBeNull();
 });
+
+test('centers standalone SVGs including linked diagrams, but preserves inline and authored alignment', () => {
+    for (const markup of ['<p> <img> </p>', '<p><a href="https://example.com"><img></a></p>']) {
+        document.body.innerHTML=markup;
+        const img=document.querySelector('img')!;
+        constrainSVGImage(img,data(svg));
+        expect(img.classList.contains('svg-standalone')).toBe(true);
+    }
+    for (const markup of ['<p>Text <img> more</p>', '<p><img><img></p>', '<p align="left"><img></p>', '<div style="text-align:right"><p><img></p></div>', '<p><img style="float:left"></p>']) {
+        document.body.innerHTML=markup;
+        const img=document.querySelector('img')!;
+        constrainSVGImage(img,data(svg));
+        expect(img.classList.contains('svg-standalone')).toBe(false);
+    }
+});
