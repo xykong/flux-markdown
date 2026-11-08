@@ -38,3 +38,10 @@ Do not rewrite generated HTML, link destinations or the user's source.
   default window policy disables foreground interaction. No full-suite WebKit
   pass is claimed; the focused typography case needs no foreground interaction.
 - No native application installation or release performed.
+
+## Release follow-up
+
+Published in v1.46.779 after all 33 local WebKit cases and final-tag release CI
+passed. See `docs/release/RELEASE_1.46.779.md` for package/channel verification and
+the remaining GitHub embedded-artwork access limitation. No local application
+installation was performed.

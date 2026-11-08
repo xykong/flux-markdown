@@ -1,0 +1,5 @@
+Create a professional celebratory release announcement for FluxMarkdown, landscape 1536x1024. Premium polished 3D editorial design: deep indigo and blue-violet background, elegant gold fireworks, curling gold ribbons and sparse gold confetti framing the composition. A luminous frosted-glass and brushed-metal Markdown document is the central hero, with three clearly legible letter markers (a) (b) (c) in a neat sequence on the document. Generous negative space, excellent hierarchy, crisp typography, sophisticated studio lighting. Celebration elements stay clear of all text.
+Exact headline text: "FluxMarkdown"
+Exact version text: "v1.46.779"
+Exact short tagline: "Keep your letters in order."
+Only these three text blocks and the document markers (a) (b) (c). Render the letter c in parentheses, never as a copyright symbol. No other text, no fake UI, no watermark, no unsupported feature or performance claims. Product name and version should be large and readable when downscaled to 1200x800. Professional and festive, not a plain single icon.
