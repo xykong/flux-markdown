@@ -1,5 +1,6 @@
 ## [Unreleased]
-_无待发布的变更_
+### Fixed
+- **Letter sequence typography** (#68): Preserve `(c)` / `(C)` after matching `(b)` / `(B)` sequence markers, including across paragraphs, list items and inline formatting. Independent copyright abbreviations and other smart typography retain their existing behavior.
 
 ## [1.45.774] - 2026-11-07
 ### Added

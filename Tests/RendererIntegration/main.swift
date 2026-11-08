@@ -278,6 +278,16 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
           return typeof Object.hasOwn==='function' && !!link && !!html.getElementById(decodeURIComponent(link.getAttribute('href').slice(1))) && !html.querySelector('script');
         } finally {if(descriptor)Object.defineProperty(Object,'hasOwn',descriptor);}
         """),
+        ("letter sequences and copyright typography", """
+        for (const context of ['app','quicklook']) {
+          await window.renderMarkdown('(a) first\\n\\n**(b)** second\\n\\n(c) third\\n\\n(c) 2026 (tm)',{context});
+          const text=document.getElementById('markdown-preview').textContent;
+          if(!text.includes('(c) third') || !text.includes('© 2026 ™')) return false;
+          const html=new DOMParser().parseFromString(window.exportHTML(),'text/html');
+          if(!html.body.textContent.includes('(c) third')) return false;
+        }
+        return true;
+        """),
         ("math and emoji", "await window.renderMarkdown('$x$ :smile:'); await window.renderMarkdown(':smile:',{enableKatex:false}); return !document.getElementById('markdown-preview').textContent.includes(':smile:');"),
         ("native Typst offline", "const oldFetch=window.fetch; window.fetch=(url,...args)=>{if(/^https?:/.test(String(url))) throw new Error('Unexpected network font/package request'); return oldFetch(url,...args)}; await window.renderMarkdown('```typst\\nsum_(i=1)^n i\\n```',{context:'app'}); window.fetch=oldFetch; return !!document.querySelector('.typst-native svg use') && !document.querySelector('.typst-native style') && !document.querySelector('pre .typst-native');"),
         ("Mermaid", "await window.renderMarkdown('```mermaid\\ngraph TD; A-->B\\n```'); return !!document.querySelector('.mermaid svg') && !document.querySelector('.mermaid-error');"),
