@@ -33,10 +33,11 @@ describe('Mermaid readable default size', () => {
 });
 
 test('diagram controls are excluded from copied and searched document text', () => {
-    document.body.innerHTML = '<div id="markdown-preview"><blockquote><div class="mermaid-tools"><button>100%</button></div><p>Actual document</p></blockquote></div>';
+    document.body.innerHTML = '<div id="markdown-preview"><blockquote><div class="mermaid-tools"><button>100%</button></div><span class="diagram-tools svg-image-tools"><button>125%</button></span><p>Actual document</p></blockquote></div>';
     const { blockPlainText } = require('../src/block-copy');
     const { SearchEngine } = require('../src/search');
     expect(blockPlainText(document.querySelector('blockquote'))).toBe('Actual document');
     const search = new SearchEngine();
     expect(search.search('100%', {caseSensitive:false, wholeWord:false, useRegex:false})).toBe(0);
+    expect(search.search('125%', {caseSensitive:false, wholeWord:false, useRegex:false})).toBe(0);
 });

@@ -1,4 +1,5 @@
 import './math-compat';
+import { installSVGZoom } from './svg-zoom';
 import { constrainSVGImage } from './svg-image-layout';
 import { installMermaidLayout } from './mermaid-layout';
 import './styles/mermaid-layout.css';
@@ -17,6 +18,7 @@ import { installMathLayout } from './math-layout';
 import './styles/math.css';
 let restoreMathPrint: (() => void) | undefined;
 let disposeMathLayout: (() => void) | undefined;
+let disposeSVGZoom: (() => void) | undefined;
 let disposeMermaidLayout: (() => void) | undefined;
 window.addEventListener('beforeprint', () => {
     restoreMathPrint?.();
@@ -789,7 +791,7 @@ window.exportHTML = function(): string {
     // Ensure we clone the content so we don't modify the active DOM
     const clone = previewDiv ? (previewDiv.cloneNode(true) as HTMLElement) : document.createElement('div');
     
-    clone.querySelectorAll('.block-copy-tools, .mermaid-tools').forEach(control => control.remove());
+    clone.querySelectorAll('.block-copy-tools, .mermaid-tools, .diagram-tools').forEach(control => control.remove());
     clone.querySelectorAll('.block-copy-host').forEach(host => host.replaceWith(...Array.from(host.childNodes)));
     clone.querySelectorAll('.error-feedback-controls').forEach(control => control.remove());
     clone.querySelectorAll('.search-highlight').forEach(mark => mark.replaceWith(document.createTextNode(mark.textContent || '')));
@@ -901,6 +903,7 @@ window.verifyQuickLookProbe = (heading, boldText) => {
 window.renderMarkdown = async function (text: string, options: RenderOptions = {}) {
     disposeBlockCopy();
     disposeMermaidLayout?.(); disposeMermaidLayout = undefined;
+    disposeSVGZoom?.(); disposeSVGZoom = undefined;
     const callId = ++renderGeneration;
     const isCurrent = () => callId === renderGeneration;
     logToSwift(`[renderMarkdown:${callId}] START textLen=${text.length}`);
@@ -1122,6 +1125,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         disposeMathLayout = mathSources.length ? installMathLayout(outputDiv) : undefined;
         if (toc) toc.render(outline);
         prepareRenderedImages(outputDiv, options);
+        disposeSVGZoom = installSVGZoom(outputDiv);
         logToSwift(`[renderMarkdown:${callId}] DOM UPDATED successfully`);
 
         if (options.showCopyButtons === true && currentContext !== 'finder') {
@@ -1267,6 +1271,7 @@ window.renderSource = function(text: string, theme: string, prevContent?: string
     applyInterfaceDirection();
     disposeBlockCopy();
     disposeMermaidLayout?.(); disposeMermaidLayout = undefined;
+    disposeSVGZoom?.(); disposeSVGZoom = undefined;
     currentRender = Promise.resolve();
     ++renderGeneration;
     searchEngine?.clear();

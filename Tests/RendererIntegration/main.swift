@@ -14,6 +14,42 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private var index = 0
     private var feedbackEvents: [[String: Any]] = []
     private var cases: [(String, String)] = [
+        ("SVG and Mermaid shared zoom controls", """
+        for(const context of ['app','quicklook']) {
+          await window.renderMarkdown('Body text\\n\\n![Diagram](diagram.svg)\\n\\n[![Linked](diagram.svg)](https://example.com)\\n\\n```mermaid\\ngraph TD; A-->B\\n```',{context,fontSize:16,imageData:{'diagram.svg':sizingSVGData}});
+          await window.waitForExportReady();
+          const root=document.getElementById('markdown-preview');
+          const images=root.querySelectorAll('img'), mermaid=root.querySelector('.mermaid svg');
+          const hosts=root.querySelectorAll('.svg-image-diagram');
+          if(hosts.length!==2)throw new Error('SVG controls missing');
+          const base=images[0].getBoundingClientRect().width, other=images[1].getBoundingClientRect().width, mermaidBase=mermaid.getBoundingClientRect().width;
+          const buttons=hosts[0].querySelectorAll('button');
+          buttons[2].click();
+          if(Math.abs(images[0].getBoundingClientRect().width/base-1.25)>0.01)throw new Error('SVG zoom factor mismatch');
+          if(images[1].getBoundingClientRect().width!==other || mermaid.getBoundingClientRect().width!==mermaidBase)throw new Error('SVG zoom changed another diagram');
+          buttons[1].click();
+          if(Math.abs(images[0].getBoundingClientRect().width-base)>1)throw new Error('SVG reset changed automatic size');
+          const rect=images[0].getBoundingClientRect(), viewport=hosts[0].querySelector('.svg-image-viewport').getBoundingClientRect();
+          if(Math.abs(rect.left-viewport.left-(viewport.right-rect.right))>1)throw new Error('SVG reset lost centering');
+          buttons[0].click();if(images[0].getBoundingClientRect().width>=base)throw new Error('SVG zoom out failed');
+          buttons[1].click();buttons[2].focus();
+          if(getComputedStyle(hosts[0].querySelector('.diagram-tools')).opacity!=='1')throw new Error('SVG keyboard controls hidden');
+          root.querySelector('.mermaid .diagram-tools button:last-child').click();
+          if(mermaid.getBoundingClientRect().width<=mermaidBase || images[0].getBoundingClientRect().width!==base)throw new Error('Mermaid zoom not independent');
+          if(images[1].closest('a')?.href!=='https://example.com/')throw new Error('SVG link lost');
+          root.style.width='360px';root.style.maxWidth='none';
+          buttons[2].click();buttons[2].click();
+          await new Promise(r=>setTimeout(r,50));
+          const scroll=hosts[0].querySelector('.svg-image-viewport');
+          if(scroll.scrollWidth<=scroll.clientWidth)throw new Error('enlarged SVG cannot scroll locally');
+          const exported=new DOMParser().parseFromString(window.exportHTML(),'text/html');
+          if(exported.querySelector('.diagram-tools'))throw new Error('diagram controls leaked into export');
+          root.style.width='';root.style.maxWidth='';
+        }
+        await window.renderMarkdown('# Replacement');
+        if(document.querySelector('.svg-image-diagram,.diagram-tools'))throw new Error('stale diagram controls');
+        return true;
+        """),
         ("Referenced SVG intrinsic sizing at fullscreen widths", """
         const source=new DOMParser().parseFromString(atob(sizingSVGData.split(',')[1]),'image/svg+xml');
         const box=source.documentElement.getAttribute('viewBox').split(/[ ,]+/).map(Number);
@@ -537,7 +573,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private func next() {
         if index == cases.count { print("PASS all \(cases.count) real WebKit cases"); exit(0) }
         let (name, js) = cases[index]
-        if name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || name.hasPrefix("Mermaid body-size") {
+        if name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
             // :focus-within requires an active WebKit page, not just activeElement
             // in the otherwise windowless integration harness.
             guard let policy = TestWindowPolicy(environment: ProcessInfo.processInfo.environment), policy.allowsFocus else {
@@ -571,7 +607,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
                           reports[0]["generation"] as? String == "11111111-1111-1111-1111-111111111111",
                           !String(describing: self.feedbackEvents).contains("SAMPLE-DO-NOT-INCLUDE") else { print("FAIL feedback payload or stale action"); exit(1) }
                 }
-                if name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || name.hasPrefix("Mermaid body-size") {
+                if name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
                     self.focusWindow?.contentView = nil
                     self.focusWindow?.orderOut(nil)
                     self.focusWindow = nil

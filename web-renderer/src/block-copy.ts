@@ -3,7 +3,7 @@ import { originalMathSource } from './math-source-store';
 export interface CopyRequest { id: string; generation: string; text: string }
 export interface CopyController { copy(block: HTMLElement): Promise<void>; dispose(): void }
 const snapshots = new WeakMap<Element, string>();
-const ignored = '.mermaid-tools, .block-copy-tools, .error-feedback-controls, .blockquote-placeholder, svg, script, style';
+const ignored = '.diagram-tools, .mermaid-tools, .block-copy-tools, .error-feedback-controls, .blockquote-placeholder, svg, script, style';
 const blocks = new Set(['P', 'DIV', 'BLOCKQUOTE', 'PRE', 'UL', 'OL', 'TABLE', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6']);
 const labels: Record<string, [string, string, string, string, string]> = {
     en: ['Copy', 'Copied', 'Copy failed. Select the text to copy it manually, or retry.', 'Select Text', 'Copying…'],

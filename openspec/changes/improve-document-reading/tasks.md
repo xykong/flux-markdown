@@ -3,3 +3,4 @@
 - [x] 3. Implement localized active-document path copying.
 - [x] 4. Add default sizing and independent Mermaid controls with regression tests.
 - [x] 5. Run native and real WebKit checks, record evidence and limitations.
+- [x] 6. Share Mermaid/SVG controls and verify independent zoom, loading, lifecycle, alignment and exports.

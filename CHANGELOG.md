@@ -6,7 +6,7 @@
 
 ### Added
 - **Copy document path**: Copy the active saved document's plain filesystem path from the File menu or with Command-Option-C, including Unicode and spaces.
-- **Per-diagram zoom**: Reveal localized zoom-out/reset/zoom-in controls on hover or keyboard focus. Each Mermaid diagram scales independently; controls are excluded from copying, search and exports.
+- **Per-diagram zoom**: Mermaid and standalone SVG images share localized zoom-out/reset/zoom-in controls on hover or keyboard focus. Each diagram scales independently, with local scrolling when enlarged; controls are excluded from copying, search and exports.
 
 ## [1.46.779] - 2026-11-08
 ### Fixed

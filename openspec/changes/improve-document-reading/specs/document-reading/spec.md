@@ -31,3 +31,18 @@ The renderer SHALL cap automatic Mermaid label size at the surrounding body text
 #### Scenario: Export
 - **WHEN** a document is copied or exported
 - **THEN** diagram control labels do not appear in document content
+
+### Requirement: Shared SVG and Mermaid zoom controls
+Standalone referenced SVG images SHALL provide the same localized, bounded zoom-out/reset/zoom-in controls as Mermaid, visible on hover and keyboard focus. Each diagram SHALL zoom independently from its automatic readable size.
+
+#### Scenario: SVG adjustment
+- **WHEN** a user adjusts one SVG diagram
+- **THEN** only that diagram changes size, oversized content scrolls locally, and reset restores its automatic centered layout
+
+#### Scenario: Image loading and lifecycle
+- **WHEN** an SVG loads late or the document is replaced
+- **THEN** sizing updates after load and controls/listeners from the old document are removed
+
+#### Scenario: Preserve document semantics
+- **WHEN** SVG controls are added to a linked diagram or a document is copied, searched, exported or printed
+- **THEN** links are preserved and control labels do not become document content

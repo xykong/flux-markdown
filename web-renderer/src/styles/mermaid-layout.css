@@ -1,23 +1,31 @@
 .mermaid { position: relative; min-width: 0; margin-block: 1em; }
 .mermaid-viewport { overflow-x: auto; max-width: 100%; }
 .mermaid-viewport > svg { margin-inline: auto; }
-.mermaid-tools {
+.diagram-tools {
     display: flex; justify-content: flex-end; gap: 4px;
     position: relative; z-index: 1; min-height: 28px;
     opacity: 0; pointer-events: none;
     font: 12px system-ui; user-select: none; -webkit-user-select: none;
 }
-.mermaid-tools button {
+.diagram-tools button {
     font: inherit; color: inherit; background: var(--bgColor-default, Canvas);
     border: 1px solid currentColor; border-radius: 5px; min-width: 28px; min-height: 28px;
     cursor: pointer;
 }
-.mermaid-tools button:disabled { opacity: .4; cursor: default; }
-.mermaid-tools button:focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
-.mermaid:hover > .mermaid-tools, .mermaid-tools:focus-within { opacity: 1; pointer-events: auto; }
-@media (hover: none) { .mermaid-tools { opacity: 1; pointer-events: auto; } }
+.diagram-tools button:disabled { opacity: .4; cursor: default; }
+.diagram-tools button:focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
+.mermaid:hover > .diagram-tools, .svg-image-diagram:hover > .diagram-tools, .diagram-tools:focus-within { opacity: 1; pointer-events: auto; }
+@media (hover: none) { .diagram-tools { opacity: 1; pointer-events: auto; } }
 @media print {
-    .mermaid-tools { display: none !important; }
+    .diagram-tools { display: none !important; }
     .mermaid-viewport { overflow: visible; }
     .mermaid-viewport > svg { max-width: 100% !important; }
+}
+
+.svg-image-diagram { display: block; position: relative; min-width: 0; }
+.svg-image-viewport { display: block; overflow-x: auto; max-width: 100%; }
+.svg-image-viewport:focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
+@media print {
+    .svg-image-viewport { overflow: visible; }
+    .svg-image-viewport img { max-width: 100% !important; }
 }

@@ -77,6 +77,7 @@ export function constrainSVGImage(img: HTMLImageElement, source: string): string
     const svg = readSVG(source);
     const metrics = svg ? metricsForSVG(svg) : undefined;
     if (metrics && svg) {
+        img.classList.add('svg-image');
         centerStandaloneSVG(img);
         const limits = ['100%', `${metrics.width}px`];
         if (metrics.textWidthInEm) limits.push(`${metrics.textWidthInEm}em`);
@@ -99,6 +100,7 @@ export function constrainSVGImage(img: HTMLImageElement, source: string): string
     // Non-inlined SVGs retain image isolation too. Use only the browser's
     // decoded intrinsic size rather than adding cross-origin/resource fetches.
     if (!/^data:image\/svg\+xml[;,]/i.test(source) && !/\.svg(?:[?#]|$)/i.test(source)) return source;
+    img.classList.add('svg-image');
     centerStandaloneSVG(img);
     const size = () => {
         if (img.naturalWidth > 0 && !img.style.maxWidth) img.style.maxWidth = `min(100%, ${img.naturalWidth}px)`;
