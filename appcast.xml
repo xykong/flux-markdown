@@ -7,6 +7,37 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 1.47.799</title>
+            <link>https://github.com/xykong/flux-markdown/releases/tag/v1.47.799</link>
+            <sparkle:version>799</sparkle:version>
+            <sparkle:shortVersionString>1.47.799</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+            <pubDate>Sun, 08 Nov 2026 13:36:48 +0000</pubDate>
+            <enclosure
+                url="https://github.com/xykong/flux-markdown/releases/download/v1.47.799/FluxMarkdown.dmg"
+                sparkle:edSignature="Qsmhoh4DXwAKoP4/zWlAOUrNgxLaYCAVoELvElXJPpgLbXSXYNFxNjQ7uyleBvI6CpDSBItxvxS6XOG21ag9CQ=="
+                length="45286202"
+                type="application/octet-stream" />
+            <description><![CDATA[
+                <h2>更新内容</h2>
+<h3>Fixed</h3>
+<ul>
+<li><strong>Referenced SVG sizing</strong>: Keep percentage-width SVG images within their drawing dimensions and readable text scale on wide/fullscreen windows, center standalone diagrams in the reading column, and preserve inline icons, explicit alignment and exported layout.</li>
+<li><strong>Recent documents</strong>: Keep app-owned recent-document history across development signing changes and upgrades, migrate available system history, preserve temporarily unavailable files, and honor explicit clearing. System history already invalidated before migration cannot be recovered.</li>
+<li><strong>Mermaid sizing</strong>: Cap automatic diagram labels at body-text size and fit available width instead of stretching small diagrams across wide windows.</li>
+</ul>
+<h3>Added</h3>
+<ul>
+<li><strong>Copy document path</strong>: Copy the active saved document's plain filesystem path from the File menu or with Command-Option-C, including Unicode and spaces.</li>
+<li><strong>Per-diagram zoom</strong>: Mermaid and standalone SVG images share localized zoom-out/reset/zoom-in controls on hover or keyboard focus. Each diagram scales independently, with local scrolling when enlarged; controls are excluded from copying, search and exports.</li>
+</ul>
+<p><a href="https://github.com/xykong/flux-markdown/releases/tag/v1.47.799">查看完整更新日志</a></p>
+            ]]></description>
+        </item>
+        
+
+
+        <item>
             <title>Version 1.46.779</title>
             <link>https://github.com/xykong/flux-markdown/releases/tag/v1.46.779</link>
             <sparkle:version>779</sparkle:version>
