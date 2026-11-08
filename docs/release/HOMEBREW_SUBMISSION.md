@@ -29,13 +29,17 @@
 
 ## 后续版本更新
 
-### 每次 release 时（已自动化）
+### 每次 release 时（文件生成自动化，提交与验收仍需确认）
 
 `update-homebrew-cask.sh` 会同时更新两个文件：
 
 ```bash
 ./scripts/update-homebrew-cask.sh
 ```
+
+非交互运行准备修改后可能返回 2，需要显式提交、推送，再 fetch/diff 两份远端文件。
+本地“已是最新”不等于远端验证通过。按 [发布操作手册](RELEASE_RUNBOOK.md) 完成渠道验收；
+官方草稿更新不代表已向上游提交或被接收。
 
 ### 官方库版本更新
 

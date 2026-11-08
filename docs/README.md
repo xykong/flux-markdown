@@ -23,8 +23,10 @@ This repository uses topic-based documentation under `docs/`.
 - Renderer roadmap: [`dev/renderer/RENDERER_MARKDOWN_IT_PLUGIN_ROADMAP.md`](dev/renderer/RENDERER_MARKDOWN_IT_PLUGIN_ROADMAP.md)
 
 ## Release
-- Release process: [`release/RELEASE_PROCESS.md`](release/RELEASE_PROCESS.md)
-- Release workflow design: [`release/RELEASE_WORKFLOW_DESIGN.md`](release/RELEASE_WORKFLOW_DESIGN.md)
+- Release policy and acceptance: [`release/RELEASE_PROCESS.md`](release/RELEASE_PROCESS.md)
+- Release operations and recovery: [`release/RELEASE_RUNBOOK.md`](release/RELEASE_RUNBOOK.md)
+- Release record template: [`release/RELEASE_RECORD_TEMPLATE.md`](release/RELEASE_RECORD_TEMPLATE.md)
+- Current script behavior: [`release/RELEASE_WORKFLOW_DESIGN.md`](release/RELEASE_WORKFLOW_DESIGN.md)
 
 ## Design
 - Host app browser design: [`design/DESIGN_HOST_APP_BROWSER.md`](design/DESIGN_HOST_APP_BROWSER.md)

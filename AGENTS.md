@@ -46,9 +46,11 @@ macOS QuickLook extension for Markdown files. Hybrid architecture: Native Swift 
 | **Host UI** | `Sources/Markdown/MarkdownApp.swift` | Minimal SwiftUI container. |
 | **Rendering** | `web-renderer/src/index.ts` | Markdown parsing (see subdir AGENTS.md). |
 | **Rules** | `.clinerules` | TDD & Doc-first requirements. |
-| **Release Process** | `docs/release/RELEASE_PROCESS.md` | Complete PR handling and release workflow. |
+| **Release Policy** | `docs/release/RELEASE_PROCESS.md` | Authoritative release, attribution and acceptance rules. |
+| **Release Runbook** | `docs/release/RELEASE_RUNBOOK.md` | Preparation, publication, correction and recovery commands. |
+| **Release Record** | `docs/release/RELEASE_RECORD_TEMPLATE.md` | Evidence and pending-state template; never prefill success. |
 | **Homebrew Cask (tap)** | `../homebrew-tap/Casks/flux-markdown.rb` | Full-featured version. Updated automatically by `update-homebrew-cask.sh`. |
-| **Homebrew Cask (official)** | `../homebrew-tap/Casks/flux-markdown-official.rb` | Official-compliant draft for homebrew/homebrew-cask submission. No formula deps. |
+| **Homebrew Cask (official)** | `../homebrew-tap/Drafts/flux-markdown-official.rb` | Official-compliant draft; updating it is not an upstream submission. |
 | **Homebrew Submission Guide** | `docs/release/HOMEBREW_SUBMISSION.md` | How to submit and maintain the official cask. |
 
 ## ARCHITECTURE & PATTERNS
@@ -56,12 +58,13 @@ macOS QuickLook extension for Markdown files. Hybrid architecture: Native Swift 
 - **Ephemeral Project**: `.xcodeproj` is ignored. Always use `xcodegen` (`make generate`).
 - **Versioning**: `.version` file stores full version (e.g., `1.13.149`). Build number (third part) aligns with git commit count.
 - **Sandbox**: App Sandbox enabled. Read-only access to files.
-- **Release Flow**: 
-  1. **PR Merged**: Run `./scripts/analyze-pr.sh <PR_NUMBER>` to generate CHANGELOG entry, add to `[Unreleased]` section.
-  2. **Release**: Run `make release [major|minor|patch]` → Updates `.version`, `CHANGELOG.md`, builds DMG, creates GitHub release.
-  3. **Homebrew**: Run `./scripts/update-homebrew-cask.sh` to update both tap and official cask files automatically.
-  4. **Celebration Artwork (required)**: Create a version-specific professional celebration image, optimize to a 1200×800 WebP (target 100–200 KB), upload it as a Release asset, and place it at the top of the Release Notes. Inspect the compressed image and verify its public download before declaring the release complete. The release scripts do not perform this step automatically.
-  5. See `docs/release/RELEASE_PROCESS.md` for the complete workflow and artwork generation, compression, publication and verification commands.
+- **Release Flow**:
+  1. **Prepare changes**: Verify issue/report authors, credit them inside the corresponding CHANGELOG items, test, and directly merge own work into master. PR analysis is only for external or explicitly requested PRs.
+  2. **Prepare artifacts**: Default to `RELEASE_REMOTE_BUILD=1 RELEASE_PREPARE_ONLY=1 make release minor`. The script owns version/build calculation, commits the version before tagging, and binds final artifacts in a manifest.
+  3. **Verify and publish**: Validate the final tag build, tests, macOS 11/universal targets, signatures and manifest, then run `scripts/publish-release.sh`. Explicitly commit/push noninteractive Homebrew changes and verify both remote cask files.
+  4. **Celebration artwork (required)**: Generate version-specific artwork, inspect the original and final 1200×800 WebP (target 100–200 KB), upload it at the top of Release Notes, verify public download and actual browser rendering. Broken/unavailable rendering remains pending.
+  5. **Close out**: Read back GitHub, the actual public Sparkle feed and Homebrew; verify inline credits, record evidence and remaining limits, and perform applicable issue follow-up. Published channels or a successful script do not imply all acceptance checks passed.
+  6. Read `docs/release/RELEASE_PROCESS.md` and `docs/release/RELEASE_RUNBOOK.md` before any release/correction. Use `docs/release/RELEASE_RECORD_TEMPLATE.md` for the result. Metadata corrections never rebuild published artifacts or rewrite manifest-bound notes.
 - **Homebrew Distribution**: Two tracks — tap version (full features) and official homebrew-cask (compliant, no formula deps). See `docs/release/HOMEBREW_SUBMISSION.md`.
 
 ## CONVENTIONS

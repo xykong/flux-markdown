@@ -26,9 +26,9 @@ description: |
 ## 核心原则（不可违反）
 
 1. **语言对齐**：回复语言必须与 issue 语言一致。英文 issue → 英文回复，中文 issue → 中文回复。
-2. **不关闭 issue**：只加 `done` label + 发评论。由 issue 作者决定是否关闭。
-3. **信息一致性**：CHANGELOG、GitHub Release Note、appcast.xml 三处描述必须一致，且都要体现 issue 号和贡献者感谢。
-4. **不遗漏**：每次发布后，系统性检查所有 open issue，不能只处理"明显相关"的。
+2. **已解决 issue 保持打开**：确认修复已发布且适用验收完成后加 `done` 并回复，由作者决定是否关闭。未解决报告的维护规则按根 AGENTS.md，不把致谢当作修复证据。
+3. **条目内署名一致**：核实 issue 发起人与实现者，把主页及 issue/PR 链接写在对应功能/修复条目内；同步 CHANGELOG、GitHub Release 和 Sparkle HTML，不建立独立 Acknowledgments/致谢名单。
+4. **不遗漏、不扩权**：系统性检查用户任务涉及的报告；全局只读扫描不授权批量评论或改状态。自有修复直接提交，不为发布创建 PR。
 
 ---
 
@@ -66,10 +66,10 @@ git log --oneline --grep="#21"
 git log --oneline --grep="Mouseless"
 
 # 查看 commit 详情，确认修复内容和所属版本
-git show <commit-hash> --stat
+git show "$fix_commit" --stat
 
 # 确认该 commit 属于哪个 release tag
-git tag --contains <commit-hash>
+git tag --contains "$fix_commit"
 ```
 
 **不要凭印象判断**——必须以 git 记录为准。
@@ -78,76 +78,22 @@ git tag --contains <commit-hash>
 
 ## 阶段三：核查发布内容完整性
 
-发布后（或发现信息不一致时），系统核查三个渠道：
+发布规则以 [RELEASE_PROCESS.md](../../../docs/release/RELEASE_PROCESS.md) 为准，
+元数据纠错执行 [RELEASE_RUNBOOK.md 的 F 节](../../../docs/release/RELEASE_RUNBOOK.md#f-已发布正文或致谢纠错)。
+不要在这里维护另一套发布/签名流程。
 
-### 3.1 检查 CHANGELOG.md
-
-每个版本的 CHANGELOG 条目应包含：
-- ✅ 功能描述清晰
-- ✅ 关联 issue 号 `(#N)`
-- ✅ 贡献者感谢 `(thanks @username)` —— 对于用户报告的 issue
-- ✅ 所有该版本的 git commit 都有对应条目（用 `git log v旧..v新` 核对）
-
-**补全格式**（中文条目）：
-```markdown
-- **功能描述**: 修复/新增内容简述 (#issue号, thanks @username)
-  - 技术细节 1
-  - 技术细节 2
-```
-
-**补全格式**（英文条目，用于英文 issue 相关修复）：
-```markdown
-- **Feature**: Fix/add description (#N, thanks @username)
-  - Technical detail 1
-```
-
-### 3.2 检查 GitHub Release Note
-
-```bash
-gh release view v版本号 --json body -q '.body'
-```
-
-Release Note 内容应与 CHANGELOG 对应版本一致。如需更新：
-
-```bash
-gh release edit v版本号 --notes "$(cat <<'EOF'
-### Added / Fixed / Changed
-- **xxx**: ...
-
----
-**Install / Update:**
-```bash
-brew update && brew upgrade --cask flux-markdown
-```
-Or download the DMG directly from the Assets below.
-EOF
-)"
-```
-
-### 3.3 检查 appcast.xml
-
-appcast.xml 的 `<description>` 是 Sparkle 自动更新窗口中用户看到的内容，极易与 CHANGELOG 脱节。
-
-```bash
-# 查看当前最新版本的 description
-python3 -c "
-import re
-with open('appcast.xml') as f:
-    content = f.read()
-m = re.search(r'(Version 最新版本.*?<description><!\[CDATA\[)(.*?)(\]\]></description>)', content, re.DOTALL)
-if m:
-    print(m.group(2).strip()[:500])
-"
-```
-
-如不完整，直接编辑 `appcast.xml` 中对应 `<description><![CDATA[...]]></description>` 部分，
-将 Markdown 转为 HTML 格式（`<h3>`/`<ul><li>`/`<strong>`/`<code>`），然后提交推送：
-
-```bash
-git add appcast.xml
-git commit -m "docs(appcast): fix missing entries in v版本号 description"
-git push origin master
-```
+- 核实 issue 作者、实现者、对应变更与发布证据。每个人的署名都放在对应条目内，
+  使用完整 `@用户名` 和可点击主页/issue 链接，保留现有贡献者署名。
+- 全历史任务扫描全部版本，含重复 CHANGELOG 版本标题和所有 Sparkle items。
+  将独立致谢名单移回具体条目，不能丢掉名字或归到不相关功能。
+- 先保存原始 Release 正文、metadata、assets 和 feed；修改前比较并发变化。
+  正文使用独立 notes 文件或结构化 payload，保留宣传图与其余说明。
+- Sparkle 只改目标版本 description，保留全部签名、版本、日期、URL、长度及
+  非目标说明；不重跑签名生成器、不覆盖已发布包、不修改 manifest-bound notes。
+- 修改后逐版回读，验证对应条目、完整 HTML 用户名及链接。核对真实公共默认 feed，
+  API/固定提交 URL 成功不等于默认 URL 已刷新。
+- 发布脚本退出成功不等于最终验收完成。宣传图浏览器未显示、必需测试未执行等状态
+  仍须记录为待验收；后续恢复时更新记录，不照抄过期失败结论。
 
 ---
 
@@ -157,52 +103,20 @@ git push origin master
 
 | 状态 | 行动 |
 |------|------|
-| 已修复并发布 | 回复 + 加 `done` label |
-| 已实现（Feature Request）| 回复 + 加 `done` label |
+| 已修复、发布且适用验收完成 | 回复 + 加 `done` label |
+| 已实现且已发布并验收（Feature Request）| 回复 + 加 `done` label |
 | 尚未修复但已知晓 | 回复说明当前状态 + 临时方案（若有）|
 | 待调查 | 回复请求更多信息 |
 
-### 4.2 执行回复（中文 issue）
+### 4.2 准备、发送并回读
 
-```bash
-gh issue comment <NUMBER> --body "已在 [vX.Y.Z](https://github.com/xykong/flux-markdown/releases/tag/vX.Y.Z) 中修复。
+按 issue 原语言准备回复文件，包含已核实版本链接、具体修复、Homebrew 命令、DMG 链接、
+实际限制和需复测之处。不要称未提交的浏览器表单已经发送，也不要声称诊断工具解决了
+缺证据的原始报告。发送前检查旧回复，避免重复留言。
 
-**修复内容：**
-- [与此 issue 相关的具体修复描述]
-
-**更新方式：**
-\`\`\`bash
-brew update && brew upgrade --cask flux-markdown
-\`\`\`
-或从 [Releases 页面](https://github.com/xykong/flux-markdown/releases/tag/vX.Y.Z) 直接下载 DMG。
-
-感谢你的反馈，这个问题的修复正是因为你的报告才得以推进！如有其他问题欢迎继续反馈 🙏"
-```
-
-### 4.3 执行回复（英文 issue）
-
-```bash
-gh issue comment <NUMBER> --body "Fixed in [vX.Y.Z](https://github.com/xykong/flux-markdown/releases/tag/vX.Y.Z)! 🎉
-
-**What changed:**
-- [Specific fix relevant to this issue]
-
-**To update:**
-\`\`\`bash
-brew update && brew upgrade --cask flux-markdown
-\`\`\`
-Or download the DMG from the [Releases page](https://github.com/xykong/flux-markdown/releases/tag/vX.Y.Z).
-
-Thanks for the report — your issue helped prioritize this fix! Please give it a try and let us know if everything looks good. 🙏"
-```
-
-### 4.4 加 done label
-
-```bash
-gh issue edit <NUMBER> --add-label "done"
-```
-
-**注意**：仅对已修复/已实现的 issue 加 `done`。尚未解决的 issue 不加。
+按 [操作手册 H 节](../../../docs/release/RELEASE_RUNBOOK.md#h-发布记录与-issue-收尾)
+使用 `--body-file` 发送，再回读评论、标签和 issue 状态。只有已确认发布的修复才加
+`done`；不主动关闭已解决 issue。
 
 ---
 
@@ -213,10 +127,10 @@ gh issue edit <NUMBER> --add-label "done"
 ```
 [ ] git log 中每个 fix/feat commit 都有对应的 CHANGELOG 条目
 [ ] 每个 CHANGELOG 条目都标注了 issue 号（如有）
-[ ] 每个用户报告的修复都有 thanks @username
-[ ] GitHub Release Note 内容与 CHANGELOG 一致
-[ ] appcast.xml <description> 与 CHANGELOG 一致
-[ ] 所有相关 open issue 都已回复
+[ ] 发起人与实现者已核实，署名直接位于对应条目；无独立致谢名单
+[ ] GitHub Release 用户条目、署名和限制与 CHANGELOG 对应，既有图片/说明保留
+[ ] Sparkle 对应条目的完整用户名/HTML 链接及公共 feed 回读正确，非 description 数据不变
+[ ] 已授权范围内需要回复的 issue 已回复并回读，未重复留言
 [ ] 已修复的 issue 都已加 done label
 [ ] 未修复但已知的 issue 已回复说明状态
 [ ] Feature Request 实现后已回复并感谢贡献者
@@ -231,7 +145,7 @@ gh issue edit <NUMBER> --add-label "done"
 ### 1. appcast.xml 与 CHANGELOG 脱节
 **场景**：发布时先跑 `generate-appcast.sh`，之后才补充 CHANGELOG 条目，导致 appcast description 不完整。
 **检测**：对比 appcast 最新 item 的 description 与 CHANGELOG 对应版本的内容。
-**修复**：直接编辑 appcast.xml 的 CDATA 部分并推送。
+**修复**：按操作手册 F 节精确修改目标 description，验证所有非目标内容和 metadata 不变，推送后回读实际公共 feed。
 
 ### 2. 同一版本包含多个 commit，只记录了部分
 **场景**：一次发布包含 5 个 commit（icon 修复、scroll 修复、RTL 新功能、window 修复、release bump），但 CHANGELOG 只写了最后一个。
@@ -263,28 +177,29 @@ gh issue list --state open --limit 50
 gh api repos/xykong/flux-markdown/issues/<NUMBER>/comments --jq '.[].body'
 
 # 查看某 issue 详情（作者、语言、内容）
-gh issue view <NUMBER>
+gh issue view "$issue_number"
 
 # 查找某 issue 相关 commit
 git log --oneline --grep="#<NUMBER>"
 
 # 确认 commit 属于哪个 tag
-git tag --contains <commit-hash>
+git tag --contains "$fix_commit"
 
 # 查看两个版本之间的所有 commit
-git log v旧版本..v新版本 --oneline
+git log "$old_tag..$new_tag" --oneline
 
 # 加 done label
-gh issue edit <NUMBER> --add-label "done"
+gh issue edit "$issue_number" --add-label "done"
 
 # 发评论
-gh issue comment <NUMBER> --body "..."
+gh issue comment "$issue_number" --body-file "$reply_file"
 
 # 查看 release note
 gh release view v版本号 --json body -q '.body'
 
 # 更新 release note
-gh release edit v版本号 --notes "..."
+# 先按操作手册 F 节完成快照、并发检查和完整正文准备
+gh release edit "$release_tag" --notes-file "$notes_file"
 ```
 
 ---
@@ -301,5 +216,5 @@ issue-lifecycle skill 处理 issue 回复
     ↓
 检查 CHANGELOG / Release Note / appcast.xml 一致性
     ↓
-回复所有相关 issue + 标记 done
+按证据和授权范围回复；确认修复已发布并验收后标记 done
 ```
