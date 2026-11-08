@@ -118,3 +118,11 @@ checks passed, but native tests did not start. This external dependency-fetch
 failure is recorded rather than bypassed; it does not change the verified
 historical note/asset comparisons or the nine passing publication/generator
 regression tests. No native product source was changed in this repair.
+
+## Final CI follow-up
+
+The [subsequent CI run on 965d2ca](https://github.com/xykong/flux-markdown/actions/runs/42466748626)
+passed both jobs. It includes 591 renderer tests, all 33 production WebKit cases,
+5 publication tests, 4 appcast-generation tests, and 389 native tests (one skipped,
+zero failures). The earlier SwiftPM download blocker is resolved; the failure
+records above remain as history, not an outstanding repair limitation.

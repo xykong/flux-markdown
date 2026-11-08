@@ -42,3 +42,7 @@ its 300-second CDN cache refreshed. Remote CI's docs/renderer/generator and
 production WebKit checks passed; native tests were blocked before execution
 by the Sparkle 2.9.3 SwiftPM artifact-cache/download error on both attempts.
 The detailed release repair record preserves this verification limit.
+
+Final follow-up: CI run 42466748626 on 965d2ca passed all jobs, including the
+389 native tests (one skipped, zero failures). The prior dependency-download
+blocker is no longer outstanding.
