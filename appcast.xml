@@ -7,6 +7,23 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 1.46.779</title>
+            <link>https://github.com/xykong/flux-markdown/releases/tag/v1.46.779</link>
+            <sparkle:version>779</sparkle:version>
+            <sparkle:shortVersionString>1.46.779</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+            <pubDate>Sun, 08 Nov 2026 08:50:58 +0000</pubDate>
+            <enclosure
+                url="https://github.com/xykong/flux-markdown/releases/download/v1.46.779/FluxMarkdown.dmg"
+                sparkle:edSignature="OZsPFt3zINCcSp+1n65VePoBkxOxFS4+w8A4LO3oVL7hJU5OrEtNBtPAsQgXpubhx4lW4cmkZQc3+G2VJXaQDQ=="
+                length="45258174"
+                type="application/octet-stream" />
+            <description><![CDATA[
+                <h2>更新内容</h2><h3>Fixed</h3><ul><li><strong>Letter sequence typography</strong> (#68): Preserve <code>(c)</code> / <code>(C)</code> after matching <code>(b)</code> / <code>(B)</code> sequence markers, including across paragraphs, list items and inline formatting. Independent copyright abbreviations and other smart typography retain their existing behavior.</li></ul><p><a href="https://github.com/xykong/flux-markdown/releases/tag/v1.46.779">查看完整更新日志</a></p>
+            ]]></description>
+        </item>
+        
+        <item>
             <title>Version 1.45.774</title>
             <link>https://github.com/xykong/flux-markdown/releases/tag/v1.45.774</link>
             <sparkle:version>774</sparkle:version>
