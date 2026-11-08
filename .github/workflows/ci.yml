@@ -46,6 +46,9 @@ jobs:
           npm test
           npm run build
 
+      - name: Test appcast generation and reporter credits
+        run: python3 scripts/tests/appcast-generation.test.py
+
   macos-build-test:
     name: macOS build + XCTest
     runs-on: macos-15

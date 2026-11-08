@@ -19,6 +19,23 @@
 
 ## 阶段 1: PR 合并前的处理
 
+自有开发直接验证、合并并推送，不创建 PR，除非用户明确要求。
+下面的 PR 操作仅适用于外部贡献或明确要求的 PR。
+
+### Issue 发起人与贡献者致谢（必做）
+
+- 发布前从 GitHub 核实相关 issue 的发起人；在对应变更中使用可点击的
+  `[@用户名](https://github.com/用户名)` 和 issue 链接致谢。
+- 区分问题发起人和实现贡献者；只感谢 PR 作者不能替代 issue 发起人致谢。
+  调查工具或部分修复也可以感谢报告，但不得因此声称问题已全部解决。
+- 同步检查 GitHub Release Notes、`CHANGELOG.md` 与 `appcast.xml` 的对应版本。
+  自动更新 HTML 中必须能看到完整的 `@用户名`，链接须可点击。
+- 发布后补文案，只精确修改相应 Release 正文与 appcast description；不得重建
+  已发布安装包、重签名、改版本/日期/下载地址，或覆盖清单绑定的原始 notes。
+- 生成脚本使用已锁定的 markdown-it，文案经标准输入传递，禁止拼入 Perl/
+  Shell 等可执行代码。运行 `python3 scripts/tests/appcast-generation.test.py`，
+  推送后回读线上 Release 和更新源确认一致。
+
 ### 1.1 PR Review 和分析
 
 当收到 PR 时，需要：

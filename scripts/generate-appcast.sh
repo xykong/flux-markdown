@@ -87,77 +87,8 @@ echo ""
 DOWNLOAD_URL="https://github.com/xykong/flux-markdown/releases/download/v$FULL_VERSION/FluxMarkdown.dmg"
 RELEASE_URL="https://github.com/xykong/flux-markdown/releases/tag/v$FULL_VERSION"
 
-# Extract changelog from CHANGELOG.md for this version
-CHANGELOG_FILE="$PROJECT_ROOT/CHANGELOG.md"
-if [ -f "$CHANGELOG_FILE" ]; then
-    # Extract content between [FULL_VERSION] and next version heading
-    CHANGELOG_ENTRY=$(sed -n "/## \[$FULL_VERSION\]/,/^## \[/p" "$CHANGELOG_FILE" | grep -v "^## \[" | sed 's/^### //' | head -50)
-else
-    CHANGELOG_ENTRY="Update to version $FULL_VERSION"
-fi
-
-# Convert Markdown changelog to HTML
-# Handles: ### headings, bare category words (Added/Fixed/Changed),
-#           **bold**, `code` (single-line only), - list items
-CHANGELOG_HTML=$(echo "$CHANGELOG_ENTRY" | python3 -c "
-import sys, re
-
-CATEGORY_WORDS = {'Added', 'Fixed', 'Changed', 'Removed', 'Security', 'Deprecated'}
-
-def inline_md(text):
-    text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
-    text = re.sub(r'\`([^\`\n]+)\`', r'<code>\1</code>', text)
-    return text
-
-lines = sys.stdin.read().splitlines()
-html_lines = []
-in_list = False
-
-for line in lines:
-    line = line.rstrip()
-
-    if re.match(r'^### (.+)', line):
-        if in_list:
-            html_lines.append('</ul>')
-            in_list = False
-        html_lines.append(re.sub(r'^### (.+)', r'<h3>\1</h3>', line))
-        continue
-
-    if line.strip() in CATEGORY_WORDS:
-        if in_list:
-            html_lines.append('</ul>')
-            in_list = False
-        html_lines.append(f'<h3>{line.strip()}</h3>')
-        continue
-
-    list_match = re.match(r'^( *- )(.*)', line)
-    if list_match:
-        indent = list_match.group(1)
-        content = inline_md(list_match.group(2))
-        if not in_list:
-            html_lines.append('<ul>')
-            in_list = True
-        depth = max(0, len(indent) - 2)
-        prefix = '&nbsp;&nbsp;' * depth
-        html_lines.append(f'<li>{prefix}{content}</li>')
-        continue
-
-    if in_list and line.strip():
-        html_lines.append('</ul>')
-        in_list = False
-
-    if not line.strip():
-        html_lines.append('')
-        continue
-
-    html_lines.append(f'<p>{inline_md(line)}</p>')
-
-if in_list:
-    html_lines.append('</ul>')
-
-print(''.join(html_lines))
-")
-CHANGELOG_HTML="<h2>更新内容</h2>${CHANGELOG_HTML}<p><a href=\"$RELEASE_URL\">查看完整更新日志</a></p>"
+# Render the complete version section with the existing Markdown parser.
+CHANGELOG_HTML=$(node "$SCRIPT_DIR/render-release-notes.cjs" "$PROJECT_ROOT/CHANGELOG.md" "$FULL_VERSION")
 
 TEMP_ITEM=$(cat <<EOF
         <item>
@@ -195,13 +126,10 @@ if grep -q "<sparkle:shortVersionString>$FULL_VERSION</sparkle:shortVersionStrin
         exit 0
     fi
     
-    # Remove existing entry
-    perl -i -0pe "s|<item>.*?<sparkle:shortVersionString>$FULL_VERSION</sparkle:shortVersionString>.*?</item>\s*||s" "$APPCAST_FILE"
-    echo "   Removed existing entry for v$FULL_VERSION"
 fi
 
-# Insert new item after <language> tag
-perl -i -pe "s|(<language>.*?</language>)\s*|\\1\n\n$TEMP_ITEM|s" "$APPCAST_FILE"
+# Pass content through stdin, never interpolate release text into executable code.
+printf '%s\n' "$TEMP_ITEM" | python3 "$SCRIPT_DIR/write-appcast-item.py" "$APPCAST_FILE" "$FULL_VERSION"
 
 echo "✅ Appcast updated successfully!"
 echo ""

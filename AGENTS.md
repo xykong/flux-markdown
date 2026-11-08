@@ -208,6 +208,12 @@ log stream --predicate 'subsystem == "com.markdownquicklook.app"' --level debug
 
 ## RELEASE VERSION POLICY
 
+- Release attribution must credit verified issue reporters as well as implementation
+  contributors, with profile and issue links. Keep GitHub Release Notes,
+  `CHANGELOG.md`, and the corresponding Sparkle description consistent. Verify
+  that complete `@handles` survive generated HTML; never infer a report is fixed
+  merely because it is credited. See `docs/release/RELEASE_PROCESS.md`.
+
 - Regular user-requested releases increment the minor version by default. Do not
   choose patch-only releases unless the user explicitly requests one. The third
   component remains the script-generated commit-count build number.
