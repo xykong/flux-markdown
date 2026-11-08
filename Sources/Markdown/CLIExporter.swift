@@ -160,6 +160,9 @@ final class CLIExporter: NSObject {
         if inputURL.pathExtension.lowercased() == "tsv" {
             options["format"] = "tsv"
             options["isTruncated"] = truncated
+        } else {
+            options["imageData"] = MarkdownImageDataCollector.collectImageData(
+                from: inputURL, content: content, fileExtensions: ["svg"])
         }
         guard let optData = try? JSONSerialization.data(withJSONObject: options),
               let optJson  = String(data: optData, encoding: .utf8) else {

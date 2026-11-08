@@ -1,4 +1,5 @@
 import './math-compat';
+import { constrainSVGImage } from './svg-image-layout';
 import { installMermaidLayout } from './mermaid-layout';
 import './styles/mermaid-layout.css';
 import { preserveLetterSequences } from './typography';
@@ -569,7 +570,7 @@ function prepareRenderedImages(root: HTMLElement, options: RenderOptions): void 
 
         const source = img.getAttribute('src');
         if (!source) return;
-        const resolvedSource = resolveImageSource(source, options);
+        const resolvedSource = constrainSVGImage(img, resolveImageSource(source, options));
         if (resolvedSource !== source) img.setAttribute('src', resolvedSource);
     });
 }

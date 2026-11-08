@@ -20,7 +20,8 @@ enum MarkdownImageDataCollector {
     static func collectImageData(
         from markdownURL: URL,
         content: String,
-        limits: Limits = .default
+        limits: Limits = .default,
+        fileExtensions: Set<String>? = nil
     ) -> [String: String] {
         var imageData: [String: String] = [:]
         var collectedImageCount = 0
@@ -29,6 +30,7 @@ enum MarkdownImageDataCollector {
             guard collectedImageCount < limits.maxImageCount else { break }
             let imagePath = reference.path
             let imageURL = reference.url
+            if let fileExtensions, !fileExtensions.contains(imageURL.pathExtension.lowercased()) { continue }
             guard let mimeType = mimeType(for: imageURL) else { continue }
             guard let fileSize = fileSize(of: imageURL) else { continue }
             guard fileSize <= limits.maxImageBytes else { continue }

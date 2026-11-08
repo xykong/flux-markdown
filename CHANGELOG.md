@@ -1,5 +1,6 @@
 ## [Unreleased]
 ### Fixed
+- **Referenced SVG sizing**: Keep percentage-width SVG images within their drawing dimensions and readable text scale on wide/fullscreen windows, while preserving smaller icon sizes and exported layout.
 - **Recent documents**: Keep app-owned recent-document history across development signing changes and upgrades, migrate available system history, preserve temporarily unavailable files, and honor explicit clearing without replacing SwiftUI's document controller.
 - **Mermaid sizing**: Cap automatic diagram labels at body-text size and fit available width instead of stretching small diagrams across wide windows.
 

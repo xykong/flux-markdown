@@ -14,6 +14,34 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private var index = 0
     private var feedbackEvents: [[String: Any]] = []
     private var cases: [(String, String)] = [
+        ("Referenced SVG intrinsic sizing at fullscreen widths", """
+        const source=new DOMParser().parseFromString(atob(sizingSVGData.split(',')[1]),'image/svg+xml');
+        const box=source.documentElement.getAttribute('viewBox').split(/[ ,]+/).map(Number);
+        for(const context of ['app','quicklook','finder']) {
+          await window.renderMarkdown('Body text\\n\\n![Diagram](diagram.svg)\\n\\n<img src="diagram.svg" width="96">',{context,fontSize:16,imageData:{'diagram.svg':sizingSVGData}});
+          await window.waitForExportReady();
+          const root=document.getElementById('markdown-preview'), img=root.querySelector('img');
+          if(Math.abs(img.naturalWidth-box[2])>1 || Math.abs(img.naturalHeight-box[3])>1)throw new Error('SVG internal viewport differs from drawing: '+img.naturalWidth+'x'+img.naturalHeight);
+          for(const width of [360,1800]) {
+            root.style.width=width+'px';root.style.maxWidth='none';
+            const rect=img.getBoundingClientRect();
+            if(rect.width>Math.min(width,box[2])+1)throw new Error('SVG expanded beyond drawing width: '+rect.width);
+            if(width===1800 && rect.width<box[2]*0.8)throw new Error('SVG shrank below readable native size: '+rect.width);
+            if(Math.abs(rect.width/rect.height-box[2]/box[3])>0.01)throw new Error('SVG aspect ratio changed');
+            if(16*rect.width/box[2]>parseFloat(getComputedStyle(root).fontSize)+0.1)throw new Error('SVG labels larger than body');
+          }
+          root.style.fontSize='12px';
+          if(img.getBoundingClientRect().width>box[2]*0.75+1)throw new Error('SVG font-size change ignored');
+          root.style.fontSize='24px';
+          if(img.getBoundingClientRect().width>box[2]+1)throw new Error('SVG enlarged with larger body text');
+          root.style.fontSize='16px';
+          if(root.querySelectorAll('img')[1].getBoundingClientRect().width>97)throw new Error('explicit icon size enlarged');
+          const exported=new DOMParser().parseFromString(window.exportHTML(),'text/html');
+          if(!exported.querySelector('img').style.maxWidth.includes('px'))throw new Error('SVG export cap missing');
+          root.style.width='';root.style.maxWidth='';
+        }
+        await window.renderMarkdown('# Reset'); return true;
+        """),
         ("Mermaid body-size cap and independent zoom at narrow/fullscreen widths", """
         const sources=['graph TD; A[Small diagram]-->B[Second node]', 'sequenceDiagram\\nAlice->>Bob: Hello\\nBob-->>Alice: Hi', 'gantt\\ntitle Schedule\\ndateFormat YYYY-MM-DD\\nsection Work\\nTask :2026-01-01, 3d', 'classDiagram\\nAnimal <|-- Duck\\nAnimal : +int age'];
         for(const source of sources) {
@@ -423,11 +451,25 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     ![](plugin/assets/plugin.svg)
     """
     var svgImageData: [String: String] = [:]
+    var sizingSVGData = ""
+
     func run() {
         if let filter = ProcessInfo.processInfo.environment["FLUX_WEBKIT_CASE_FILTER"] {
             cases = cases.filter { $0.0.localizedCaseInsensitiveContains(filter) }
             guard !cases.isEmpty else { fputs("FAIL no matching integration cases\n", stderr); exit(1) }
         }
+        let sizingSVG: Data
+        if let fixture = ProcessInfo.processInfo.environment["FLUX_SVG_SIZING_FIXTURE"] {
+            sizingSVG = try! BoundedFileReader.read(URL(fileURLWithPath: fixture), maxBytes: 8 * 1024 * 1024)
+        } else {
+            sizingSVG = Data(#"<svg xmlns="http://www.w3.org/2000/svg" width="100%" style="max-width:586.5px" viewBox="4 4 586.5 1088"><style>text {font-size:16px}</style><rect x="4" y="4" width="586.5" height="1088" fill="lightgray"/><text x="20" y="40">Diagram label</text></svg>"#.utf8)
+        }
+        let sizingDirectory = URL(fileURLWithPath: CommandLine.arguments[2])
+        try! sizingSVG.write(to: sizingDirectory.appendingPathComponent("diagram.svg"))
+        let sizingImages = MarkdownImageDataCollector.collectImageData(
+            from: sizingDirectory.appendingPathComponent("sizing.md"), content: "![Diagram](diagram.svg)", fileExtensions: ["svg"])
+        guard let sizingData = sizingImages["diagram.svg"] else { fatalError("SVG sizing collector failed") }
+        sizingSVGData = sizingData
         let config = WKWebViewConfiguration()
         config.userContentController.add(self, name: "logger")
         config.userContentController.add(self, name: "blockCopy")
@@ -513,7 +555,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         }
         if name == "wide reading layout" || name == "RTL wide geometry" { webView.setFrameSize(NSSize(width: 1800, height: 900)) }
         if name == "narrow reading layout" || name == "RTL narrow geometry" || name == "block copy narrow RTL geometry" { webView.setFrameSize(NSSize(width: 600, height: 600)) }
-        webView.callAsyncJavaScript(js, arguments: ["imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData], in: nil, in: .page) { result in
+        webView.callAsyncJavaScript(js, arguments: ["imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData, "sizingSVGData": sizingSVGData], in: nil, in: .page) { result in
             switch result {
             case .success(let value) where value as? Bool == true:
                 if name == "math native keyboard copy and reference" {

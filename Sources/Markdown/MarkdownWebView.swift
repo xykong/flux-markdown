@@ -567,6 +567,12 @@ struct MarkdownWebView: NSViewRepresentable {
                 let baseUrlString = url.deletingLastPathComponent().path
                 options["filename"] = url.lastPathComponent
                 options["baseUrl"] = baseUrlString
+                if url.pathExtension.lowercased() != "tsv" {
+                    // SVG metadata is needed to choose a readable intrinsic size.
+                    // Raster images stay on the existing bounded local scheme.
+                    options["imageData"] = MarkdownImageDataCollector.collectImageData(
+                        from: url, content: content, fileExtensions: ["svg"])
+                }
             }
 
             let appearanceName = webView.effectiveAppearance.name
