@@ -6,4 +6,4 @@
 - [x] Test retry, reset, expired offers, wrong URL inputs and migration.
 - [ ] Verify genuine browser → installed application → effective-use journey in isolation.
 - [x] Update repository privacy/help documentation.
-- [ ] Publish the supporting client with signing/notarization and macOS 11 validation.
+- [ ] Publish the supporting client with signing/notarization and Intel functional validation (macOS 11 runtime testing excluded by maintainer decision, 2026-11-09).

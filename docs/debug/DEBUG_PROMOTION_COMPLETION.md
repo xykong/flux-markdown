@@ -33,3 +33,13 @@ They do not establish macOS 11/Intel compatibility or signed/notarized installed
 browser → app → Quick Look acceptance. No production claim gate was enabled and
 no new release was published by this development task. Retain these pending gates
 rather than labeling local protocol tests as installed-app acceptance.
+
+
+## Acceptance scope update — 2026-11-09
+
+The maintainer excludes macOS 11 runtime validation from the acceptance scope.
+Intel functional verification on he-macpro is the architecture requirement;
+see DEBUG_INTEL_MACOS_VERIFICATION_20261109.md for the 51 passing focused tests
+and Universal build evidence. Full installed-app acceptance and signing/notarization
+remain separate gates. Historical macOS 11 limitations above describe evidence,
+not a current blocker. Minimum deployment configuration is unchanged.

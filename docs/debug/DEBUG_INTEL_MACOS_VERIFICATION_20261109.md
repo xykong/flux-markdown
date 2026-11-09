@@ -29,8 +29,9 @@
 
 ## Limits and next gates
 
-- macOS 11 Intel runtime, Finder Quick Look and signed installed-app flow still
-  need a macOS 11 environment.
+- Maintainer decision (2026-11-09): validate Intel functionality on the available
+  device; macOS 11 runtime acceptance is excluded and no longer a release gate.
+  Installed-app and Finder Quick Look checks should run on that Intel device.
 - Formal release requires the project signing identity, provisioning where
   applicable, notarization and stapled assessment. The available remote identity
   belongs to Happy Elements and was not used for release signing.

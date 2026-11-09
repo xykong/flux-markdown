@@ -223,3 +223,11 @@ log stream --predicate 'subsystem == "com.markdownquicklook.app"' --level debug
 - Regular user-requested releases increment the minor version by default. Do not
   choose patch-only releases unless the user explicitly requests one. The third
   component remains the script-generated commit-count build number.
+
+## Architecture verification scope (maintainer decision, 2026-11-09)
+
+- Validate Intel (`x86_64`) functionality on the available Intel device.
+- macOS 11 runtime testing is not required and must not block acceptance or release.
+- This testing-scope decision does not change the minimum deployment target or
+  imply macOS 11 runtime verification. Preserve existing build configuration.
+- Signing, notarization and installed-app functional checks remain applicable.
