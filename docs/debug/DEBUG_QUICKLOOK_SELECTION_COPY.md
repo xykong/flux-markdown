@@ -131,3 +131,47 @@ strict deep signature verification. Intel host UI permission choice is pending.
 Review disposition: reasonable bounded fix for ordinary Finder preview. Do not
 advertise all Quick Look modes as fixed. Full-screen command routing remains
 an explicit limitation, and Intel UI acceptance is still outstanding.
+
+## Intel actual Finder verification — 2026-11-11
+
+User connected Apple Remote Desktop to MacPro (he-macpro, macOS 26.7.2).
+Operated through CUA, using pointer actions in the remote desktop. Direct CUA
+keyboard delivery to ARD did not work, including Escape on its local menu;
+used the remote macOS Keyboard Viewer to generate actual modifier/key commands.
+No Accessibility permission was added. Keyboard Viewer closed after testing.
+
+Rebuilt merged source Debug for x86_64 with ad-hoc signing; strict deep signature
+verification passed. Initial Finder selection loaded an old all-tests bundle,
+so those observations were excluded. Temporarily unregistered both old bundles;
+verified candidate extension PID 60219 at
+`/private/tmp/flux-intel-derived/Build/Products/Debug/FluxMarkdown.app/Contents/PlugIns/MarkdownPreview.appex/Contents/MacOS/MarkdownPreview`.
+Mach-O reports x86_64. Restored old bundle registrations after testing.
+No application was installed in /Applications on this machine.
+
+| Actual-host check | Result | Evidence |
+|---|---|---|
+| Rendered Cmd-C | PASS | Sentinel replaced with exact Alpha 中文 Omega PR70-20261110 |
+| Source Cmd-C | PASS | Separate source sentinel replaced with same exact text |
+| Space after source selection | PASS | Preview closed; Finder visible |
+| Escape and reopen | PASS | Keyboard Viewer Escape closed preview; Space reopened |
+| Navigation after selection | PASS | Right changed COPY ONE to COPY TWO; Left returned to COPY ONE |
+| Full-screen transitions | PASS | Entered full screen; Keyboard Viewer Escape returned to normal preview |
+| Full-screen Cmd-C | FAIL | Selected sentence present; clipboard became copy-two.md CR copy-one.md |
+| Search handoff | FAIL in ad-hoc environment | Search failure UI; retry also rejected by XPC listener |
+
+Search log: `Peer connection was rejected by the listener`, followed by
+`Host also refused document search launch`. Local evidence files:
+`/tmp/flux-pr70-evidence/intel-search.log`, `intel-runtime.log`; remote build log
+`/private/tmp/flux-pr70-signed-build.log`. This is a failed acceptance result,
+not proof that PR70 changed XPC trust. Apple Silicon installed-app search passed
+earlier. Neither a universal search pass nor formal release readiness is claimed.
+
+## Final review disposition
+
+Local merge and planned verification execution are complete, with failures
+explicitly retained. The one-line change is causally supported for ordinary
+Finder preview on both architectures. Do not label all Quick Look copying fixed.
+Keep full-screen command routing and Intel ad-hoc search handoff as limitations.
+Recommend accepting the bounded ordinary-preview fix only with that documented
+scope; this review does not authorize remote merge or publication. No production
+code beyond the original PR was changed.
