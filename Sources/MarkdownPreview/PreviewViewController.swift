@@ -53,7 +53,7 @@ class InteractiveWebView: NativeMagnifyingWebView {
     }
     
     override var acceptsFirstResponder: Bool {
-        return false
+        return super.acceptsFirstResponder
     }
     
     override func scrollWheel(with event: NSEvent) {
