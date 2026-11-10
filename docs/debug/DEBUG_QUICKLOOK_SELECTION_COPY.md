@@ -89,3 +89,23 @@ no selection highlight after the semantic double-click. This does not yet
 distinguish host input routing from automation failure; not counted as passing.
 Baseline A/B and Intel actual-host UI remain pending. Original installation
 restored again with successful strict deep signature verification.
+
+### Single-variable A/B — 2026-11-11
+
+Built a separate baseline from the merged source with exactly one production
+change: InteractiveWebView.acceptsFirstResponder returns false instead of super.
+Diff inspected before installation; same Debug configuration and local target 12.0.
+Baseline build and strict deep signature verification passed.
+
+Actual Finder baseline PID 71822 loaded from the installed path. Selecting the
+same rendered sentence and Cmd-C left `PR70-baseline-sentinel` unchanged. This
+contrasts with candidate `Omega`, establishing a direct ordinary-preview fix.
+Baseline full-screen double-click/Cmd-C returned `copy-one.md`, reproducing the
+filename-copy symptom seen with the candidate. Thus that observation is not
+evidence of a new regression from the changed eligibility property; full-screen
+text-selection acceptance remains unproven. Baseline full-screen Escape exit
+and preview close worked. Original app restored and strict deep signature passed.
+
+Intel remote session is logged in, but AXIsProcessTrusted() returns false for
+the SSH-launched process. No new Accessibility permission was granted. Asked
+maintainer to choose manual Intel acceptance or remote UI setup; pending reply.
