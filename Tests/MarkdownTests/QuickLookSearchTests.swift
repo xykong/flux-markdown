@@ -84,16 +84,24 @@ final class QuickLookSearchTests: XCTestCase {
         XCTAssertEqual(opened.urls.count, 1)
         XCTAssertTrue(webView.scripts.isEmpty)
     }
+
+    func testWebViewUsesNativeFirstResponderEligibility() {
+        let nativeView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
+        let previewView = InteractiveWebView(frame: .zero, configuration: WKWebViewConfiguration())
+        XCTAssertEqual(previewView.acceptsFirstResponder, nativeView.acceptsFirstResponder)
+    }
+
     func testPreviewAppearanceDoesNotClaimFirstResponder() {
-        let (controller, webView, _) = controller()
+        let (controller, _, _) = controller()
         let window = NSWindow(contentRect: controller.view.bounds, styleMask: [.titled], backing: .buffered, defer: false)
         window.contentView = controller.view
         defer { window.orderOut(nil) }
+        XCTAssertTrue(window.makeFirstResponder(nil))
+        let previousResponder = window.firstResponder
         controller.viewDidAppear()
-        let focused = expectation(description: "preview focus applied")
+        let focused = expectation(description: "preview appearance completes")
         DispatchQueue.main.async {
-            XCTAssertFalse(window.firstResponder === webView)
-            XCTAssertFalse(webView.acceptsFirstResponder)
+            XCTAssertTrue(window.firstResponder === previousResponder)
             XCTAssertFalse(controller.acceptsFirstResponder)
             focused.fulfill()
         }
@@ -122,7 +130,6 @@ final class QuickLookSearchTests: XCTestCase {
         controller.makeSearchButton().performClick(nil)
         XCTAssertEqual(failures, 1)
         XCTAssertTrue(webView.scripts.isEmpty)
-        XCTAssertFalse(webView.acceptsFirstResponder)
     }
 
     func testStandardFindMenuActionUsesTheSameSearchBridge() {
