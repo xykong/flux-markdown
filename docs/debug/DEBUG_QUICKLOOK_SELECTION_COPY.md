@@ -68,3 +68,24 @@ Finder interactions. Record host warning timing separately from functional failu
 Do not substitute direct JavaScript copy, a standalone WKWebView, or synthetic
 action success for Finder command delivery. Raw local automation evidence and
 restored-original/candidate bundles are under `/tmp/flux-pr70-evidence`.
+
+### Continuation: real Finder checks via CUA
+
+Local OS is macOS 27.0.1. CUA correctly bound the remote Quick Look window,
+resolving the previous Orca window-targeting blocker without user intervention.
+Candidate PID 62920 was observed at the installed extension path.
+
+Passed in actual Finder: rendered selection copied `Omega`; source selection
+replaced `PR70-source-sentinel` with `Omega`; Escape closed selected rendered
+preview; Space closed selected source preview; reopening worked; Left and Right
+after text selection navigated between copy-one.md and copy-two.md.
+Search button opened copy-two.md in the main app with the search field focused;
+actual typing `unique` produced 1/1. Full-screen entry and Escape exit worked.
+
+Unresolved: full-screen double-click plus Cmd-C produced Finder filenames
+(copy-one.md and copy-two.md) rather than selected text. Returning to normal
+preview and repeating copied `document`. A second full-screen observation showed
+no selection highlight after the semantic double-click. This does not yet
+distinguish host input routing from automation failure; not counted as passing.
+Baseline A/B and Intel actual-host UI remain pending. Original installation
+restored again with successful strict deep signature verification.
