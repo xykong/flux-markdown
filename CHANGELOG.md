@@ -1,4 +1,7 @@
 ## [Unreleased]
+_无待发布的变更_
+
+## [1.48.816] - 2026-11-11
 ### Fixed
 - **Quick Look selection copying**: Restore Command-C for selected text in Finder's ordinary rendered and source previews, while leaving focus assignment to AppKit. Full-screen Command-C remains limited and may copy Finder filenames; use the selection's context-menu Copy action in that mode. Thanks to [@Schnee013](https://github.com/Schnee013) for reporting and implementing [#70](https://github.com/xykong/flux-markdown/pull/70).
 
