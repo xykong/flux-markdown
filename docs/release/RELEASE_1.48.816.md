@@ -14,7 +14,7 @@
 - 最终标签发布构建：https://github.com/xykong/flux-markdown/actions/runs/42854428287 已通过。
 - 最终提交 CI：https://github.com/xykong/flux-markdown/actions/runs/42854417266 已通过；同 SHA 重复运行 42854426917 已取消。603 renderer 测试、36 real WebKit 用例通过；原生 XCTest 409 项、跳过 1 项、失败 0 项。原始日志 build/release-verification-1.48.816/ci.log。
 - 沿用现行 ad-hoc 应用签名与 Sparkle EdDSA 更新签名流程；不声称 Developer ID 签名或 Apple 公证。
-- DMG、manifest、公共渠道、最终包验证均待完成，尚未公开新版 Release。
+- DMG、manifest、公共渠道、最终包验证已完成，见最终渠道记录。
 
 ## 宣传图
 
@@ -22,11 +22,11 @@
 - prompt: docs/release/artwork/v1.48.816-prompt.txt。
 - 原始 1536×1024 PNG 与生成日志：build/release-artwork-1.48.816/。
 - 最终 WebP：1200×800，124806 bytes；原图和压缩图已目视检查，版本与拼写正确。
-- 公共上传与发布页视觉验收待完成。
+- 公共上传与发布页视觉验收通过。
 
 ## 当前状态
 
-PR 已接受；发布准备进行中。远程构建仍排队，未把排队记为测试通过。
+PR 已接受；v1.48.816 已公开，本次适用发布验收完成。
 
 ## 最终包验证
 
@@ -37,3 +37,18 @@ PR 已接受；发布准备进行中。远程构建仍排队，未把排队记�
 - 未执行真实 Sparkle 升级；不以签名校验替代升级验收。
 - DMG SHA256: 1176e634598e7c9dd563b6c0454a43b2e00e0dcba915b6dc47680c7c419b0e44。
 - MacPorts SHA256: add56d6d00bd781fac0eb7ebb2856e2ed7b765d4524ed567b8501e9e054f4359。
+
+## Final channel verification
+
+- Public latest release: https://github.com/xykong/flux-markdown/releases/tag/v1.48.816 (draft=false, prerelease=false).
+- Canonical public DMG, MacPorts archive and artwork downloads match local bytes using cmp.
+- Public master/appcast.xml matches local bytes. Version 1.48.816, build 816, enclosure length 45463059.
+- Independent CryptoKit Ed25519 verification passed using the final app SUPublicEDKey and public feed signature.
+- Release, CHANGELOG and Sparkle retain inline @Schnee013 attribution, PR link and the full-screen limitation.
+- Homebrew tap and official cask draft: b791af8 pushed; fetch/diff and both Ruby syntax checks passed. Draft update is not official upstream acceptance.
+- Publisher returned 2 at the expected noninteractive Homebrew stage; only that stage was completed manually. No asset replacement or repeat signing.
+- Artwork SHA256: 75a161023f87974d7e772f6605bc76cbcaed11e0737b335afc94fe38bd356cdb. Browser complete=true, naturalWidth=1200, naturalHeight=800. release-page.png visually reviewed.
+- Manifest-bound original release_notes_tmp.md unchanged; artwork prepended only to GitHub body.
+- No unrelated issue closure or messages. PR70 is merged.
+- Scope limits: no macOS 11 runtime test, brew install, actual Sparkle upgrade or Developer ID notarization claimed. Full-screen shortcut limitation remains public.
+- Required applicable publication checks complete. Final documentation does not change tag, binaries, signatures or bound notes.
