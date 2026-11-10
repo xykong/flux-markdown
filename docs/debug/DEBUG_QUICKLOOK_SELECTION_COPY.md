@@ -109,3 +109,25 @@ and preview close worked. Original app restored and strict deep signature passed
 Intel remote session is logged in, but AXIsProcessTrusted() returns false for
 the SSH-launched process. No new Accessibility permission was granted. Asked
 maintainer to choose manual Intel acceptance or remote UI setup; pending reply.
+
+### Full-screen selection disambiguation — 2026-11-11
+
+Reinstalled candidate; extension PID 76135 verified at installed path. Used
+CUA coordinate drag from (80,380) to (820,380) against the current full-screen
+screenshot. Screenshot visibly highlighted the complete sentence
+`Alpha 中文 Omega PR70-20261110`. Seeded clipboard with
+`PR70-fullscreen-sentinel`, then sent Cmd-C: actual clipboard was `copy-one.md`
+(exact expected-text comparison false). Right-clicking the same selection
+exposed WebKit menu item WKMenuItemIdentifierCopy; clicking it copied exactly
+`Alpha 中文 Omega PR70-20261110` (comparison true).
+
+This resolves the missing-selection uncertainty for the candidate: full-screen
+shortcut copying is not fixed, despite working selection and context-menu copy.
+The baseline previously showed the same filename symptom; no claim of a new
+PR regression is supported. Ordinary-preview fix remains independently proven.
+Exited full screen, closed preview, restored original application and passed
+strict deep signature verification. Intel host UI permission choice is pending.
+
+Review disposition: reasonable bounded fix for ordinary Finder preview. Do not
+advertise all Quick Look modes as fixed. Full-screen command routing remains
+an explicit limitation, and Intel UI acceptance is still outstanding.
