@@ -1001,7 +1001,7 @@ struct MarkdownWebView: NSViewRepresentable {
         private func showDestinationFailure(_ url: URL) {
             showFailure(.link, recoveryTitle: "Copy Link", recovery: {
                 NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(url.absoluteString, forType: .string)
+                NSPasteboard.general.setString(LinkNavigation.clipboardText(for: url), forType: .string)
             })
         }
         private func handleLinkClick(href: String) {
@@ -1022,16 +1022,19 @@ struct MarkdownWebView: NSViewRepresentable {
                 return
             }
             
-            let (targetURL, fragment) = LinkNavigation.resolveLocalURLWithFragment(href: href, relativeTo: fileURL)
+            // Editor-style `path:line[:column]` targets (issue #71) resolve to their file
+            // plus a source line; plain local links keep their previous behavior.
+            guard let link = LinkNavigation.resolveLocalLink(href: href, relativeTo: fileURL) else { return }
+            let targetURL = link.url
+            let fragment = link.fragment
             
-            guard let targetURL = targetURL else { return }
+            os_log("🔵 Opening local file: %{public}@ anchor: %{public}@ line: %{public}@ (href: %{public}@)",
+                   log: logger, type: .default, targetURL.path, fragment ?? "(none)",
+                   link.line.map(String.init) ?? "(none)", href)
             
-            os_log("🔵 Opening local file: %{public}@ anchor: %{public}@ (href: %{public}@)",
-                   log: logger, type: .default, targetURL.path, fragment ?? "(none)", href)
-            
-            let markdownExtensions: Set<String> = ["md", "mdx", "markdown", "mdown", "mkd", "mkdn", "mkdown", "mdwn", "rmd", "qmd", "mdoc", "mdc", "mmd", "livemd", "tsv"]
-            if markdownExtensions.contains(targetURL.pathExtension.lowercased()) {
-                let id = fragment.flatMap { $0.isEmpty ? nil : DocumentPositionStore.shared.set(.anchor($0), for: targetURL) }
+            switch LinkNavigation.action(for: link) {
+            case .openFluxMarkdown(let position):
+                let id = position.map { DocumentPositionStore.shared.set($0, for: targetURL) }
                 NSDocumentController.shared.openDocument(withContentsOf: targetURL, display: true) { _, _, error in
                     if error != nil {
                         if let id { DocumentPositionStore.shared.discard(for: targetURL, id: id) }
@@ -1040,7 +1043,9 @@ struct MarkdownWebView: NSViewRepresentable {
                         NotificationCenter.default.post(name: DocumentPositionStore.notification, object: targetURL)
                     }
                 }
-            } else if !NSWorkspace.shared.open(targetURL) { showDestinationFailure(targetURL) }
+            case .openExternally:
+                if !NSWorkspace.shared.open(targetURL) { showDestinationFailure(targetURL) }
+            }
         }
         
         func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {

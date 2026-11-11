@@ -45,7 +45,8 @@ enum FailureKind: String, Codable, CaseIterable {
         case .search: return "Check the search expression, or open the document in FluxMarkdown and press Command-F."
         case .quickLook: return "Open the document in FluxMarkdown. You can also run Repair Quick Look from the Help menu."
         case .images, .previewLimit: return "Open the document in FluxMarkdown to read beyond the preview limits."
-        case .link, .browser: return "Open the destination in your browser or editor. You can copy a report if this keeps happening."
+        case .link: return "The link may point to a file that is not on this Mac, or to a path that is not relative to the document. Copy the link to open it manually, or check the path in your editor."
+        case .browser: return "Open the destination in your browser or editor. You can copy a report if this keeps happening."
         }
     }
 }

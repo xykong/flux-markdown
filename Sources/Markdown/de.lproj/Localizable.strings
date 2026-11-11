@@ -197,6 +197,7 @@
 "Open the document in FluxMarkdown. You can also run Repair Quick Look from the Help menu." = "Öffne das Dokument in FluxMarkdown. Im Hilfemenü kannst du auch Quick Look reparieren.";
 "Open the document in FluxMarkdown to read beyond the preview limits." = "Öffne das Dokument in FluxMarkdown, um über die Vorschaugrenzen hinaus zu lesen.";
 "Open the destination in your browser or editor. You can copy a report if this keeps happening." = "Öffne das Ziel im Browser oder Editor. Wenn das Problem anhält, kannst du einen Bericht kopieren.";
+"The link may point to a file that is not on this Mac, or to a path that is not relative to the document. Copy the link to open it manually, or check the path in your editor." = "Der Link verweist möglicherweise auf eine Datei, die auf diesem Mac nicht vorhanden ist, oder auf einen Pfad, der nicht relativ zum Dokument ist. Kopiere den Link, um ihn manuell zu öffnen, oder prüfe den Pfad im Editor.";
 "Report This Problem" = "Dieses Problem melden";
 "Include diagnostics" = "Diagnoseinformationen einschließen";
 "Review Feedback…" = "Feedback prüfen…";

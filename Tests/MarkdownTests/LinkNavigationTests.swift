@@ -98,34 +98,34 @@ final class LinkNavigationTests: XCTestCase {
         let baseFileURL = URL(fileURLWithPath: "/Users/me/docs/index.md")
         let href = "my%20notes.md#introduction"
 
-        let (targetURL, fragment) = LinkNavigation.resolveLocalURLWithFragment(href: href, relativeTo: baseFileURL)
+        let target = LinkNavigation.resolveLocalLink(href: href, relativeTo: baseFileURL)
 
-        XCTAssertNotNil(targetURL)
-        XCTAssertEqual(targetURL?.path, "/Users/me/docs/my notes.md",
+        XCTAssertNotNil(target?.url)
+        XCTAssertEqual(target?.url.path, "/Users/me/docs/my notes.md",
                        "Path with %20 and fragment must decode correctly")
-        XCTAssertEqual(fragment, "introduction")
+        XCTAssertEqual(target?.fragment, "introduction")
     }
 
     func testExtractsFragmentFromPlainHref() {
         let baseFileURL = URL(fileURLWithPath: "/Users/me/docs/index.md")
         let href = "notes.md#section-one"
 
-        let (targetURL, fragment) = LinkNavigation.resolveLocalURLWithFragment(href: href, relativeTo: baseFileURL)
+        let target = LinkNavigation.resolveLocalLink(href: href, relativeTo: baseFileURL)
 
-        XCTAssertNotNil(targetURL)
-        XCTAssertEqual(targetURL?.path, "/Users/me/docs/notes.md")
-        XCTAssertEqual(fragment, "section-one")
+        XCTAssertNotNil(target?.url)
+        XCTAssertEqual(target?.url.path, "/Users/me/docs/notes.md")
+        XCTAssertEqual(target?.fragment, "section-one")
     }
 
     func testExtractsNilFragmentWhenNoAnchor() {
         let baseFileURL = URL(fileURLWithPath: "/Users/me/docs/index.md")
         let href = "my%20notes.md"
 
-        let (targetURL, fragment) = LinkNavigation.resolveLocalURLWithFragment(href: href, relativeTo: baseFileURL)
+        let target = LinkNavigation.resolveLocalLink(href: href, relativeTo: baseFileURL)
 
-        XCTAssertNotNil(targetURL)
-        XCTAssertEqual(targetURL?.path, "/Users/me/docs/my notes.md")
-        XCTAssertNil(fragment)
+        XCTAssertNotNil(target?.url)
+        XCTAssertEqual(target?.url.path, "/Users/me/docs/my notes.md")
+        XCTAssertNil(target?.fragment)
     }
 
     // MARK: - Multiple encoded characters

@@ -49,6 +49,7 @@
 "Open the document in FluxMarkdown. You can also run Repair Quick Look from the Help menu." = "افتح المستند في FluxMarkdown. يمكنك أيضًا تشغيل «إصلاح نظرة سريعة» من قائمة المساعدة.";
 "Open the document in FluxMarkdown to read beyond the preview limits." = "افتح المستند في FluxMarkdown لتقرأ ما يتجاوز حدود المعاينة.";
 "Open the destination in your browser or editor. You can copy a report if this keeps happening." = "افتح الوجهة في متصفحك أو محررك. يمكنك نسخ تقرير إذا استمر حدوث ذلك.";
+"The link may point to a file that is not on this Mac, or to a path that is not relative to the document. Copy the link to open it manually, or check the path in your editor." = "قد يشير الرابط إلى ملف غير موجود على هذا الـ Mac أو إلى مسار لا يكون نسبيًا إلى المستند. انسخ الرابط لفتحه يدويًا، أو تحقّق من المسار في المحرر.";
 "Report This Problem" = "الإبلاغ عن هذه المشكلة";
 "Include diagnostics" = "تضمين التشخيصات";
 "Review Feedback…" = "مراجعة الملاحظات…";

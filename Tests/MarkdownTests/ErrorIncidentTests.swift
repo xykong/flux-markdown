@@ -198,6 +198,14 @@ extension ErrorIncidentTests {
             XCTAssertTrue(buttons.arrangedSubviews.compactMap { ($0 as? NSButton)?.title }.contains("Report This Problem"))
         }
     }
+    func testLocalLinkGuidanceNamesTheNextStepAndDiffersFromBrowserFailure() {
+        let localLink = ErrorIncident(kind: .link, source: .app)
+        XCTAssertTrue(localLink.guidance.contains("not on this Mac"), "#71: a local link failure must explain that the target may not exist here")
+        XCTAssertTrue(localLink.guidance.contains("not relative to the document"), "#71: relative resolution must be explained")
+        XCTAssertTrue(localLink.guidance.contains("Copy the link"), "#71: the Copy Link recovery must be named")
+        XCTAssertEqual(localLink.kind.title, "The destination could not be opened")
+        XCTAssertNotEqual(ErrorIncident(kind: .browser, source: .app).guidance, localLink.guidance)
+    }
     func testAllIncidentGuidanceHasTranslationsForBothBundles() throws {
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         let keys = FailureKind.allCases.flatMap { [$0.title, $0.guidance] } + ["Report This Problem", "Review Feedback…", "Include diagnostics", "Open Feedback Page", "Copy Report", "Save Report…", "Close"]
