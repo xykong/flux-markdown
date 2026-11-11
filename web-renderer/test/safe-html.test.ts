@@ -16,3 +16,25 @@ describe('document resource URI policy', () => {
       expect(root.querySelector('[src], [href], [onerror]')).toBeNull();
     });
 });
+
+describe('editor-style line references (issue 71)', () => {
+  test.each([
+    'notes.md:12',
+    'notes.md:12:4',
+    'Makefile:12',
+    'src/文件.java:57',
+    'src/../docs/notes.md:9',
+    'Chapter.2.md:100',
+  ])('keeps relative path with a line suffix clickable: %s', source => {
+    const root = document.createElement('div');
+    root.innerHTML = sanitizeDocumentHTML(`<a href="${source}">link</a>`);
+    expect(root.querySelector('a')?.getAttribute('href')).toBe(source);
+  });
+
+  test.each(['javascript:1', 'JaVaScRiPt:1', 'vbscript:1', 'data:1'])(
+    'still rejects a script-capable scheme with a numeric payload %s', source => {
+      const root = document.createElement('div');
+      root.innerHTML = sanitizeDocumentHTML(`<a href="${source}">link</a>`);
+      expect(root.querySelector('[href]')).toBeNull();
+    });
+});

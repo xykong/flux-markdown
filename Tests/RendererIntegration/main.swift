@@ -389,6 +389,22 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         }
         return true;
         """),
+        ("editor-style line references", """
+        const original=window.webkit.messageHandlers.linkClicked;
+        const sent=[];
+        window.webkit.messageHandlers.linkClicked={postMessage:href=>{sent.push(href)}};
+        try {
+          await window.renderMarkdown('[rel](notes.md:12)\\n\\n[abs](/tmp/文件.java:57)\\n\\n[col](src/Foo.java:57:4)\\n\\n[anchor](#section)\\n\\n<a href="javascript:1">unsafe</a>',{context:'app'});
+          const links=[...document.querySelectorAll('#markdown-preview a')];
+          const hrefs=links.map(a=>a.getAttribute('href'));
+          if(links.length!==5) throw new Error('unexpected link count '+links.length+' '+JSON.stringify(hrefs));
+          if(hrefs[0]!=='notes.md:12' || hrefs[1]!=='/tmp/%E6%96%87%E4%BB%B6.java:57' || hrefs[2]!=='src/Foo.java:57:4' || hrefs[3]!=='#section') throw new Error('hrefs '+JSON.stringify(hrefs));
+          if(hrefs[4]!==null || document.querySelector('a[href^="javascript"]')) throw new Error('unsafe href survived '+JSON.stringify(hrefs));
+          links[0].click(); links[2].click();
+          if(sent.length!==2 || sent[0]!=='notes.md:12' || sent[1]!=='src/Foo.java:57:4') throw new Error('linkClicked payload '+JSON.stringify(sent));
+        } finally { window.webkit.messageHandlers.linkClicked=original; }
+        return true;
+        """),
         ("math and emoji", "await window.renderMarkdown('$x$ :smile:'); await window.renderMarkdown(':smile:',{enableKatex:false}); return !document.getElementById('markdown-preview').textContent.includes(':smile:');"),
         ("native Typst offline", "const oldFetch=window.fetch; window.fetch=(url,...args)=>{if(/^https?:/.test(String(url))) throw new Error('Unexpected network font/package request'); return oldFetch(url,...args)}; await window.renderMarkdown('```typst\\nsum_(i=1)^n i\\n```',{context:'app'}); window.fetch=oldFetch; return !!document.querySelector('.typst-native svg use') && !document.querySelector('.typst-native style') && !document.querySelector('pre .typst-native');"),
         ("Mermaid", "await window.renderMarkdown('```mermaid\\ngraph TD; A-->B\\n```'); return !!document.querySelector('.mermaid svg') && !document.querySelector('.mermaid-error');"),

@@ -54,7 +54,9 @@ const documentPolicy = {
         FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed', 'form', 'button', 'textarea', 'select', 'base', 'link', 'meta', 'foreignObject'],
         FORBID_ATTR: ['srcdoc', 'name', 'autofocus'],
         ADD_URI_SAFE_ATTR: ['data-source-line', 'data-source-line-end'],
-        ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|local-md|file):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+        // `notes.md:12` is an editor-style line reference, not a scheme. Keep relative
+        // references clickable while still rejecting script-capable schemes.
+        ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|local-md|file):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$)|(?!javascript:|vbscript:|data:)[a-z0-9+.\-_/\\.]+:\d{1,7}(?::\d{1,7})?$)/i,
 };
 
 /** Documents may contain presentation HTML, never executable page content. */

@@ -1,6 +1,6 @@
 ## [Unreleased]
 ### Fixed
-- **Editor-style file links** (#71): Open local links that carry an editor-style `path:line[:column]` suffix, such as `/path/File.java:57`, at the file that exists instead of reporting a failed destination; Markdown and TSV targets also jump to that source line. The copy-link recovery now copies a plain path for local files, and the notice explains that the target may be missing from this Mac or resolved relative to the document. Thanks to [@creamJelly](https://github.com/creamJelly) for reporting [#71](https://github.com/xykong/flux-markdown/issues/71).
+- **Editor-style file links** (#71): Open local links that carry an editor-style `path:line[:column]` suffix, such as `/path/File.java:57` or `notes.md:12`, at the file that exists instead of reporting a failed destination or leaving the link inert; Markdown and TSV targets also jump to that source line. The copy-link recovery now copies a plain path for local files, and the notice explains that the target may be missing from this Mac or resolved relative to the document. Thanks to [@creamJelly](https://github.com/creamJelly) for reporting [#71](https://github.com/xykong/flux-markdown/issues/71).
 
 ## [1.48.816] - 2026-11-11
 ### Fixed
