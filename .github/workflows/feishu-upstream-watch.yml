@@ -1,0 +1,48 @@
+name: Parameter Foundry upstream notifications
+
+on:
+  schedule:
+    - cron: '2-57/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      test_connection:
+        description: Send a connection test to the existing notification group
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: parameter-foundry-upstream-notifications
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        with:
+          path: .upstream-watch/state.json
+          key: upstream-5412-v1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: upstream-5412-v1-
+      - name: Check public hosting request and notify
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+          FEISHU_WEBHOOK_SECRET: ${{ secrets.FEISHU_WEBHOOK_SECRET }}
+          FEISHU_MENTION_OPEN_ID: ${{ vars.FEISHU_MENTION_OPEN_ID }}
+        with:
+          script: |
+            await require(`${process.env.GITHUB_WORKSPACE}/scripts/feishu-upstream-watch.cjs`).run({ github, context, core });
+      # Preserve pending deliveries even when the notification request fails.
+      - uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        if: always() && hashFiles('.upstream-watch/state.json') != ''
+        with:
+          path: .upstream-watch/state.json
+          key: upstream-5412-v1-${{ github.run_id }}-${{ github.run_attempt }}
