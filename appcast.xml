@@ -7,6 +7,30 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 1.50.828</title>
+            <link>https://github.com/xykong/flux-markdown/releases/tag/v1.50.828</link>
+            <sparkle:version>828</sparkle:version>
+            <sparkle:shortVersionString>1.50.828</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+            <pubDate>Fri, 13 Nov 2026 16:06:31 +0000</pubDate>
+            <enclosure
+                url="https://github.com/xykong/flux-markdown/releases/download/v1.50.828/FluxMarkdown.dmg"
+                sparkle:edSignature="9B97N9mc9OjXhZt4dxhCaZWFOFd6QLlNKDW23A6gs4Jvh2YIDmu3j95TE9I2Zd14sDphi6OgP0VRlTIULKhSDw=="
+                length="45453588"
+                type="application/octet-stream" />
+            <description><![CDATA[
+                <h2>更新内容</h2>
+<h3>Fixed</h3>
+<ul>
+<li><strong>Inline math spacing</strong> (#72): Keep formula copy controls out of the text flow so hidden buttons do not leave a gap before the following words. Keyboard access and inline copy-error recovery remain available. Thanks to <a href="https://github.com/avdbauw">@avdbauw</a> for reporting <a href="https://github.com/xykong/flux-markdown/issues/72">#72</a>.</li>
+</ul>
+<p><a href="https://github.com/xykong/flux-markdown/releases/tag/v1.50.828">查看完整更新日志</a></p>
+            ]]></description>
+        </item>
+        
+
+
+        <item>
             <title>Version 1.48.816</title>
             <link>https://github.com/xykong/flux-markdown/releases/tag/v1.48.816</link>
             <sparkle:version>816</sparkle:version>
