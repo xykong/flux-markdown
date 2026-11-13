@@ -136,3 +136,7 @@ Opt-out is a normal no-submission state, not a forced settings change.
 Translations are present in all six host/Quick Look resource bundles and checked
 by `ErrorIncidentTests.testAllIncidentGuidanceHasTranslationsForBothBundles`.
 Signed-install interactive acceptance is still pending.
+
+## Inline math spacing (Issue #72)
+
+Inline formula copy actions float below the formula to avoid reserving prose width. Copy-error tools explicitly return to normal flow. Real WebKit spacing/focus and existing native narrow English/German/Arabic recovery checks cover this layout; see `DEBUG_ISSUE_72_MATH_SPACING.md`.

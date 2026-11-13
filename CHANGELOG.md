@@ -1,5 +1,6 @@
 ## [Unreleased]
-_无待发布的变更_
+### Fixed
+- **Inline math spacing** (#72): Keep formula copy controls out of the text flow so hidden buttons do not leave a gap before the following words. Keyboard access and inline copy-error recovery remain available. Thanks to [@avdbauw](https://github.com/avdbauw) for reporting [#72](https://github.com/xykong/flux-markdown/issues/72).
 
 ## [1.49.823] - 2026-11-12
 ### Fixed

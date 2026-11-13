@@ -299,6 +299,29 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         """),
         ("passive HTML", "await window.renderMarkdown('<img src=\"missing.png\" onerror=\"window.pwned=true\"><details><summary>ok</summary></details>'); return !document.querySelector('[onerror]') && !window.pwned && !!document.querySelector('details');"),
         ("new render wins", "const a=window.renderMarkdown('# OLD\\n\\n$x$'); const b=window.renderMarkdown('# NEW',{enableKatex:false}); await Promise.all([a,b]); return document.querySelector('h1').textContent==='NEW';"),
+        ("inline math copy controls preserve text spacing", """
+        const source=String.raw`The space \\(A\\) is one-dimensional.`;
+        for(const context of ['app','quicklook']) {
+          let plain;
+          for(const showCopyButtons of [false,true]) {
+            await window.renderMarkdown(source,{context,showCopyButtons});
+            const math=document.querySelector('.flux-math-source');
+            const host=math.closest('.math-copy-inline') || math;
+            const text=host.nextSibling;
+            const range=document.createRange();range.setStart(text,1);range.setEnd(text,2);
+            const gap=range.getBoundingClientRect().left-math.getBoundingClientRect().right;
+            if(!showCopyButtons)plain=gap;
+            else {
+              if(Math.abs(gap-plain)>1)throw new Error('Inline copy adds '+(gap-plain)+'px gap in '+context);
+              const button=host.querySelector('button');button.focus();
+              await new Promise(requestAnimationFrame);
+              if(document.activeElement!==button || getComputedStyle(button.parentElement).opacity!=='1')throw new Error('Copy control is inaccessible');
+              if(Math.abs(range.getBoundingClientRect().left-math.getBoundingClientRect().right-plain)>1)throw new Error('Focus shifts prose');
+            }
+          }
+        }
+        return true;
+        """),
         ("math native keyboard copy and reference", """
         window.setFeedbackGeneration('math-keyboard');
         const source=String.raw`\\(\\frac{x}{2}\\)`;
@@ -589,7 +612,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private func next() {
         if index == cases.count { print("PASS all \(cases.count) real WebKit cases"); exit(0) }
         let (name, js) = cases[index]
-        if name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
+        if name == "inline math copy controls preserve text spacing" || name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
             // :focus-within requires an active WebKit page, not just activeElement
             // in the otherwise windowless integration harness.
             guard let policy = TestWindowPolicy(environment: ProcessInfo.processInfo.environment), policy.allowsFocus else {
@@ -623,7 +646,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
                           reports[0]["generation"] as? String == "11111111-1111-1111-1111-111111111111",
                           !String(describing: self.feedbackEvents).contains("SAMPLE-DO-NOT-INCLUDE") else { print("FAIL feedback payload or stale action"); exit(1) }
                 }
-                if name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
+                if name == "inline math copy controls preserve text spacing" || name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
                     self.focusWindow?.contentView = nil
                     self.focusWindow?.orderOut(nil)
                     self.focusWindow = nil

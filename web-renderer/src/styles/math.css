@@ -39,10 +39,25 @@ span.math-inline-overflow {
     outline-width: 3px;
     outline-color: #bf8700;
 }
+/* Inline actions must not reserve space between a formula and its prose. */
+.math-copy-inline {
+    position: relative;
+}
 .math-copy-inline > .block-copy-tools {
+    position: absolute;
+    inset-inline-end: 0;
+    top: 100%;
+    z-index: 1;
     display: inline-flex;
-    margin-inline-start: 4px;
-    vertical-align: middle;
+    width: max-content;
+    margin: 0;
+    padding: 2px;
+    border-radius: 5px;
+    background: var(--bgColor-default, Canvas);
+}
+/* Recovery instructions remain in flow, including at narrow window widths. */
+.math-copy-inline > .block-copy-tools[data-copy-state="error"] {
+    position: static;
 }
 .math-copy-host > .block-copy-tools[data-copy-state="error"] {
     display: flex;
