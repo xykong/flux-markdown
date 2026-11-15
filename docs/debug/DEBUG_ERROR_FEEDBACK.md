@@ -140,3 +140,8 @@ Signed-install interactive acceptance is still pending.
 ## Inline math spacing (Issue #72)
 
 Inline formula copy actions float below the formula to avoid reserving prose width. Copy-error tools explicitly return to normal flow. Real WebKit spacing/focus and existing native narrow English/German/Arabic recovery checks cover this layout; see `DEBUG_ISSUE_72_MATH_SPACING.md`.
+
+
+### Display-math follow-up (Issue #72)
+
+Display formula copy actions also float instead of reserving an invisible row. Both inline and display errors return to normal flow. A windowless WebKit matrix verifies display geometry, pending/success states and static error positioning at narrow/wide widths in App/Quick Look rendering contexts with English/Arabic. The display-copy unit regression verifies failed-copy source preservation, retry and disposal. Trusted keyboard/installed-app acceptance was not repeated for this follow-up; see `DEBUG_ISSUE_72_MATH_SPACING.md`.

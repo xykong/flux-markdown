@@ -39,14 +39,14 @@ span.math-inline-overflow {
     outline-width: 3px;
     outline-color: #bf8700;
 }
-/* Inline actions must not reserve space between a formula and its prose. */
-.math-copy-inline {
+/* Formula actions must not reserve a row or prose width while hidden. */
+.math-copy-host {
     position: relative;
 }
-.math-copy-inline > .block-copy-tools {
+.math-copy-host > .block-copy-tools {
     position: absolute;
     inset-inline-end: 0;
-    top: 100%;
+    top: 0;
     z-index: 1;
     display: inline-flex;
     width: max-content;
@@ -55,8 +55,12 @@ span.math-inline-overflow {
     border-radius: 5px;
     background: var(--bgColor-default, Canvas);
 }
+/* Inline tools sit below the baseline instead of covering the formula. */
+.math-copy-inline > .block-copy-tools {
+    top: 100%;
+}
 /* Recovery instructions remain in flow, including at narrow window widths. */
-.math-copy-inline > .block-copy-tools[data-copy-state="error"] {
+.math-copy-host > .block-copy-tools[data-copy-state="error"] {
     position: static;
 }
 .math-copy-host > .block-copy-tools[data-copy-state="error"] {

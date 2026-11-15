@@ -27,3 +27,18 @@
 - Pressed Tab to the second formula copy control and Space: UI reads “已复制”; system clipboard independently reads exactly `$A$`. Restored all saved clipboard representations afterward.
 - Re-ran real WebKit math coverage: all 4 cases passed, including App/Quick Look context spacing, keyboard copy/reference navigation, and narrow multilingual failure recovery.
 - Scope: installed App verified on this Mac. Finder-hosted Quick Look, Intel hardware and formal release/notarization acceptance were not exercised in this check.
+
+## Follow-up: space before displayed formulas (2026-11-15)
+
+- New report: https://github.com/xykong/flux-markdown/issues/72#issuecomment-6880530545.
+- The reporter confirms the earlier inline fix, then reports excessive vertical space before each displayed formula. No usable screenshot or original Markdown is attached to this comment.
+- Hypothesis: display-math copy tools still occupy a normal-flow row above the formula even at opacity zero. This is separate from inline width reservation.
+- Acceptance before implementation: real WebKit must preserve formula and following-paragraph vertical positions with copy tools enabled/disabled in App and Quick Look, across display delimiters and fenced math. Ordinary MathJax display margins must remain. Error recovery must stay in flow and preserve selectable source.
+
+### Follow-up result
+
+- Baseline production bundle failed the new real WebKit test: `Display copy adds 29.53125,29.53125px vertical gap in app`. Both formula output and following paragraph moved by the same amount.
+- Formula copy tools now float at the display wrapper's upper trailing edge; inline tools retain their below-baseline position. Error tools return to normal flow in both cases. Standard MathJax display margins remain unchanged.
+- The new windowless WebKit case passes 24 display comparisons: `\[...\]`, `$$...$$`, fenced `math` × App/Quick Look renderer contexts × 300/800px widths × English/Arabic. It also verifies pending/success geometry, error-flow positioning, normal display margins and the existing inline spacing across these settings. No test window was opened or focus taken.
+- Full Jest: **67 suites / 614 tests passed**, including exact display-source copying, failed-copy source preservation, retry success and controller disposal. Production typecheck/build and `git diff --check` pass.
+- Scope: verified current built renderer in real macOS WKWebView and unit tests. Installed application, actual Finder host, trusted keyboard activation, Intel device and release/notarization were not revalidated for this follow-up. No release or GitHub reply was performed; the reporter's original document remains unavailable.

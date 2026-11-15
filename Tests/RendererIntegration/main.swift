@@ -299,6 +299,53 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         """),
         ("passive HTML", "await window.renderMarkdown('<img src=\"missing.png\" onerror=\"window.pwned=true\"><details><summary>ok</summary></details>'); return !document.querySelector('[onerror]') && !window.pwned && !!document.querySelector('details');"),
         ("new render wins", "const a=window.renderMarkdown('# OLD\\n\\n$x$'); const b=window.renderMarkdown('# NEW',{enableKatex:false}); await Promise.all([a,b]); return document.querySelector('h1').textContent==='NEW';"),
+        ("display math copy controls preserve vertical spacing", """
+        const formulas=[String.raw`\\[x=1\\]`, '$$\\nx=1\\n$$', '```math\\nx=1\\n```'];
+        const root=document.getElementById('markdown-preview');
+        for(const width of [300,800]) for(const uiLanguage of ['en','ar']) for(const context of ['app','quicklook']) {
+          root.style.width=width+'px';
+          for(const formula of formulas) {
+            const source='Before formula.\\n\\n'+formula+'\\n\\nAfter formula.';
+            let plain;
+            for(const showCopyButtons of [false,true]) {
+              await window.renderMarkdown(source,{context,showCopyButtons,uiLanguage});
+              const math=document.querySelector('div.flux-math-source');
+              const output=math.querySelector('mjx-container');
+              const after=document.querySelector('#markdown-preview > p:last-child');
+              const positions=[output.getBoundingClientRect().top,after.getBoundingClientRect().top];
+              if(!showCopyButtons)plain=positions;
+              else {
+                const delta=positions.map((value,index)=>value-plain[index]);
+                if(delta.some(value=>Math.abs(value)>1))throw new Error('Display copy adds '+delta+'px vertical gap in '+context);
+                const button=math.parentElement.querySelector('.block-copy-tools > button');
+                if(!button || button.disabled || button.tabIndex<0)throw new Error('Display copy control is inaccessible');
+                const tools=button.parentElement;
+                for(const state of ['pending','success']) {
+                  tools.dataset.copyState=state;
+                  if(Math.abs(output.getBoundingClientRect().top-plain[0])>1 || Math.abs(after.getBoundingClientRect().top-plain[1])>1)throw new Error('Copy status shifts display math');
+                }
+                tools.dataset.copyState='error';
+                if(getComputedStyle(tools).position!=='static')throw new Error('Copy error recovery is outside document flow');
+
+              }
+              if(parseFloat(getComputedStyle(output).marginTop)<=0)throw new Error('Normal display margin was removed');
+            }
+          }
+          const inline=String.raw`The space \\(A\\) is one-dimensional.`;
+          let plainGap;
+          for(const showCopyButtons of [false,true]) {
+            await window.renderMarkdown(inline,{context,showCopyButtons,uiLanguage});
+            const math=root.querySelector('.flux-math-source');
+            const host=math.closest('.math-copy-inline') || math;
+            const range=document.createRange();range.setStart(host.nextSibling,1);range.setEnd(host.nextSibling,2);
+            const gap=range.getBoundingClientRect().left-math.getBoundingClientRect().right;
+            if(!showCopyButtons)plainGap=gap;
+            else if(Math.abs(gap-plainGap)>1)throw new Error('Inline spacing regressed');
+          }
+        }
+        root.style.removeProperty('width');
+        return true;
+        """),
         ("inline math copy controls preserve text spacing", """
         const source=String.raw`The space \\(A\\) is one-dimensional.`;
         for(const context of ['app','quicklook']) {
