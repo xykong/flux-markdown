@@ -1,4 +1,7 @@
 ## [Unreleased]
+_无待发布的变更_
+
+## [1.51.834] - 2026-11-15
 ### Fixed
 - **Display math spacing** (#72): Remove the extra blank row reserved by hidden formula copy controls above displayed equations, preserving normal formula margins and copy-error recovery. Thanks to [@avdbauw](https://github.com/avdbauw) for reporting the [follow-up in #72](https://github.com/xykong/flux-markdown/issues/72#issuecomment-6880530545).
 
