@@ -7,6 +7,30 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 1.51.834</title>
+            <link>https://github.com/xykong/flux-markdown/releases/tag/v1.51.834</link>
+            <sparkle:version>834</sparkle:version>
+            <sparkle:shortVersionString>1.51.834</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+            <pubDate>Sun, 15 Nov 2026 07:05:14 +0000</pubDate>
+            <enclosure
+                url="https://github.com/xykong/flux-markdown/releases/download/v1.51.834/FluxMarkdown.dmg"
+                sparkle:edSignature="D9Qe20T+8BtYQQs0GGNrSTQN/33EoU6Mug6jdmdlRjpU/RzWvm7r9sm3lqwNrVo5tA/RncCR97f+4RYKpYK9Ag=="
+                length="45468182"
+                type="application/octet-stream" />
+            <description><![CDATA[
+                <h2>更新内容</h2>
+<h3>Fixed</h3>
+<ul>
+<li><strong>Display math spacing</strong> (#72): Remove the extra blank row reserved by hidden formula copy controls above displayed equations, preserving normal formula margins and copy-error recovery. Thanks to <a href="https://github.com/avdbauw">@avdbauw</a> for reporting the <a href="https://github.com/xykong/flux-markdown/issues/72#issuecomment-6880530545">follow-up in #72</a>.</li>
+</ul>
+<p><a href="https://github.com/xykong/flux-markdown/releases/tag/v1.51.834">查看完整更新日志</a></p>
+            ]]></description>
+        </item>
+        
+
+
+        <item>
             <title>Version 1.50.828</title>
             <link>https://github.com/xykong/flux-markdown/releases/tag/v1.50.828</link>
             <sparkle:version>828</sparkle:version>
