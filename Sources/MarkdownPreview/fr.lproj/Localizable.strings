@@ -175,3 +175,27 @@
 "Preparing current document…" = "Préparation du document actuel…";
 "ZIP ready locally; not uploaded." = "ZIP prêt localement, pas encore téléversé.";
 "Current document unavailable. Choose a document or uncheck its attachment to continue." = "Document actuel indisponible. Choisissez un document ou décochez sa pièce jointe pour continuer.";
+
+"Upload Attachment and Continue…" = "Téléverser la pièce jointe et continuer…";
+
+"Continue Without Attachment…" = "Continuer sans pièce jointe…";
+
+"Delete Uploaded Attachment" = "Supprimer la pièce jointe téléversée";
+
+"Uploading and verifying attachment…" = "Téléversement et vérification…";
+
+"Attachment uploaded and download verified." = "Pièce jointe téléversée et téléchargement vérifié.";
+
+"Uploaded attachment deleted." = "Pièce jointe téléversée supprimée.";
+
+"Could not delete attachment. Keep this window and retry." = "Suppression impossible. Gardez cette fenêtre ouverte et réessayez.";
+
+"Attachment upload or verification failed. Your draft is saved. Retry, or uncheck the attachment to continue." = "Échec du téléversement ou de la vérification. Brouillon enregistré. Réessayez ou décochez la pièce jointe.";
+
+"Could not prepare upload. Delete the previous uploaded attachment before changing it, or exclude the file to continue." = "Préparation impossible. Supprimez la pièce jointe précédente ou excluez le fichier.";
+
+"Attachment uploaded. Your edits changed; delete the uploaded attachment before replacing it, or continue without a file." = "Pièce jointe téléversée, contenu modifié. Supprimez-la avant remplacement ou continuez sans fichier.";
+
+"Click Continue to upload the selected document to FluxMarkdown’s attachment service (t.xykong.cc). Its download link will be public in the Issue. Uncheck to exclude it. Unpublished attachments expire after 7 days; verified Issue attachments remain until deleted." = "Continuer téléverse le document vers le service FluxMarkdown (t.xykong.cc). Le lien sera public dans l’Issue. Décochez pour exclure. Sans Issue, expiration après 7 jours ; sinon conservation jusqu’à suppression.";
+
+"Click Open Feedback Page to review your document in the feedback dialog, then upload it to FluxMarkdown’s attachment service before continuing to GitHub." = "Vérifiez le document dans le dialogue, puis téléversez-le avant de continuer sur GitHub.";

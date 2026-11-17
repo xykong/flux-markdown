@@ -100,6 +100,7 @@ final class FeedbackFollowUpController: NSObject, ObservableObject, UNUserNotifi
                 for report in state.reports {
                     guard enabled else { return }
                     guard let issue = report.issue else { continue }
+                    FeedbackAttachmentJob.associate(incident: report.incident, issue: issue.number)
                     // Recheck the last timestamp inclusively. Stable IDs remove repeats;
                     // failed pagination does not merge a partial response.
                     let sinceDate = report.replies.last?.createdAt ?? issue.createdAt

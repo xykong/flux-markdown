@@ -330,3 +330,27 @@
 "Preparing current document…" = "Aktuelles Dokument wird vorbereitet…";
 "ZIP ready locally; not uploaded." = "ZIP lokal bereit, noch nicht hochgeladen.";
 "Current document unavailable. Choose a document or uncheck its attachment to continue." = "Das aktuelle Dokument ist nicht verfügbar. Wähle ein Dokument oder deaktiviere den Anhang.";
+
+"Upload Attachment and Continue…" = "Anhang hochladen und weiter…";
+
+"Continue Without Attachment…" = "Ohne Anhang fortfahren…";
+
+"Delete Uploaded Attachment" = "Hochgeladenen Anhang löschen";
+
+"Uploading and verifying attachment…" = "Anhang wird hochgeladen und geprüft…";
+
+"Attachment uploaded and download verified." = "Anhang hochgeladen und Download geprüft.";
+
+"Uploaded attachment deleted." = "Hochgeladener Anhang gelöscht.";
+
+"Could not delete attachment. Keep this window and retry." = "Löschen fehlgeschlagen. Fenster offen lassen und erneut versuchen.";
+
+"Attachment upload or verification failed. Your draft is saved. Retry, or uncheck the attachment to continue." = "Upload oder Prüfung fehlgeschlagen. Entwurf gespeichert. Erneut versuchen oder Anhang abwählen.";
+
+"Could not prepare upload. Delete the previous uploaded attachment before changing it, or exclude the file to continue." = "Upload nicht vorbereitet. Vorherigen Anhang löschen oder Datei abwählen.";
+
+"Attachment uploaded. Your edits changed; delete the uploaded attachment before replacing it, or continue without a file." = "Anhang hochgeladen, Inhalt geändert. Zum Ersetzen löschen oder ohne Datei fortfahren.";
+
+"Click Continue to upload the selected document to FluxMarkdown’s attachment service (t.xykong.cc). Its download link will be public in the Issue. Uncheck to exclude it. Unpublished attachments expire after 7 days; verified Issue attachments remain until deleted." = "Weiter lädt das Dokument zum FluxMarkdown-Anhangdienst (t.xykong.cc). Der Downloadlink wird im Issue öffentlich. Zum Ausschließen abwählen. Nicht verknüpfte Anhänge verfallen nach 7 Tagen; bestätigte bleiben bis zur Löschung.";
+
+"Click Open Feedback Page to review your document in the feedback dialog, then upload it to FluxMarkdown’s attachment service before continuing to GitHub." = "Im Feedbackdialog das Dokument prüfen und vor GitHub zum FluxMarkdown-Dienst hochladen.";

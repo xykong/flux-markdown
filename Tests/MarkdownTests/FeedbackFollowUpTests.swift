@@ -223,7 +223,7 @@ extension FeedbackFollowUpTests {
             return (view as? NSButton).map { [$0] } ?? view.subviews.flatMap(visibleButtons)
         }
         let titles = visibleButtons(window.contentView!).map(\.title)
-        XCTAssertTrue(titles.contains(ErrorFeedback.text("Continue on GitHub…")))
+        XCTAssertTrue(titles.contains(ErrorFeedback.text("Upload Attachment and Continue…")))
         XCTAssertTrue(titles.contains(ErrorFeedback.text("Cancel")))
         XCTAssertFalse(titles.contains(ErrorFeedback.text("Copy Report")))
         XCTAssertFalse(titles.contains(ErrorFeedback.text("My Feedback")))

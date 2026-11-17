@@ -175,3 +175,27 @@
 "Preparing current document…" = "Preparando el documento actual…";
 "ZIP ready locally; not uploaded." = "ZIP preparado localmente; aún no se ha subido.";
 "Current document unavailable. Choose a document or uncheck its attachment to continue." = "Documento actual no disponible. Elige un documento o desmarca el adjunto para continuar.";
+
+"Upload Attachment and Continue…" = "Subir adjunto y continuar…";
+
+"Continue Without Attachment…" = "Continuar sin adjunto…";
+
+"Delete Uploaded Attachment" = "Eliminar adjunto subido";
+
+"Uploading and verifying attachment…" = "Subiendo y verificando el adjunto…";
+
+"Attachment uploaded and download verified." = "Adjunto subido y descarga verificada.";
+
+"Uploaded attachment deleted." = "Adjunto subido eliminado.";
+
+"Could not delete attachment. Keep this window and retry." = "No se pudo eliminar. Mantén esta ventana abierta y reintenta.";
+
+"Attachment upload or verification failed. Your draft is saved. Retry, or uncheck the attachment to continue." = "Falló la subida o verificación. Borrador guardado. Reintenta o desmarca el adjunto.";
+
+"Could not prepare upload. Delete the previous uploaded attachment before changing it, or exclude the file to continue." = "No se pudo preparar. Elimina el adjunto anterior o excluye el archivo.";
+
+"Attachment uploaded. Your edits changed; delete the uploaded attachment before replacing it, or continue without a file." = "Adjunto subido, contenido modificado. Elimínalo antes de reemplazarlo o continúa sin archivo.";
+
+"Click Continue to upload the selected document to FluxMarkdown’s attachment service (t.xykong.cc). Its download link will be public in the Issue. Uncheck to exclude it. Unpublished attachments expire after 7 days; verified Issue attachments remain until deleted." = "Continuar sube el documento al servicio FluxMarkdown (t.xykong.cc). El enlace será público en el Issue. Desmarca para excluirlo. Sin Issue caduca a los 7 días; si se verifica, se conserva hasta eliminarlo.";
+
+"Click Open Feedback Page to review your document in the feedback dialog, then upload it to FluxMarkdown’s attachment service before continuing to GitHub." = "Revisa el documento en el diálogo y súbelo al servicio FluxMarkdown antes de ir a GitHub.";

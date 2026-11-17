@@ -175,3 +175,27 @@
 "Preparing current document…" = "Preparing current document…";
 "ZIP ready locally; not uploaded." = "ZIP ready locally; not uploaded.";
 "Current document unavailable. Choose a document or uncheck its attachment to continue." = "Current document unavailable. Choose a document or uncheck its attachment to continue.";
+
+"Upload Attachment and Continue…" = "Upload Attachment and Continue…";
+
+"Continue Without Attachment…" = "Continue Without Attachment…";
+
+"Delete Uploaded Attachment" = "Delete Uploaded Attachment";
+
+"Uploading and verifying attachment…" = "Uploading and verifying attachment…";
+
+"Attachment uploaded and download verified." = "Attachment uploaded and download verified.";
+
+"Uploaded attachment deleted." = "Uploaded attachment deleted.";
+
+"Could not delete attachment. Keep this window and retry." = "Could not delete attachment. Keep this window and retry.";
+
+"Attachment upload or verification failed. Your draft is saved. Retry, or uncheck the attachment to continue." = "Attachment upload or verification failed. Your draft is saved. Retry, or uncheck the attachment to continue.";
+
+"Could not prepare upload. Delete the previous uploaded attachment before changing it, or exclude the file to continue." = "Could not prepare upload. Delete the previous uploaded attachment before changing it, or exclude the file to continue.";
+
+"Attachment uploaded. Your edits changed; delete the uploaded attachment before replacing it, or continue without a file." = "Attachment uploaded. Your edits changed; delete the uploaded attachment before replacing it, or continue without a file.";
+
+"Click Continue to upload the selected document to FluxMarkdown’s attachment service (t.xykong.cc). Its download link will be public in the Issue. Uncheck to exclude it. Unpublished attachments expire after 7 days; verified Issue attachments remain until deleted." = "Click Continue to upload the selected document to FluxMarkdown’s attachment service (t.xykong.cc). Its download link will be public in the Issue. Uncheck to exclude it. Unpublished attachments expire after 7 days; verified Issue attachments remain until deleted.";
+
+"Click Open Feedback Page to review your document in the feedback dialog, then upload it to FluxMarkdown’s attachment service before continuing to GitHub." = "Click Open Feedback Page to review your document in the feedback dialog, then upload it to FluxMarkdown’s attachment service before continuing to GitHub.";

@@ -99,3 +99,36 @@ records are retained for up to 180 days. Turning statistics off does not erase
 previously received records; the installation-ID deletion process described above
 also applies to associated facts. Server-side feature availability can be disabled
 independently while downloads and ordinary usage continue to work.
+
+## Optional feedback document attachments
+
+In the feedback dialog, the current document is selected by default. You can inspect
+it, choose another document, or uncheck the attachment. Opening this dialog only
+prepares a local ZIP; **Upload Attachment and Continue** explicitly uploads it to
+FluxMarkdown's separate HTTPS attachment service at `t.xykong.cc/feedback/`.
+The ZIP contains the selected document, package manifest and selected diagnostics;
+it is independent of the usage-statistics opt-out. No upload happens merely by
+opening or cancelling the dialog.
+
+After upload, the app downloads the entire ZIP to verify its checksum before
+putting its public download link into the GitHub Issue body. You still confirm
+Issue publication on GitHub. Anyone holding the unguessable download link can
+access the file, including before the Issue is published. Share only files you
+are comfortable making public. Uploading is not confirmation of Issue submission.
+
+Unlinked uploads expire after seven days. Once the service independently verifies
+that a public FluxMarkdown Issue contains the incident identifier and attachment
+link, the attachment is retained until explicitly deleted. **Delete Uploaded
+Attachment** in the same feedback dialog revokes the public download. Deletion
+capabilities remain in private local app storage and are never included in Issue
+text or diagnostic logs. Private local recovery records preserve the draft and ZIP
+across interrupted uploads and app restarts; successful uploads are never repeated
+under a new identifier just because an acknowledgement was lost.
+
+The service stores attachment bytes and minimal upload metadata separately from
+telemetry. Public endpoints have size, request-rate and storage limits; there is
+no attachment listing. Daily private backups on the service host are retained for
+seven days; deletion from those backup copies completes when they expire. This
+backup protects operational mistakes, not loss of the entire server. Removing the
+local recovery record loses its deletion capability; contact the maintainer via
+the associated Issue if needed.

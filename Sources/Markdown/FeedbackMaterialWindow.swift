@@ -44,7 +44,7 @@ final class FeedbackMaterialWindow: NSWindowController, NSWindowDelegate {
         let resourceActions = NSStackView(views: [NSButton(title: ErrorFeedback.text("Choose Referenced Resources…"), target: self, action: #selector(chooseResources)), NSButton(title: ErrorFeedback.text("Remove Resources"), target: self, action: #selector(removeResources))]); stack.addArrangedSubview(resourceActions)
         files.isSelectable = true; stack.addArrangedSubview(files); status.isSelectable = true; stack.addArrangedSubview(status)
         let actions = NSStackView(views: [NSButton(title: ErrorFeedback.text("Save Reproduction ZIP…"), target: self, action: #selector(saveZIP)), NSButton(title: ErrorFeedback.text("Show ZIP in Finder"), target: self, action: #selector(showZIP)), NSButton(title: ErrorFeedback.text("Open Feedback Page"), target: self, action: #selector(openPage))]); actions.orientation = .vertical; actions.alignment = .leading; stack.addArrangedSubview(actions)
-        let instructions = NSTextField(wrappingLabelWithString: ErrorFeedback.text("Attach the ZIP on GitHub by dragging it from Finder. GitHub uploads attachments immediately; you publish the Issue there. No attachment is required to report."))
+        let instructions = NSTextField(wrappingLabelWithString: ErrorFeedback.text("Click Open Feedback Page to review your document in the feedback dialog, then upload it to FluxMarkdown’s attachment service before continuing to GitHub."))
         stack.addArrangedSubview(instructions); instructions.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
         window.contentView!.addSubview(stack)
         NSLayoutConstraint.activate([stack.leadingAnchor.constraint(equalTo: window.contentView!.leadingAnchor, constant: 20), stack.trailingAnchor.constraint(equalTo: window.contentView!.trailingAnchor, constant: -20), stack.topAnchor.constraint(equalTo: window.contentView!.topAnchor, constant: 20), stack.bottomAnchor.constraint(equalTo: window.contentView!.bottomAnchor, constant: -20)])
@@ -109,5 +109,9 @@ final class FeedbackMaterialWindow: NSWindowController, NSWindowDelegate {
         guard let url = packageURL, FileManager.default.fileExists(atPath: url.path) else { status.stringValue = ErrorFeedback.text("Save a ZIP first, then attach it from Finder."); return }
         NSWorkspace.shared.activateFileViewerSelecting([url])
     }
-    @objc private func openPage() { draft.includeDiagnostics = include.state == .on; ErrorFeedback.report(draft) }
+    @objc private func openPage() {
+        draft.includeDiagnostics = include.state == .on; draft.attachmentResources = resources; draft.restoredUpload = false
+        draft.materialContext = FeedbackMaterialContext(document: source.string, sample: nil, originalURL: originalURL, provenance: provenance, displayName: originalURL?.lastPathComponent)
+        ErrorFeedback.report(draft, review: true)
+    }
 }

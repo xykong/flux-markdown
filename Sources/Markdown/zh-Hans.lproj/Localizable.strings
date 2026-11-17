@@ -330,3 +330,27 @@
 "Preparing current document…" = "正在准备当前文档…";
 "ZIP ready locally; not uploaded." = "ZIP 已在本地准备，尚未上传。";
 "Current document unavailable. Choose a document or uncheck its attachment to continue." = "无法取得当前文档。请选择文档，或取消附带文档后继续。";
+
+"Upload Attachment and Continue…" = "上传附件并继续…";
+
+"Continue Without Attachment…" = "不带附件继续…";
+
+"Delete Uploaded Attachment" = "删除已上传附件";
+
+"Uploading and verifying attachment…" = "正在上传并校验附件…";
+
+"Attachment uploaded and download verified." = "附件已上传，下载校验通过。";
+
+"Uploaded attachment deleted." = "已删除上传的附件。";
+
+"Could not delete attachment. Keep this window and retry." = "附件删除失败，请保留此窗口并重试。";
+
+"Attachment upload or verification failed. Your draft is saved. Retry, or uncheck the attachment to continue." = "附件上传或校验失败，草稿已保存。请重试，或取消勾选附件后继续。";
+
+"Could not prepare upload. Delete the previous uploaded attachment before changing it, or exclude the file to continue." = "无法准备上传。更换前请先删除之前上传的附件，或取消勾选文件后继续。";
+
+"Attachment uploaded. Your edits changed; delete the uploaded attachment before replacing it, or continue without a file." = "附件已上传，但内容已修改。请删除已上传附件再替换，或不带文件继续。";
+
+"Click Continue to upload the selected document to FluxMarkdown’s attachment service (t.xykong.cc). Its download link will be public in the Issue. Uncheck to exclude it. Unpublished attachments expire after 7 days; verified Issue attachments remain until deleted." = "点击继续会将所选文档上传至 FluxMarkdown 附件服务（t.xykong.cc），下载链接将随 Issue 公开。可取消勾选以排除文件。未关联 Issue 的附件 7 天后过期，已验证关联的附件保留至主动删除。";
+
+"Click Open Feedback Page to review your document in the feedback dialog, then upload it to FluxMarkdown’s attachment service before continuing to GitHub." = "点击打开反馈页面，在反馈对话框中检查文档，上传至 FluxMarkdown 附件服务后继续前往 GitHub。";

@@ -9,6 +9,10 @@ final class IncidentDraft {
     var materialContext: FeedbackMaterialContext?
     var includeDocument = true
     var attachmentURL: URL?
+    var uploadedAttachment: URL?
+    var attachmentResources: [URL] = []
+    var attachmentFingerprint: String?
+    var restoredUpload = false
     var documentName: String { materialContext?.displayName ?? materialContext?.originalURL?.lastPathComponent ?? "document.md" }
     func prepareDefaultContent() {
         guard !didPrepareDefaultContent else { return }; didPrepareDefaultContent = true
@@ -19,6 +23,7 @@ final class IncidentDraft {
             + "\n" + ErrorFeedback.text("Failure category:") + " " + (incident.reason?.rawValue ?? "operationFailed")
             + "\n" + ErrorFeedback.text("App version:") + " " + (incident.environment["appVersion"] ?? "unknown")
     }
+    func restoreNotes(_ value: String) { notes = value; didPrepareDefaultContent = true }
     static var attachmentDirectory: URL { FileManager.default.temporaryDirectory.appendingPathComponent("FluxMarkdown-FeedbackAttachments", isDirectory: true) }
     func prepareDocumentAttachment(in root: URL = IncidentDraft.attachmentDirectory) throws -> URL {
         guard includeDocument, let document = materialContext?.document else { throw CocoaError(.fileReadNoSuchFile) }
@@ -30,11 +35,14 @@ final class IncidentDraft {
         }
         let folder = root.appendingPathComponent(incident.id.uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
-        let package = try FeedbackReproduction.prepare(source: document, mode: "document", diagnostics: includeDiagnostics ? report : "", incident: incident.id, provenance: materialContext?.provenance ?? "unknown")
+        let package = try FeedbackReproduction.prepare(source: document, mode: "document", diagnostics: includeDiagnostics ? report : "", incident: incident.id, originalURL: materialContext?.originalURL, resources: attachmentResources, provenance: materialContext?.provenance ?? "unknown")
         let url = folder.appendingPathComponent("FluxMarkdown-reproduction.zip")
         try package.writeZIP(to: url)
         try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
         attachmentURL = url
+        attachmentFingerprint = FeedbackAttachmentClient.digest(package.entries.reduce(into: Data()) { data, entry in
+            data.append(Data(entry.name.utf8)); data.append(0); data.append(Data(FeedbackAttachmentClient.digest(entry.data).utf8))
+        })
         return url
     }
     init(_ incident: ErrorIncident) { self.incident = incident }
@@ -73,6 +81,9 @@ enum ErrorFeedback {
             if windows[oldest] == nil { drafts.removeValue(forKey: oldest) }
         }
         return incoming
+    }
+    static func restorePendingUploads() {
+        for job in FeedbackAttachmentJob.all().filter({ !$0.opened }).prefix(3) { showDraft(job.draft()) }
     }
     static func clearHistory() {
         store.clear()
@@ -165,10 +176,13 @@ enum ErrorFeedback {
         } else {
             if review { pending.remove(draft.incident.id); showDraft(draft); return }
             reportPrepared?(draft.incident)
-            let opened = openURL(draft.incident.feedbackURL(includeDiagnostics: draft.includeDiagnostics, notes: draft.notes))
+            let opened = openURL(draft.incident.feedbackURL(includeDiagnostics: draft.includeDiagnostics, notes: draft.notes, attachment: draft.includeDocument ? draft.uploadedAttachment : nil))
             // Keep the same draft reachable even if the browser later fails to load/sign in.
             if !opened { if let failure { failure(draft) } else { showDraft(draft, failed: true) } }
-            else { windows[draft.incident.id]?.updateStatus(failed: false) }
+            else {
+                windows[draft.incident.id]?.updateStatus(failed: false)
+                if var job = try? FeedbackAttachmentJob.load(draft.incident.id) { job.opened = true; try? job.save() }
+            }
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) { pending.remove(draft.incident.id) }
         }
     }
@@ -365,6 +379,8 @@ final class IncidentNotice: NSView {
 
 final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
     let draft: IncidentDraft
+    var attachmentClient: () -> FeedbackAttachmentClient = { FeedbackAttachmentClient() }
+    var openFeedback: (IncidentDraft) -> Void = { ErrorFeedback.report($0) }
     private let notes = NSTextView()
     private let details = NSTextView()
     private let technical = NSStackView()
@@ -373,6 +389,9 @@ final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
     private let includeFile = NSButton(checkboxWithTitle: ErrorFeedback.text("Include current document"), target: nil, action: nil)
     private let revealFile = NSButton(title: ErrorFeedback.text("Review Attachment…"), target: nil, action: nil)
     private var preparingAttachment = false
+    private var uploadTask: Task<Void, Never>?
+    private let submit = NSButton()
+    private let deleteAttachment = NSButton()
     private var continueWhenReady = false
     private var isClosed = false
     private let status = NSTextField(wrappingLabelWithString: "")
@@ -408,8 +427,10 @@ final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
         revealFile.target = self; revealFile.action = #selector(reviewAttachment); revealFile.isEnabled = false
         attachmentActions.addArrangedSubview(revealFile)
         attachmentActions.addArrangedSubview(NSButton(title: ErrorFeedback.text("Choose Another Document…"), target: self, action: #selector(chooseDocument)))
+        deleteAttachment.title = ErrorFeedback.text("Delete Uploaded Attachment"); deleteAttachment.target = self; deleteAttachment.action = #selector(revokeAttachment); deleteAttachment.isHidden = (try? FeedbackAttachmentJob.load(draft.incident.id)) == nil
         content.addArrangedSubview(attachmentActions)
-        let sharing = NSTextField(wrappingLabelWithString: ErrorFeedback.text("The selected document will be prepared as a ZIP. Drag it onto GitHub to upload it publicly. Uncheck to exclude it.")); sharing.font = .systemFont(ofSize: 11); sharing.textColor = .secondaryLabelColor
+        content.addArrangedSubview(deleteAttachment)
+        let sharing = NSTextField(wrappingLabelWithString: ErrorFeedback.text("Click Continue to upload the selected document to FluxMarkdown’s attachment service (t.xykong.cc). Its download link will be public in the Issue. Uncheck to exclude it. Unpublished attachments expire after 7 days; verified Issue attachments remain until deleted.")); sharing.font = .systemFont(ofSize: 11); sharing.textColor = .secondaryLabelColor
         content.addArrangedSubview(sharing); sharing.widthAnchor.constraint(equalTo: content.widthAnchor).isActive = true
         let disclosure = NSButton(title: "▸ " + ErrorFeedback.text("Diagnostic report"), target: self, action: #selector(toggleTechnical(_:)))
         disclosure.setButtonType(.pushOnPushOff); disclosure.bezelStyle = .inline; disclosure.setAccessibilityValue("collapsed")
@@ -428,7 +449,7 @@ final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
         failureActions.isHidden = true; content.addArrangedSubview(failureActions)
         let actions = NSStackView(); actions.spacing = 10
         let cancel = NSButton(title: ErrorFeedback.text("Cancel"), target: self, action: #selector(dismiss)); cancel.keyEquivalent = "\u{1b}"
-        let submit = NSButton(title: ErrorFeedback.text("Continue on GitHub…"), target: self, action: #selector(openPage)); submit.keyEquivalent = "\r"
+        submit.title = ErrorFeedback.text(draft.includeDocument ? "Upload Attachment and Continue…" : "Continue Without Attachment…"); submit.target = self; submit.action = #selector(openPage); submit.keyEquivalent = "\r"
         actions.addArrangedSubview(cancel); actions.addArrangedSubview(submit); content.addArrangedSubview(actions)
         for text in [heading, guidance, status, attachmentInfo] { text.widthAnchor.constraint(equalTo: content.widthAnchor).isActive = true }
         window.contentView!.addSubview(content)
@@ -449,14 +470,24 @@ final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
     @objc private func toggle(_ sender: NSButton) { draft.includeDiagnostics = sender.state == .on; prepareAttachment() }
     @objc private func dismiss() { window?.close() }
     private func prepareAttachment(continueToGitHub: Bool = false) {
-        guard draft.includeDocument else { attachmentInfo.stringValue = ErrorFeedback.text("Document excluded."); revealFile.isEnabled = false; if continueToGitHub { ErrorFeedback.report(draft) }; return }
+        guard uploadTask == nil else { return }
+        submit.title = ErrorFeedback.text(draft.includeDocument ? "Upload Attachment and Continue…" : "Continue Without Attachment…")
+        guard draft.includeDocument else { draft.uploadedAttachment = nil; attachmentInfo.stringValue = ErrorFeedback.text("Document excluded."); revealFile.isEnabled = false; if continueToGitHub { openFeedback(draft) }; return }
+        if draft.restoredUpload, let job = try? FeedbackAttachmentJob.load(draft.incident.id),
+           job.document == draft.materialContext?.document, job.notes == notes.string,
+           job.includeDiagnostics == draft.includeDiagnostics, FileManager.default.fileExists(atPath: job.zip.path) {
+            draft.attachmentURL = job.zip; draft.attachmentFingerprint = job.fingerprint
+            attachmentInfo.stringValue = draft.documentName + " · " + ErrorFeedback.text("ZIP ready locally; not uploaded.")
+            revealFile.isEnabled = true
+            if continueToGitHub { uploadAttachment(job.zip) }; return
+        }
         if preparingAttachment { continueWhenReady = continueWhenReady || continueToGitHub; return }
         preparingAttachment = true; continueWhenReady = continueToGitHub; revealFile.isEnabled = false
         attachmentInfo.stringValue = ErrorFeedback.text("Preparing current document…")
         draft.notes = notes.string
         let snapshot = IncidentDraft(draft.incident)
         snapshot.notes = draft.notes; snapshot.includeDiagnostics = draft.includeDiagnostics
-        snapshot.materialContext = draft.materialContext
+        snapshot.materialContext = draft.materialContext; snapshot.attachmentResources = draft.attachmentResources
         DispatchQueue.global(qos: .utility).async { [weak self] in
             let result = Result { try snapshot.prepareDocumentAttachment() }
             DispatchQueue.main.async {
@@ -465,22 +496,71 @@ final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
                 let shouldContinue = self.continueWhenReady; self.continueWhenReady = false
                 guard self.draft.includeDocument else {
                     self.attachmentInfo.stringValue = ErrorFeedback.text("Document excluded."); self.revealFile.isEnabled = false
-                    if shouldContinue { ErrorFeedback.report(self.draft) }; return
+                    if shouldContinue { self.openFeedback(self.draft) }; return
                 }
-                if self.draft.materialContext?.document != snapshot.materialContext?.document || self.draft.includeDiagnostics != snapshot.includeDiagnostics || (shouldContinue && self.notes.string != snapshot.notes) {
+                if self.draft.materialContext?.document != snapshot.materialContext?.document || self.draft.attachmentResources != snapshot.attachmentResources || self.draft.includeDiagnostics != snapshot.includeDiagnostics || (shouldContinue && self.notes.string != snapshot.notes) {
                     self.prepareAttachment(continueToGitHub: shouldContinue); return
                 }
                 switch result {
                 case .success(let url):
-                    self.draft.attachmentURL = url
+                    self.draft.attachmentURL = url; self.draft.attachmentFingerprint = snapshot.attachmentFingerprint
                     self.attachmentInfo.stringValue = self.draft.documentName + " · " + ErrorFeedback.text("ZIP ready locally; not uploaded.")
                     self.revealFile.isEnabled = true
-                    if shouldContinue { NSWorkspace.shared.activateFileViewerSelecting([url]); ErrorFeedback.report(self.draft) }
+                    if shouldContinue { self.uploadAttachment(url) }
                 case .failure:
                     self.attachmentInfo.stringValue = ErrorFeedback.text("Current document unavailable. Choose a document or uncheck its attachment to continue.")
                     self.revealFile.isEnabled = false
                 }
             }
+        }
+    }
+    private func uploadAttachment(_ url: URL) {
+        guard uploadTask == nil else { return }
+        draft.notes = notes.string
+        let job: FeedbackAttachmentJob
+        do { job = try FeedbackAttachmentJob.prepare(draft, zip: url) }
+        catch { status.stringValue = ErrorFeedback.text("Could not prepare upload. Delete the previous uploaded attachment before changing it, or exclude the file to continue."); return }
+        submit.isEnabled = false; includeFile.isEnabled = false; deleteAttachment.isHidden = false
+        attachmentInfo.stringValue = ErrorFeedback.text("Uploading and verifying attachment…")
+        uploadTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            defer { self.uploadTask = nil; self.submit.isEnabled = true; self.includeFile.isEnabled = true }
+            do {
+                let bytes = try Data(contentsOf: job.zip)
+                let receipt = try await self.attachmentClient().upload(bytes, incident: job.incident.id, key: job.key)
+                var saved = job; saved.receipt = receipt; try saved.save()
+                self.deleteAttachment.isHidden = false
+                guard !self.isClosed, !Task.isCancelled else { return }
+                // Never open a form with stale text, selection or diagnostics after a long upload.
+                guard self.draft.includeDocument, self.draft.materialContext?.document == job.document,
+                      self.notes.string == job.notes, self.draft.includeDiagnostics == job.includeDiagnostics else {
+                    self.status.stringValue = ErrorFeedback.text("Attachment uploaded. Your edits changed; delete the uploaded attachment before replacing it, or continue without a file."); return
+                }
+                self.draft.uploadedAttachment = receipt.url
+                self.attachmentInfo.stringValue = ErrorFeedback.text("Attachment uploaded and download verified.")
+                self.openFeedback(self.draft)
+            } catch {
+                guard !self.isClosed else { return }
+                self.status.stringValue = ErrorFeedback.text("Attachment upload or verification failed. Your draft is saved. Retry, or uncheck the attachment to continue.")
+            }
+        }
+    }
+    @objc private func revokeAttachment() {
+        guard uploadTask == nil, let job = try? FeedbackAttachmentJob.load(draft.incident.id) else { return }
+        submit.isEnabled = false
+        uploadTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            defer { self.uploadTask = nil; self.submit.isEnabled = true }
+            do {
+                let client = self.attachmentClient()
+                let receipt: FeedbackAttachmentReceipt?
+                if let saved = job.receipt { receipt = saved }
+                else { receipt = try await client.lookup(Data(contentsOf: job.zip), key: job.key) }
+                if let receipt { try await client.delete(receipt) }
+                try FileManager.default.removeItem(at: job.folder)
+                self.draft.uploadedAttachment = nil; self.deleteAttachment.isHidden = true
+                self.attachmentInfo.stringValue = ErrorFeedback.text("Uploaded attachment deleted.")
+            } catch { self.status.stringValue = ErrorFeedback.text("Could not delete attachment. Keep this window and retry.") }
         }
     }
     @objc private func toggleDocument(_ sender: NSButton) { draft.includeDocument = sender.state == .on; prepareAttachment() }
@@ -491,7 +571,7 @@ final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
         do {
             let snapshot = try FeedbackReproduction.document(url)
             draft.materialContext = .captured(document: snapshot.source, url: url, first: nil, last: nil)
-            draft.includeDocument = true; includeFile.state = .on; prepareAttachment()
+            draft.includeDocument = true; draft.restoredUpload = false; draft.attachmentResources = []; includeFile.state = .on; prepareAttachment()
         } catch { attachmentInfo.stringValue = ErrorFeedback.text("Could not read this document within the 20 MB limit. Choose another file or paste a smaller sample.") }
     }
     @objc private func openPage() { draft.notes = notes.string; prepareAttachment(continueToGitHub: true) }
@@ -503,7 +583,7 @@ final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
         do { try draft.report.write(to: url, atomically: true, encoding: .utf8) }
         catch { status.stringValue = ErrorFeedback.text("Could not save the report. You can copy it instead.") }
     }
-    func windowWillClose(_ notification: Notification) { isClosed = true; draft.notes = notes.string; onClose?() }
+    func windowWillClose(_ notification: Notification) { isClosed = true; uploadTask?.cancel(); draft.notes = notes.string; onClose?() }
 }
 
 final class RendererErrorRegistry {

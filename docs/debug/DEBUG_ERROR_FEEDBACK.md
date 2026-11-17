@@ -173,3 +173,7 @@ Display formula copy actions also float instead of reserving an invisible row. B
 ## 自动摘要与默认当前文档
 
 首次打开反馈对话框预填摘要并默认准备当前文档 ZIP，清楚展示排除和准备失败状态；Quick Look 使用受信任 XPC 与私有一次性文件交接快照。详见 [DEBUG_FEEDBACK_AUTOFILL_ATTACHMENTS.md](DEBUG_FEEDBACK_AUTOFILL_ATTACHMENTS.md)。
+
+### Self-hosted feedback attachments (2026-11-17)
+
+The shared native feedback dialog prepares the default document locally. Only explicit Continue uploads it to the independent HTTPS attachment service; a validated receipt and full SHA-256 download check are required before opening GitHub. Failure preserves the dialog and a private restart-recovery journal; retry reconciles the original upload capability. Excluding a document keeps the no-file route. Public download links are protected from URL-budget truncation. Uploaded attachments can be revoked from the same dialog. Native controller/HTTP fixtures cover failure-before-navigation and retry; deployment/public fixture evidence is tracked in `DEBUG_FEEDBACK_ATTACHMENT_UPLOAD.md`.

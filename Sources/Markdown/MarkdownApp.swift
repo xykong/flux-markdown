@@ -44,6 +44,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         ErrorFeedback.followRepliesEnabled = { UserDefaults.standard.bool(forKey: "feedback.followReplies") }
         ErrorFeedback.setFollowReplies = { FeedbackFollowUpController.shared.enable($0) }
         FeedbackFollowUpController.shared.start()
+        ErrorFeedback.restorePendingUploads()
         _ = StarReminderStore.shared
         NotificationCenter.default.addObserver(forName: Notification.Name("FluxMarkdown.TestQuickLook"), object: nil, queue: .main) { _ in
             QuickLookSelfTest.shared.show()

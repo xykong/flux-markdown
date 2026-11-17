@@ -206,8 +206,9 @@ struct ErrorIncident: Codable {
         }
         return lines.joined(separator: "\n")
     }
-    func feedbackURL(includeDiagnostics: Bool = true, notes: String = "", useTemplate: Bool = false) -> URL {
+    func feedbackURL(includeDiagnostics: Bool = true, notes: String = "", useTemplate: Bool = false, attachment: URL? = nil) -> URL {
         var c = URLComponents(string: "https://github.com/xykong/flux-markdown/issues/new")!
+        let attachmentText = attachment.map { "\n\n[Download reproduction ZIP](\($0.absoluteString))\n" } ?? ""
         var description = "Operation: \(kind.rawValue)\nObserved result: \(titleForReport)\nIncident: \(id.uuidString)\n"
         // Bound user-entered additions. The complete edited report remains local.
         description += String(notes.prefix(600))
@@ -216,11 +217,11 @@ struct ErrorIncident: Codable {
             var items = [URLQueryItem(name: "title", value: "[\(kind.rawValue)] \(titleForReport)")]
             if useTemplate {
                 items.append(URLQueryItem(name: "template", value: "app_error.yml"))
-                items.append(URLQueryItem(name: "description", value: description))
+                items.append(URLQueryItem(name: "description", value: attachmentText + description))
                 if !diagnostic.isEmpty { items.append(URLQueryItem(name: "diagnostics", value: diagnostic)) }
             } else {
                 // GitHub's plain issue editor works before a new template is published.
-                items.append(URLQueryItem(name: "body", value: description + (diagnostic.isEmpty ? "" : "\n\n" + diagnostic)))
+                items.append(URLQueryItem(name: "body", value: attachmentText + description + (diagnostic.isEmpty ? "" : "\n\n" + diagnostic)))
             }
             return items
         }

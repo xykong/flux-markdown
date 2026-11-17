@@ -170,3 +170,27 @@
 "Preparing current document…" = "جارٍ تجهيز المستند الحالي…";
 "ZIP ready locally; not uploaded." = "ZIP جاهز محليًا؛ لم يُرفع بعد.";
 "Current document unavailable. Choose a document or uncheck its attachment to continue." = "المستند الحالي غير متاح. اختر مستندًا أو ألغِ إرفاقه للمتابعة.";
+
+"Upload Attachment and Continue…" = "رفع المرفق والمتابعة…";
+
+"Continue Without Attachment…" = "المتابعة دون مرفق…";
+
+"Delete Uploaded Attachment" = "حذف المرفق المرفوع";
+
+"Uploading and verifying attachment…" = "جارٍ رفع المرفق والتحقق منه…";
+
+"Attachment uploaded and download verified." = "تم رفع المرفق والتحقق من تنزيله.";
+
+"Uploaded attachment deleted." = "تم حذف المرفق المرفوع.";
+
+"Could not delete attachment. Keep this window and retry." = "تعذر حذف المرفق. أبقِ النافذة مفتوحة وأعد المحاولة.";
+
+"Attachment upload or verification failed. Your draft is saved. Retry, or uncheck the attachment to continue." = "فشل رفع المرفق أو التحقق منه. تم حفظ المسودة. أعد المحاولة أو ألغِ تحديد المرفق.";
+
+"Could not prepare upload. Delete the previous uploaded attachment before changing it, or exclude the file to continue." = "تعذر تجهيز الرفع. احذف المرفق السابق قبل تغييره أو استبعد الملف.";
+
+"Attachment uploaded. Your edits changed; delete the uploaded attachment before replacing it, or continue without a file." = "تم رفع المرفق ثم تغير المحتوى. احذفه قبل استبداله أو تابع دون ملف.";
+
+"Click Continue to upload the selected document to FluxMarkdown’s attachment service (t.xykong.cc). Its download link will be public in the Issue. Uncheck to exclude it. Unpublished attachments expire after 7 days; verified Issue attachments remain until deleted." = "المتابعة ترفع المستند إلى خدمة مرفقات FluxMarkdown ‏(t.xykong.cc). سيصبح رابط التنزيل علنيًا في البلاغ. ألغِ التحديد للاستبعاد. ينتهي المرفق غير المرتبط بعد 7 أيام، ويُحتفظ بالمرتبط حتى حذفه.";
+
+"Click Open Feedback Page to review your document in the feedback dialog, then upload it to FluxMarkdown’s attachment service before continuing to GitHub." = "راجع المستند في نافذة الملاحظات ثم ارفعه إلى خدمة FluxMarkdown قبل الانتقال إلى GitHub.";
