@@ -123,6 +123,9 @@ export function installBlockCopy(root: HTMLElement, generation: string, send = n
     root.querySelectorAll<HTMLElement>('pre, blockquote, .markdown-alert, .flux-math-source').forEach(block => {
         const math = originalMathSource(block);
         if (block.classList.contains('flux-math-source') && math === undefined) return;
+        // Failed formula regions expose one feedback entry. A hover-copy toolbar
+        // at the same upper-right anchor otherwise draws a second button over it.
+        if (math !== undefined && block.classList.contains('math-error')) return;
         if (block.tagName === 'PRE' && (!block.querySelector('code') || block.querySelector('.typst-placeholder, .language-vega, .language-vega-lite, .language-dot, .language-graphviz'))) return;
         const inlineMath = math !== undefined && block.tagName === 'SPAN';
         const tools = document.createElement(inlineMath ? 'span' : 'div'); tools.className = 'block-copy-tools';

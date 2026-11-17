@@ -310,6 +310,25 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         const exported=window.exportHTML();
         return !new DOMParser().parseFromString(exported,'text/html').querySelector('.error-feedback-region, [data-feedback-action]');
         """),
+        ("compact feedback hover collision", """
+        window.setFeedbackGeneration('55555555-5555-5555-5555-555555555555');
+        const slash=String.fromCharCode(92), nl=String.fromCharCode(10);
+        await window.renderMarkdown('$'+slash+'unknownCommand{x}$'+nl+nl+'$$'+nl+slash+'unknownCommand{x}'+nl+'$$'+nl+nl+'$x=1$',{uiLanguage:'zh-Hans',showCopyButtons:true});
+        await new Promise(resolve=>setTimeout(resolve,30));
+        const errors=[...document.querySelectorAll('.flux-math-source.math-error')];
+        if(errors.length!==2)throw new Error('Expected inline and display syntax failures');
+        for(const error of errors){
+            const host=error.closest('.math-copy-host');
+            const tools=host?.querySelector(':scope > .block-copy-tools');
+            if(tools){
+                tools.style.opacity='1'; tools.style.pointerEvents='auto';
+                const feedback=error.closest('.error-feedback-region').querySelector('.error-feedback-trigger').getBoundingClientRect();
+                const copy=tools.getBoundingClientRect();
+                if(copy.width && copy.height && copy.left<feedback.right && copy.right>feedback.left && copy.top<feedback.bottom && copy.bottom>feedback.top)throw new Error('Copy toolbar overlaps feedback on hover');
+            }
+        }
+        return !!document.querySelector('.flux-math-source:not(.math-error)')?.closest('.math-copy-host')?.querySelector('.block-copy-tools button');
+        """),
         ("compact feedback focus and text bounds", """
         window.setFeedbackGeneration('44444444-4444-4444-4444-444444444444');
         const slash=String.fromCharCode(92);
@@ -732,13 +751,13 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
                     self.previousApplication?.activate(options: [.activateIgnoringOtherApps])
                     app.setActivationPolicy(.prohibited)
                 }
-                if name == "compact feedback focus and text bounds", let directory = ProcessInfo.processInfo.environment["FLUX_WEBKIT_SNAPSHOT_DIR"] {
+                if (name == "compact feedback focus and text bounds" || name == "compact feedback hover collision"), let directory = ProcessInfo.processInfo.environment["FLUX_WEBKIT_SNAPSHOT_DIR"] {
                     self.webView.takeSnapshot(with: nil) { image, error in
                         guard let image, let tiff = image.tiffRepresentation, let bitmap = NSBitmapImageRep(data: tiff), let png = bitmap.representation(using: .png, properties: [:]) else { print("FAIL feedback snapshot: \(String(describing: error))"); exit(1) }
                         do {
                             let folder = URL(fileURLWithPath: directory)
                             try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-                            try png.write(to: folder.appendingPathComponent("feedback-focus.png"))
+                            try png.write(to: folder.appendingPathComponent(name == "compact feedback hover collision" ? "feedback-hover.png" : "feedback-focus.png"))
                         } catch { print("FAIL feedback snapshot save: \(error)"); exit(1) }
                         self.focusWindow?.contentView = nil; self.focusWindow?.orderOut(nil); self.focusWindow = nil
                         self.previousApplication?.activate(options: [.activateIgnoringOtherApps]); app.setActivationPolicy(.prohibited)

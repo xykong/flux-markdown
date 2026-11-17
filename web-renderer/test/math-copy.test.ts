@@ -106,3 +106,14 @@ test('display copy failure preserves the formula, source and retry recovery',asy
     expect(root.querySelector('.block-copy-host')).toBeNull();
     expect(root.querySelector('div.flux-math-source')).toBe(formula);
 });
+
+test('failed mathematics has only feedback while valid mathematics keeps its copy tool',async()=>{
+    await window.renderMarkdown(String.raw`$\unknownCommand{x}$`+'\n\n'+String.raw`\[\unknownCommand{x}\]`+'\n\n$x=1$',{showCopyButtons:false});
+    const root=document.getElementById('markdown-preview')!;
+    const controller=installBlockCopy(root,'hover-collision',jest.fn(async()=>true));
+    const failed=Array.from(root.querySelectorAll<HTMLElement>('.flux-math-source.math-error'));
+    expect(failed).toHaveLength(2);
+    for(const formula of failed)expect(formula.closest('.math-copy-host')?.querySelector('.block-copy-tools')).toBeFalsy();
+    expect(root.querySelector('.flux-math-source:not(.math-error)')?.closest('.math-copy-host')?.querySelector('.block-copy-tools button')).not.toBeNull();
+    controller.dispose();
+});
