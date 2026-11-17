@@ -112,3 +112,45 @@
 /* Block copy failures */
 "Text could not be copied" = "تعذر نسخ النص";
 "Select the text to copy it manually, or try the copy button again." = "حدد النص لنسخه يدويًا، أو جرّب زر النسخ مجددًا.";
+
+/* Reproduction packages and durable Issue replies */
+"Attach Reproduction Materials…" = "إرفاق مواد لإعادة الإنتاج…";
+"My Feedback" = "ملاحظاتي";
+"Check Now" = "التحقق الآن";
+"Check my submitted Issues for replies" = "التحقق من الردود على بلاغاتي";
+"Checks public GitHub Issues while FluxMarkdown is running. Replies missed while offline are checked next time. Unread markers clear only when you click a reply." = "يتحقق من بلاغات GitHub العامة أثناء تشغيل FluxMarkdown. تُفحص الردود الفائتة في المرة القادمة. لا تُزال علامة غير المقروء إلا بالنقر على الرد.";
+"Choose Document…" = "اختيار مستند…";
+"Choose Referenced Resources…" = "اختيار الموارد المشار إليها…";
+"Choose a document first to resolve its referenced resources." = "اختر مستندًا أولًا لتحديد موارده المشار إليها.";
+"Choose a sample or the complete document. Contents and selected resources may be public on GitHub. Review them before attaching. Creating a ZIP does not upload it." = "اختر مقتطفًا أو المستند كاملًا. قد يصبح المحتوى والموارد المحددة علنيًا على GitHub. راجعها قبل إرفاقها. إنشاء ZIP لا يرفعه.";
+"Complete document" = "المستند كاملًا";
+"Continue in FluxMarkdown" = "المتابعة في FluxMarkdown";
+"Continue in FluxMarkdown to choose what to share. The displayed fragment will be passed to FluxMarkdown only if you continue. Nothing is uploaded yet." = "تابع في FluxMarkdown لاختيار ما ستشاركه. لن يُمرر المقتطف المعروض إليه إلا إذا تابعت. لم يُرفع شيء بعد.";
+"Could not check replies. Existing reminders are preserved; checking will resume later." = "تعذر التحقق من الردود. حُفظت التذكيرات وستُستأنف المحاولة لاحقًا.";
+"Could not open the reply. Try again or copy its link." = "تعذر فتح الرد. حاول مجددًا أو انسخ رابطه.";
+"Could not prepare the ZIP. Remove resources, use a smaller sample, or choose another save location. Your report is preserved." = "تعذر إنشاء ZIP. أزل موارد أو استخدم مقتطفًا أصغر أو اختر موقع حفظ آخر. حُفظ البلاغ.";
+"Could not read this document within the 20 MB limit. Choose another file or paste a smaller sample." = "تعذرت قراءة المستند ضمن حد 20 ميغابايت. اختر ملفًا آخر أو ألصق مقتطفًا أصغر.";
+"Could not save feedback reminders. Keep this window open and try again." = "تعذر حفظ تذكيرات البلاغات. أبقِ النافذة مفتوحة وحاول مجددًا.";
+"Could not verify this Issue. Check the link and try again." = "تعذر التحقق من البلاغ. تحقق من الرابط وحاول مجددًا.";
+"Enable System Notifications…" = "تفعيل إشعارات النظام…";
+"Failed fragment" = "المقتطف الذي فشل";
+"Feedback history could not be loaded. Your reports have not been overwritten." = "تعذر تحميل سجل البلاغات. لم تُستبدل تقاريرك.";
+"FluxMarkdown can check this public Issue for replies while running. Manage reminders in My Feedback." = "يمكن لـ FluxMarkdown التحقق من ردود هذا البلاغ العام أثناء التشغيل. أدر التذكيرات في «ملاحظاتي».";
+"Link Issue" = "ربط البلاغ";
+"Paste Issue link" = "لصق رابط البلاغ";
+"Paste a FluxMarkdown GitHub Issue link." = "ألصق رابط بلاغ FluxMarkdown على GitHub.";
+"References not included:" = "المراجع غير المرفقة:";
+"Remove Resources" = "إزالة الموارد";
+"Replies checked. Unread reminders stay until you click them." = "تم التحقق من الردود. تبقى التذكيرات غير مقروءة حتى تنقر عليها.";
+"Reproduction content" = "محتوى إعادة الإنتاج";
+"Review Package Contents" = "مراجعة محتويات الحزمة";
+"Save Reproduction ZIP…" = "حفظ ZIP لإعادة الإنتاج…";
+"Save a ZIP first, then attach it from Finder." = "احفظ ZIP أولًا، ثم أرفقه من Finder.";
+"Select only files referenced by this document inside its folder, without symbolic links, within the 20 MB limit." = "اختر فقط ملفات يشير إليها المستند داخل مجلده، دون روابط رمزية، وضمن حد 20 ميغابايت.";
+"Selected resources:" = "الموارد المحددة:";
+"Show ZIP in Finder" = "إظهار ZIP في Finder";
+"This is the file selected now, not a verified snapshot from the failure." = "هذا هو الملف المحدد الآن، وليس نسخة مؤكدة من وقت حدوث الخطأ.";
+"Waiting to find the submitted Issue" = "بانتظار العثور على البلاغ المرسل";
+"Your Issue has a new reply. Click to open it." = "وصل رد جديد على بلاغك. انقر لفتحه.";
+"ZIP prepared locally. Attach it on GitHub; it has not been uploaded." = "تم إنشاء ZIP محليًا ولم يُرفع بعد. أرفقه على GitHub.";
+"Attach the ZIP on GitHub by dragging it from Finder. GitHub uploads attachments immediately; you publish the Issue there. No attachment is required to report." = "اسحب ZIP من Finder إلى GitHub لإرفاقه. تُرفع المرفقات فورًا؛ وأنت تؤكد نشر البلاغ هناك. الإرفاق اختياري.";

@@ -117,3 +117,45 @@
 /* Block copy failures */
 "Text could not be copied" = "Text could not be copied";
 "Select the text to copy it manually, or try the copy button again." = "Select the text to copy it manually, or try the copy button again.";
+
+/* Reproduction packages and durable Issue replies */
+"Attach Reproduction Materials…" = "Attach Reproduction Materials…";
+"My Feedback" = "My Feedback";
+"Check Now" = "Check Now";
+"Check my submitted Issues for replies" = "Check my submitted Issues for replies";
+"Checks public GitHub Issues while FluxMarkdown is running. Replies missed while offline are checked next time. Unread markers clear only when you click a reply." = "Checks public GitHub Issues while FluxMarkdown is running. Replies missed while offline are checked next time. Unread markers clear only when you click a reply.";
+"Choose Document…" = "Choose Document…";
+"Choose Referenced Resources…" = "Choose Referenced Resources…";
+"Choose a document first to resolve its referenced resources." = "Choose a document first to resolve its referenced resources.";
+"Choose a sample or the complete document. Contents and selected resources may be public on GitHub. Review them before attaching. Creating a ZIP does not upload it." = "Choose a sample or the complete document. Contents and selected resources may be public on GitHub. Review them before attaching. Creating a ZIP does not upload it.";
+"Complete document" = "Complete document";
+"Continue in FluxMarkdown" = "Continue in FluxMarkdown";
+"Continue in FluxMarkdown to choose what to share. The displayed fragment will be passed to FluxMarkdown only if you continue. Nothing is uploaded yet." = "Continue in FluxMarkdown to choose what to share. The displayed fragment will be passed to FluxMarkdown only if you continue. Nothing is uploaded yet.";
+"Could not check replies. Existing reminders are preserved; checking will resume later." = "Could not check replies. Existing reminders are preserved; checking will resume later.";
+"Could not open the reply. Try again or copy its link." = "Could not open the reply. Try again or copy its link.";
+"Could not prepare the ZIP. Remove resources, use a smaller sample, or choose another save location. Your report is preserved." = "Could not prepare the ZIP. Remove resources, use a smaller sample, or choose another save location. Your report is preserved.";
+"Could not read this document within the 20 MB limit. Choose another file or paste a smaller sample." = "Could not read this document within the 20 MB limit. Choose another file or paste a smaller sample.";
+"Could not save feedback reminders. Keep this window open and try again." = "Could not save feedback reminders. Keep this window open and try again.";
+"Could not verify this Issue. Check the link and try again." = "Could not verify this Issue. Check the link and try again.";
+"Enable System Notifications…" = "Enable System Notifications…";
+"Failed fragment" = "Failed fragment";
+"Feedback history could not be loaded. Your reports have not been overwritten." = "Feedback history could not be loaded. Your reports have not been overwritten.";
+"FluxMarkdown can check this public Issue for replies while running. Manage reminders in My Feedback." = "FluxMarkdown can check this public Issue for replies while running. Manage reminders in My Feedback.";
+"Link Issue" = "Link Issue";
+"Paste Issue link" = "Paste Issue link";
+"Paste a FluxMarkdown GitHub Issue link." = "Paste a FluxMarkdown GitHub Issue link.";
+"References not included:" = "References not included:";
+"Remove Resources" = "Remove Resources";
+"Replies checked. Unread reminders stay until you click them." = "Replies checked. Unread reminders stay until you click them.";
+"Reproduction content" = "Reproduction content";
+"Review Package Contents" = "Review Package Contents";
+"Save Reproduction ZIP…" = "Save Reproduction ZIP…";
+"Save a ZIP first, then attach it from Finder." = "Save a ZIP first, then attach it from Finder.";
+"Select only files referenced by this document inside its folder, without symbolic links, within the 20 MB limit." = "Select only files referenced by this document inside its folder, without symbolic links, within the 20 MB limit.";
+"Selected resources:" = "Selected resources:";
+"Show ZIP in Finder" = "Show ZIP in Finder";
+"This is the file selected now, not a verified snapshot from the failure." = "This is the file selected now, not a verified snapshot from the failure.";
+"Waiting to find the submitted Issue" = "Waiting to find the submitted Issue";
+"Your Issue has a new reply. Click to open it." = "Your Issue has a new reply. Click to open it.";
+"ZIP prepared locally. Attach it on GitHub; it has not been uploaded." = "ZIP prepared locally. Attach it on GitHub; it has not been uploaded.";
+"Attach the ZIP on GitHub by dragging it from Finder. GitHub uploads attachments immediately; you publish the Issue there. No attachment is required to report." = "Attach the ZIP on GitHub by dragging it from Finder. GitHub uploads attachments immediately; you publish the Issue there. No attachment is required to report.";

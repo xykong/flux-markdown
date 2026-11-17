@@ -117,3 +117,45 @@
 /* Block copy failures */
 "Text could not be copied" = "No se pudo copiar el texto";
 "Select the text to copy it manually, or try the copy button again." = "Selecciona el texto para copiarlo manualmente o vuelve a pulsar el botón de copia.";
+
+/* Reproduction packages and durable Issue replies */
+"Attach Reproduction Materials…" = "Adjuntar material de reproducción…";
+"My Feedback" = "Mis informes";
+"Check Now" = "Comprobar ahora";
+"Check my submitted Issues for replies" = "Buscar respuestas a mis informes";
+"Checks public GitHub Issues while FluxMarkdown is running. Replies missed while offline are checked next time. Unread markers clear only when you click a reply." = "Consulta Issues públicos de GitHub mientras FluxMarkdown está abierto. Las respuestas pendientes se consultan la próxima vez. El indicador solo se borra al pulsar la respuesta.";
+"Choose Document…" = "Elegir documento…";
+"Choose Referenced Resources…" = "Elegir recursos referenciados…";
+"Choose a document first to resolve its referenced resources." = "Elige primero un documento para localizar sus recursos.";
+"Choose a sample or the complete document. Contents and selected resources may be public on GitHub. Review them before attaching. Creating a ZIP does not upload it." = "Elige una muestra o el documento completo. El contenido y los recursos pueden ser públicos en GitHub. Revísalos antes de adjuntarlos. Crear el ZIP no lo sube.";
+"Complete document" = "Documento completo";
+"Continue in FluxMarkdown" = "Continuar en FluxMarkdown";
+"Continue in FluxMarkdown to choose what to share. The displayed fragment will be passed to FluxMarkdown only if you continue. Nothing is uploaded yet." = "Elige en FluxMarkdown qué compartir. El fragmento mostrado solo se pasará a FluxMarkdown si continúas. Aún no se sube nada.";
+"Could not check replies. Existing reminders are preserved; checking will resume later." = "No se pudieron consultar las respuestas. Los recordatorios se conservan; se volverá a consultar más tarde.";
+"Could not open the reply. Try again or copy its link." = "No se pudo abrir la respuesta. Reintenta o copia su enlace.";
+"Could not prepare the ZIP. Remove resources, use a smaller sample, or choose another save location. Your report is preserved." = "No se pudo crear el ZIP. Quita recursos, reduce la muestra o elige otra ubicación. El informe se conserva.";
+"Could not read this document within the 20 MB limit. Choose another file or paste a smaller sample." = "No se pudo leer el documento dentro del límite de 20 MB. Elige otro archivo o pega una muestra más pequeña.";
+"Could not save feedback reminders. Keep this window open and try again." = "No se pudieron guardar los recordatorios. Mantén esta ventana abierta y reintenta.";
+"Could not verify this Issue. Check the link and try again." = "No se pudo verificar este Issue. Comprueba el enlace y reintenta.";
+"Enable System Notifications…" = "Activar notificaciones del sistema…";
+"Failed fragment" = "Fragmento con error";
+"Feedback history could not be loaded. Your reports have not been overwritten." = "No se pudo cargar el historial. Tus informes no se han sobrescrito.";
+"FluxMarkdown can check this public Issue for replies while running. Manage reminders in My Feedback." = "FluxMarkdown puede comprobar respuestas a este Issue público mientras está abierto. Gestiona los avisos en «Mis informes».";
+"Link Issue" = "Vincular Issue";
+"Paste Issue link" = "Pegar enlace del Issue";
+"Paste a FluxMarkdown GitHub Issue link." = "Pega un enlace de Issue de GitHub de FluxMarkdown.";
+"References not included:" = "Referencias no incluidas:";
+"Remove Resources" = "Quitar recursos";
+"Replies checked. Unread reminders stay until you click them." = "Respuestas comprobadas. Los avisos permanecen sin leer hasta que los pulses.";
+"Reproduction content" = "Contenido de reproducción";
+"Review Package Contents" = "Revisar contenido del paquete";
+"Save Reproduction ZIP…" = "Guardar ZIP de reproducción…";
+"Save a ZIP first, then attach it from Finder." = "Guarda primero un ZIP y adjúntalo desde Finder.";
+"Select only files referenced by this document inside its folder, without symbolic links, within the 20 MB limit." = "Selecciona solo archivos referenciados dentro de la carpeta del documento, sin enlaces simbólicos y dentro de 20 MB.";
+"Selected resources:" = "Recursos seleccionados:";
+"Show ZIP in Finder" = "Mostrar ZIP en Finder";
+"This is the file selected now, not a verified snapshot from the failure." = "Este es el archivo elegido ahora; no es una copia verificada del momento del fallo.";
+"Waiting to find the submitted Issue" = "Buscando el Issue enviado";
+"Your Issue has a new reply. Click to open it." = "Tu Issue tiene una nueva respuesta. Pulsa para abrirla.";
+"ZIP prepared locally. Attach it on GitHub; it has not been uploaded." = "ZIP creado localmente, aún no se ha subido. Adjúntalo en GitHub.";
+"Attach the ZIP on GitHub by dragging it from Finder. GitHub uploads attachments immediately; you publish the Issue there. No attachment is required to report." = "Arrastra el ZIP desde Finder a GitHub. Los adjuntos se suben inmediatamente; tú publicas el Issue allí. Adjuntar archivos es opcional.";

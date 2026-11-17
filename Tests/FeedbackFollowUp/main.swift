@@ -47,6 +47,9 @@ check(bundle.entries.contains { $0.name == "document.md" }, "neutral document fi
 check(bundle.entries.contains { $0.name == "image.png" }, "relative resource layout retained")
 let zip = root.appendingPathComponent("report.zip")
 try bundle.writeZIP(to: zip)
+let unzip = Process(); unzip.executableURL = URL(fileURLWithPath: "/usr/bin/unzip"); unzip.arguments = ["-t", zip.path]
+unzip.standardOutput = Pipe(); unzip.standardError = Pipe(); try unzip.run(); unzip.waitUntilExit()
+check(unzip.terminationStatus == 0, "ZIP passes system unzip CRC and directory verification")
 let zipData = try Data(contentsOf: zip)
 check(zipData.prefix(2) == Data([0x50,0x4b]), "valid ZIP header")
 let outsider = root.appendingPathComponent("unreferenced.png"); try Data([0]).write(to: outsider)

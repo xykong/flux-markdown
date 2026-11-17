@@ -558,6 +558,7 @@ struct MarkdownWebView: NSViewRepresentable {
             let safeContentArg = String(contentJsonArray.dropFirst().dropLast())
 
             let feedbackGeneration = errorRegistry.beginDocument()
+            errorRegistry.sourceContext = { (content, fileURL) }
             ErrorFeedback.capture(.renderer, phase: .started, scope: errorRegistry.scope)
             webView.evaluateJavaScript("window.setFeedbackGeneration && window.setFeedbackGeneration('\(feedbackGeneration)');", completionHandler: nil)
             for notice in webView.subviews.compactMap({ $0 as? IncidentNotice }) { notice.removeFromSuperview() }

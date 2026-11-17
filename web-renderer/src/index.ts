@@ -1080,6 +1080,12 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
                     const failure = result.errors.find(error => error.sourceId === item.id);
                     if (failure) {
                         target.classList.add('math-error');
+                        target.setAttribute('data-math-failure', failure.code);
+                        const failedSource = mathSources.find(source => source.id === item.id);
+                        if (failedSource) {
+                            target.setAttribute('data-math-first', String(failedSource.firstLine));
+                            target.setAttribute('data-math-last', String(failedSource.lastLine));
+                        }
                         if (failure.code === 'input-limit') target.classList.add('math-input-limit');
                         if (failure.code === 'unsupported-resource') target.classList.add('math-resource-unsupported');
                     }

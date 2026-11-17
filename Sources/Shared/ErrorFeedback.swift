@@ -5,6 +5,7 @@ final class IncidentDraft {
     var incident: ErrorIncident
     var includeDiagnostics = true
     var notes = ""
+    var materialContext: FeedbackMaterialContext?
     init(_ incident: ErrorIncident) { self.incident = incident }
     var report: String { "Operation: \(incident.kind.rawValue)\nObserved result: \(incident.kind.title)\n" + notes + (includeDiagnostics ? "\n\n" + incident.report : "") }
 }
@@ -15,6 +16,11 @@ enum ErrorFeedback {
         guard Bundle.main.bundleIdentifier == "com.xykong.Markdown" else { return ErrorIncidentStore() }
         return ErrorIncidentStore(fileURL: SharedPreferenceStore.applicationSupportDirectory().appendingPathComponent("error-incidents.json"))
     }()
+    static var materialPresenter: ((IncidentDraft) -> Void)?
+    static var reportPrepared: ((ErrorIncident) -> Void)?
+    static var showFollowUp: (() -> Void)?
+    static var followRepliesEnabled: (() -> Bool)?
+    static var setFollowReplies: ((Bool) -> Void)?
     static var supplementProvider: ((ErrorIncident, @escaping (ErrorIncident) -> Void) -> Void)?
     private static var pending = Set<UUID>()
     private static var windows: [UUID: IncidentReportWindow] = [:]
@@ -41,7 +47,7 @@ enum ErrorFeedback {
         draftOrder = draftOrder.filter { drafts[$0] != nil }
     }
     static func text(_ key: String) -> String { NSLocalizedString(key, comment: "Error guidance and contextual feedback") }
-    static var disclosure: String { text("Opens GitHub with this error and system information. You confirm publication there.") }
+    static var disclosure: String { text("Opens GitHub with this error and system information. You confirm publication there.") + " " + text("FluxMarkdown can check this public Issue for replies while running. Manage reminders in My Feedback.") }
 
     @discardableResult static func capture(_ kind: FailureKind, error: Error? = nil,
                                           phase: IncidentPhase = .failed, scope: UUID? = nil, reason: IncidentReason? = nil, targetVersion: String? = nil, renderingBlocker: FailureKind? = nil) -> ErrorIncident {
@@ -114,6 +120,7 @@ enum ErrorFeedback {
             }
         } else {
             if review { pending.remove(draft.incident.id); showDraft(draft); return }
+            reportPrepared?(draft.incident)
             let opened = openURL(draft.incident.feedbackURL(includeDiagnostics: draft.includeDiagnostics, notes: draft.notes))
             // Keep the same draft reachable even if the browser later fails to load/sign in.
             if !opened { if let failure { failure(draft) } else { showDraft(draft, failed: true) } }
@@ -129,8 +136,39 @@ enum ErrorFeedback {
               let data = Data(base64Encoded: value), let request = IncidentFeedbackRequest.decode(data) else { return true }
         let draft = IncidentDraft(request.incident)
         draft.includeDiagnostics = request.includeDiagnostics; draft.notes = request.notes
+        if request.materialReview == true {
+            draft.materialContext = FeedbackMaterialContext(document: nil, sample: request.sample, originalURL: nil, provenance: "user-reviewed-fragment")
+            materialPresenter?(draft)
+            return true
+        }
+        if request.followUp == true { showFollowUp?(); return true }
         report(draft, review: request.review)
         return true
+    }
+
+    static func prepareMaterials(_ draft: IncidentDraft) {
+        if Bundle.main.bundleIdentifier != "com.xykong.Markdown.QuickLook" { materialPresenter?(draft); return }
+        let alert = NSAlert()
+        alert.messageText = text("Attach Reproduction Materials…")
+        alert.informativeText = text("Continue in FluxMarkdown to choose what to share. The displayed fragment will be passed to FluxMarkdown only if you continue. Nothing is uploaded yet.")
+        if let sample = draft.materialContext?.sample {
+            let scroll = NSScrollView(frame: NSRect(x: 0, y: 0, width: 500, height: 160))
+            let view = NSTextView(frame: scroll.bounds); view.string = sample; view.isEditable = false
+            scroll.documentView = view; scroll.hasVerticalScroller = true; alert.accessoryView = scroll
+        }
+        alert.addButton(withTitle: text("Continue in FluxMarkdown")); alert.addButton(withTitle: text("Cancel"))
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        var request = IncidentFeedbackRequest(incident: draft.incident, includeDiagnostics: draft.includeDiagnostics, notes: String(draft.notes.prefix(600)))
+        request.materialReview = true; request.sample = draft.materialContext?.sample
+        guard let data = try? JSONEncoder().encode(request) else { showDraft(draft, failed: true); return }
+        SearchLaunchClient.reportError(data) { success in if !success { showDraft(draft, failed: true) } }
+    }
+    static func openFollowUp(_ incident: ErrorIncident) {
+        if Bundle.main.bundleIdentifier != "com.xykong.Markdown.QuickLook" { showFollowUp?(); return }
+        var request = IncidentFeedbackRequest(incident: incident, includeDiagnostics: false, notes: "")
+        request.followUp = true
+        guard let data = try? JSONEncoder().encode(request) else { return }
+        SearchLaunchClient.reportError(data) { success in if !success { showDraft(IncidentDraft(incident), failed: true) } }
     }
 
     static func present(_ incident: ErrorIncident, recoveryTitle: String? = nil, recovery: (() -> Void)? = nil) {
@@ -187,9 +225,15 @@ final class IncidentFeedbackControls: NSStackView {
         include.state = draft.includeDiagnostics ? .on : .off
         let inspect = NSButton(title: ErrorFeedback.text("Review Feedback…"), target: self, action: #selector(review))
         addArrangedSubview(info); addArrangedSubview(include); addArrangedSubview(inspect)
+        addArrangedSubview(ErrorActionButton(title: ErrorFeedback.text("Attach Reproduction Materials…")) { ErrorFeedback.prepareMaterials(draft) })
+        if Bundle.main.bundleIdentifier != "com.xykong.Markdown.QuickLook" {
+            let follow = NSButton(checkboxWithTitle: ErrorFeedback.text("Check my submitted Issues for replies"), target: self, action: #selector(toggleFollow(_:)))
+            follow.state = ErrorFeedback.followRepliesEnabled?() == false ? .off : .on; addArrangedSubview(follow)
+        }
         info.widthAnchor.constraint(equalToConstant: 420).isActive = true
     }
     required init?(coder: NSCoder) { nil }
+    @objc private func toggleFollow(_ sender: NSButton) { ErrorFeedback.setFollowReplies?(sender.state == .on) }
     @objc private func toggle(_ sender: NSButton) { draft.includeDiagnostics = sender.state == .on }
     @objc private func review() {
         // Optional inspection works even while an error alert has a modal runloop.
@@ -230,7 +274,8 @@ final class IncidentNotice: NSView {
         buttons.addArrangedSubview(NSButton(title: ErrorFeedback.text("Close"), target: self, action: #selector(close)))
         let disclosure = NSTextField(wrappingLabelWithString: ErrorFeedback.disclosure)
         disclosure.font = .systemFont(ofSize: 11)
-        let content = NSStackView(views: [message, buttons, disclosure])
+        let extras = NSStackView(views: [ErrorActionButton(title: ErrorFeedback.text("Attach Reproduction Materials…")) { [weak self] in if let self { ErrorFeedback.prepareMaterials(self.draft) } }, ErrorActionButton(title: ErrorFeedback.text("My Feedback")) { [weak self] in if let self { ErrorFeedback.openFollowUp(self.draft.incident) } }]); extras.orientation = .vertical; extras.alignment = .leading
+        let content = NSStackView(views: [message, buttons, extras, disclosure])
         content.orientation = .vertical; content.alignment = .leading; content.spacing = 6; content.translatesAutoresizingMaskIntoConstraints = false
         addSubview(content)
         message.widthAnchor.constraint(equalTo: content.widthAnchor).isActive = true
@@ -297,6 +342,8 @@ private final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
             actions.addArrangedSubview(NSButton(title: ErrorFeedback.text(title), target: self, action: action))
         }
         content.addArrangedSubview(actions)
+        content.addArrangedSubview(ErrorActionButton(title: ErrorFeedback.text("Attach Reproduction Materials…")) { ErrorFeedback.prepareMaterials(draft) })
+        content.addArrangedSubview(ErrorActionButton(title: ErrorFeedback.text("My Feedback")) { ErrorFeedback.openFollowUp(draft.incident) })
         if draft.incident.kind == .update {
             content.addArrangedSubview(ErrorActionButton(title: ErrorFeedback.text("Download Latest Version")) { [weak self] in
                 guard NSWorkspace.shared.open(URL(string: "https://github.com/xykong/flux-markdown/releases/latest")!) else {
@@ -331,7 +378,9 @@ final class RendererErrorRegistry {
     var onRecover: ((ErrorIncident) -> Void)?
     private(set) var scope = UUID()
     private var incidents: [String: ErrorIncident] = [:]
-    func beginDocument() -> String { scope = UUID(); incidents.removeAll(); return scope.uuidString }
+    var sourceContext: (() -> (String, URL?)?)?
+    private var contexts: [String: FeedbackMaterialContext] = [:]
+    func beginDocument() -> String { scope = UUID(); incidents.removeAll(); contexts.removeAll(); sourceContext = nil; return scope.uuidString }
     func nativeFailure(_ kind: FailureKind, error: Error? = nil, renderingBlocker: FailureKind? = nil) -> ErrorIncident {
         let key = "native:" + kind.rawValue + ":" + (renderingBlocker?.rawValue ?? "none")
         let codes = ErrorIncident(kind: kind, source: .app, error: error).codes
@@ -341,12 +390,16 @@ final class RendererErrorRegistry {
         return incident
     }
     func receive(_ body: [String: Any]) -> (incident: ErrorIncident, action: String)? {
-        guard Set(body.keys).isSubset(of: Set(["action", "kind", "generation", "id", "reason"])),
-              let action = body["action"] as? String, ["record", "report", "inspect", "recover"].contains(action),
+        guard Set(body.keys).isSubset(of: Set(["action", "kind", "generation", "id", "reason", "lineStart", "lineEnd"])),
+              let action = body["action"] as? String, ["record", "report", "inspect", "recover", "materials", "followUp"].contains(action),
               let generation = body["generation"] as? String, generation == scope.uuidString,
               let id = body["id"] as? String, id.utf8.count <= 32, !id.isEmpty, id.allSatisfy(\.isNumber),
               let rawKind = body["kind"] as? String, let kind = FailureKind(rawValue: rawKind),
               [.renderer, .source, .mermaid, .typst, .graphviz, .vega, .math, .search, .images, .copy].contains(kind) else { return nil }
+        if body["lineStart"] != nil || body["lineEnd"] != nil {
+            guard let first = body["lineStart"] as? Int, let last = body["lineEnd"] as? Int,
+                  first > 0, first <= 1_000_000, last >= first, last <= 1_000_000, last - first < 100 else { return nil }
+        }
         let reason: IncidentReason?
         if let raw = body["reason"] {
             guard let value = raw as? String, let parsed = IncidentReason(rawValue: value) else { return nil }
@@ -356,6 +409,10 @@ final class RendererErrorRegistry {
             if incidents[id] == nil {
                 guard incidents.count < 100 else { return nil }
                 incidents[id] = ErrorFeedback.capture(kind, scope: scope, reason: reason)
+                if let (document, url) = sourceContext?() {
+                    let first = body["lineStart"] as? Int, last = body["lineEnd"] as? Int
+                    contexts[id] = FeedbackMaterialContext.captured(document: document, url: url, first: first, last: last)
+                }
             }
         }
         guard let incident = incidents[id], incident.kind == kind else { return nil }
@@ -369,8 +426,12 @@ final class RendererErrorRegistry {
             guard let self, self.scope == generation else { return }
             self.onFailure?(draft)
         }
-        if event.action == "report" { ErrorFeedback.report(IncidentDraft(event.incident), failure: failure) }
-        if event.action == "inspect" { ErrorFeedback.report(IncidentDraft(event.incident), review: true, failure: failure) }
+        let draft = IncidentDraft(event.incident)
+        if let id = body["id"] as? String { draft.materialContext = contexts[id] }
+        if event.action == "report" { ErrorFeedback.report(draft, failure: failure) }
+        if event.action == "inspect" { ErrorFeedback.report(draft, review: true, failure: failure) }
+        if event.action == "materials" { ErrorFeedback.prepareMaterials(draft) }
+        if event.action == "followUp" { ErrorFeedback.openFollowUp(event.incident) }
     }
 }
 

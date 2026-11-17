@@ -10,6 +10,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidBecomeActive(_ notification: Notification) {
         AppearancePreference.shared.observePreferenceChanges()
+        FeedbackFollowUpController.shared.refresh()
     }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
@@ -37,6 +38,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 completion(enriched)
             }
         }
+        ErrorFeedback.materialPresenter = { FeedbackMaterialWindow.show($0) }
+        ErrorFeedback.reportPrepared = { FeedbackFollowUpController.shared.register($0) }
+        ErrorFeedback.showFollowUp = { FeedbackFollowUpController.shared.show() }
+        ErrorFeedback.followRepliesEnabled = { UserDefaults.standard.bool(forKey: "feedback.followReplies") }
+        ErrorFeedback.setFollowReplies = { FeedbackFollowUpController.shared.enable($0) }
+        FeedbackFollowUpController.shared.start()
         _ = StarReminderStore.shared
         NotificationCenter.default.addObserver(forName: Notification.Name("FluxMarkdown.TestQuickLook"), object: nil, queue: .main) { _ in
             QuickLookSelfTest.shared.show()
@@ -98,6 +105,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 struct MarkdownApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @ObservedObject var preference = AppearancePreference.shared
+    @ObservedObject private var feedbackFollowUp = FeedbackFollowUpController.shared
 
     @State private var viewMode: ViewMode = .preview
 
@@ -188,6 +196,8 @@ struct MarkdownApp: App {
                 
                 Divider()
                 
+                Button(ErrorFeedback.text("My Feedback") + (feedbackFollowUp.unreadCount > 0 ? " (\(feedbackFollowUp.unreadCount))" : "")) { feedbackFollowUp.show() }
+
                 Button(NSLocalizedString("Test Quick Look", comment: "QuickLook self-test")) { QuickLookSelfTest.shared.show() }
 
                 Button(action: GitHubStar.showRepository) {

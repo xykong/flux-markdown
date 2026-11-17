@@ -117,3 +117,45 @@
 /* Block copy failures */
 "Text could not be copied" = "无法复制文本";
 "Select the text to copy it manually, or try the copy button again." = "可以选择文本手动复制，或再次点击复制按钮。";
+
+/* Reproduction packages and durable Issue replies */
+"Attach Reproduction Materials…" = "附带复现材料…";
+"My Feedback" = "我的反馈";
+"Check Now" = "立即检查";
+"Check my submitted Issues for replies" = "检查我提交的问题是否有新回复";
+"Checks public GitHub Issues while FluxMarkdown is running. Replies missed while offline are checked next time. Unread markers clear only when you click a reply." = "FluxMarkdown 运行时检查公开的 GitHub Issue，下次运行会补查离线期间的回复。只有点击回复才清除未读标记。";
+"Choose Document…" = "选择文档…";
+"Choose Referenced Resources…" = "选择引用的资源…";
+"Choose a document first to resolve its referenced resources." = "请先选择文档，以确定其引用的资源。";
+"Choose a sample or the complete document. Contents and selected resources may be public on GitHub. Review them before attaching. Creating a ZIP does not upload it." = "可选择片段或完整文档。内容和所选资源可能在 GitHub 公开，请先检查再附带。生成 ZIP 不会上传文件。";
+"Complete document" = "完整文档";
+"Continue in FluxMarkdown" = "在 FluxMarkdown 中继续";
+"Continue in FluxMarkdown to choose what to share. The displayed fragment will be passed to FluxMarkdown only if you continue. Nothing is uploaded yet." = "在 FluxMarkdown 中选择要分享的材料。只有继续后才会将显示的片段交给 FluxMarkdown，目前不会上传任何内容。";
+"Could not check replies. Existing reminders are preserved; checking will resume later." = "暂时无法检查回复。已有提醒已保留，稍后会继续检查。";
+"Could not open the reply. Try again or copy its link." = "无法打开回复，请重试或复制链接。";
+"Could not prepare the ZIP. Remove resources, use a smaller sample, or choose another save location. Your report is preserved." = "无法生成 ZIP。请移除部分资源、缩小片段，或选择其他保存位置。报告已保留。";
+"Could not read this document within the 20 MB limit. Choose another file or paste a smaller sample." = "无法在 20 MB 限制内读取此文档。请选择其他文件或粘贴较小的片段。";
+"Could not save feedback reminders. Keep this window open and try again." = "无法保存反馈提醒。请保留此窗口并重试。";
+"Could not verify this Issue. Check the link and try again." = "无法核实此 Issue，请检查链接后重试。";
+"Enable System Notifications…" = "启用系统通知…";
+"Failed fragment" = "失败片段";
+"Feedback history could not be loaded. Your reports have not been overwritten." = "无法读取反馈记录，已有报告未被覆盖。";
+"FluxMarkdown can check this public Issue for replies while running. Manage reminders in My Feedback." = "FluxMarkdown 可在运行时检查此公开 Issue 的回复。可在“我的反馈”中管理提醒。";
+"Link Issue" = "关联 Issue";
+"Paste Issue link" = "粘贴 Issue 链接";
+"Paste a FluxMarkdown GitHub Issue link." = "请粘贴 FluxMarkdown 的 GitHub Issue 链接。";
+"References not included:" = "未附带的引用：";
+"Remove Resources" = "移除资源";
+"Replies checked. Unread reminders stay until you click them." = "回复已检查，未读提醒会保留到你点击时。";
+"Reproduction content" = "复现内容";
+"Review Package Contents" = "检查包内材料";
+"Save Reproduction ZIP…" = "保存复现 ZIP…";
+"Save a ZIP first, then attach it from Finder." = "请先保存 ZIP，再从 Finder 附到 Issue。";
+"Select only files referenced by this document inside its folder, without symbolic links, within the 20 MB limit." = "只能选择此文档目录内已引用的文件，不支持符号链接，材料总大小不得超过 20 MB。";
+"Selected resources:" = "已选资源：";
+"Show ZIP in Finder" = "在 Finder 中显示 ZIP";
+"This is the file selected now, not a verified snapshot from the failure." = "这是现在选择的文件，尚未核实它是否与发生错误时的内容一致。";
+"Waiting to find the submitted Issue" = "等待找到已提交的 Issue";
+"Your Issue has a new reply. Click to open it." = "你的 Issue 有新回复，点击查看。";
+"ZIP prepared locally. Attach it on GitHub; it has not been uploaded." = "ZIP 已在本地生成，尚未上传。请在 GitHub 附上此文件。";
+"Attach the ZIP on GitHub by dragging it from Finder. GitHub uploads attachments immediately; you publish the Issue there. No attachment is required to report." = "将 ZIP 从 Finder 拖到 GitHub 页面即可附带。GitHub 会立即上传附件，Issue 由你在那里确认发布。不附附件也可以反馈。";

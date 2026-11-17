@@ -2,7 +2,7 @@ import Foundation
 
 /// Wire format shared with the restricted launcher. No document identifiers or raw error text.
 enum IncidentSource: String, Codable { case app, quicklook, cli }
-enum IncidentReason: String, Codable { case operationFailed, invalidInput, moduleUnavailable, resourceUnavailable }
+enum IncidentReason: String, Codable { case operationFailed, invalidInput, moduleUnavailable, resourceUnavailable, mathSyntax, mathOutput, mathReference, mathLimit }
 enum IncidentPhase: String, Codable { case started, failed, completed, timeout }
 enum FailureKind: String, Codable, CaseIterable {
     case attribution, copy, usageSettings, update, fileRead, fileTooLarge, reload, exportHTML, exportPDF, renderer, rendererResources, source
@@ -208,7 +208,7 @@ struct ErrorIncident: Codable {
     }
     func feedbackURL(includeDiagnostics: Bool = true, notes: String = "", useTemplate: Bool = false) -> URL {
         var c = URLComponents(string: "https://github.com/xykong/flux-markdown/issues/new")!
-        var description = "Operation: \(kind.rawValue)\nObserved result: \(titleForReport)\n"
+        var description = "Operation: \(kind.rawValue)\nObserved result: \(titleForReport)\nIncident: \(id.uuidString)\n"
         // Bound user-entered additions. The complete edited report remains local.
         description += String(notes.prefix(600))
         var diagnostic = includeDiagnostics ? report : ""
@@ -281,9 +281,13 @@ struct IncidentFeedbackRequest: Codable {
     let includeDiagnostics: Bool
     let notes: String
     var review = false
+    var materialReview: Bool?
+    var sample: String?
+    var followUp: Bool?
     static func decode(_ data: Data) -> IncidentFeedbackRequest? {
         guard data.count <= 16384, let request = try? JSONDecoder().decode(Self.self, from: data),
-              request.incident.isValid, request.notes.utf8.count <= 8000 else { return nil }
+              request.incident.isValid, request.notes.utf8.count <= 8000,
+              (request.sample?.utf8.count ?? 0) <= 6000, request.sample == nil || request.materialReview == true else { return nil }
         return request
     }
     var hostURL: URL? {

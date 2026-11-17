@@ -9,22 +9,29 @@ enum FeedbackReproduction {
         let entries: [Entry]
         let missing: [String]
         func writeZIP(to url: URL) throws {
-            var archive = Data(), central = Data()
+            // Use the system ZIP implementation rather than maintain a custom archive format.
+            let work = FileManager.default.temporaryDirectory.appendingPathComponent("FluxMarkdown-reproduction-" + UUID().uuidString)
+            try FileManager.default.createDirectory(at: work, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
+            defer { try? FileManager.default.removeItem(at: work) }
+            let input = work.appendingPathComponent("input")
+            try FileManager.default.createDirectory(at: input, withIntermediateDirectories: false)
             for entry in entries {
-                let name = Data(entry.name.utf8), offset = UInt32(archive.count), size = UInt32(entry.data.count)
-                let crc = FeedbackReproduction.crc32(entry.data)
-                archive.le(UInt32(0x04034b50)); archive.le(UInt16(20)); archive.le(UInt16(0x800)); archive.le(UInt16(0))
-                archive.le(UInt16(0)); archive.le(UInt16(0x21)); archive.le(crc); archive.le(size); archive.le(size)
-                archive.le(UInt16(name.count)); archive.le(UInt16(0)); archive.append(name); archive.append(entry.data)
-                central.le(UInt32(0x02014b50)); central.le(UInt16(20)); central.le(UInt16(20)); central.le(UInt16(0x800)); central.le(UInt16(0))
-                central.le(UInt16(0)); central.le(UInt16(0x21)); central.le(crc); central.le(size); central.le(size)
-                central.le(UInt16(name.count)); central.le(UInt16(0)); central.le(UInt16(0)); central.le(UInt16(0)); central.le(UInt16(0))
-                central.le(UInt32(0)); central.le(offset); central.append(name)
+                let parts = entry.name.split(separator: "/", omittingEmptySubsequences: false)
+                guard !parts.isEmpty, parts.allSatisfy({ !$0.isEmpty && $0 != "." && $0 != ".." }), !entry.name.contains("\\") else { throw CocoaError(.fileWriteInvalidFileName) }
+                let file = input.appendingPathComponent(entry.name)
+                try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+                try entry.data.write(to: file, options: .atomic)
             }
-            let centralOffset = UInt32(archive.count); archive.append(central)
-            archive.le(UInt32(0x06054b50)); archive.le(UInt16(0)); archive.le(UInt16(0)); archive.le(UInt16(entries.count)); archive.le(UInt16(entries.count))
-            archive.le(UInt32(central.count)); archive.le(centralOffset); archive.le(UInt16(0))
-            guard archive.count < 25 * 1024 * 1024 else { throw CocoaError(.fileWriteFileExists) }
+            let output = work.appendingPathComponent("package.zip")
+            let process = Process(); process.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
+            process.arguments = ["-c", "-k", "--norsrc", "--noextattr", "--noqtn", input.path, output.path]
+            process.standardOutput = FileHandle.nullDevice; process.standardError = FileHandle.nullDevice
+            try process.run()
+            let deadline = Date().addingTimeInterval(20)
+            while process.isRunning && Date() < deadline { Thread.sleep(forTimeInterval: 0.02) }
+            if process.isRunning { process.terminate(); throw CocoaError(.fileWriteUnknown) }
+            guard process.terminationStatus == 0 else { throw CocoaError(.fileWriteUnknown) }
+            let archive = try BoundedFileReader.read(output, maxBytes: 25 * 1024 * 1024 - 1)
             try archive.write(to: url, options: .atomic)
         }
     }
@@ -78,26 +85,13 @@ enum FeedbackReproduction {
             total += data.count; entries.append(Entry(name: name, data: data)); included.insert(name)
         }
         let missing = refs.filter { ref in relativeName(ref).map { !included.contains($0) } ?? true }
-        let manifest: [String: Any] = ["schema": 1, "incident": incident.uuidString, "mode": mode, "provenance": provenance,
+        let manifest: [String: Any] = ["schema": 1, "incident": incident.uuidString, "mode": mode, "provenance": provenance, "resourcesProvenance": "selected-at-report-time",
                                         "files": entries.map { ["name": $0.name, "bytes": $0.data.count] }, "notIncludedReferences": missing]
         let metadata = try JSONSerialization.data(withJSONObject: manifest, options: [.prettyPrinted, .sortedKeys])
         guard total + metadata.count <= inputLimit else { throw CocoaError(.fileReadTooLarge) }
         entries.append(Entry(name: "manifest.json", data: metadata))
         return Package(entries: entries, missing: missing)
     }
-    private static let crcTable: [UInt32] = (0..<256).map { index in
-        var value = UInt32(index)
-        for _ in 0..<8 { value = (value & 1) != 0 ? 0xedb88320 ^ (value >> 1) : value >> 1 }
-        return value
-    }
-    private static func crc32(_ data: Data) -> UInt32 {
-        var crc = UInt32.max
-        for byte in data { crc = crcTable[Int((crc ^ UInt32(byte)) & 0xff)] ^ (crc >> 8) }
-        return crc ^ UInt32.max
-    }
-}
-private extension Data {
-    mutating func le<T: FixedWidthInteger>(_ value: T) { var little = value.littleEndian; Swift.withUnsafeBytes(of: &little) { append(contentsOf: $0) } }
 }
 
 /// Ephemeral native context; never persisted with the diagnostic incident.
@@ -106,13 +100,27 @@ struct FeedbackMaterialContext {
     let sample: String?
     let originalURL: URL?
     let provenance: String
+    private static func withReferenceContext(_ fragment: String, document: String) -> String {
+        guard let refs = try? NSRegularExpression(pattern: #"\\(?:eqref|ref)\{([^{}]+)\}"#),
+              let formulas = try? NSRegularExpression(pattern: #"(?s)\$\$.*?\$\$|\\\[.*?\\\]|\\\(.*?\\\)|\$[^$\n]+\$|(?m)^```(?:math|latex|tex)[^\n]*\n.*?^```"#) else { return fragment }
+        let matches = refs.matches(in: fragment, range: NSRange(fragment.startIndex..., in: fragment))
+        let labels = Set(matches.compactMap { Range($0.range(at: 1), in: fragment).map { String(fragment[$0]) } })
+        var result = fragment
+        for match in formulas.matches(in: document, range: NSRange(document.startIndex..., in: document)) {
+            guard let range = Range(match.range, in: document) else { continue }
+            let formula = String(document[range])
+            guard labels.contains(where: { formula.contains("\\label{" + $0 + "}") }), !result.contains(formula) else { continue }
+            if result.utf8.count + formula.utf8.count + 2 <= 6000 { result += "\n\n" + formula }
+        }
+        return result
+    }
     static func captured(document: String, url: URL?, first: Int?, last: Int?) -> Self {
         var sample: String?
-        if let first, let last, first > 0, last >= first, last - first < 100 {
+        if let first, let last, first > 0, first <= 1_000_000, last >= first, last <= 1_000_000, last - first < 100 {
             let lines = document.components(separatedBy: "\n")
             if last <= lines.count {
                 let value = lines[(first-1)..<last].joined(separator: "\n")
-                if value.utf8.count <= 6000 { sample = value }
+                if value.utf8.count <= 6000 { sample = FeedbackMaterialContext.withReferenceContext(value, document: document) }
             }
         }
         return Self(document: document.utf8.count <= FeedbackReproduction.inputLimit ? document : nil,

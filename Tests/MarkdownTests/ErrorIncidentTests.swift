@@ -113,7 +113,8 @@ extension ErrorIncidentTests {
         XCTAssertNil(items.first { $0.name == "template" })
         XCTAssertTrue(items.first { $0.name == "body" }!.value!.contains(incident.id.uuidString))
         let excluded = URLComponents(url: incident.feedbackURL(includeDiagnostics: false), resolvingAgainstBaseURL: false)!.queryItems!
-        XCTAssertFalse(excluded.first { $0.name == "body" }!.value!.contains(incident.id.uuidString))
+        XCTAssertTrue(excluded.first { $0.name == "body" }!.value!.contains(incident.id.uuidString))
+        XCTAssertFalse(excluded.first { $0.name == "body" }!.value!.contains("Environment at failure"))
     }
     func testUnavailableStoreRetainsCurrentIncidentInMemory() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
@@ -137,7 +138,8 @@ extension ErrorIncidentTests {
         XCTAssertEqual(urls.count, 1)
         let body = URLComponents(url: urls[0], resolvingAgainstBaseURL: false)!.queryItems!.first { $0.name == "body" }!.value!
         XCTAssertTrue(body.contains("exportHTML"))
-        XCTAssertFalse(body.contains(draft.incident.id.uuidString))
+        XCTAssertTrue(body.contains(draft.incident.id.uuidString))
+        XCTAssertFalse(body.contains("Environment at failure"))
     }
     func testBrowserFailurePreservesTheSameDraftAndOptionalNotes() {
         let draft = IncidentDraft(ErrorIncident(kind: .update, source: .app))

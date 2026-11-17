@@ -101,3 +101,52 @@ describe('error surface coverage', () => {
     });
 
 });
+
+describe('Issue 73 useful mathematical diagnostics', () => {
+    it.each([['syntax','mathSyntax'],['output','mathOutput'],['unresolved-reference','mathReference'],['input-limit','mathLimit']])('reports %s as a fixed code with line bounds, without formula contents', (code, reason) => {
+        const postMessage = jest.fn();
+        window.webkit = { messageHandlers: { logger: {postMessage: jest.fn()}, linkClicked: {postMessage: jest.fn()}, errorFeedback: { postMessage } } };
+        setFeedbackGeneration('issue73-'+code);
+        document.body.innerHTML = `<span class="math-error" data-math-failure="${code}" data-math-first="2" data-math-last="4">private formula</span>`;
+        const stop = installErrorFeedback(document.body);
+        expect(postMessage).toHaveBeenCalledWith(expect.objectContaining({action:'record', kind:'math', reason, lineStart:2, lineEnd:4}));
+        document.querySelector<HTMLButtonElement>('[data-feedback-action="materials"]')!.click();
+        expect(postMessage).toHaveBeenLastCalledWith(expect.objectContaining({action:'materials'}));
+        expect(JSON.stringify(postMessage.mock.calls)).not.toContain('private formula');
+        stop();
+    });
+    it('does not send arbitrary classifications or oversized line ranges', () => {
+        const postMessage = jest.fn();
+        window.webkit = { messageHandlers: { logger: {postMessage: jest.fn()}, linkClicked: {postMessage: jest.fn()}, errorFeedback: { postMessage } } };
+        setFeedbackGeneration('issue73-invalid');
+        document.body.innerHTML = '<span class="math-error" data-math-failure="private" data-math-first="-1" data-math-last="99999999999">secret</span>';
+        const stop = installErrorFeedback(document.body);
+        expect(postMessage.mock.calls[0][0]).toEqual(expect.objectContaining({reason:'operationFailed'}));
+        expect(postMessage.mock.calls[0][0].lineStart).toBeUndefined();
+        stop();
+    });
+});
+
+test('different failed formulas do not share a source incident', () => {
+    const postMessage = jest.fn();
+    window.webkit = {messageHandlers:{logger:{postMessage:jest.fn()},linkClicked:{postMessage:jest.fn()},errorFeedback:{postMessage}}};
+    setFeedbackGeneration('separate-formulas');
+    document.body.innerHTML = '<span class="math-error" data-math-failure="syntax">A</span><span class="math-error" data-math-failure="syntax">B</span>';
+    const stop = installErrorFeedback(document.body);
+    const records = postMessage.mock.calls.map(call => call[0]).filter(event => event.action === 'record');
+    expect(new Set(records.map(event => event.id)).size).toBe(2);
+    stop();
+});
+
+test('diagram failures retain independent source ranges without sending diagram text', () => {
+    const postMessage = jest.fn();
+    window.webkit = {messageHandlers:{logger:{postMessage:jest.fn()},linkClicked:{postMessage:jest.fn()},errorFeedback:{postMessage}}};
+    setFeedbackGeneration('diagram-samples');
+    document.body.innerHTML = '<div class="mermaid-error" data-source-line="3" data-source-line-end="7">secret diagram A</div><div class="mermaid-error" data-source-line="10" data-source-line-end="12">secret diagram B</div>';
+    const stop = installErrorFeedback(document.body);
+    const records = postMessage.mock.calls.map(call => call[0]).filter(event => event.action === 'record');
+    expect(records.map(event => [event.lineStart,event.lineEnd])).toEqual([[3,7],[10,12]]);
+    expect(new Set(records.map(event => event.id)).size).toBe(2);
+    expect(JSON.stringify(records)).not.toContain('secret diagram');
+    stop();
+});

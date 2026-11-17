@@ -117,3 +117,45 @@
 /* Block copy failures */
 "Text could not be copied" = "Text konnte nicht kopiert werden";
 "Select the text to copy it manually, or try the copy button again." = "Wähle den Text zum manuellen Kopieren aus oder versuche die Kopierschaltfläche erneut.";
+
+/* Reproduction packages and durable Issue replies */
+"Attach Reproduction Materials…" = "Reproduktionsmaterial anhängen…";
+"My Feedback" = "Meine Rückmeldungen";
+"Check Now" = "Jetzt prüfen";
+"Check my submitted Issues for replies" = "Meine gemeldeten Issues auf Antworten prüfen";
+"Checks public GitHub Issues while FluxMarkdown is running. Replies missed while offline are checked next time. Unread markers clear only when you click a reply." = "Prüft öffentliche GitHub-Issues, während FluxMarkdown läuft. Verpasste Antworten werden beim nächsten Start geprüft. Ungelesen-Markierungen verschwinden nur beim Anklicken der Antwort.";
+"Choose Document…" = "Dokument auswählen…";
+"Choose Referenced Resources…" = "Referenzierte Dateien auswählen…";
+"Choose a document first to resolve its referenced resources." = "Wähle zuerst ein Dokument, um dessen referenzierte Dateien zu ermitteln.";
+"Choose a sample or the complete document. Contents and selected resources may be public on GitHub. Review them before attaching. Creating a ZIP does not upload it." = "Wähle ein Beispiel oder das vollständige Dokument. Inhalte und ausgewählte Dateien können auf GitHub öffentlich werden. Prüfe sie vorher. Das Erstellen einer ZIP lädt sie nicht hoch.";
+"Complete document" = "Vollständiges Dokument";
+"Continue in FluxMarkdown" = "In FluxMarkdown fortfahren";
+"Continue in FluxMarkdown to choose what to share. The displayed fragment will be passed to FluxMarkdown only if you continue. Nothing is uploaded yet." = "Wähle in FluxMarkdown, was du teilen möchtest. Nur beim Fortfahren wird der angezeigte Ausschnitt an FluxMarkdown übergeben. Es wird noch nichts hochgeladen.";
+"Could not check replies. Existing reminders are preserved; checking will resume later." = "Antworten konnten nicht geprüft werden. Erinnerungen bleiben erhalten; die Prüfung wird später fortgesetzt.";
+"Could not open the reply. Try again or copy its link." = "Die Antwort konnte nicht geöffnet werden. Versuche es erneut oder kopiere den Link.";
+"Could not prepare the ZIP. Remove resources, use a smaller sample, or choose another save location. Your report is preserved." = "Die ZIP konnte nicht erstellt werden. Entferne Dateien, verkleinere das Beispiel oder wähle einen anderen Speicherort. Der Bericht bleibt erhalten.";
+"Could not read this document within the 20 MB limit. Choose another file or paste a smaller sample." = "Das Dokument konnte innerhalb der 20-MB-Grenze nicht gelesen werden. Wähle eine andere Datei oder füge ein kleineres Beispiel ein.";
+"Could not save feedback reminders. Keep this window open and try again." = "Erinnerungen konnten nicht gespeichert werden. Lass dieses Fenster offen und versuche es erneut.";
+"Could not verify this Issue. Check the link and try again." = "Das Issue konnte nicht bestätigt werden. Prüfe den Link und versuche es erneut.";
+"Enable System Notifications…" = "Systemmitteilungen aktivieren…";
+"Failed fragment" = "Fehlerhafter Ausschnitt";
+"Feedback history could not be loaded. Your reports have not been overwritten." = "Der Rückmeldungsverlauf konnte nicht geladen werden. Berichte wurden nicht überschrieben.";
+"FluxMarkdown can check this public Issue for replies while running. Manage reminders in My Feedback." = "FluxMarkdown kann dieses öffentliche Issue während der Laufzeit auf Antworten prüfen. Verwalte Erinnerungen unter „Meine Rückmeldungen“.";
+"Link Issue" = "Issue verknüpfen";
+"Paste Issue link" = "Issue-Link einfügen";
+"Paste a FluxMarkdown GitHub Issue link." = "Füge einen GitHub-Issue-Link von FluxMarkdown ein.";
+"References not included:" = "Nicht enthaltene Referenzen:";
+"Remove Resources" = "Dateien entfernen";
+"Replies checked. Unread reminders stay until you click them." = "Antworten geprüft. Ungelesene Erinnerungen bleiben bis zum Anklicken bestehen.";
+"Reproduction content" = "Reproduktionsinhalt";
+"Review Package Contents" = "Paketinhalt prüfen";
+"Save Reproduction ZIP…" = "Reproduktions-ZIP speichern…";
+"Save a ZIP first, then attach it from Finder." = "Speichere zuerst eine ZIP und hänge sie dann über den Finder an.";
+"Select only files referenced by this document inside its folder, without symbolic links, within the 20 MB limit." = "Wähle nur vom Dokument referenzierte Dateien in dessen Ordner, ohne symbolische Links und innerhalb von 20 MB.";
+"Selected resources:" = "Ausgewählte Dateien:";
+"Show ZIP in Finder" = "ZIP im Finder zeigen";
+"This is the file selected now, not a verified snapshot from the failure." = "Dies ist die jetzt ausgewählte Datei, kein bestätigter Stand vom Fehlerzeitpunkt.";
+"Waiting to find the submitted Issue" = "Warten auf das eingereichte Issue";
+"Your Issue has a new reply. Click to open it." = "Dein Issue hat eine neue Antwort. Klicke zum Öffnen.";
+"ZIP prepared locally. Attach it on GitHub; it has not been uploaded." = "ZIP lokal erstellt, noch nicht hochgeladen. Hänge sie auf GitHub an.";
+"Attach the ZIP on GitHub by dragging it from Finder. GitHub uploads attachments immediately; you publish the Issue there. No attachment is required to report." = "Ziehe die ZIP aus dem Finder auf GitHub. Anhänge werden sofort hochgeladen; das Issue veröffentlichst du dort selbst. Ein Anhang ist optional.";

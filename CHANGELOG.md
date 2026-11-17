@@ -1,5 +1,7 @@
 ## [Unreleased]
-_无待发布的变更_
+### Added
+- **Feedback reproduction packages**: Review and edit a failed formula fragment, choose a complete document and referenced local resources, and save a bounded ZIP for attachment on GitHub. Mathematical reports now distinguish failure categories and preserve per-formula incident identity. Thanks to [@syutheoria](https://github.com/syutheoria) for the report in [#73](https://github.com/xykong/flux-markdown/issues/73) that exposed the missing reproduction context; the reported formula failure itself is still under investigation.
+- **Issue reply reminders**: Track verified submitted Issues, retain unread replies across restarts, and open each exact new comment when its reminder is clicked. App-running checks, optional system notifications and manual Issue linking are available in My Feedback.
 
 ## [1.51.834] - 2026-11-15
 ### Fixed

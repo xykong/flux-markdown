@@ -145,3 +145,16 @@ Inline formula copy actions float below the formula to avoid reserving prose wid
 ### Display-math follow-up (Issue #72)
 
 Display formula copy actions also float instead of reserving an invisible row. Both inline and display errors return to normal flow. A windowless WebKit matrix verifies display geometry, pending/success states and static error positioning at narrow/wide widths in App/Quick Look rendering contexts with English/Arabic. The display-copy unit regression verifies failed-copy source preservation, retry and disposal. Trusted keyboard/installed-app acceptance was not repeated for this follow-up; see `DEBUG_ISSUE_72_MATH_SPACING.md`.
+
+
+## 2026-11-17：复现材料与回复提醒
+
+详见 [DEBUG_FEEDBACK_REPRODUCTION.md](DEBUG_FEEDBACK_REPRODUCTION.md)。
+
+| Surface | Recovery / feedback behavior | Evidence / limits |
+| --- | --- | --- |
+| Mathematical inline errors | Existing editor/reload recovery plus diagnostic-only report, optional reproduction materials, My Feedback | 621 full-renderer Jest tests; per-formula identity and safe range validation; Quick Look installed handoff pending |
+| Native error controls / renderer fallback | Existing recovery retained; materials and My Feedback use shared ErrorFeedback | Native ErrorIncident and FeedbackFollowUp tests; pixel capture unavailable |
+| Reproduction editor / package failures | Preserve draft, remove resources/use smaller sample/change save location; ZIP remains local until user uploads | arm64 and Intel package probe + system unzip; real GitHub upload pending |
+| Issue polling failure / rate limit | Preserve unread state, explicit retry or later check; cannot clear reminders by polling | Injected 304/429/503 and pagination tests; live #73 readback |
+| Reply browser-open failure | Keep unread marker, retry or copy exact comment link | Native controller open-injection and persisted-state readback; real system notification click pending |

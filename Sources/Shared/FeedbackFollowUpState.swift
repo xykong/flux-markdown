@@ -76,7 +76,9 @@ struct FeedbackFollowUpState: Codable {
     }
     func save(to url: URL) throws {
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try JSONEncoder().encode(self).write(to: url, options: .atomic)
+        let data = try JSONEncoder().encode(self)
+        guard data.count <= 8 * 1024 * 1024 else { throw CocoaError(.fileWriteOutOfSpace) }
+        try data.write(to: url, options: .atomic)
         try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
     }
     static func load(from url: URL) throws -> Self {

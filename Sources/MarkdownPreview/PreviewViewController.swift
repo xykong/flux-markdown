@@ -1112,6 +1112,8 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         self.prevMarkdown = nil
 
         let feedbackGeneration = errorRegistry.beginDocument()
+        let sourceURL = currentURL
+        errorRegistry.sourceContext = { (content, sourceURL) }
         webView.evaluateJavaScript("window.setFeedbackGeneration && window.setFeedbackGeneration('\(feedbackGeneration)');", completionHandler: nil)
         let sourceOptions = "{format: '\(currentURL?.pathExtension.lowercased() == "tsv" ? "tsv" : "markdown")', isTruncated: \(previewIsTruncated)}"
         var callJs: String
@@ -1498,6 +1500,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
             await MainActor.run {
                 guard self.renderVersion.isCurrent(capturedRenderVersion), self.currentURL == capturedURL else { return }
                 let feedbackGeneration = self.errorRegistry.beginDocument()
+                self.errorRegistry.sourceContext = { (content, capturedURL) }
                 ErrorFeedback.capture(.renderer, phase: .started, scope: self.errorRegistry.scope)
                 self.webView.evaluateJavaScript("window.setFeedbackGeneration && window.setFeedbackGeneration('\(feedbackGeneration)');", completionHandler: nil)
                 self.logDiagnosticStage(.renderStarted)

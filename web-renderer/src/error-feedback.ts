@@ -36,10 +36,17 @@ export function installErrorFeedback(root: HTMLElement): () => void {
                 attached.set(element, generation);
                 const eventGeneration = generation;
                 // Equivalent module failures in one document share a bounded incident.
-                const reason = element.classList.contains('module-load-error') ? 'moduleUnavailable' : kind === 'images' || element.classList.contains('math-resource-unsupported') ? 'resourceUnavailable' : kind === 'search' ? 'invalidInput' : 'operationFailed';
+                const mathReasons: Record<string, string> = { syntax: 'mathSyntax', output: 'mathOutput', 'unresolved-reference': 'mathReference', 'input-limit': 'mathLimit' };
+                const mathReason = kind === 'math' ? mathReasons[element.dataset.mathFailure || ''] : undefined;
+                const reason = element.classList.contains('module-load-error') ? 'moduleUnavailable' : kind === 'images' || element.classList.contains('math-resource-unsupported') ? 'resourceUnavailable' : kind === 'search' ? 'invalidInput' : mathReason || 'operationFailed';
                 const group = kind + ':' + reason;
-                const id = groupIDs.get(group) || String(++nextID);
-                groupIDs.set(group, id);
+                const sourceBlock = element.closest<HTMLElement>('[data-source-line]');
+                const first = Number(element.dataset.mathFirst ?? sourceBlock?.dataset.sourceLine);
+                const last = Number(element.dataset.mathLast ?? sourceBlock?.dataset.sourceLineEnd);
+                const sourceRange = Number.isInteger(first) && Number.isInteger(last) && first > 0 && last >= first && last - first < 100 && last <= 1000000 ? {lineStart:first, lineEnd:last} : {};
+                const shareIncident = reason === 'moduleUnavailable' || (kind !== 'math' && sourceRange.lineStart === undefined);
+                const id = (shareIncident ? groupIDs.get(group) : undefined) || String(++nextID);
+                if (shareIncident) groupIDs.set(group, id);
                 const labels = translations[(window.__fluxLang || navigator.language).split('-')[0]] || translations.en;
                 const controls = document.createElement('div'); controls.className = 'error-feedback-controls';
                 controls.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;font:13px system-ui;';
@@ -75,10 +82,10 @@ export function installErrorFeedback(root: HTMLElement): () => void {
                     hint.textContent = reloadHints[(window.__fluxLang || navigator.language).split('-')[0]] || reloadHints.en;
                 }
                 if (kind !== 'copy') controls.appendChild(hint);
-                const post = (action: 'record' | 'report' | 'inspect' | 'recover'): void => {
+                const post = (action: 'record' | 'report' | 'inspect' | 'recover' | 'materials' | 'followUp'): void => {
                     if (generation !== eventGeneration || !root.contains(element)) return;
                     const bridge = window.webkit?.messageHandlers.errorFeedback;
-                    if (bridge) bridge.postMessage({ action, kind, generation: eventGeneration, id, reason });
+                    if (bridge) bridge.postMessage({ action, kind, generation: eventGeneration, id, reason, ...sourceRange });
                     else if (action !== 'record') { hint.textContent = labels[4]; if (!hint.isConnected) controls.prepend(hint); }
                 };
                 const recoveryLabels: Record<string, [string, string, string]> = {
@@ -101,6 +108,18 @@ export function installErrorFeedback(root: HTMLElement): () => void {
                 });
                 controls.appendChild(recovery);
                 for (const [action, label] of [['report', labels[0]], ['inspect', labels[1]]] as const) {
+                    const button = document.createElement('button'); button.type = 'button'; button.textContent = label;
+                    button.dataset.feedbackAction = action;
+                    button.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); post(action); });
+                    controls.appendChild(button);
+                }
+                const materialLabels: Record<string, [string, string]> = {
+                    en: ['Attach Reproduction Materials…', 'My Feedback'], zh: ['附带复现材料…', '我的反馈'],
+                    de: ['Reproduktionsmaterial anhängen…', 'Meine Rückmeldungen'], fr: ['Joindre des éléments de reproduction…', 'Mes signalements'],
+                    es: ['Adjuntar material de reproducción…', 'Mis informes'], ar: ['إرفاق مواد لإعادة الإنتاج…', 'ملاحظاتي'],
+                };
+                const extraLabels = materialLabels[(window.__fluxLang || navigator.language).split('-')[0]] || materialLabels.en;
+                for (const [action, label] of [['materials', extraLabels[0]], ['followUp', extraLabels[1]]] as const) {
                     const button = document.createElement('button'); button.type = 'button'; button.textContent = label;
                     button.dataset.feedbackAction = action;
                     button.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); post(action); });
