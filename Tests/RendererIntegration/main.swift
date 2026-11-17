@@ -14,6 +14,80 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private var index = 0
     private var feedbackEvents: [[String: Any]] = []
     private var cases: [(String, String)] = [
+        ("Reading zoom preserves text and chrome", """
+        const zoomMetrics=[];
+        for(const context of ['app','quicklook']) for(const side of ['left','right']) {
+          window.setZoomLevel(1);
+          await window.renderMarkdown(Array.from({length:80},(_,i)=>'## Section '+i+'\\n\\n'+('Reading anchor words for wrapping and continuity. '.repeat(8))).join('\\n\\n'),{context,fontSize:16});
+          window.setContentsSide(side);
+          const root=document.getElementById('markdown-preview'), toc=document.getElementById('toc-container');
+          const para=root.querySelectorAll('p')[35];para.scrollIntoView({block:'center'});
+          await new Promise(r=>setTimeout(r,50));
+          const range=document.createRange();range.setStart(para.firstChild,20);range.setEnd(para.firstChild,21);
+          const base=range.getBoundingClientRect(), width=root.getBoundingClientRect().width;
+          const tocWidth=toc.getBoundingClientRect().width, tocFont=getComputedStyle(toc).fontSize;
+          if(Math.abs(tocWidth-240)>1 || toc.querySelector('.toc-nav').hidden)throw new Error('test requires a visible docked contents sidebar');
+          for(const level of [1.5,2,0.5,3,1]) {
+            const before=range.getBoundingClientRect();
+            const start=performance.now();
+            window.setZoomLevel(level,{x:before.left+before.width/2,y:before.top+before.height/2});
+            const elapsed=performance.now()-start;
+            await new Promise(r=>setTimeout(r,50));
+            const after=range.getBoundingClientRect();
+            zoomMetrics.push({context,side,level,drift:Math.abs(after.top-before.top),layoutMs:elapsed});
+            if(Math.abs(after.top-before.top)>3)throw new Error('reading anchor jumped: '+JSON.stringify({context,side,level,before:before.top,after:after.top,scrollY}));
+            if(Math.abs(after.height/base.height-level)>0.15)throw new Error('body did not scale: '+level+' '+after.height/base.height);
+            if(Math.abs(toc.getBoundingClientRect().width-tocWidth)>1 || getComputedStyle(toc).fontSize!==tocFont)throw new Error('contents zoomed');
+            if(Math.abs(root.getBoundingClientRect().width-width)>2 || document.documentElement.scrollWidth>innerWidth+1)throw new Error('zoom overflow');
+            if(scrollY<100)throw new Error('jumped to document start');
+          }
+          const initial=range.getBoundingClientRect();
+          const fixedPoint={x:initial.left+initial.width/2,y:initial.top+initial.height/2,gesture:17};
+          for(let i=1;i<=40;i++) {
+            window.setZoomLevel(1+i/40,fixedPoint);
+            if(Math.abs(range.getBoundingClientRect().top-initial.top)>3)throw new Error('continuous gesture lost its original text anchor');
+          }
+          window.setZoomLevel(1,{...fixedPoint,finished:true});
+        }
+        window.webkit.messageHandlers.logger.postMessage('ZOOM metrics '+JSON.stringify(zoomMetrics));
+        window.setZoomLevel(1);document.documentElement.dataset.tocDocked='false';return true;
+        """),
+        ("Reading zoom source and export isolation", """
+        window.setZoomLevel(1);
+        window.renderSource(Array.from({length:300},(_,i)=>'source line '+i+' with readable content').join('\\n'),'light');
+        const root=document.getElementById('markdown-preview');
+        window.scrollTo(0,document.documentElement.scrollHeight/2);
+        const target=document.elementFromPoint(300,300);
+        const range=document.caretRangeFromPoint(300,300);range.setEnd(range.startContainer,Math.min(range.startOffset+1,range.startContainer.length));
+        const before=range.getBoundingClientRect();
+        window.setZoomLevel(1.5,{x:before.left,y:before.top+before.height/2});
+        if(Math.abs(range.getBoundingClientRect().top-before.top)>3)throw new Error('source anchor jumped');
+        await window.renderMarkdown('# Export\\n\\nText',{context:'app'});
+        window.setZoomLevel(2);
+        const html=new DOMParser().parseFromString(window.exportHTML(),'text/html');
+        const exportedBody=html.querySelector('.markdown-body');
+        if(!exportedBody || exportedBody.style.getPropertyValue('zoom'))throw new Error('reading zoom leaked into export');
+        window.setZoomLevel(1);return true;
+        """),
+        ("Reading zoom rich content at narrow widths", """
+        for(const context of ['app','quicklook']) for(const uiLanguage of ['en','ar']) {
+          await window.renderMarkdown('# Rich content\\n\\nReadable paragraph with wrapping.\\n\\n![Diagram](diagram.svg)\\n\\n$E=mc^2$\\n\\n|One|Two|\\n|---|---|\\n|'+('longvalue'.repeat(40))+'|Data|\\n\\n```js\\n'+('longcode'.repeat(40))+'\\n```',{context,uiLanguage,imageData:{'diagram.svg':sizingSVGData}});
+          await window.waitForExportReady();
+          const root=document.getElementById('markdown-preview');
+          const image=root.querySelector('img'), table=root.querySelector('table');
+          for(const scale of [0.5,1.5,3,1]) {
+            window.setZoomLevel(scale);
+            if(document.documentElement.scrollWidth>innerWidth+2)throw new Error('rich zoom overflows page: '+JSON.stringify({context,uiLanguage,scale,width:document.documentElement.scrollWidth}));
+            if(image.getBoundingClientRect().width>root.getBoundingClientRect().width+1)throw new Error('diagram exceeds reading column');
+            if(table.scrollWidth<=table.clientWidth)throw new Error('wide table lost local scrolling');
+          }
+          root.querySelector('.svg-image-diagram .diagram-tools button:last-child').click();
+          const localWidth=image.getBoundingClientRect().width;
+          window.setZoomLevel(1.5);window.setZoomLevel(1);
+          if(Math.abs(image.getBoundingClientRect().width-localWidth)>1)throw new Error('reading zoom erased diagram scale');
+        }
+        return true;
+        """),
         ("SVG and Mermaid shared zoom controls", """
         for(const context of ['app','quicklook']) {
           await window.renderMarkdown('Body text\\n\\n![Diagram](diagram.svg)\\n\\n[![Linked](diagram.svg)](https://example.com)\\n\\n```mermaid\\ngraph TD; A-->B\\n```',{context,fontSize:16,imageData:{'diagram.svg':sizingSVGData}});
@@ -702,12 +776,13 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         }
         if message.name == "errorFeedback", let body = message.body as? [String: Any] { feedbackEvents.append(body); return }
         guard let text = message.body as? String else { return }
-        if text.contains("Error") || text.contains("fallback") || text.hasPrefix("TSV 20,000") || text.hasPrefix("COPY performance") { print(text) }
+        if text.contains("Error") || text.contains("fallback") || text.hasPrefix("TSV 20,000") || text.hasPrefix("COPY performance") || text.hasPrefix("ZOOM metrics") { print(text) }
         if text == "rendererReady" && !started { started = true; next() }
     }
     private func next() {
         if index == cases.count { print("PASS all \(cases.count) real WebKit cases"); exit(0) }
         let (name, js) = cases[index]
+        if name.hasPrefix("Reading zoom") { webView.setFrameSize(NSSize(width: name.contains("narrow") ? 600 : 1200, height: 800)) }
         if name == "compact feedback focus and text bounds" { webView.setFrameSize(NSSize(width: 480, height: 480)) }
         if name == "compact feedback focus and text bounds" || name == "inline math copy controls preserve text spacing" || name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
             // :focus-within requires an active WebKit page, not just activeElement

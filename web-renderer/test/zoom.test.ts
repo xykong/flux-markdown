@@ -5,6 +5,11 @@ jest.mock('mermaid', () => ({
 
 import '../src/index';
 
+beforeAll(() => {
+  document.elementFromPoint = jest.fn(() => document.getElementById('markdown-preview'));
+  window.scrollBy = jest.fn();
+});
+
 describe('window.setZoomLevel', () => {
   beforeEach(() => {
     document.body.innerHTML = `

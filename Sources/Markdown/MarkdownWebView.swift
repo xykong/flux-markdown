@@ -182,7 +182,7 @@ struct MarkdownWebView: NSViewRepresentable {
         weak var starReminder: StarReminderSession?
         var isWebViewLoaded = false
         var pendingRender: (() -> Void)?
-        weak var currentWebView: WKWebView?
+        weak var currentWebView: NativeMagnifyingWebView?
         var rendererBundleSchemeHandler: RendererBundleSchemeHandler?
         var currentFileURL: URL?
         var pendingAnchor: String?
@@ -335,25 +335,25 @@ struct MarkdownWebView: NSViewRepresentable {
         @objc func handleZoomIn() {
             guard let webView = currentWebView,
                   webView.window?.isKeyWindow == true else { return }
-            webView.pageZoom = min(3.0, webView.pageZoom + 0.1)
-            AppearancePreference.shared.zoomLevel = webView.pageZoom
+            webView.readingZoom = min(3.0, webView.readingZoom + 0.1)
+            AppearancePreference.shared.zoomLevel = webView.readingZoom
         }
 
         @objc func handleZoomOut() {
             guard let webView = currentWebView,
                   webView.window?.isKeyWindow == true else { return }
-            webView.pageZoom = max(0.5, webView.pageZoom - 0.1)
-            AppearancePreference.shared.zoomLevel = webView.pageZoom
+            webView.readingZoom = max(0.5, webView.readingZoom - 0.1)
+            AppearancePreference.shared.zoomLevel = webView.readingZoom
         }
 
         @objc func handleResetZoom() {
             guard let webView = currentWebView,
                   let window = webView.window,
                   window.isKeyWindow || window.windowController?.document === NSDocumentController.shared.currentDocument else { return }
-            webView.pageZoom = 1.0
+            webView.readingZoom = 1.0
             AppearancePreference.shared.zoomLevel = 1.0
             NotificationCenter.default.post(name: .resetZoomCompleted, object: window)
-            os_log("🔵 pageZoom reset to 1.0", log: logger, type: .debug)
+            os_log("🔵 readingZoom reset to 1.0", log: logger, type: .debug)
         }
 
         @objc func handleReloadFile() {
@@ -432,7 +432,7 @@ struct MarkdownWebView: NSViewRepresentable {
                   win.isKeyWindow || win.windowController?.document === NSDocumentController.shared.currentDocument else { return }
 
             starReminder?.cancelOpportunity()
-            let effectiveFontSize = AppearancePreference.shared.baseFontSize * webView.pageZoom
+            let effectiveFontSize = AppearancePreference.shared.baseFontSize * webView.readingZoom
 
             let panel = NSSavePanel()
             panel.allowedContentTypes = [.pdf]
@@ -482,7 +482,7 @@ struct MarkdownWebView: NSViewRepresentable {
                 diskIsTruncated = nil
                 currentFileURL = fileURL
                 startFileMonitoring()
-                webView.pageZoom = AppearancePreference.shared.zoomLevel
+                (webView as? NativeMagnifyingWebView)?.readingZoom = AppearancePreference.shared.zoomLevel
             }
 
             if let url = fileURL {
@@ -724,9 +724,9 @@ struct MarkdownWebView: NSViewRepresentable {
                         isWebViewLoaded = true
                         if !hasAppliedInitialZoomReset {
                             hasAppliedInitialZoomReset = true
-                            if let webView = message.webView {
-                                webView.pageZoom = AppearancePreference.shared.zoomLevel
-                                os_log("🔵 Initial pageZoom restored to %.2f at rendererReady", log: logger, type: .debug, webView.pageZoom)
+                            if let webView = message.webView as? NativeMagnifyingWebView {
+                                webView.readingZoom = AppearancePreference.shared.zoomLevel
+                                os_log("🔵 Initial readingZoom restored to %.2f at rendererReady", log: logger, type: .debug, webView.readingZoom)
                             }
                         }
                         pendingRender?()
@@ -734,7 +734,7 @@ struct MarkdownWebView: NSViewRepresentable {
                     }
                 }
             } else if message.name == "readingToolsLayout" {
-                let inset = ReadingToolbarLayout.trailingInset(body: message.body, zoom: message.webView?.pageZoom ?? 1)
+                let inset = ReadingToolbarLayout.trailingInset(body: message.body, zoom: 1)
                 NotificationCenter.default.post(name: ReadingToolbarLayout.notification, object: currentFileURL, userInfo: ["inset": inset])
             } else if message.name == "linkClicked", let href = message.body as? String {
                 os_log("🔵 Link clicked from JS: %{public}@", log: logger, type: .default, href)
@@ -798,7 +798,7 @@ struct MarkdownWebView: NSViewRepresentable {
                 return
             }
 
-            let resolvedSize = fontSize ?? (AppearancePreference.shared.baseFontSize * webView.pageZoom)
+            let resolvedSize = fontSize ?? (AppearancePreference.shared.baseFontSize * ((webView as? NativeMagnifyingWebView)?.readingZoom ?? 1))
             let exportScope = errorRegistry.scope
             webView.callAsyncJavaScript(RendererExportPreparation.pdfScript, arguments: ["fontSize":resolvedSize], in: nil, in: .page) { [weak self] result in
                 guard self?.errorRegistry.scope == exportScope else { return }
@@ -1079,8 +1079,6 @@ class ResizableWKWebView: NativeMagnifyingWebView {
 
     private var hasSetInitialSize = false
     private let logger = OSLog(subsystem: "com.markdownquicklook.app", category: "ResizableWKWebView")
-    private var cmdScrollAccumulator: CGFloat = 0
-    private var cmdScrollBaseZoom: CGFloat = 1.0
     
     override func willOpenMenu(_ menu: NSMenu, with event: NSEvent) {
         super.willOpenMenu(menu, with: event)
@@ -1101,48 +1099,6 @@ class ResizableWKWebView: NativeMagnifyingWebView {
         NotificationCenter.default.post(name: .toggleSearch, object: nil)
     }
     
-    override func scrollWheel(with event: NSEvent) {
-        guard event.modifierFlags.contains(.command) else {
-            super.scrollWheel(with: event)
-            return
-        }
-
-        let phase = event.phase
-        if phase == .mayBegin || phase == .cancelled {
-            super.scrollWheel(with: event)
-            return
-        }
-        if event.momentumPhase != [] {
-            return
-        }
-
-        let delta = event.scrollingDeltaY
-        guard abs(delta) > 0.1 else { return }
-
-        if phase == .began {
-            cmdScrollAccumulator = 0
-            cmdScrollBaseZoom = self.pageZoom
-        }
-
-        cmdScrollAccumulator += delta
-
-        let step: CGFloat = 0.05
-        let rawTarget = cmdScrollBaseZoom + cmdScrollAccumulator * 0.01
-        let clamped = min(3.0, max(0.5, rawTarget))
-        let snapped = (clamped / step).rounded() * step
-
-        if abs(snapped - self.pageZoom) >= step * 0.9 {
-            self.pageZoom = snapped
-        }
-
-        if phase == .ended {
-            let final = min(3.0, max(0.5, cmdScrollBaseZoom + cmdScrollAccumulator * 0.01))
-            self.pageZoom = final
-            AppearancePreference.shared.zoomLevel = final
-            os_log("🔵 Cmd+scroll pageZoom committed: %.2f", log: logger, type: .debug, final)
-        }
-    }
-
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
 
@@ -1150,7 +1106,7 @@ class ResizableWKWebView: NativeMagnifyingWebView {
         self.window?.minSize = WindowAccessor.minimumRestorableWindowSize
         hasSetInitialSize = true
 
-        self.pageZoom = AppearancePreference.shared.zoomLevel
+        self.readingZoom = AppearancePreference.shared.zoomLevel
     }
 }
 

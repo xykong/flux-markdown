@@ -1,4 +1,5 @@
 import XCTest
+import WebKit
 
 @MainActor
 final class NativeMagnificationTests: XCTestCase {
@@ -13,14 +14,29 @@ final class NativeMagnificationTests: XCTestCase {
     func testMagnificationClampsToSupportedRange() {
         XCTAssertEqual(
             NativeMagnifyingWebView.targetMagnification(current: 4.9, delta: 1.0),
-            5.0,
+            3.0,
             accuracy: 0.001
         )
         XCTAssertEqual(
             NativeMagnifyingWebView.targetMagnification(current: 0.3, delta: -1.0),
-            0.25,
+            0.5,
             accuracy: 0.001
         )
+    }
+
+    func testReadingZoomDoesNotMagnifyTheWebView() {
+        let view = NativeMagnifyingWebView(frame: .zero, configuration: WKWebViewConfiguration())
+        view.readingZoom = 2
+        XCTAssertEqual(view.readingZoom, 2)
+        XCTAssertEqual(view.pageZoom, 1)
+        XCTAssertEqual(view.magnification, 1)
+        XCTAssertFalse(view.allowsMagnification)
+        view.readingZoom = 10
+        XCTAssertEqual(view.readingZoom, 3)
+        view.readingZoom = 0.1
+        XCTAssertEqual(view.readingZoom, 0.5)
+        view.readingZoom = .nan
+        XCTAssertEqual(view.readingZoom, 0.5)
     }
 
     func testControlWheelRoutesToNativeScrollInsteadOfWebContentZoom() {
@@ -35,7 +51,7 @@ final class NativeMagnificationTests: XCTestCase {
         )
     }
 
-    func testBothHostsUseNativeMagnifyingWebViewWithoutJavaScriptZoomBridges() throws {
+    func testBothHostsShareReadingZoomGestureOwner() throws {
         let root = projectRoot()
         let quickLookSource = try String(
             contentsOf: root.appendingPathComponent("Sources/MarkdownPreview/PreviewViewController.swift"),
@@ -48,6 +64,8 @@ final class NativeMagnificationTests: XCTestCase {
 
         XCTAssertTrue(quickLookSource.contains("class InteractiveWebView: NativeMagnifyingWebView"))
         XCTAssertTrue(appSource.contains("class ResizableWKWebView: NativeMagnifyingWebView"))
+        XCTAssertFalse(quickLookSource.contains(".pageZoom ="))
+        XCTAssertFalse(appSource.contains(".pageZoom ="))
         XCTAssertFalse(quickLookSource.contains("name: \"pinchZoom\""))
         XCTAssertFalse(quickLookSource.contains("name: \"gestureZoom\""))
         XCTAssertFalse(appSource.contains("name: \"pinchZoom\""))

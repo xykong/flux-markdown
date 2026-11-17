@@ -1,3 +1,4 @@
+import { setReadingZoom, requestReadingZoom, ZoomPoint } from './reading-zoom';
 import './math-compat';
 import { installSVGZoom } from './svg-zoom';
 import { constrainSVGImage } from './svg-image-layout';
@@ -648,7 +649,8 @@ declare global {
         setContentsSide: (side: string) => void;
         updateTheme: (theme: string) => void;
         exportHTML: () => string;
-        setZoomLevel: (level: number) => void;
+        setZoomLevel: (level: number, point?: ZoomPoint) => void;
+        requestZoomLevel: (level: number, point?: ZoomPoint) => void;
         setFontSize: (px: number) => void;
         adjustFontSize: (delta: number) => void;
         showSearch: () => void;
@@ -1530,22 +1532,15 @@ document.addEventListener('mouseout', handleAnchorMouseOut);
 
 let currentZoomLevel = 1.0;
 
-window.setZoomLevel = function(level: number) {
-    const clamped = Math.max(0.5, Math.min(3.0, level));
-    currentZoomLevel = clamped;
-    const outputDiv = document.getElementById('markdown-preview');
-    if (outputDiv) {
-        // 清除旧的 transform hack（会导致布局不重排，修复 Bug 6）
-        outputDiv.style.transform = '';
-        outputDiv.style.transformOrigin = '';
-        outputDiv.style.width = '';
-        // 通过 CSS 变量驱动缩放，浏览器会触发真正的重排
-        if (clamped === 1.0) {
-            document.documentElement.style.removeProperty('--zoom-scale');
-        } else {
-            document.documentElement.style.setProperty('--zoom-scale', String(clamped));
-        }
-    }
+window.setZoomLevel = function(level: number, point?: ZoomPoint) {
+    if (!Number.isFinite(level)) return;
+    currentZoomLevel = Math.max(0.5, Math.min(3.0, level));
+    setReadingZoom(currentZoomLevel, point);
+};
+window.requestZoomLevel = function(level: number, point?: ZoomPoint) {
+    if (!Number.isFinite(level)) return;
+    currentZoomLevel = Math.max(0.5, Math.min(3.0, level));
+    requestReadingZoom(currentZoomLevel, point);
 };
 
 function applyZoomLevel(level: number) {

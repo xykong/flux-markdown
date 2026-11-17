@@ -13,6 +13,22 @@ class NativeMagnifyingWebView: WKWebView {
 
     private var magnificationGestureRecognizer: NSMagnificationGestureRecognizer?
     private var magnificationBase: CGFloat = 1.0
+    private var gestureAnchor: CGPoint?
+    private var readingGestureID = 0
+    private var finishingGesture = false
+    private var wheelAccumulator: CGFloat = 0
+    private var wheelBase: CGFloat = 1
+
+    /// The reading column owns zoom; application chrome stays at 100%.
+    var readingZoom: CGFloat = 1.0 {
+        didSet {
+            let value = min(3, max(0.5, readingZoom))
+            guard readingZoom.isFinite else { readingZoom = oldValue; return }
+            if value != readingZoom { readingZoom = value }
+            let point = gestureAnchor.map { ", {x: \($0.x), y: \($0.y), gesture: \(readingGestureID), finished: \(finishingGesture)}" } ?? ""
+            evaluateJavaScript("window.requestZoomLevel?.(\(value)\(point))", completionHandler: nil)
+        }
+    }
 
     override init(frame: CGRect, configuration: WKWebViewConfiguration) {
         super.init(frame: frame, configuration: configuration)
@@ -25,7 +41,7 @@ class NativeMagnifyingWebView: WKWebView {
     }
 
     static func targetMagnification(current: CGFloat, delta: CGFloat) -> CGFloat {
-        min(5.0, max(0.25, current * (1.0 + delta)))
+        min(3.0, max(0.5, current * (1.0 + delta)))
     }
 
     static func shouldRouteControlWheelAsScroll(_ modifierFlags: NSEvent.ModifierFlags) -> Bool {
@@ -33,6 +49,17 @@ class NativeMagnifyingWebView: WKWebView {
     }
 
     override func scrollWheel(with event: NSEvent) {
+        if event.modifierFlags.contains(.command) {
+            guard event.momentumPhase == [], event.phase != .cancelled, event.phase != .mayBegin else { return }
+            if event.phase == .began || event.phase == [] {
+                wheelAccumulator = 0
+                wheelBase = readingZoom
+            }
+            wheelAccumulator += event.scrollingDeltaY
+            readingZoom = min(3, max(0.5, wheelBase + wheelAccumulator * 0.01))
+            AppearancePreference.shared.zoomLevel = readingZoom
+            return
+        }
         if Self.shouldRouteControlWheelAsScroll(event.modifierFlags) {
             let deltaX = event.scrollingDeltaX
             let deltaY = event.scrollingDeltaY
@@ -42,11 +69,24 @@ class NativeMagnifyingWebView: WKWebView {
         super.scrollWheel(with: event)
     }
 
-    override func smartMagnify(with event: NSEvent) {
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.25
-            self.animator().magnification = 1.0
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        let flags = event.modifierFlags
+        if (flags.contains(.command) || flags.contains(.control)), !flags.contains(.option) {
+            switch event.charactersIgnoringModifiers {
+            case "+", "=": readingZoom += 0.1
+            case "-", "_": readingZoom -= 0.1
+            case "0": readingZoom = 1
+            default: return super.performKeyEquivalent(with: event)
+            }
+            AppearancePreference.shared.zoomLevel = readingZoom
+            return true
         }
+        return super.performKeyEquivalent(with: event)
+    }
+
+    override func smartMagnify(with event: NSEvent) {
+        readingZoom = 1
+        AppearancePreference.shared.zoomLevel = 1
     }
 
     private func configureNativeMagnification() {
@@ -64,10 +104,25 @@ class NativeMagnifyingWebView: WKWebView {
     @objc private func handleNativeMagnification(_ recognizer: NSMagnificationGestureRecognizer) {
         switch recognizer.state {
         case .began:
-            magnificationBase = magnification
+            magnificationBase = readingZoom
+            readingGestureID += 1
+            finishingGesture = false
+            let location = recognizer.location(in: self)
+            gestureAnchor = CGPoint(x: location.x, y: isFlipped ? location.y : bounds.height - location.y)
             applyMagnification(from: recognizer)
-        case .changed, .ended:
+        case .changed:
             applyMagnification(from: recognizer)
+        case .ended:
+            finishingGesture = true
+            applyMagnification(from: recognizer)
+            AppearancePreference.shared.zoomLevel = readingZoom
+            gestureAnchor = nil
+        case .cancelled:
+            finishingGesture = true
+            let current = readingZoom
+            readingZoom = current
+            AppearancePreference.shared.zoomLevel = readingZoom
+            gestureAnchor = nil
         default:
             break
         }
@@ -78,6 +133,6 @@ class NativeMagnifyingWebView: WKWebView {
             current: magnificationBase,
             delta: recognizer.magnification
         )
-        setMagnification(target, centeredAt: recognizer.location(in: self))
+        readingZoom = target
     }
 }

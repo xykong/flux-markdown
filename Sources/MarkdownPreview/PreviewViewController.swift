@@ -56,26 +56,6 @@ class InteractiveWebView: NativeMagnifyingWebView {
         return super.acceptsFirstResponder
     }
     
-    override func scrollWheel(with event: NSEvent) {
-        guard event.phase == .changed || event.phase == .began else {
-            super.scrollWheel(with: event)
-            return
-        }
-
-        if event.modifierFlags.contains(.command) {
-            let delta = event.scrollingDeltaY
-            guard abs(delta) > 0.1 else {
-                super.scrollWheel(with: event)
-                return
-            }
-            let newZoom = max(0.5, min(3.0, self.pageZoom + (delta > 0 ? 0.05 : -0.05)))
-            self.pageZoom = newZoom
-            AppearancePreference.shared.zoomLevel = newZoom
-            os_log("🔵 Cmd+scroll zoom: %.2f", log: logger, type: .debug, newZoom)
-            return
-        }
-        super.scrollWheel(with: event)
-    }
 
 }
 
@@ -487,7 +467,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         webView.addGestureRecognizer(doubleClickGesture)
         
         // Zoom is session-only; always start at 1.0 (Bug 2 fix)
-        webView.pageZoom = 1.0
+        webView.readingZoom = 1.0
         
         #if DEBUG
         setupDebugLabel()
@@ -1156,22 +1136,22 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     }
     
     @objc private func zoomIn() {
-        webView.pageZoom = min(3.0, webView.pageZoom + 0.1)
-        AppearancePreference.shared.zoomLevel = webView.pageZoom
-        os_log("🔵 pageZoom in: %.2f", log: logger, type: .debug, webView.pageZoom)
+        webView.readingZoom = min(3.0, webView.readingZoom + 0.1)
+        AppearancePreference.shared.zoomLevel = webView.readingZoom
+        os_log("🔵 readingZoom in: %.2f", log: logger, type: .debug, webView.readingZoom)
     }
     
     @objc private func zoomOut() {
-        webView.pageZoom = max(0.5, webView.pageZoom - 0.1)
-        AppearancePreference.shared.zoomLevel = webView.pageZoom
-        os_log("🔵 pageZoom out: %.2f", log: logger, type: .debug, webView.pageZoom)
+        webView.readingZoom = max(0.5, webView.readingZoom - 0.1)
+        AppearancePreference.shared.zoomLevel = webView.readingZoom
+        os_log("🔵 readingZoom out: %.2f", log: logger, type: .debug, webView.readingZoom)
     }
     
     @objc private func resetZoom() {
-        webView.pageZoom = 1.0
+        webView.readingZoom = 1.0
         AppearancePreference.shared.zoomLevel = 1.0
         showToolbarFeedbackToast(NSLocalizedString("Zoom reset", comment: "Reset zoom toast"))
-        os_log("🔵 pageZoom reset", log: logger, type: .debug)
+        os_log("🔵 readingZoom reset", log: logger, type: .debug)
     }
 
     @objc private func reloadFileManually() {
@@ -1350,8 +1330,8 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
             self.logScreenEnvironment(context: "preparePreviewOfFile-ASYNC-START")
 
             let savedZoom = AppearancePreference.shared.zoomLevel
-            self.webView.pageZoom = savedZoom
-            os_log("🔵 Restored pageZoom to %.2f for new file preview", log: self.logger, type: .debug, savedZoom)
+            self.webView.readingZoom = savedZoom
+            os_log("🔵 Restored readingZoom to %.2f for new file preview", log: self.logger, type: .debug, savedZoom)
 
             // Reset tracking to prevent capturing layout thrashing during display switching.
             // This is necessary because when QuickLook switches displays or reuses the view controller,
@@ -1661,7 +1641,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                 renderCurrentMode()
             }
         } else if message.name == "readingToolsLayout" {
-            themeTrailingConstraint?.constant = -ReadingToolbarLayout.trailingInset(body: message.body, zoom: message.webView?.pageZoom ?? 1)
+            themeTrailingConstraint?.constant = -ReadingToolbarLayout.trailingInset(body: message.body, zoom: 1)
             view.needsLayout = true
         } else if message.name == "linkClicked", let href = message.body as? String {
             os_log("🔵 Link clicked from JS: %{public}@", log: logger, type: .default, href)
