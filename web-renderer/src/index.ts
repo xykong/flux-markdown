@@ -1,3 +1,6 @@
+import { diagramActionResult } from './diagram-actions';
+import { beginReadingRender, finishReadingRender, captureReadingState, restoreReadingState, navigateReadingHistory, updateNavigation, jumpToReadingTarget, saveReadingState, ReadingState } from './reading-state';
+import { closeDiagramFocus, stepFocusedDiagram, scrollReadingSurface } from './diagram-focus';
 import { setReadingZoom, requestReadingZoom, applyPinchZoom, requestPinchZoom, resetZoomAt, ZoomPoint } from './reading-zoom';
 import './math-compat';
 import { installSVGZoom } from './svg-zoom';
@@ -496,7 +499,7 @@ window.waitForExportReady = async (timeoutMs = 15000) => {
         if (timer !== undefined) clearTimeout(timer);
     }
 };
-window.prepareExport = () => prepareExport(() => window.waitForExportReady());
+window.prepareExport = () => {closeDiagramFocus();return prepareExport(() => window.waitForExportReady());};
 window.waitForRenderComplete = async () => {
     const generation = renderGeneration;
     await currentRender;
@@ -527,6 +530,8 @@ interface RenderOptions {
     imageData?: Record<string, string>;
     fontSize?: number;
     codeHighlightTheme?: string;
+    documentId?: string;
+    readingState?: ReadingState;
     enableMermaid?: boolean;
     enableKatex?: boolean;
     enableTypst?: boolean;
@@ -787,6 +792,7 @@ function preloadStylesheets() {
 setTimeout(preloadStylesheets, 500);
 
 window.exportHTML = function(): string {
+    closeDiagramFocus();
     // SVG mathematics contains its glyph definitions. Unused application font
     // faces otherwise leave broken app-relative requests in standalone HTML.
     let cssText = collectStylesheetRules(!!document.querySelector('#markdown-preview .katex'));
@@ -907,6 +913,8 @@ window.verifyQuickLookProbe = (heading, boldText) => {
 };
 
 window.renderMarkdown = async function (text: string, options: RenderOptions = {}) {
+    closeDiagramFocus();
+    const preservedReading=beginReadingRender(options.documentId);
     disposeBlockCopy();
     disposeMermaidLayout?.(); disposeMermaidLayout = undefined;
     disposeSVGZoom?.(); disposeSVGZoom = undefined;
@@ -1021,6 +1029,8 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
             readingStatus?.render(text, options.filename);
             updateReadingControlsLayout();
             toc?.render([]);
+            finishReadingRender(options.readingState,preservedReading);
+            completedRenderGeneration = callId;
             logToSwift(`[renderMarkdown:${callId}] TSV rendered rows=${rendered.result.rows.length} columns=${rendered.result.columns}`);
             return;
         }
@@ -1260,6 +1270,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         readingStatus?.render(text, options.filename, options.prevContent);
         // Refresh the shared active-heading selection after asynchronous diagrams settle.
         window.dispatchEvent(new Event('scroll'));
+        finishReadingRender(options.readingState,preservedReading);
         completedRenderGeneration = callId;
         logToSwift(`[renderMarkdown:${callId}] COMPLETE`);
     } catch (e) {
@@ -1278,6 +1289,8 @@ window.renderMarkdown = (text, options) => {
 };
 
 window.renderSource = function(text: string, theme: string, prevContent?: string, options: RenderOptions = {}) {
+    closeDiagramFocus();
+    const preservedReading=beginReadingRender(options.documentId);
     disposeMathLayout?.(); disposeMathLayout = undefined;
     window.__fluxLang = options.uiLanguage === "system" ? undefined : options.uiLanguage ?? window.__fluxLang;
     applyInterfaceDirection();
@@ -1316,6 +1329,7 @@ window.renderSource = function(text: string, theme: string, prevContent?: string
         toc?.render([]);
         searchUI?.refresh();
         readingStatus?.render(text, options.filename);
+        finishReadingRender(options.readingState,preservedReading);
         return;
     }
     outputDiv.classList.add('source-mode');
@@ -1339,6 +1353,7 @@ window.renderSource = function(text: string, theme: string, prevContent?: string
             if (row && id) row.id = id;
         }
         searchUI?.refresh();
+        finishReadingRender(options.readingState,preservedReading);
         logToSwift(`[Source View] Rendered ${text.length} characters with theme: ${theme}`);
     } catch (e) {
         logToSwift("JS Error during source rendering: " + e);
@@ -1448,7 +1463,7 @@ function handleAnchorClick(e: Event) {
             const scrollTarget = anchor.classList.contains('math-reference-link')
                 ? targetElement.closest<HTMLElement>('.flux-math-source') || targetElement
                 : targetElement;
-            scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            jumpToReadingTarget(scrollTarget);
         }
         return;
     }
@@ -1459,6 +1474,7 @@ function handleAnchorClick(e: Event) {
     try {
         if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.linkClicked) {
             // @ts-ignore
+            saveReadingState();
             window.webkit.messageHandlers.linkClicked.postMessage(href);
         }
     } catch (error) {
@@ -1557,8 +1573,8 @@ window.applyPinchZoom = (base, delta, point) => {
     if (level !== null) currentZoomLevel = level;
     return level;
 };
-window.requestPinchZoom = (base, delta, point) => {
-    const level = requestPinchZoom(base, delta, point);
+window.requestPinchZoom = (_base, delta, point) => {
+    const level = requestPinchZoom(currentZoomLevel, delta, point);
     if (level !== null) currentZoomLevel = level;
     return level;
 };
@@ -1626,6 +1642,10 @@ window.navigateDocumentPosition = function(position: DocumentPosition): boolean 
     return true;
 };
 
-Object.assign(window, { blockCopyResult, setFeedbackGeneration: (value: string) => { disposeBlockCopy(); setFeedbackGeneration(value); } });
+Object.assign(window, { stepReadingZoom:(delta:number | null)=>{
+    if(stepFocusedDiagram(delta))return null;
+    const level=delta===null?1:Math.max(0.5,Math.min(3,currentZoomLevel+delta));
+    window.requestZoomLevel(level);return level;
+}, closeDiagramFocus, scrollReadingSurface, diagramActionResult, captureReadingState, restoreReadingState, navigateReadingHistory, updateReadingNavigation:updateNavigation, blockCopyResult, setFeedbackGeneration: (value: string) => { disposeBlockCopy(); setFeedbackGeneration(value); } });
 if (document.body) installErrorFeedback(document.body);
 else document.addEventListener("DOMContentLoaded", () => installErrorFeedback(document.body), { once: true });

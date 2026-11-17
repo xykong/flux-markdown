@@ -71,6 +71,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     private var truncationNotice: NSTextField?
     private let errorRegistry = RendererErrorRegistry()
     private let blockCopyBridge = BlockCopyBridge()
+    private let diagramExportBridge = DiagramExportBridge()
     private var diagnosticAttempt = UUID()
     private func logDiagnosticStage(_ stage: QuickLookDiagnosticStage, error: Error? = nil) {
         guard let url = currentURL, let token = QuickLookProbeEvidence.token(for: url) else { return }
@@ -412,6 +413,8 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         userContentController.add(self, name: "readingToolsLayout")
         userContentController.add(self, name: "errorFeedback")
         userContentController.add(self, name: "blockCopy")
+        userContentController.add(self, name: "readingJourney")
+        userContentController.add(self, name: "diagramAction")
         webConfiguration.userContentController = userContentController
         
         let schemeHandler = LocalSchemeHandler()
@@ -1095,7 +1098,10 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         let sourceURL = currentURL
         errorRegistry.sourceContext = { (content, sourceURL) }
         webView.evaluateJavaScript("window.setFeedbackGeneration && window.setFeedbackGeneration('\(feedbackGeneration)');", completionHandler: nil)
-        let sourceOptions = "{format: '\(currentURL?.pathExtension.lowercased() == "tsv" ? "tsv" : "markdown")', isTruncated: \(previewIsTruncated)}"
+        var sourceOptionsObject:[String:Any]=["format":currentURL?.pathExtension.lowercased()=="tsv" ? "tsv":"markdown","isTruncated":previewIsTruncated,"context":"quicklook","uiLanguage":AppearancePreference.shared.uiLanguage]
+        if let url=currentURL{sourceOptionsObject.merge(ReadingJourneyBridge.options(for:url)){_,new in new}}
+        guard let optionsData=try? JSONSerialization.data(withJSONObject:sourceOptionsObject),let sourceOptions=String(data:optionsData,encoding:.utf8) else{return}
+
         var callJs: String
         if let prev = capturedPrevForSource, !prev.isEmpty,
            let prevData = try? JSONSerialization.data(withJSONObject: [prev]),
@@ -1136,20 +1142,17 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     }
     
     @objc private func zoomIn() {
-        webView.readingZoom = min(3.0, webView.readingZoom + 0.1)
-        AppearancePreference.shared.zoomLevel = webView.readingZoom
+        webView.stepReadingZoom(0.1)
         os_log("🔵 readingZoom in: %.2f", log: logger, type: .debug, webView.readingZoom)
     }
     
     @objc private func zoomOut() {
-        webView.readingZoom = max(0.5, webView.readingZoom - 0.1)
-        AppearancePreference.shared.zoomLevel = webView.readingZoom
+        webView.stepReadingZoom(-0.1)
         os_log("🔵 readingZoom out: %.2f", log: logger, type: .debug, webView.readingZoom)
     }
     
     @objc private func resetZoom() {
-        webView.readingZoom = 1.0
-        AppearancePreference.shared.zoomLevel = 1.0
+        webView.stepReadingZoom()
         showToolbarFeedbackToast(NSLocalizedString("Zoom reset", comment: "Reset zoom toast"))
         os_log("🔵 readingZoom reset", log: logger, type: .debug)
     }
@@ -1452,6 +1455,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                 options["isTruncated"] = capturedTruncated
             }
             if let url = capturedURL {
+                options.merge(ReadingJourneyBridge.options(for:url)){_,new in new}
                 options["filename"] = url.lastPathComponent
                 options["baseUrl"] = url.deletingLastPathComponent().path
                 let imageData = url.pathExtension.lowercased() == "tsv" ? [:] : MarkdownImageDataCollector.collectImageData(from: url, content: content)
@@ -1518,7 +1522,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                     
                     if let url = self.currentURL,
                        let savedScrollY = AppearancePreference.shared.getScrollPosition(for: url.path),
-                       savedScrollY > 0 {
+                       savedScrollY > 0, ReadingJourneyStore.shared.state(for:url)==nil {
                         
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             guard self.renderVersion.isCurrent(capturedRenderVersion), self.currentURL == capturedURL else { return }
@@ -1627,6 +1631,11 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard RendererBridgePolicy.accepts(message) else { return }
+        if message.name == "diagramAction" {
+            let generation=errorRegistry.scope.uuidString
+            diagramExportBridge.handle(message,generation:generation,fileURL:currentURL,quickLook:true,isCurrent:{[weak self] in self?.errorRegistry.scope.uuidString==generation},reload:{[weak self] in self?.reloadFileManually()});return
+        }
+        if message.name == "readingJourney" {ReadingJourneyBridge.handle(message,url:currentURL,generation:errorRegistry.scope.uuidString,allowNavigation:false);return}
         if message.name == "blockCopy" { blockCopyBridge.handle(message, generation: errorRegistry.scope.uuidString, enabled: AppearancePreference.shared.showCopyButtons && currentPreviewMode != .compact); return }
         if message.name == "errorFeedback" { errorRegistry.handle(message.body); return }
         if message.name == "logger", let body = message.body as? String {

@@ -19,8 +19,6 @@ class NativeMagnifyingWebView: WKWebView {
     private var pinchSample = 0
     private var lastPinchDelta: CGFloat = 0
     private var syncingPinchResult = false
-    private var wheelAccumulator: CGFloat = 0
-    private var wheelBase: CGFloat = 1
 
     /// The reading column owns zoom; application chrome stays at 100%.
     var readingZoom: CGFloat = 1.0 {
@@ -33,6 +31,25 @@ class NativeMagnifyingWebView: WKWebView {
             let point = gestureAnchor.map { ", {x: \($0.x), y: \($0.y), gesture: \(readingGestureID), finished: \(finishingGesture)}" } ?? ""
             evaluateJavaScript("window.requestZoomLevel?.(\(value)\(point))", completionHandler: nil)
         }
+    }
+
+    func stepReadingZoom(_ delta: CGFloat? = nil) {
+        pinchSample += 1
+        let sample=pinchSample
+        let argument=delta.map{String(Double($0))} ?? "null"
+        evaluateJavaScript("window.stepReadingZoom?.(\(argument))") { [weak self] value,_ in
+            guard let self,self.pinchSample==sample,let level=value as? NSNumber else{return}
+            self.adoptReadingZoom(CGFloat(level.doubleValue))
+            AppearancePreference.shared.zoomLevel=self.readingZoom
+        }
+    }
+
+    func adoptReadingZoom(_ value: CGFloat) {
+        guard value.isFinite else { return }
+        pinchSample += 1
+        syncingPinchResult=true
+        readingZoom=min(3,max(0.5,value))
+        syncingPinchResult=false
     }
 
     override init(frame: CGRect, configuration: WKWebViewConfiguration) {
@@ -56,19 +73,13 @@ class NativeMagnifyingWebView: WKWebView {
     override func scrollWheel(with event: NSEvent) {
         if event.modifierFlags.contains(.command) {
             guard event.momentumPhase == [], event.phase != .cancelled, event.phase != .mayBegin else { return }
-            if event.phase == .began || event.phase == [] {
-                wheelAccumulator = 0
-                wheelBase = readingZoom
-            }
-            wheelAccumulator += event.scrollingDeltaY
-            readingZoom = min(3, max(0.5, wheelBase + wheelAccumulator * 0.01))
-            AppearancePreference.shared.zoomLevel = readingZoom
+            stepReadingZoom(event.scrollingDeltaY * 0.01)
             return
         }
         if Self.shouldRouteControlWheelAsScroll(event.modifierFlags) {
             let deltaX = event.scrollingDeltaX
             let deltaY = event.scrollingDeltaY
-            evaluateJavaScript("window.scrollBy(\(deltaX), \(deltaY))", completionHandler: nil)
+            evaluateJavaScript("window.scrollReadingSurface ? window.scrollReadingSurface(\(deltaX), \(deltaY)) : window.scrollBy(\(deltaX), \(deltaY))", completionHandler: nil)
             return
         }
         super.scrollWheel(with: event)
@@ -78,12 +89,11 @@ class NativeMagnifyingWebView: WKWebView {
         let flags = event.modifierFlags
         if (flags.contains(.command) || flags.contains(.control)), !flags.contains(.option) {
             switch event.charactersIgnoringModifiers {
-            case "+", "=": readingZoom += 0.1
-            case "-", "_": readingZoom -= 0.1
-            case "0": readingZoom = 1
+            case "+", "=": stepReadingZoom(0.1)
+            case "-", "_": stepReadingZoom(-0.1)
+            case "0": stepReadingZoom()
             default: return super.performKeyEquivalent(with: event)
             }
-            AppearancePreference.shared.zoomLevel = readingZoom
             return true
         }
         return super.performKeyEquivalent(with: event)

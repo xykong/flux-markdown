@@ -1,3 +1,4 @@
+import { jumpToReadingTarget } from './reading-state';
 import type { HeadingNode } from './outline';
 import { readingLabels, updateReadingControlsLayout, captureReadingAnchor, restoreReadingAnchor, ReadingAnchor } from './reading-controls';
 
@@ -141,7 +142,7 @@ export class TableOfContents {
                 if (!target) return;
                 if (!this.wide) this.closeOverlay(document.documentElement.dataset.context === 'app');
                 const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-                target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+                jumpToReadingTarget(target);
                 this.setActiveItem(target.id);
             });
             item.appendChild(link);

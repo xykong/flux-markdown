@@ -1,3 +1,4 @@
+import { showZoomFeedback } from './reading-workflow-ui';
 import { diagramZoomAt } from './diagram-zoom-controls';
 /** Zoom the reading column without scaling application chrome. */
 export interface ZoomPoint { x: number; y: number; gesture?: number; finished?: boolean }
@@ -58,6 +59,8 @@ export function setReadingZoom(level: number, point?: ZoomPoint): void {
     root.style.setProperty('width', 'auto');
     if (zoom === 1) document.documentElement.style.removeProperty('--zoom-scale');
     else document.documentElement.style.setProperty('--zoom-scale', String(zoom));
+    showZoomFeedback(zoom, 'document');
+    window.dispatchEvent(new Event('readingZoomChanged'));
     const after = anchor.target.getBoundingClientRect();
     window.scrollBy({top: after.top + after.height * anchor.fraction - anchor.viewportY, left: 0, behavior: 'instant' as ScrollBehavior});
 }
@@ -85,6 +88,7 @@ interface PinchSession {
     id: number;
     diagram?: DiagramTarget;
     factor: number;
+    base: number;
     x: number;
     y: number;
     fractionX: number;
@@ -96,7 +100,7 @@ function preparePinch(base: number, delta: number, point: ZoomPoint): { level: n
     if (!pinch || pinch.id !== point.gesture || (pinch.diagram && !pinch.diagram.host.isConnected)) {
         const diagram = diagramZoomAt(point);
         const rect = diagram?.drawing.getBoundingClientRect();
-        pinch = { id: point.gesture, diagram, factor: diagram?.controls.factor ?? 1,
+        pinch = { id: point.gesture, diagram, base, factor: diagram?.controls.factor ?? 1,
             x: point.x, y: point.y,
             fractionX: rect ? (point.x - rect.left) / rect.width : 0,
             fractionY: rect ? (point.y - rect.top) / rect.height : 0 };
@@ -104,7 +108,7 @@ function preparePinch(base: number, delta: number, point: ZoomPoint): { level: n
     const session = pinch;
     if (point.finished) pinch = undefined;
     const ratio = Math.max(0.01, 1 + delta);
-    const level = session.diagram ? null : Math.max(0.5, Math.min(3, base * ratio));
+    const level = session.diagram ? null : Math.max(0.5, Math.min(3, session.base * ratio));
     return { level, apply: () => {
         if (level !== null) { setReadingZoom(level, point); return; }
         const { diagram } = session;
@@ -114,8 +118,9 @@ function preparePinch(base: number, delta: number, point: ZoomPoint): { level: n
         const viewport = diagram.viewport;
         const scale = viewport.getBoundingClientRect().width / Math.max(1, viewport.offsetWidth);
         viewport.scrollLeft += (rect.left + rect.width * session.fractionX - session.x) / scale;
-        window.scrollBy({ top: rect.top + rect.height * session.fractionY - session.y,
-            left: 0, behavior: 'instant' as ScrollBehavior });
+        const deltaY=rect.top + rect.height * session.fractionY - session.y;
+        if(viewport.classList.contains('focus-stage'))viewport.scrollTop+=deltaY/scale;
+        else window.scrollBy({top:deltaY,left:0,behavior:'instant' as ScrollBehavior});
     } };
 }
 

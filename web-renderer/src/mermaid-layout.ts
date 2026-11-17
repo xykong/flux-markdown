@@ -31,7 +31,7 @@ export function installMermaidLayout(root: HTMLElement): () => void {
             // Fit against the column at 100%. Scaling padding/gutters must not
             // shrink this baseline and cancel the user's requested enlargement.
             const available = entry.viewport.clientWidth + root.clientWidth * (readingZoom - 1);
-            const base = diagramScale(entry.width, Math.max(1, available), bodyFont, entry.font);
+            const base = diagramScale(entry.width, entry.host.closest('#diagram-focus') ? 0 : Math.max(1, available), bodyFont, entry.font);
             const factor = entry.controls.factor;
             const width = `${entry.width * base * factor}px`;
             if (entry.svg.style.width !== width) entry.svg.style.width = width;

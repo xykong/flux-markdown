@@ -10,10 +10,67 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private let mathPasteboard = NSPasteboard.withUniqueName()
     private let mathCopyBridge = BlockCopyBridge()
     private var failNextMathCopy = false
+    private let diagramExport=DiagramExportService()
+    private let diagramPasteboard=NSPasteboard.withUniqueName()
     private var started = false
     private var index = 0
     private var feedbackEvents: [[String: Any]] = []
     private var cases: [(String, String)] = [
+        ("Reading workflow focus navigation and refresh", """
+        const text=Array.from({length:45},(_,i)=>'## Chapter '+i+'\\n\\nDistinct paragraph for chapter '+i+'. '+('Readable text. '.repeat(25))).join('\\n\\n')+'\\n\\n```mermaid\\nflowchart LR; A[Inspect]-->B[Diagram];\\n```';
+        await window.renderMarkdown(text,{context:'app',documentId:'workflow-a',uiLanguage:'en'});
+        const root=document.getElementById('markdown-preview');
+        root.querySelectorAll('p')[20].scrollIntoView({block:'center'});
+        window.setZoomLevel(1.5);
+        const before=window.captureReadingState();
+        const media=window.matchMedia;window.matchMedia=()=>({matches:true});
+        document.querySelector('#toc-container a[href="#chapter-35"]').click();
+        if(window.captureReadingState().hash===before.hash)throw new Error('TOC did not jump');
+        window.navigateReadingHistory(-1);
+        const back=window.captureReadingState();
+        if(back.hash!==before.hash || Math.abs(back.top-before.top)>3 || back.zoom!==before.zoom)throw new Error('Back lost reading state');
+        window.navigateReadingHistory(1);window.matchMedia=media;
+        root.querySelectorAll('p')[20].scrollIntoView({block:'center'});
+        const saved=window.captureReadingState();
+        await window.renderMarkdown('Inserted paragraph.\\n\\n'+text,{context:'app',documentId:'workflow-a',uiLanguage:'en'});
+        const restored=window.captureReadingState();
+        if(saved.hash!==restored.hash || Math.abs(saved.top-restored.top)>3)throw new Error('semantic refresh did not preserve paragraph');
+        const host=document.querySelector('.mermaid');host.scrollIntoView({block:'center'});
+        const origin=window.captureReadingState(), originalSVG=host.querySelector('svg');
+        host.querySelector('[data-diagram-action=focus]').click();
+        const dialog=document.getElementById('diagram-focus'),stage=dialog?.querySelector('.focus-stage');
+        if(!dialog || !stage.contains(originalSVG) || root.contains(host))throw new Error('focus did not move the original drawing');
+        const box=originalSVG.getBoundingClientRect();
+        if(box.width>stage.clientWidth+2 || box.height>stage.clientHeight+2)throw new Error('fit-to-window overflow');
+        dialog.querySelector('.focus-toolbar button:nth-child(2)').click();
+        if(host.querySelector('[data-diagram-zoom=reset]').textContent!=='100%')throw new Error('focus 100 percent failed');
+        if(window.stepReadingZoom(0.1)!==null || host.querySelector('[data-diagram-zoom=reset]').textContent!=='125%')throw new Error('focus keyboard zoom targeted document');
+        window.stepReadingZoom(null);
+        if(root.style.getPropertyValue('zoom')!=='1.5')throw new Error('focus zoom changed background document');
+        dialog.querySelector('.focus-toolbar button:last-child').click();
+        if(document.getElementById('diagram-focus') || !root.contains(originalSVG))throw new Error('focus close lost diagram');
+        const closed=window.captureReadingState();
+        if(closed.hash!==origin.hash || Math.abs(closed.top-origin.top)>3)throw new Error('focus close lost reading location');
+        host.querySelector('[data-diagram-action=focus]').click();
+        const exported=window.exportHTML();
+        const exportedDocument=new DOMParser().parseFromString(exported,'text/html');
+        if(document.getElementById('diagram-focus') || !exportedDocument.querySelector('.mermaid svg') || exportedDocument.querySelector('.diagram-tools'))throw new Error('document export lost focused diagram or included tools');
+        window.setZoomLevel(1);return true;
+        """),
+        ("Reading workflow diagram native artifacts", """
+        window.__workflowResults=[];
+        window.setFeedbackGeneration('workflow-probe');
+        await window.renderMarkdown('## Export\\n\\n```mermaid\\nflowchart LR; A[Standalone diagram]-->B[Native PNG and SVG];\\n```',{context:'app',uiLanguage:'en'});
+        await window.waitForExportReady();
+        const tools=document.querySelector('.mermaid .diagram-tools');
+        for(const action of ['copy','png','svg']) {
+          tools.querySelector('[data-diagram-action='+action+']').click();
+          const end=performance.now()+12000, expected=action==='copy'?'copied':'saved';
+          while(window.__workflowResults.length<(['copy','png','svg'].indexOf(action)+1) && performance.now()<end)await new Promise(r=>setTimeout(r,50));
+          if(window.__workflowResults.at(-1)?.status!==expected)throw new Error('native artifact missing acknowledgement: '+action);
+        }
+        return true;
+        """),
         ("Reading zoom Mermaid pinch and fixed controls", """
         for(const context of ['app','quicklook']) {
           window.setZoomLevel(1);
@@ -40,7 +97,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
           if(other.getBoundingClientRect().width!==otherWidth || getComputedStyle(root).fontSize!==bodySize || root.style.getPropertyValue('zoom')!=='1')throw new Error('diagram pinch changed body or other drawing');
           if(Math.abs(tools.querySelector('button').getBoundingClientRect().width-button.width)>1)throw new Error('diagram pinch scaled controls');
           if(viewport.scrollWidth<=viewport.clientWidth)throw new Error('zoomed diagram lacks local scrolling');
-          tools.querySelector('button:last-child').click();
+          tools.querySelector('[data-diagram-zoom=in]').click();
           if(Math.abs(svg.getBoundingClientRect().width/base.width-2.5)>0.04)throw new Error('button and gesture scales diverged');
           const beforeGlobal=svg.getBoundingClientRect().width;
           window.setZoomLevel(2);
@@ -145,7 +202,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
             if(image.getBoundingClientRect().width>root.getBoundingClientRect().width+1)throw new Error('diagram exceeds reading column');
             if(table.scrollWidth<=table.clientWidth)throw new Error('wide table lost local scrolling');
           }
-          root.querySelector('.svg-image-diagram .diagram-tools button:last-child').click();
+          root.querySelector('.svg-image-diagram .diagram-tools [data-diagram-zoom=in]').click();
           const localWidth=image.getBoundingClientRect().width;
           window.setZoomLevel(1.5);window.setZoomLevel(1);
           if(Math.abs(image.getBoundingClientRect().width-localWidth)>1)throw new Error('reading zoom erased diagram scale');
@@ -172,7 +229,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
           buttons[0].click();if(images[0].getBoundingClientRect().width>=base)throw new Error('SVG zoom out failed');
           buttons[1].click();buttons[2].focus();
           if(getComputedStyle(hosts[0].querySelector('.diagram-tools')).opacity!=='1')throw new Error('SVG keyboard controls hidden');
-          root.querySelector('.mermaid .diagram-tools button:last-child').click();
+          root.querySelector('.mermaid .diagram-tools [data-diagram-zoom=in]').click();
           if(mermaid.getBoundingClientRect().width<=mermaidBase || images[0].getBoundingClientRect().width!==base)throw new Error('Mermaid zoom not independent');
           if(images[1].closest('a')?.href!=='https://example.com/')throw new Error('SVG link lost');
           root.style.width='360px';root.style.maxWidth='none';
@@ -418,6 +475,10 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         window.webkit.messageHandlers.logger.postMessage('TSV 20,000 cells render ms: '+elapsed);
         if(elapsed>1000 || document.querySelectorAll('td').length!==20000 || document.querySelector('#markdown-preview img')) return false;
         if(!window.exportHTML().includes('tsv-truncated')) return false;
+        const snapshot=window.captureReadingState();snapshot.zoom=1.5;
+        await window.renderMarkdown('a\\tb\\n1\\t2',{format:'tsv',context:'app',documentId:'tsv-reopen',readingState:snapshot});
+        if(document.getElementById('markdown-preview').style.getPropertyValue('zoom')!=='1.5')return false;
+        window.setZoomLevel(1);
         window.renderSource('a\\tb\\npartial','dark',undefined,{format:'tsv',isTruncated:true});
         if(!document.querySelector('.tsv-truncated'))return false;
         await window.renderMarkdown('# Restored',{uiLanguage:'en'});
@@ -785,6 +846,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         let config = WKWebViewConfiguration()
         config.userContentController.add(self, name: "logger")
         config.userContentController.add(self, name: "blockCopy")
+        config.userContentController.add(self, name: "diagramAction")
         config.userContentController.add(self, name: "nativeMathKey")
         config.userContentController.add(self, name: "errorFeedback")
         config.setURLSchemeHandler(RendererBundleSchemeHandler(rootDirectory: URL(fileURLWithPath: CommandLine.arguments[1])), forURLScheme: RendererBundleSchemeHandler.scheme)
@@ -807,6 +869,24 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     }
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
         guard RendererBridgePolicy.accepts(message) else { print("FAIL bridge origin"); exit(1) }
+        if message.name == "diagramAction" {
+            guard let request=DiagramExportRequest.decode(message.body,generation:"workflow-probe") else{print("FAIL diagram request validation");exit(1)}
+            let directory=ProcessInfo.processInfo.environment["FLUX_WORKFLOW_ARTIFACT_DIR"] ?? CommandLine.arguments[2]
+            try! FileManager.default.createDirectory(atPath:directory,withIntermediateDirectories:true)
+            let destination=URL(fileURLWithPath:directory).appendingPathComponent("diagram-"+request.id+"."+(request.action=="svg" ? "svg":"png"))
+            diagramExport.perform(request,destination:destination,pasteboard:diagramPasteboard){result in
+                switch result {
+                case .failure(let error):print("FAIL diagram export service: \(error)");exit(1)
+                case .success(let status):
+                    if request.action=="copy" {
+                        guard let data=self.diagramPasteboard.data(forType:.png),NSBitmapImageRep(data:data) != nil else{print("FAIL PNG clipboard readback");exit(1)}
+                        try! data.write(to:destination)
+                    }
+                    self.webView.callAsyncJavaScript("window.diagramActionResult(id,generation,status);window.__workflowResults=(window.__workflowResults||[]).concat({id,status});",arguments:["id":request.id,"generation":request.generation,"status":status],in:nil,in:.page,completionHandler:nil)
+                }
+            }
+            return
+        }
         if message.name == "blockCopy" {
             if failNextMathCopy, let body = message.body as? [String: Any],
                let id = body["id"] as? String, let generation = body["generation"] as? String {
@@ -846,7 +926,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private func next() {
         if index == cases.count { print("PASS all \(cases.count) real WebKit cases"); exit(0) }
         let (name, js) = cases[index]
-        if name.hasPrefix("Reading zoom") { webView.setFrameSize(NSSize(width: name.contains("narrow") ? 600 : 1200, height: 800)) }
+        if name.hasPrefix("Reading zoom") || name.hasPrefix("Reading workflow") { webView.setFrameSize(NSSize(width: name.contains("narrow") ? 600 : 1200, height: 800)) }
         if name == "compact feedback focus and text bounds" { webView.setFrameSize(NSSize(width: 480, height: 480)) }
         if name == "compact feedback focus and text bounds" || name == "inline math copy controls preserve text spacing" || name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
             // :focus-within requires an active WebKit page, not just activeElement

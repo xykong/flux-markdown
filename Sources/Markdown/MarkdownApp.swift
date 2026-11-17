@@ -111,6 +111,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 struct MarkdownApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @ObservedObject var preference = AppearancePreference.shared
+    @ObservedObject private var readingJourney=ReadingJourneyStore.shared
     @ObservedObject private var feedbackFollowUp = FeedbackFollowUpController.shared
 
     @State private var viewMode: ViewMode = .preview
@@ -217,6 +218,10 @@ struct MarkdownApp: App {
                 }
             }
             CommandGroup(after: .toolbar) {
+                Button(NSLocalizedString("Back",comment:"Reading navigation")){NotificationCenter.default.post(name:Notification.Name("FluxMarkdown.readingBack"),object:nil)}.keyboardShortcut("[").disabled(!readingJourney.canBack)
+                Button(NSLocalizedString("Forward",comment:"Reading navigation")){NotificationCenter.default.post(name:Notification.Name("FluxMarkdown.readingForward"),object:nil)}.keyboardShortcut("]").disabled(!readingJourney.canForward)
+                Divider()
+
                 Button(action: {
                     viewMode = (viewMode == .preview) ? .source : .preview
                 }) {

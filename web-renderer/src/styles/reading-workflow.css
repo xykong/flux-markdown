@@ -1,0 +1,22 @@
+#zoom-feedback { position:fixed;inset:auto 24px 24px auto;z-index:2147483647;padding:8px 14px;border-radius:10px;background:var(--reading-bg,Canvas);color:var(--reading-text,CanvasText);box-shadow:0 2px 12px #0003;font:13px system-ui;pointer-events:none; }
+#zoom-feedback[hidden] {display:none;}
+#diagram-focus {position:fixed;inset:0;z-index:2147483000;background:var(--reading-bg,Canvas);color:var(--reading-text,CanvasText);display:flex;flex-direction:column;font:13px system-ui;}
+#diagram-focus .focus-toolbar {display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px;border-bottom:1px solid #8885;flex-shrink:0;}
+#diagram-focus button,#reading-navigation button {font:inherit;color:inherit;background:var(--reading-bg,Canvas);border:1px solid #8888;border-radius:6px;min-height:30px;padding:4px 10px;cursor:pointer;}
+#diagram-focus button:focus-visible,#reading-navigation button:focus-visible {outline:2px solid Highlight;outline-offset:2px;}
+#diagram-focus .focus-stage {overflow:auto;flex:1;min-height:0;overscroll-behavior:contain;}
+#diagram-focus .focus-stage > * {margin:0;min-width:100%;}
+#diagram-focus .diagram-tools {opacity:1;pointer-events:auto;}
+#diagram-focus .mermaid-viewport,#diagram-focus .svg-image-viewport {overflow:visible;max-width:none;}
+#reading-navigation {display:inline-flex;gap:4px;margin-inline:8px;}
+#reading-navigation button:disabled {opacity:.4;cursor:default;}
+@media print {#zoom-feedback,#diagram-focus,#reading-navigation{display:none!important;}}
+.diagram-export-menu {position:relative;font:inherit;}
+.diagram-export-menu summary {cursor:pointer;min-width:28px;min-height:28px;text-align:center;list-style:none;border:1px solid #8888;border-radius:5px;}
+.diagram-export-menu[open] {z-index:20;}
+.diagram-export-menu[open] button {display:block;min-width:130px;white-space:nowrap;}
+.diagram-export-menu[open] {background:var(--reading-bg,Canvas);box-shadow:0 2px 8px #0003;border-radius:6px;}
+
+.diagram-tools {flex-wrap:wrap;}
+.diagram-export-menu[open] {height:28px;background:transparent;box-shadow:none;}
+.diagram-export-menu .diagram-export-options {position:absolute;inset:100% 0 auto auto;min-width:max-content;background:var(--reading-bg,Canvas);box-shadow:0 2px 8px #0003;border-radius:6px;}

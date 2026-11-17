@@ -25,7 +25,9 @@ export function installSVGZoom(root: HTMLElement): () => void {
             // Measure the same automatic baseline as before controls existed.
             // This also handles explicit icon widths and responsive font limits.
             entry.img.style.cssText = entry.style;
-            const width = entry.img.getBoundingClientRect().width / (parseFloat(root.style.getPropertyValue('zoom')) || 1);
+            const focused=!!entry.host.closest('#diagram-focus');
+            if(focused){entry.img.style.maxWidth='none';entry.img.style.width=entry.img.naturalWidth+'px';}
+            const width = entry.img.getBoundingClientRect().width / (focused?1:(parseFloat(root.style.getPropertyValue('zoom')) || 1));
             const ready = entry.img.naturalWidth > 0 && width > 0;
             entry.controls.setReady(ready);
             if (!ready || entry.controls.factor === 1) continue;

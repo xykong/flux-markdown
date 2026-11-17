@@ -202,3 +202,7 @@
 "A previous upload is saved. Continue to verify its receipt." = "تم حفظ رفع سابق. تابع للتحقق من إيصال الاستلام.";
 
 "Attachments go to FluxMarkdown (t.xykong.cc), privately by default. Only maintainers can retrieve private files; GitHub shows a reference only. Enable public sharing to publish a download link. Unlinked files expire in 7 days; private files within 30 days. You can delete uploaded files here." = "تُرسل المرفقات إلى FluxMarkdown ‏(t.xykong.cc) بشكل خاص افتراضيًا. يسترجعها المشرفون فقط ويعرض GitHub رقمًا مرجعيًا. حدد المشاركة العامة لنشر رابط تنزيل. تنتهي غير المرتبطة بعد 7 أيام والخاصة خلال 30 يومًا. يمكنك حذفها هنا.";
+
+"Diagram could not be copied or saved" = "تعذر نسخ المخطط أو حفظه";
+
+"Try the diagram action again, or choose another writable folder. Your document is unchanged." = "حاول الإجراء مرة أخرى أو اختر مجلدًا آخر قابلًا للكتابة. لم يتغير مستندك.";

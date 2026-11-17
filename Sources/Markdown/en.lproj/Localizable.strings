@@ -362,3 +362,11 @@
 "A previous upload is saved. Continue to verify its receipt." = "A previous upload is saved. Continue to verify its receipt.";
 
 "Attachments go to FluxMarkdown (t.xykong.cc), privately by default. Only maintainers can retrieve private files; GitHub shows a reference only. Enable public sharing to publish a download link. Unlinked files expire in 7 days; private files within 30 days. You can delete uploaded files here." = "Attachments go to FluxMarkdown (t.xykong.cc), privately by default. Only maintainers can retrieve private files; GitHub shows a reference only. Enable public sharing to publish a download link. Unlinked files expire in 7 days; private files within 30 days. You can delete uploaded files here.";
+
+"Diagram could not be copied or saved" = "Diagram could not be copied or saved";
+
+"Try the diagram action again, or choose another writable folder. Your document is unchanged." = "Try the diagram action again, or choose another writable folder. Your document is unchanged.";
+
+/* Reading navigation */
+"Back" = "Back";
+"Forward" = "Forward";

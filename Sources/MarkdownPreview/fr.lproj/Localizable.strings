@@ -207,3 +207,7 @@
 "A previous upload is saved. Continue to verify its receipt." = "Un envoi précédent est enregistré. Continuez pour vérifier sa réception.";
 
 "Attachments go to FluxMarkdown (t.xykong.cc), privately by default. Only maintainers can retrieve private files; GitHub shows a reference only. Enable public sharing to publish a download link. Unlinked files expire in 7 days; private files within 30 days. You can delete uploaded files here." = "Les pièces jointes sont privées par défaut sur FluxMarkdown (t.xykong.cc). Seuls les responsables peuvent les récupérer ; GitHub affiche une référence. Cochez pour publier un lien. Sans Issue : 7 jours ; privé : 30 jours maximum. Suppression possible ici.";
+
+"Diagram could not be copied or saved" = "Impossible de copier ou enregistrer le diagramme";
+
+"Try the diagram action again, or choose another writable folder. Your document is unchanged." = "Réessayez ou choisissez un autre dossier accessible en écriture. Votre document reste inchangé.";
