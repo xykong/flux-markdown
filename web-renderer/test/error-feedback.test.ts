@@ -150,3 +150,37 @@ test('diagram failures retain independent source ranges without sending diagram 
     expect(JSON.stringify(records)).not.toContain('secret diagram');
     stop();
 });
+
+describe('compact feedback entry', () => {
+    it('shows only a red feedback entry until activated, and Escape closes it', () => {
+        const postMessage = jest.fn();
+        window.webkit = {messageHandlers:{logger:{postMessage:jest.fn()},linkClicked:{postMessage:jest.fn()},errorFeedback:{postMessage}}};
+        window.__fluxLang = 'zh'; setFeedbackGeneration('compact');
+        document.body.innerHTML = '<div class="math-error">bad formula</div>';
+        const stop = installErrorFeedback(document.body);
+        const trigger = document.querySelector<HTMLButtonElement>('[data-feedback-action="toggle"]')!;
+        const panel = document.querySelector<HTMLElement>('.error-feedback-panel')!;
+        expect(trigger.textContent).toBe('! 反馈');
+        expect(trigger.getAttribute('aria-expanded')).toBe('false');
+        expect(panel.hidden).toBe(true);
+        trigger.click();
+        expect(panel.hidden).toBe(false);
+        expect(trigger.getAttribute('aria-expanded')).toBe('true');
+        expect(postMessage.mock.calls.map(call => call[0].action)).toEqual(['record']);
+        panel.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape', bubbles:true}));
+        expect(panel.hidden).toBe(true);
+        expect(document.activeElement).toBe(trigger);
+        stop();
+    });
+    it('unwraps recovered images and never repeats nested math error entry', async () => {
+        setFeedbackGeneration('compact-cleanup');
+        document.body.innerHTML = '<img class="image-load-failed"><div class="math-error"><span class="katex-error">bad</span></div>';
+        const stop = installErrorFeedback(document.body);
+        expect(document.querySelectorAll('[data-feedback-action="toggle"]')).toHaveLength(2);
+        document.querySelector('img')!.classList.remove('image-load-failed');
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(document.querySelectorAll('[data-feedback-action="toggle"]')).toHaveLength(1);
+        expect(document.querySelector('img')!.parentElement).toBe(document.body);
+        stop();
+    });
+});

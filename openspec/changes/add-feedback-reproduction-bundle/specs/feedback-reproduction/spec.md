@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Optional reproduction material from the error
-The product SHALL retain the existing one-action diagnostic-only feedback path and offer an optional reproduction-material action at the same error. Users SHALL be able to choose no content, a reviewable editable failed fragment, or a complete document, with separately selectable referenced local assets. The product SHALL explain that selected content will be sent to GitHub and may become public before any transfer. It SHALL NOT claim that filenames or content have been automatically anonymized.
+The product SHALL show a single red feedback entry at the upper-right of a renderer error region. Activating it SHALL reveal recovery, diagnostic-only reporting and optional reproduction-material actions without opening GitHub or transferring content. This supersedes the previous always-visible action row following user acceptance feedback. Users SHALL be able to choose no content, a reviewable editable failed fragment, or a complete document, with separately selectable referenced local assets. The product SHALL explain that selected content will be sent to GitHub and may become public before any transfer. It SHALL NOT claim that filenames or content have been automatically anonymized.
 
 #### Scenario: Share a complete public document
 - **WHEN** the user selects the complete document and confirms the displayed material selection

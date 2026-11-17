@@ -158,3 +158,8 @@ Display formula copy actions also float instead of reserving an invisible row. B
 | Reproduction editor / package failures | Preserve draft, remove resources/use smaller sample/change save location; ZIP remains local until user uploads | arm64 and Intel package probe + system unzip; real GitHub upload pending |
 | Issue polling failure / rate limit | Preserve unread state, explicit retry or later check; cannot clear reminders by polling | Injected 304/429/503 and pagination tests; live #73 readback |
 | Reply browser-open failure | Keep unread marker, retry or copy exact comment link | Native controller open-injection and persisted-state readback; real system notification click pending |
+
+
+## 2026-11-17：验收调整——紧凑反馈入口
+
+用户要求错误区域只保留右上角红色“! 反馈”，点击后再展示恢复、报告、复现材料、我的反馈与披露说明。该显式验收要求取代 renderer 的常驻恢复/报告按钮排布；原生渲染失败后备仍保留。详见 [DEBUG_COMPACT_ERROR_FEEDBACK.md](DEBUG_COMPACT_ERROR_FEEDBACK.md)。

@@ -794,6 +794,7 @@ window.exportHTML = function(): string {
     clone.querySelectorAll('.block-copy-tools, .mermaid-tools, .diagram-tools').forEach(control => control.remove());
     clone.querySelectorAll('.block-copy-host').forEach(host => host.replaceWith(...Array.from(host.childNodes)));
     clone.querySelectorAll('.error-feedback-controls').forEach(control => control.remove());
+    clone.querySelectorAll('.error-feedback-region').forEach(region => region.replaceWith(...Array.from(region.childNodes)));
     clone.querySelectorAll('.search-highlight').forEach(mark => mark.replaceWith(document.createTextNode(mark.textContent || '')));
     clone.querySelectorAll('.math-search-highlight, .search-highlight-active').forEach(node => node.classList.remove('math-search-highlight', 'search-highlight-active'));
     clone.querySelectorAll<HTMLElement>('.blockquote-placeholder').forEach(placeholder => {

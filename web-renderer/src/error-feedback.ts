@@ -1,3 +1,5 @@
+import './styles/error-feedback.css';
+
 type ErrorKind = 'renderer' | 'source' | 'mermaid' | 'typst' | 'graphviz' | 'vega' | 'math' | 'search' | 'images' | 'copy';
 let generation = '';
 export function feedbackGeneration(): string { return generation; }
@@ -26,12 +28,15 @@ export function installErrorFeedback(root: HTMLElement): () => void {
     function scan(): void {
         for (const [element, controls] of externalControls) {
             if (!root.contains(element) || (element.tagName === 'IMG' && !element.classList.contains('image-load-failed'))) {
+                const region = controls.parentElement;
                 controls.remove(); externalControls.delete(element); attached.delete(element);
+                if (region?.classList.contains('error-feedback-region')) region.replaceWith(...Array.from(region.childNodes));
             }
         }
         for (const [selector, kind] of selectors) {
             root.querySelectorAll<HTMLElement>(selector).forEach(element => {
                 if (!generation || element.style.display === 'none') return;
+                if (element.parentElement?.closest(selectors.map(([selector]) => selector).join(','))) return;
                 if (attached.get(element) === generation && (element.querySelector('.error-feedback-controls') || externalControls.get(element)?.isConnected)) return;
                 attached.set(element, generation);
                 const eventGeneration = generation;
@@ -48,8 +53,34 @@ export function installErrorFeedback(root: HTMLElement): () => void {
                 const id = (shareIncident ? groupIDs.get(group) : undefined) || String(++nextID);
                 if (shareIncident) groupIDs.set(group, id);
                 const labels = translations[(window.__fluxLang || navigator.language).split('-')[0]] || translations.en;
-                const controls = document.createElement('div'); controls.className = 'error-feedback-controls';
-                controls.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;font:13px system-ui;';
+                const controls = document.createElement('span'); controls.className = 'error-feedback-controls';
+                const trigger = document.createElement('button'); trigger.type = 'button';
+                trigger.className = 'error-feedback-trigger'; trigger.dataset.feedbackAction = 'toggle';
+                const triggerLabels: Record<string, string> = {en:'Feedback', zh:'反馈', de:'Feedback', fr:'Signaler', es:'Informar', ar:'ملاحظات'};
+                trigger.textContent = '! ' + (triggerLabels[(window.__fluxLang || navigator.language).split('-')[0]] || triggerLabels.en);
+                const panel = document.createElement('span'); panel.className = 'error-feedback-panel'; panel.hidden = true;
+                panel.id = 'error-feedback-panel-' + (++nextID);
+                panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-label', labels[0]);
+                trigger.setAttribute('aria-expanded', 'false'); trigger.setAttribute('aria-controls', panel.id);
+                function closePanel(restoreFocus = false): void {
+                    panel.hidden = true; trigger.setAttribute('aria-expanded', 'false');
+                    if (restoreFocus && trigger.isConnected) trigger.focus();
+                }
+                trigger.addEventListener('click', event => {
+                    event.preventDefault(); event.stopPropagation();
+                    if (generation !== eventGeneration || !root.contains(element)) return;
+                    if (!panel.hidden) { closePanel(); return; }
+                    root.querySelectorAll<HTMLButtonElement>('.error-feedback-trigger[aria-expanded="true"]').forEach(other => { if (other !== trigger) other.click(); });
+                    panel.hidden = false; trigger.setAttribute('aria-expanded', 'true');
+                    panel.querySelector<HTMLButtonElement>('button')?.focus();
+                });
+                controls.addEventListener('keydown', event => {
+                    if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closePanel(true); }
+                });
+                controls.addEventListener('focusout', () => {
+                    queueMicrotask(() => { if (!controls.contains(document.activeElement)) closePanel(); });
+                });
+                controls.append(trigger, panel);
                 const hint = document.createElement('span'); hint.textContent = labels[2]; hint.style.width = '100%';
                 if (element.classList.contains('math-input-limit')) {
                     const limitHints: Record<string, string> = {
@@ -81,12 +112,12 @@ export function installErrorFeedback(root: HTMLElement): () => void {
                     const reloadHints: Record<string, string> = { en: 'Reload the document. If this continues, download and reinstall FluxMarkdown.', zh: '请重载文档；如果仍然失败，可以下载并重新安装 FluxMarkdown。', de: 'Lade das Dokument erneut. Falls das Problem bleibt, lade FluxMarkdown herunter und installiere es erneut.', fr: 'Rechargez le document. Si le problème persiste, téléchargez et réinstallez FluxMarkdown.', es: 'Vuelve a cargar el documento. Si el problema persiste, descarga y reinstala FluxMarkdown.', ar: 'أعد تحميل المستند. إذا استمر ذلك، نزّل FluxMarkdown وأعد تثبيته.' };
                     hint.textContent = reloadHints[(window.__fluxLang || navigator.language).split('-')[0]] || reloadHints.en;
                 }
-                if (kind !== 'copy') controls.appendChild(hint);
+                if (kind !== 'copy') panel.appendChild(hint);
                 const post = (action: 'record' | 'report' | 'inspect' | 'recover' | 'materials' | 'followUp'): void => {
                     if (generation !== eventGeneration || !root.contains(element)) return;
                     const bridge = window.webkit?.messageHandlers.errorFeedback;
                     if (bridge) bridge.postMessage({ action, kind, generation: eventGeneration, id, reason, ...sourceRange });
-                    else if (action !== 'record') { hint.textContent = labels[4]; if (!hint.isConnected) controls.prepend(hint); }
+                    else if (action !== 'record') { hint.textContent = labels[4]; if (!hint.isConnected) panel.prepend(hint); }
                 };
                 const recoveryLabels: Record<string, [string, string, string]> = {
                     en: ['Open in Editor', 'Reload', 'Edit Search'], zh: ['在编辑器中打开', '重新载入', '修改搜索'],
@@ -106,12 +137,12 @@ export function installErrorFeedback(root: HTMLElement): () => void {
                     if (kind === 'search') root.querySelector<HTMLInputElement>('.search-input')?.focus();
                     else post('recover');
                 });
-                controls.appendChild(recovery);
+                panel.appendChild(recovery);
                 for (const [action, label] of [['report', labels[0]], ['inspect', labels[1]]] as const) {
                     const button = document.createElement('button'); button.type = 'button'; button.textContent = label;
                     button.dataset.feedbackAction = action;
                     button.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); post(action); });
-                    controls.appendChild(button);
+                    panel.appendChild(button);
                 }
                 const materialLabels: Record<string, [string, string]> = {
                     en: ['Attach Reproduction Materials…', 'My Feedback'], zh: ['附带复现材料…', '我的反馈'],
@@ -123,23 +154,24 @@ export function installErrorFeedback(root: HTMLElement): () => void {
                     const button = document.createElement('button'); button.type = 'button'; button.textContent = label;
                     button.dataset.feedbackAction = action;
                     button.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); post(action); });
-                    controls.appendChild(button);
+                    panel.appendChild(button);
                 }
-                const disclosure = document.createElement('small'); disclosure.textContent = labels[3]; disclosure.style.width = '100%'; controls.appendChild(disclosure);
-                // Native syntax errors may be inline spans or images; do not put block UI inside them.
-                if (element.tagName === 'IMG' || element.classList.contains('katex-error') || element.classList.contains('math-error')) { element.insertAdjacentElement('afterend', controls); externalControls.set(element, controls); }
-                else {
-                    if (kind !== 'search' && kind !== 'copy') {
-                        const details = document.createElement('details');
-                        details.className = 'error-technical-details';
-                        const summary = document.createElement('summary');
-                        const titles: Record<string, string> = { en: 'Technical details', zh: '技术详情', de: 'Technische Details', fr: 'Détails techniques', es: 'Detalles técnicos', ar: 'التفاصيل التقنية' };
-                        summary.textContent = titles[(window.__fluxLang || navigator.language).split('-')[0]] || titles.en;
-                        while (element.firstChild) details.appendChild(element.firstChild);
-                        details.prepend(summary); element.appendChild(details);
-                    }
-                    element.prepend(controls);
+                const disclosure = document.createElement('small'); disclosure.textContent = labels[3]; disclosure.style.width = '100%'; panel.appendChild(disclosure);
+                // Wrap only failed content so the one visible entry belongs to its
+                // own upper-right corner; native inline nodes keep valid HTML.
+                if (!['math', 'images', 'search', 'copy'].includes(kind)) {
+                    const details = document.createElement('details');
+                    const summary = document.createElement('summary');
+                    const titles: Record<string, string> = {en:'Technical details', zh:'技术详情', de:'Technische Details', fr:'Détails techniques', es:'Detalles técnicos', ar:'التفاصيل التقنية'};
+                    summary.textContent = titles[(window.__fluxLang || navigator.language).split('-')[0]] || titles.en;
+                    while (element.firstChild) details.appendChild(element.firstChild);
+                    details.prepend(summary); panel.appendChild(details);
                 }
+                const inline = element.tagName === 'IMG' || element.tagName === 'SPAN';
+                const region = document.createElement(inline ? 'span' : 'div');
+                region.className = 'error-feedback-region' + (inline ? ' error-feedback-region-inline' : '');
+                element.before(region); region.append(element, controls);
+                externalControls.set(element, controls);
                 post('record');
             });
         }

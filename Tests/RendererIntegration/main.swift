@@ -289,13 +289,35 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         window.setFeedbackGeneration('11111111-1111-1111-1111-111111111111');
         await window.renderMarkdown('```mermaid\\nSAMPLE-DO-NOT-INCLUDE ! invalid\\n```');
         await new Promise(resolve=>setTimeout(resolve,20));
-        const button=document.querySelector('.mermaid-error [data-feedback-action="report"]');
+        const trigger=document.querySelector('.error-feedback-region [data-feedback-action="toggle"]');
+        const panel=document.querySelector('.error-feedback-panel');
+        if(!trigger || !panel || !panel.hidden)return false;
+        trigger.click();
+        if(panel.hidden || trigger.getAttribute('aria-expanded')!=='true')return false;
+        const button=panel.querySelector('[data-feedback-action="report"]');
         if(!button)return false;
         button.click();
         const exported=window.exportHTML();
         window.setFeedbackGeneration('22222222-2222-2222-2222-222222222222');
         button.click();
         return !exported.includes('data-feedback-action=');
+        """),
+        ("compact mathematical feedback entry", """
+        window.setFeedbackGeneration('33333333-3333-3333-3333-333333333333');
+        await window.renderMarkdown('$$'+String.fromCharCode(10)+String.fromCharCode(92)+'unknownMarkdownPreviewCommand{x}'+String.fromCharCode(10)+'$$',{uiLanguage:'zh-Hans'});
+        await new Promise(resolve=>setTimeout(resolve,20));
+        const region=document.querySelector('.error-feedback-region');
+        const trigger=region?.querySelector('[data-feedback-action="toggle"]');
+        const panel=region?.querySelector('.error-feedback-panel');
+        if(!region || !trigger || !panel || !panel.hidden || trigger.textContent!=='! 反馈')throw new Error('compact entry absent: '+document.getElementById('markdown-preview').innerHTML);
+        const box=region.getBoundingClientRect(), badge=trigger.getBoundingClientRect();
+        if(Math.abs(box.right-badge.right)>12 || badge.top<box.top || badge.top>box.top+12)throw new Error('compact geometry '+JSON.stringify({box:box.toJSON(),badge:badge.toJSON()}));
+        if([...panel.querySelectorAll('button')].some(button=>button.getClientRects().length))return false;
+        trigger.click();
+        if(panel.hidden || !panel.querySelector('[data-feedback-action="materials"]'))return false;
+        panel.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+        const exported=window.exportHTML();
+        if(!panel.hidden || new DOMParser().parseFromString(exported,'text/html').querySelector('.error-feedback-region, [data-feedback-action]'))throw new Error('compact cleanup failed'); return true;
         """),
         ("passive HTML", "await window.renderMarkdown('<img src=\"missing.png\" onerror=\"window.pwned=true\"><details><summary>ok</summary></details>'); return !document.querySelector('[onerror]') && !window.pwned && !!document.querySelector('details');"),
         ("new render wins", "const a=window.renderMarkdown('# OLD\\n\\n$x$'); const b=window.renderMarkdown('# NEW',{enableKatex:false}); await Promise.all([a,b]); return document.querySelector('h1').textContent==='NEW';"),
