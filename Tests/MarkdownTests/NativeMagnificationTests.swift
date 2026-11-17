@@ -79,3 +79,44 @@ private func projectRoot() -> URL {
         .deletingLastPathComponent()
         .deletingLastPathComponent()
 }
+
+@MainActor
+private final class PinchRecordingWebView: NativeMagnifyingWebView {
+    var scripts: [String] = []
+    var replies: [((Any?, Error?) -> Void)?] = []
+    override func evaluateJavaScript(_ javaScriptString: String, completionHandler: ((Any?, Error?) -> Void)? = nil) {
+        scripts.append(javaScriptString); replies.append(completionHandler)
+    }
+}
+
+private final class TestMagnificationGesture: NSMagnificationGestureRecognizer {
+    var phase: NSGestureRecognizer.State = .began
+    override var state: NSGestureRecognizer.State { get { phase } set { phase = newValue } }
+    override func location(in view: NSView?) -> NSPoint { NSPoint(x:100,y:100) }
+}
+
+extension NativeMagnificationTests {
+    func testDiagramReplyLeavesGlobalZoomUnchangedAndBodyReplyDoesNotEcho() {
+        let view = PinchRecordingWebView(frame:NSRect(x:0,y:0,width:500,height:500), configuration:WKWebViewConfiguration())
+        view.readingZoom = 2
+        view.scripts.removeAll(); view.replies.removeAll()
+        let gesture=TestMagnificationGesture()
+        gesture.magnification = 0
+        view.perform(NSSelectorFromString("handleNativeMagnification:"),with:gesture)
+        gesture.phase = .changed;gesture.magnification = 0.5
+        view.perform(NSSelectorFromString("handleNativeMagnification:"),with:gesture)
+        XCTAssertEqual(view.scripts.count,2)
+        XCTAssertTrue(view.scripts.allSatisfy { $0.hasPrefix("window.requestPinchZoom") })
+        view.replies[0]?(NSNumber(value:1.1),nil) // Obsolete response must not win.
+        XCTAssertEqual(view.readingZoom,2)
+        view.replies[1]?(NSNull(),nil) // A diagram owns this gesture.
+        XCTAssertEqual(view.readingZoom,2)
+        gesture.magnification = 0.25
+        view.perform(NSSelectorFromString("handleNativeMagnification:"),with:gesture)
+        view.replies[2]?(NSNumber(value:2.5),nil)
+        XCTAssertEqual(view.readingZoom,2.5)
+        XCTAssertEqual(view.scripts.count,3) // Renderer state is absorbed, not sent back.
+        XCTAssertEqual(view.pageZoom,1)
+        XCTAssertEqual(view.magnification,1)
+    }
+}

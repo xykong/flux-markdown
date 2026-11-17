@@ -57,3 +57,30 @@ xcodebuild -project FluxMarkdown.xcodeproj -scheme Markdown -configuration Debug
   ONLY_ACTIVE_ARCH=YES -jobs 2 test \
   -only-testing:MarkdownTests/NativeMagnificationTests -only-testing:MarkdownTests/AppZoomTests
 ```
+
+## 验收反馈第二轮（2026-11-18，基线 f24bae3）
+用户指出文件菜单重复“打开/打开最近使用”，以及 Mermaid 未放大、只有外围文字和控件变大。
+- 已定位：Mermaid 每次按缩小后的 CSS 列宽重新 fit，抵消正文 zoom；图表工具栏继承正文 zoom。原测试没有覆盖 Mermaid 的这组组合行为。
+- 先定义验收：图上双指仅改变该图，另一张图/正文字号/目录/按钮屏幕尺寸不变；40 个连续样本中图内锚点偏移 ≤3 px；手势即使移出图也不换目标；反向、结束/取消、新手势、先按钮后手势和手势后按钮均连续；大图可在局部横向滚动。
+- 正文 200% 时 Mermaid 实际绘图必须放大，工具按钮尺寸误差 ≤1 px，图本身超宽只在图内滚动。对 Mermaid / SVG 共用控件保持一致。
+- 菜单必须在欢迎页和文档窗口真实运行状态各只有一个 Open 和 Open Recent；Cmd+O 和最近文件历史保留，不能只靠源码字符串断言。
+- 修改后重跑真实 WebKit、Jest、原生相关检查，再安装明确标识的开发版供用户继续验收。
+
+### 第二轮实现与结果
+- 双指开始时命中 Mermaid / 独立 SVG，整个手势锁定该图，按累计增量修改与按钮共用的连续倍率；保存图内归一化坐标并补偿图内水平滚动、页面垂直滚动。正文、另一张图和全局阅读倍率不变。结束/取消后释放目标，新手势重新命中。
+- 原生只转发双指样本，renderer 回传全局倍率或 null（图表）。原生忽略过期回调并吸收倍率结果，不再次发起缩放，避免异步回写相互覆盖；取消时使用最后有效增量。
+- Mermaid 自动 fit 使用 100% 阅读列基准，连正文 padding/行号栏的变化一起补偿；否则简单乘 zoom 仍会抵消部分放大。工具栏反向抵消正文倍率，实际按钮保持固定尺寸。
+- 文件菜单保留 DocumentGroup 自带的 Open / Cmd+O，删除自定义重复 Open；保留持久化 Recent，按原生 clearRecentDocuments 动作识别并移除系统 Recent。监听菜单条目变化进行幂等整理，Recent 放在 Open 后面。实装探测曾发现系统会在 applicationWillUpdate 之后补回 Open，因此没有继续与它争用菜单所有权。
+- Apple 参考：[DocumentGroup](https://developer.apple.com/documentation/swiftui/documentgroup)、[CommandGroup](https://developer.apple.com/documentation/swiftui/commandgroup)。本机 SDK/真实 SwiftUI 探针确认新旧命令分组不能只凭 .newItem 的名称推断覆盖范围。
+- 69 组 Jest / 629 项通过；9 项原生缩放、菜单、最近历史测试通过。SwiftUI 独立运行探针在欢迎页与新建文档状态均只有一个 Open / Recent；安装后的 App 通过 AX 只读菜单回读，打开文档前后均只有一组且顺序正确。主进程闲置 CPU 0%，未观察到菜单监听重建循环。
+- Apple Silicon 与 Intel `he-macpro` 的 4 组真实 WebKit 缩放检查通过；新增宽大 Mermaid 局部双指 40 个样本、图内锚点 ≤3 px、移出图不切目标、按钮后倍率衔接、全局 200% 时真实画布放大、按钮尺寸 ≤1 px 误差。另补 18 节点纵向高图（大于视口高度），连续 40 个样本检查图内垂直锚点与 2 倍实际高度。
+- 已安装并后台启动 `/Applications/FluxMarkdown.app`，显示版本 `1.51.834-dev-zoom2`；App/QuickLook 两份 renderer 共 173 文件分别与已验证产物摘要一致，codesign 深度验证通过。保留上一版备份，现有编辑器关联与最近文件历史保留。
+- 已打开扩充的 `Tests/fixtures/zoom-test.md`，包含两张独立 Mermaid 及图上/正文手势说明。真实触控板的主观体验由用户继续验收；未发布正式版本。
+
+第二轮复验：
+```sh
+FLUX_WEBKIT_CASE_FILTER='Mermaid pinch' scripts/test-renderer-webkit.sh
+swiftc -parse-as-library Sources/Shared/DocumentMenuPolicy.swift \
+  Tests/DocumentMenuIntegration/Probe.swift -o /tmp/flux-menu-probe-test
+/tmp/flux-menu-probe-test
+```

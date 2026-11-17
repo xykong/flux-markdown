@@ -1,5 +1,6 @@
 ## [Unreleased]
 ### Fixed
+- **Mermaid gestures and File menu**: Pinch the diagram under the pointer without resizing surrounding text; keep diagram controls at a stable size, share continuous scales with their buttons, and prevent automatic fitting from cancelling reading zoom. Remove duplicate native Open/Open Recent entries while preserving durable recent-file history.
 - **Reading zoom**: Keep the outline and controls at a stable size while pinch, keyboard and Command-scroll zoom only the reading column. Preserve the text under the gesture throughout reflow, share the same 50–300% scale and reset across controls, and avoid multiplying PDF print size by the reading zoom twice.
 
 ### Changed

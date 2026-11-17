@@ -16,12 +16,17 @@ class NativeMagnifyingWebView: WKWebView {
     private var gestureAnchor: CGPoint?
     private var readingGestureID = 0
     private var finishingGesture = false
+    private var pinchSample = 0
+    private var lastPinchDelta: CGFloat = 0
+    private var syncingPinchResult = false
     private var wheelAccumulator: CGFloat = 0
     private var wheelBase: CGFloat = 1
 
     /// The reading column owns zoom; application chrome stays at 100%.
     var readingZoom: CGFloat = 1.0 {
         didSet {
+            if syncingPinchResult { return }
+            pinchSample += 1
             let value = min(3, max(0.5, readingZoom))
             guard readingZoom.isFinite else { readingZoom = oldValue; return }
             if value != readingZoom { readingZoom = value }
@@ -115,13 +120,10 @@ class NativeMagnifyingWebView: WKWebView {
         case .ended:
             finishingGesture = true
             applyMagnification(from: recognizer)
-            AppearancePreference.shared.zoomLevel = readingZoom
             gestureAnchor = nil
         case .cancelled:
             finishingGesture = true
-            let current = readingZoom
-            readingZoom = current
-            AppearancePreference.shared.zoomLevel = readingZoom
+            applyPinch(delta: lastPinchDelta)
             gestureAnchor = nil
         default:
             break
@@ -129,10 +131,22 @@ class NativeMagnifyingWebView: WKWebView {
     }
 
     private func applyMagnification(from recognizer: NSMagnificationGestureRecognizer) {
-        let target = Self.targetMagnification(
-            current: magnificationBase,
-            delta: recognizer.magnification
-        )
-        readingZoom = target
+        lastPinchDelta = recognizer.magnification
+        applyPinch(delta: lastPinchDelta)
+    }
+
+    private func applyPinch(delta: CGFloat) {
+        guard let point = gestureAnchor, delta.isFinite else { return }
+        pinchSample += 1
+        let sample = pinchSample
+        let finished = finishingGesture
+        let script = "window.requestPinchZoom?.(\(magnificationBase), \(delta), {x: \(point.x), y: \(point.y), gesture: \(readingGestureID), finished: \(finished)})"
+        evaluateJavaScript(script) { [weak self] result, _ in
+            guard let self, self.pinchSample == sample, let level = result as? NSNumber else { return }
+            self.syncingPinchResult = true
+            self.readingZoom = min(3, max(0.5, CGFloat(level.doubleValue)))
+            self.syncingPinchResult = false
+            if finished { AppearancePreference.shared.zoomLevel = self.readingZoom }
+        }
     }
 }

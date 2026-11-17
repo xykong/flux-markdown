@@ -8,6 +8,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var preferenceObservationTimer: Timer?
 
+    func applicationWillUpdate(_ notification: Notification) {
+        DocumentMenuPolicy.reconcile(NSApp.mainMenu)
+    }
+
     func applicationDidBecomeActive(_ notification: Notification) {
         AppearancePreference.shared.observePreferenceChanges()
         FeedbackFollowUpController.shared.refresh()
@@ -25,6 +29,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        DocumentMenuPolicy.startObserving()
         ErrorFeedback.supplementProvider = { incident, completion in
             DispatchQueue.global(qos: .utility).async {
                 let summary = QuickLookRegistration.diagnosticSummary()

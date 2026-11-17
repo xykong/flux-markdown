@@ -11,9 +11,6 @@ struct RecentDocumentCommands: Commands {
             Button(NSLocalizedString("New Document", comment: "File menu")) {
                 NSDocumentController.shared.newDocument(nil)
             }.keyboardShortcut("n")
-            Button(NSLocalizedString("Open…", comment: "File menu")) {
-                NSDocumentController.shared.openDocument(nil)
-            }.keyboardShortcut("o")
             Menu(NSLocalizedString("Open Recent", comment: "File menu")) {
                 ForEach(history.urls, id: \.self) { url in
                     Button(url.lastPathComponent) { open(url) }

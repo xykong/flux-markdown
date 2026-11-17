@@ -14,6 +14,57 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private var index = 0
     private var feedbackEvents: [[String: Any]] = []
     private var cases: [(String, String)] = [
+        ("Reading zoom Mermaid pinch and fixed controls", """
+        for(const context of ['app','quicklook']) {
+          window.setZoomLevel(1);
+          const graph='flowchart LR\\n'+Array.from({length:12},(_,i)=>'N'+i+'[Wide node '+i+']'+(i?'':'')).join('-->');
+          await window.renderMarkdown(('Leading reading text.\\n\\n'.repeat(30))+'## Diagrams\\n\\nBody text stays stable.\\n\\n```mermaid\\n'+graph+'\\n```\\n\\n```mermaid\\nflowchart TB; A-->B-->C-->D-->E-->F-->G-->H-->I-->J-->K-->L-->M-->N-->O-->P-->Q-->R;\\n```'+('\\n\\nTrailing reading text.'.repeat(30)),{context});
+          await window.waitForExportReady();
+          const root=document.getElementById('markdown-preview'), hosts=root.querySelectorAll('.mermaid');
+          const svg=hosts[0].querySelector('svg'), other=hosts[1].querySelector('svg');
+          const viewport=hosts[0].querySelector('.mermaid-viewport'), tools=hosts[0].querySelector('.diagram-tools');
+          svg.scrollIntoView({block:'center'});
+          const base=svg.getBoundingClientRect(), otherWidth=other.getBoundingClientRect().width;
+          const toolWidth=tools.getBoundingClientRect().width, button=tools.querySelector('button').getBoundingClientRect();
+          const bodySize=getComputedStyle(root).fontSize;
+          const point={x:viewport.getBoundingClientRect().left+120,y:Math.max(90,base.top+base.height/2),gesture:901};
+          const result=window.applyPinchZoom(1,0,point);
+          if(result!==null)throw new Error('diagram pinch was routed to body');
+          const fx=(point.x-base.left)/base.width, fy=(point.y-base.top)/base.height;
+          for(let i=1;i<=40;i++) {
+            window.applyPinchZoom(1,i/40,{...point,x:i===40?innerWidth-5:point.x,finished:i===40});
+            const rect=svg.getBoundingClientRect();
+            if(Math.abs(rect.left+rect.width*fx-point.x)>3 || Math.abs(rect.top+rect.height*fy-point.y)>3)throw new Error('diagram anchor drifted during pinch');
+          }
+          if(Math.abs(svg.getBoundingClientRect().width/base.width-2)>0.03)throw new Error('pinch did not scale Mermaid drawing');
+          if(other.getBoundingClientRect().width!==otherWidth || getComputedStyle(root).fontSize!==bodySize || root.style.getPropertyValue('zoom')!=='1')throw new Error('diagram pinch changed body or other drawing');
+          if(Math.abs(tools.querySelector('button').getBoundingClientRect().width-button.width)>1)throw new Error('diagram pinch scaled controls');
+          if(viewport.scrollWidth<=viewport.clientWidth)throw new Error('zoomed diagram lacks local scrolling');
+          tools.querySelector('button:last-child').click();
+          if(Math.abs(svg.getBoundingClientRect().width/base.width-2.5)>0.04)throw new Error('button and gesture scales diverged');
+          const beforeGlobal=svg.getBoundingClientRect().width;
+          window.setZoomLevel(2);
+          await new Promise(r=>setTimeout(r,80));
+          if(Math.abs(svg.getBoundingClientRect().width/beforeGlobal-2)>0.05)throw new Error('automatic fit cancelled global diagram zoom '+JSON.stringify({beforeGlobal,after:svg.getBoundingClientRect().width,svgWidth:svg.style.width,zoom:root.style.getPropertyValue('zoom'),viewport:viewport.clientWidth,rootWidth:root.getBoundingClientRect().width}));
+          if(Math.abs(tools.querySelector('button').getBoundingClientRect().width-button.width)>1)throw new Error('body zoom scaled diagram controls');
+          if(document.documentElement.scrollWidth>innerWidth+2)throw new Error('diagram overflow escaped its viewport');
+          window.setZoomLevel(1);
+          other.scrollIntoView({block:'center'});
+          const tall=other.getBoundingClientRect();
+          if(tall.height<innerHeight)throw new Error('test requires a diagram taller than the screen');
+          const tallPoint={x:tall.left+tall.width/2,y:innerHeight/2,gesture:902};
+          const tallFy=(tallPoint.y-tall.top)/tall.height;
+          const tallButton=hosts[1].querySelector('button').getBoundingClientRect().width;
+          for(let i=0;i<=40;i++) {
+            if(window.applyPinchZoom(1,i/40,{...tallPoint,finished:i===40})!==null)throw new Error('full-screen diagram gesture escaped');
+            const rect=other.getBoundingClientRect();
+            if(Math.abs(rect.top+rect.height*tallFy-tallPoint.y)>3)throw new Error('full-screen diagram shook vertically');
+          }
+          if(Math.abs(other.getBoundingClientRect().height/tall.height-2)>0.03)throw new Error('tall diagram did not zoom');
+          if(Math.abs(hosts[1].querySelector('button').getBoundingClientRect().width-tallButton)>1)throw new Error('tall diagram controls grew');
+        }
+        return true;
+        """),
         ("Reading zoom preserves text and chrome", """
         const zoomMetrics=[];
         for(const context of ['app','quicklook']) for(const side of ['left','right']) {

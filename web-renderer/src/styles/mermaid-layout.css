@@ -2,6 +2,7 @@
 .mermaid-viewport { overflow-x: auto; max-width: 100%; }
 .mermaid-viewport > svg { margin-inline: auto; }
 .diagram-tools {
+    zoom: var(--diagram-controls-zoom, 1);
     display: flex; justify-content: flex-end; gap: 4px;
     position: relative; z-index: 1; min-height: 28px;
     opacity: 0; pointer-events: none;

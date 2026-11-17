@@ -1,4 +1,4 @@
-import { setReadingZoom, requestReadingZoom, ZoomPoint } from './reading-zoom';
+import { setReadingZoom, requestReadingZoom, applyPinchZoom, requestPinchZoom, ZoomPoint } from './reading-zoom';
 import './math-compat';
 import { installSVGZoom } from './svg-zoom';
 import { constrainSVGImage } from './svg-image-layout';
@@ -650,6 +650,8 @@ declare global {
         updateTheme: (theme: string) => void;
         exportHTML: () => string;
         setZoomLevel: (level: number, point?: ZoomPoint) => void;
+        applyPinchZoom: (base: number, delta: number, point: ZoomPoint) => number | null;
+        requestPinchZoom: (base: number, delta: number, point: ZoomPoint) => number | null;
         requestZoomLevel: (level: number, point?: ZoomPoint) => void;
         setFontSize: (px: number) => void;
         adjustFontSize: (delta: number) => void;
@@ -1541,6 +1543,17 @@ window.requestZoomLevel = function(level: number, point?: ZoomPoint) {
     if (!Number.isFinite(level)) return;
     currentZoomLevel = Math.max(0.5, Math.min(3.0, level));
     requestReadingZoom(currentZoomLevel, point);
+};
+
+window.applyPinchZoom = (base, delta, point) => {
+    const level = applyPinchZoom(base, delta, point);
+    if (level !== null) currentZoomLevel = level;
+    return level;
+};
+window.requestPinchZoom = (base, delta, point) => {
+    const level = requestPinchZoom(base, delta, point);
+    if (level !== null) currentZoomLevel = level;
+    return level;
 };
 
 function applyZoomLevel(level: number) {

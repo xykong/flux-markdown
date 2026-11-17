@@ -1,4 +1,4 @@
-import { createDiagramZoomControls } from './diagram-zoom-controls';
+import { createDiagramZoomControls, registerDiagramZoom } from './diagram-zoom-controls';
 
 /** Image isolation and the original link remain intact while only its viewport scrolls. */
 export function installSVGZoom(root: HTMLElement): () => void {
@@ -14,6 +14,7 @@ export function installSVGZoom(root: HTMLElement): () => void {
         const viewport = document.createElement('span'); viewport.className = 'svg-image-viewport';
         viewport.tabIndex = 0; viewport.setAttribute('role', 'region'); viewport.setAttribute('aria-label', img.alt || 'SVG');
         const controls = createDiagramZoomControls('svg-image-tools', layout);
+        registerDiagramZoom(host, controls);
         content.before(host); host.append(controls.element, viewport); viewport.append(content);
         entries.push({ img, content, host, viewport, controls, style: img.style.cssText });
         img.addEventListener('load', layout);
@@ -24,7 +25,7 @@ export function installSVGZoom(root: HTMLElement): () => void {
             // Measure the same automatic baseline as before controls existed.
             // This also handles explicit icon widths and responsive font limits.
             entry.img.style.cssText = entry.style;
-            const width = entry.img.getBoundingClientRect().width;
+            const width = entry.img.getBoundingClientRect().width / (parseFloat(root.style.getPropertyValue('zoom')) || 1);
             const ready = entry.img.naturalWidth > 0 && width > 0;
             entry.controls.setReady(ready);
             if (!ready || entry.controls.factor === 1) continue;

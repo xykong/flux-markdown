@@ -1,4 +1,4 @@
-import { createDiagramZoomControls } from './diagram-zoom-controls';
+import { createDiagramZoomControls, registerDiagramZoom } from './diagram-zoom-controls';
 /** Diagram sizing uses SVG user units, never the engine's width="100%" default. */
 export function diagramScale(width: number, available: number, bodyFont: number, labelFont: number): number {
     return Math.min(1, bodyFont / labelFont, available > 0 ? available / width : 1);
@@ -20,13 +20,18 @@ export function installMermaidLayout(root: HTMLElement): () => void {
         svg.before(viewport); viewport.append(svg);
         const controls = createDiagramZoomControls('mermaid-tools', layout);
         host.prepend(controls.element);
+        registerDiagramZoom(host, controls);
         entries.push({ host, svg, viewport, controls, width: viewBox[2], font: font || 16 });
         svg.style.maxWidth = 'none'; svg.style.height = 'auto'; svg.style.display = 'block';
     });
     function layout(): void {
         const bodyFont = parseFloat(getComputedStyle(root).fontSize) || 16;
         for (const entry of entries) {
-            const base = diagramScale(entry.width, entry.viewport.clientWidth, bodyFont, entry.font);
+            const readingZoom = parseFloat(root.style.getPropertyValue('zoom')) || 1;
+            // Fit against the column at 100%. Scaling padding/gutters must not
+            // shrink this baseline and cancel the user's requested enlargement.
+            const available = entry.viewport.clientWidth + root.clientWidth * (readingZoom - 1);
+            const base = diagramScale(entry.width, Math.max(1, available), bodyFont, entry.font);
             const factor = entry.controls.factor;
             const width = `${entry.width * base * factor}px`;
             if (entry.svg.style.width !== width) entry.svg.style.width = width;
