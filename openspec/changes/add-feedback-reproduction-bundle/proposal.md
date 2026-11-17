@@ -1,4 +1,4 @@
-# Change: 可选择的反馈复现片段与文档包
+# Change: 反馈复现材料与 Issue 回复提醒
 
 ## Why
 Issue #73 的自动报告包含环境，却缺少失败内容与数学错误细类，无法复现。用户明确希望提供失败片段和完整文档打包分享能力：文档不一定敏感，应由用户在获知公开范围后选择。
@@ -11,8 +11,11 @@ Issue #73 的自动报告包含环境，却缺少失败内容与数学错误细�
 - 不将“打开表单”或“ZIP 已准备”显示成“已上传/已提交”；不在 URL 或诊断历史中夹带完整文档。
 - 数学诊断增加固定白名单错误细类，避免仅有 operationFailed。
 
+- 提交后将本地报告可靠关联到真实 Issue，跟踪维护者和其他用户的新回复；保留跨重启未读标记，用户点击后跳到具体新评论。
+- 系统通知仅辅助提醒，关闭横幅、打开 App、自动刷新或超时均不清除应用内标记。
+
 ## Impact
-- 新增 capability: feedback-reproduction；复用 error-feedback 的 incident、草稿、恢复和受控 bridge。
+- 新增 capabilities: feedback-reproduction、feedback-follow-up；复用 error-feedback 的 incident、草稿、恢复和受控 bridge。
 - 影响原生反馈 UI、主 App/Quick Look 的文档快照交接、数学错误元数据、国际化、测试与覆盖清单。
 - 既有 add-error-feedback 的无强制编辑快捷路径保留；文档分享是用户主动选择的额外路径。
 - 无服务端部署、无后台自动上传；若后续需要 App 内一键上传，另行设计上传接收、权限、保留期限与删除机制，不能以本地打包冒充完成上传功能。
