@@ -120,3 +120,22 @@ extension NativeMagnificationTests {
         XCTAssertEqual(view.magnification,1)
     }
 }
+
+extension NativeMagnificationTests {
+    func testSmartMagnifyPreservesDocumentZoomForDiagramAndResetsForBody() throws {
+        let saved=AppearancePreference.shared.zoomLevel
+        defer { AppearancePreference.shared.zoomLevel=saved }
+        let view=PinchRecordingWebView(frame:NSRect(x:0,y:0,width:500,height:500), configuration:WKWebViewConfiguration())
+        view.readingZoom=1.5
+        view.scripts.removeAll();view.replies.removeAll()
+        let event=try XCTUnwrap(NSEvent.mouseEvent(with:.leftMouseDown,location:NSPoint(x:100,y:100),modifierFlags:[],timestamp:0,windowNumber:0,context:nil,eventNumber:0,clickCount:1,pressure:0))
+        view.smartMagnify(with:event)
+        XCTAssertTrue(view.scripts[0].hasPrefix("window.resetZoomAt"))
+        view.replies[0]?(NSNull(),nil)
+        XCTAssertEqual(view.readingZoom,1.5)
+        view.smartMagnify(with:event)
+        view.replies[1]?(NSNumber(value:1),nil)
+        XCTAssertEqual(view.readingZoom,1)
+        XCTAssertEqual(view.scripts.count,2)
+    }
+}

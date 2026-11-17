@@ -84,3 +84,11 @@ swiftc -parse-as-library Sources/Shared/DocumentMenuPolicy.swift \
   Tests/DocumentMenuIntegration/Probe.swift -o /tmp/flux-menu-probe-test
 /tmp/flux-menu-probe-test
 ```
+
+## 双指双击重置（2026-11-18，基线 5f12e3f）
+- 用户确认第二轮缩放体验良好，要求图上双指双击恢复默认。
+- 语义：图上 smartMagnify 只还原该图的局部倍率到 100%，保留文档倍率（例如文档 150% 时图恢复为该文档倍率下的默认尺寸）；与百分比按钮一致。正文 smartMagnify 恢复文档 100%。同样适用于独立 SVG。
+- 预设验收：图上重置后图形与百分比按钮均回到默认值，其他图、文档倍率和按钮尺寸不变；重复重置幂等；待处理的连续缩放不能覆盖重置；保留可行的图内阅读锚点。原生转发指针位置，回读不重复发起缩放。
+- 实现复用图表连续缩放和锚点补偿；重置前清除排队样本与旧手势会话，避免下一帧把重置覆盖。原生 smartMagnify 使用事件位置命中图表，null 回执保留文档倍率，正文回执 1 则同步保存文档倍率；旧回调受样本序号隔离。
+- 69 组 Jest / 630 项通过，10 项原生相关 XCTest 通过。Apple Silicon / Intel 的真实 WebKit 检查覆盖高图重置、文档 150% 下局部重置、按钮显示恢复 100%、其他倍率隔离；单元测试另覆盖重复重置与排队样本取消。
+- 已安装并后台启动 `1.51.834-dev-zoom3`，App/QuickLook 两份 renderer 的 173 文件各自与最终 bundle 摘要一致，深度签名检查通过；文件菜单仍唯一。已打开更新的手工验收文件，上一版 zoom2 已单独备份。真实触控板继续由用户体验验收。

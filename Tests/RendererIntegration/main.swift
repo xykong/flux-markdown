@@ -62,6 +62,19 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
           }
           if(Math.abs(other.getBoundingClientRect().height/tall.height-2)>0.03)throw new Error('tall diagram did not zoom');
           if(Math.abs(hosts[1].querySelector('button').getBoundingClientRect().width-tallButton)>1)throw new Error('tall diagram controls grew');
+          const enlarged=other.getBoundingClientRect();
+          if(window.resetZoomAt({x:enlarged.left+enlarged.width/2,y:innerHeight/2})!==null)throw new Error('diagram smart magnify escaped');
+          if(Math.abs(other.getBoundingClientRect().height-tall.height)>2 || hosts[1].querySelectorAll('button')[1].textContent!=='100%')throw new Error('smart magnify did not restore diagram default');
+          window.setZoomLevel(1.5);
+          await new Promise(r=>setTimeout(r,50));
+          other.scrollIntoView({block:'center'});
+          const defaultAtReadingZoom=other.getBoundingClientRect().height;
+          const at=other.getBoundingClientRect();
+          window.applyPinchZoom(1.5,1,{x:at.left+at.width/2,y:innerHeight/2,gesture:903,finished:true});
+          const zoomed=other.getBoundingClientRect();
+          window.resetZoomAt({x:zoomed.left+zoomed.width/2,y:innerHeight/2});
+          if(Math.abs(other.getBoundingClientRect().height-defaultAtReadingZoom)>2 || root.style.getPropertyValue('zoom')!=='1.5')throw new Error('diagram reset changed the document zoom');
+          window.setZoomLevel(1);
         }
         return true;
         """),

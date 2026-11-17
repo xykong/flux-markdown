@@ -90,8 +90,17 @@ class NativeMagnifyingWebView: WKWebView {
     }
 
     override func smartMagnify(with event: NSEvent) {
-        readingZoom = 1
-        AppearancePreference.shared.zoomLevel = 1
+        let location = convert(event.locationInWindow, from: nil)
+        let y = isFlipped ? location.y : bounds.height - location.y
+        pinchSample += 1
+        let sample = pinchSample
+        evaluateJavaScript("window.resetZoomAt?.({x: \(location.x), y: \(y)})") { [weak self] result, _ in
+            guard let self, self.pinchSample == sample, let level = result as? NSNumber else { return }
+            self.syncingPinchResult = true
+            self.readingZoom = CGFloat(level.doubleValue)
+            self.syncingPinchResult = false
+            AppearancePreference.shared.zoomLevel = self.readingZoom
+        }
     }
 
     private func configureNativeMagnification() {

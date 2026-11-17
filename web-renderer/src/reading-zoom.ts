@@ -131,3 +131,18 @@ export function requestPinchZoom(base: number, delta: number, point: ZoomPoint):
     queueZoom(next.apply);
     return next.level;
 }
+
+/** Smart magnify uses the same default as the diagram's percentage button. */
+export function resetZoomAt(point: ZoomPoint): number | null {
+    pending = undefined;
+    pinch = undefined;
+    gestureAnchor = undefined;
+    const diagram = diagramZoomAt(point);
+    if (diagram) {
+        preparePinch(1, 1 / diagram.controls.factor - 1,
+            { ...point, gesture: -1, finished: true }).apply();
+        return null;
+    }
+    setReadingZoom(1, point);
+    return 1;
+}

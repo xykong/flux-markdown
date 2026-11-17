@@ -1,5 +1,5 @@
 import { createDiagramZoomControls, registerDiagramZoom } from '../src/diagram-zoom-controls';
-import { applyPinchZoom, requestPinchZoom } from '../src/reading-zoom';
+import { applyPinchZoom, requestPinchZoom, resetZoomAt, setReadingZoom } from '../src/reading-zoom';
 
 describe('diagram pinch ownership', () => {
     function setup() {
@@ -48,4 +48,25 @@ describe('diagram pinch ownership', () => {
         frames[0](0);expect(controls[0].factor).toBe(2);
         jest.restoreAllMocks();
     });
+    test('smart magnify resets only the hit diagram and cancels queued pinch samples', () => {
+        const {controls}=setup();
+        controls[0].setFactor(2.5);controls[1].setFactor(1.5);
+        const root=document.getElementById('markdown-preview')!;
+        setReadingZoom(1.5);
+        const frames: FrameRequestCallback[]=[];
+        jest.spyOn(window,'requestAnimationFrame').mockImplementation(cb=>{frames.push(cb);return 1;});
+        requestPinchZoom(1.5,.5,{x:30,y:130,gesture:1005,finished:true});
+        expect(resetZoomAt({x:30,y:130})).toBeNull();
+        frames[0](0);
+        expect(controls[0].factor).toBe(1);
+        expect(controls[0].element.querySelectorAll('button')[1].textContent).toBe('100%');
+        expect(controls[1].factor).toBe(1.5);
+        expect(document.documentElement.style.getPropertyValue('--zoom-scale')).toBe('1.5');
+        resetZoomAt({x:30,y:130});expect(controls[0].factor).toBe(1);
+        document.elementFromPoint=jest.fn(()=>document.querySelector('p'));
+        expect(resetZoomAt({x:30,y:130})).toBe(1);
+        expect(document.documentElement.style.getPropertyValue('--zoom-scale')).toBe('');
+        jest.restoreAllMocks();
+    });
+
 });
