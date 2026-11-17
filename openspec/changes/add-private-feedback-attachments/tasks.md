@@ -1,0 +1,9 @@
+- [x] 1. Record approved privacy boundary and inspect current public flow
+- [x] 2. Backend failing tests for private default, capabilities, export, migration and retention
+- [x] 3. Backend protocol, public access enforcement, authenticated maintainer export and audit
+- [x] 4. Client failing tests for default, no private download/link, receipt validation, retry/restoration
+- [x] 5. Client checkbox, private reference, all languages and privacy disclosure
+- [x] 6. Both repositories regression tests and migration/backup verification
+- [x] 7. Build Linux artifact off production, deploy and independently verify private/public flows
+- [x] 8. Actual GitHub form, signed local install and Intel uploader verification
+- [x] 9. Record evidence, limits and commit/push verified changes

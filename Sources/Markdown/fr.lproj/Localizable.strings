@@ -354,3 +354,11 @@
 "Click Continue to upload the selected document to FluxMarkdown’s attachment service (t.xykong.cc). Its download link will be public in the Issue. Uncheck to exclude it. Unpublished attachments expire after 7 days; verified Issue attachments remain until deleted." = "Continuer téléverse le document vers le service FluxMarkdown (t.xykong.cc). Le lien sera public dans l’Issue. Décochez pour exclure. Sans Issue, expiration après 7 jours ; sinon conservation jusqu’à suppression.";
 
 "Click Open Feedback Page to review your document in the feedback dialog, then upload it to FluxMarkdown’s attachment service before continuing to GitHub." = "Vérifiez le document dans le dialogue, puis téléversez-le avant de continuer sur GitHub.";
+
+"Share attachment download link publicly" = "Rendre public le lien de téléchargement";
+
+"Attachment submitted privately; only maintainers can retrieve it." = "Pièce jointe envoyée en privé ; seuls les responsables peuvent la récupérer.";
+
+"A previous upload is saved. Continue to verify its receipt." = "Un envoi précédent est enregistré. Continuez pour vérifier sa réception.";
+
+"Attachments go to FluxMarkdown (t.xykong.cc), privately by default. Only maintainers can retrieve private files; GitHub shows a reference only. Enable public sharing to publish a download link. Unlinked files expire in 7 days; private files within 30 days. You can delete uploaded files here." = "Les pièces jointes sont privées par défaut sur FluxMarkdown (t.xykong.cc). Seuls les responsables peuvent les récupérer ; GitHub affiche une référence. Cochez pour publier un lien. Sans Issue : 7 jours ; privé : 30 jours maximum. Suppression possible ici.";

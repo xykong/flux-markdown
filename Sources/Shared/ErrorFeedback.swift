@@ -9,6 +9,8 @@ final class IncidentDraft {
     var materialContext: FeedbackMaterialContext?
     var includeDocument = true
     var attachmentURL: URL?
+    var shareAttachment = false
+    var uploadedAttachmentReference: String?
     var uploadedAttachment: URL?
     var attachmentResources: [URL] = []
     var attachmentFingerprint: String?
@@ -176,7 +178,7 @@ enum ErrorFeedback {
         } else {
             if review { pending.remove(draft.incident.id); showDraft(draft); return }
             reportPrepared?(draft.incident)
-            let opened = openURL(draft.incident.feedbackURL(includeDiagnostics: draft.includeDiagnostics, notes: draft.notes, attachment: draft.includeDocument ? draft.uploadedAttachment : nil))
+            let opened = openURL(draft.incident.feedbackURL(includeDiagnostics: draft.includeDiagnostics, notes: draft.notes, attachment: draft.includeDocument && draft.shareAttachment ? draft.uploadedAttachment : nil, attachmentReference: draft.includeDocument && !draft.shareAttachment ? draft.uploadedAttachmentReference : nil))
             // Keep the same draft reachable even if the browser later fails to load/sign in.
             if !opened { if let failure { failure(draft) } else { showDraft(draft, failed: true) } }
             else {
@@ -388,6 +390,7 @@ final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
     private let attachmentInfo = NSTextField(wrappingLabelWithString: "")
     private let includeFile = NSButton(checkboxWithTitle: ErrorFeedback.text("Include current document"), target: nil, action: nil)
     private let revealFile = NSButton(title: ErrorFeedback.text("Review Attachment…"), target: nil, action: nil)
+    private let shareFile = NSButton(checkboxWithTitle: ErrorFeedback.text("Share attachment download link publicly"), target: nil, action: nil)
     private var preparingAttachment = false
     private var uploadTask: Task<Void, Never>?
     private let submit = NSButton()
@@ -399,10 +402,10 @@ final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
     init(draft: IncidentDraft) {
         self.draft = draft
         draft.prepareDefaultContent()
-        let window = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 580, height: 660), styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
+        let window = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 580, height: 700), styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
         super.init(window: window); window.delegate = self; window.isReleasedWhenClosed = false
         window.hidesOnDeactivate = false; window.isFloatingPanel = false
-        window.title = ErrorFeedback.text("Report This Problem"); window.minSize = NSSize(width: 540, height: 660)
+        window.title = ErrorFeedback.text("Report This Problem"); window.minSize = NSSize(width: 540, height: 700)
         let content = NSStackView(); content.orientation = .vertical; content.alignment = .leading; content.spacing = 12; content.translatesAutoresizingMaskIntoConstraints = false
         let heading = NSTextField(wrappingLabelWithString: ErrorFeedback.text(draft.incident.kind.title)); heading.font = .boldSystemFont(ofSize: 16)
         content.addArrangedSubview(heading)
@@ -421,6 +424,8 @@ final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
         content.addArrangedSubview(scroll(notes, height: 100))
         includeFile.target = self; includeFile.action = #selector(toggleDocument(_:)); includeFile.state = draft.includeDocument ? .on : .off
         content.addArrangedSubview(includeFile)
+        shareFile.target = self; shareFile.action = #selector(toggleSharing(_:)); shareFile.state = draft.shareAttachment ? .on : .off; shareFile.isEnabled = draft.includeDocument
+        content.addArrangedSubview(shareFile)
         attachmentInfo.font = .systemFont(ofSize: 11); attachmentInfo.textColor = .secondaryLabelColor; attachmentInfo.isSelectable = true
         content.addArrangedSubview(attachmentInfo)
         let attachmentActions = NSStackView()
@@ -430,7 +435,7 @@ final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
         deleteAttachment.title = ErrorFeedback.text("Delete Uploaded Attachment"); deleteAttachment.target = self; deleteAttachment.action = #selector(revokeAttachment); deleteAttachment.isHidden = (try? FeedbackAttachmentJob.load(draft.incident.id)) == nil
         content.addArrangedSubview(attachmentActions)
         content.addArrangedSubview(deleteAttachment)
-        let sharing = NSTextField(wrappingLabelWithString: ErrorFeedback.text("Click Continue to upload the selected document to FluxMarkdown’s attachment service (t.xykong.cc). Its download link will be public in the Issue. Uncheck to exclude it. Unpublished attachments expire after 7 days; verified Issue attachments remain until deleted.")); sharing.font = .systemFont(ofSize: 11); sharing.textColor = .secondaryLabelColor
+        let sharing = NSTextField(wrappingLabelWithString: ErrorFeedback.text("Attachments go to FluxMarkdown (t.xykong.cc), privately by default. Only maintainers can retrieve private files; GitHub shows a reference only. Enable public sharing to publish a download link. Unlinked files expire in 7 days; private files within 30 days. You can delete uploaded files here.")); sharing.font = .systemFont(ofSize: 11); sharing.textColor = .secondaryLabelColor
         content.addArrangedSubview(sharing); sharing.widthAnchor.constraint(equalTo: content.widthAnchor).isActive = true
         let disclosure = NSButton(title: "▸ " + ErrorFeedback.text("Diagnostic report"), target: self, action: #selector(toggleTechnical(_:)))
         disclosure.setButtonType(.pushOnPushOff); disclosure.bezelStyle = .inline; disclosure.setAccessibilityValue("collapsed")
@@ -472,12 +477,13 @@ final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
     private func prepareAttachment(continueToGitHub: Bool = false) {
         guard uploadTask == nil else { return }
         submit.title = ErrorFeedback.text(draft.includeDocument ? "Upload Attachment and Continue…" : "Continue Without Attachment…")
-        guard draft.includeDocument else { draft.uploadedAttachment = nil; attachmentInfo.stringValue = ErrorFeedback.text("Document excluded."); revealFile.isEnabled = false; if continueToGitHub { openFeedback(draft) }; return }
+        shareFile.isEnabled = draft.includeDocument
+        guard draft.includeDocument else { draft.uploadedAttachment = nil; draft.uploadedAttachmentReference = nil; attachmentInfo.stringValue = ErrorFeedback.text("Document excluded."); revealFile.isEnabled = false; if continueToGitHub { openFeedback(draft) }; return }
         if draft.restoredUpload, let job = try? FeedbackAttachmentJob.load(draft.incident.id),
            job.document == draft.materialContext?.document, job.notes == notes.string,
-           job.includeDiagnostics == draft.includeDiagnostics, FileManager.default.fileExists(atPath: job.zip.path) {
+           job.includeDiagnostics == draft.includeDiagnostics, (job.sharePublic ?? false) == draft.shareAttachment, FileManager.default.fileExists(atPath: job.zip.path) {
             draft.attachmentURL = job.zip; draft.attachmentFingerprint = job.fingerprint
-            attachmentInfo.stringValue = draft.documentName + " · " + ErrorFeedback.text("ZIP ready locally; not uploaded.")
+            attachmentInfo.stringValue = draft.documentName + " · " + ErrorFeedback.text(job.receipt == nil ? "ZIP ready locally; not uploaded." : "A previous upload is saved. Continue to verify its receipt.")
             revealFile.isEnabled = true
             if continueToGitHub { uploadAttachment(job.zip) }; return
         }
@@ -520,24 +526,25 @@ final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
         let job: FeedbackAttachmentJob
         do { job = try FeedbackAttachmentJob.prepare(draft, zip: url) }
         catch { status.stringValue = ErrorFeedback.text("Could not prepare upload. Delete the previous uploaded attachment before changing it, or exclude the file to continue."); return }
-        submit.isEnabled = false; includeFile.isEnabled = false; deleteAttachment.isHidden = false
+        submit.isEnabled = false; includeFile.isEnabled = false; shareFile.isEnabled = false; deleteAttachment.isHidden = false
         attachmentInfo.stringValue = ErrorFeedback.text("Uploading and verifying attachment…")
         uploadTask = Task { @MainActor [weak self] in
             guard let self else { return }
-            defer { self.uploadTask = nil; self.submit.isEnabled = true; self.includeFile.isEnabled = true }
+            defer { self.uploadTask = nil; self.submit.isEnabled = true; self.includeFile.isEnabled = true; self.shareFile.isEnabled = self.draft.includeDocument }
             do {
                 let bytes = try Data(contentsOf: job.zip)
-                let receipt = try await self.attachmentClient().upload(bytes, incident: job.incident.id, key: job.key)
+                let receipt = try await self.attachmentClient().upload(bytes, incident: job.incident.id, key: job.key, sharePublic: job.sharePublic ?? false)
                 var saved = job; saved.receipt = receipt; try saved.save()
                 self.deleteAttachment.isHidden = false
                 guard !self.isClosed, !Task.isCancelled else { return }
                 // Never open a form with stale text, selection or diagnostics after a long upload.
                 guard self.draft.includeDocument, self.draft.materialContext?.document == job.document,
-                      self.notes.string == job.notes, self.draft.includeDiagnostics == job.includeDiagnostics else {
+                      self.notes.string == job.notes, self.draft.includeDiagnostics == job.includeDiagnostics, self.draft.shareAttachment == (job.sharePublic ?? false) else {
                     self.status.stringValue = ErrorFeedback.text("Attachment uploaded. Your edits changed; delete the uploaded attachment before replacing it, or continue without a file."); return
                 }
                 self.draft.uploadedAttachment = receipt.url
-                self.attachmentInfo.stringValue = ErrorFeedback.text("Attachment uploaded and download verified.")
+                self.draft.uploadedAttachmentReference = receipt.visibility == "private" ? receipt.reference : nil
+                self.attachmentInfo.stringValue = ErrorFeedback.text(receipt.visibility == "private" ? "Attachment submitted privately; only maintainers can retrieve it." : "Attachment uploaded and download verified.")
                 self.openFeedback(self.draft)
             } catch {
                 guard !self.isClosed else { return }
@@ -558,10 +565,16 @@ final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
                 else { receipt = try await client.lookup(Data(contentsOf: job.zip), key: job.key) }
                 if let receipt { try await client.delete(receipt) }
                 try FileManager.default.removeItem(at: job.folder)
-                self.draft.uploadedAttachment = nil; self.deleteAttachment.isHidden = true
+                self.draft.uploadedAttachment = nil; self.draft.uploadedAttachmentReference = nil; self.deleteAttachment.isHidden = true
                 self.attachmentInfo.stringValue = ErrorFeedback.text("Uploaded attachment deleted.")
             } catch { self.status.stringValue = ErrorFeedback.text("Could not delete attachment. Keep this window and retry.") }
         }
+    }
+    @objc private func toggleSharing(_ sender: NSButton) {
+        guard uploadTask == nil else { sender.state = draft.shareAttachment ? .on : .off; return }
+        draft.shareAttachment = sender.state == .on
+        draft.uploadedAttachment = nil; draft.uploadedAttachmentReference = nil
+        prepareAttachment()
     }
     @objc private func toggleDocument(_ sender: NSButton) { draft.includeDocument = sender.state == .on; prepareAttachment() }
     @objc private func reviewAttachment() { if let url = draft.attachmentURL { NSWorkspace.shared.activateFileViewerSelecting([url]) } }

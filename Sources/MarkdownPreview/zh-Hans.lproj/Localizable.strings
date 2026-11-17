@@ -199,3 +199,11 @@
 "Click Continue to upload the selected document to FluxMarkdown’s attachment service (t.xykong.cc). Its download link will be public in the Issue. Uncheck to exclude it. Unpublished attachments expire after 7 days; verified Issue attachments remain until deleted." = "点击继续会将所选文档上传至 FluxMarkdown 附件服务（t.xykong.cc），下载链接将随 Issue 公开。可取消勾选以排除文件。未关联 Issue 的附件 7 天后过期，已验证关联的附件保留至主动删除。";
 
 "Click Open Feedback Page to review your document in the feedback dialog, then upload it to FluxMarkdown’s attachment service before continuing to GitHub." = "点击打开反馈页面，在反馈对话框中检查文档，上传至 FluxMarkdown 附件服务后继续前往 GitHub。";
+
+"Share attachment download link publicly" = "公开附件下载链接";
+
+"Attachment submitted privately; only maintainers can retrieve it." = "附件已私密提交，仅维护者可取件。";
+
+"A previous upload is saved. Continue to verify its receipt." = "已保存之前的上传状态，继续以确认收件回执。";
+
+"Attachments go to FluxMarkdown (t.xykong.cc), privately by default. Only maintainers can retrieve private files; GitHub shows a reference only. Enable public sharing to publish a download link. Unlinked files expire in 7 days; private files within 30 days. You can delete uploaded files here." = "附件上传至 FluxMarkdown（t.xykong.cc），默认私密，仅维护者可取件，GitHub 只显示编号。勾选公开后才提供下载链接。未关联 Issue 的附件保留 7 天，私密附件最长 30 天；可在此删除已上传文件。";

@@ -3,21 +3,42 @@ import CryptoKit
 
 struct FeedbackAttachmentReceipt: Codable {
     let id: String
-    let url: URL
+    let url: URL?
     let size: Int
     let sha256: String
     let delete_token: String
     let expires_at: Int
+    let visibility: String
+    let schema_version: Int?
+    var reference: String { "FM-" + id }
+    enum CodingKeys: String, CodingKey { case id, url, size, sha256, delete_token, expires_at, visibility, schema_version }
+    init(id: String, url: URL?, size: Int, sha256: String, delete_token: String, expires_at: Int, visibility: String = "public", schema_version: Int? = 2) {
+        self.id=id; self.url=url; self.size=size; self.sha256=sha256; self.delete_token=delete_token; self.expires_at=expires_at; self.visibility=visibility; self.schema_version=schema_version
+    }
+    init(from decoder: Decoder) throws {
+        let c=try decoder.container(keyedBy:CodingKeys.self)
+        id=try c.decode(String.self,forKey:.id); url=try c.decodeIfPresent(URL.self,forKey:.url)
+        size=try c.decode(Int.self,forKey:.size);sha256=try c.decode(String.self,forKey:.sha256)
+        delete_token=try c.decode(String.self,forKey:.delete_token);expires_at=try c.decode(Int.self,forKey:.expires_at)
+        visibility=try c.decodeIfPresent(String.self,forKey:.visibility) ?? (url == nil ? "private" : "public")
+        schema_version=try c.decodeIfPresent(Int.self,forKey:.schema_version)
+    }
     func valid(size: Int, sha: String) -> Bool {
-        Self.hex(id) && Self.hex(delete_token) && self.size == size && sha256 == sha
-            && url.absoluteString == "https://t.xykong.cc/feedback/files/\(id).zip"
+        guard Self.hex(id),Self.hex(delete_token),Self.hex(sha256),self.size == size,sha256 == sha else { return false }
+        if visibility == "private" { return url == nil }
+        guard visibility == "public",let url else { return false }
+        let name=url.lastPathComponent
+        guard name.hasSuffix(".zip") else { return false }
+        let token=String(name.dropLast(4))
+        return Self.hex(token) && url.absoluteString == "https://t.xykong.cc/feedback/files/\(token).zip"
     }
     static func hex(_ value: String) -> Bool { value.utf8.count == 64 && value.utf8.allSatisfy { (48...57).contains($0) || (97...102).contains($0) } }
 }
 enum FeedbackAttachmentError: Error { case invalid, http(Int), tooLarge, busy }
 
 /// Fixed HTTPS origin, no cookies, credentials or redirects. The complete downloaded
-/// bytes must match the local ZIP before its link may enter the GitHub form.
+/// public bytes must match the ZIP before publishing its link. Private receipts
+/// are verified by the service; this client never downloads private data.
 private final class FeedbackNoRedirect: NSObject, URLSessionTaskDelegate {
     static let shared = FeedbackNoRedirect()
     func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) { completionHandler(nil) }
@@ -47,7 +68,7 @@ final class FeedbackAttachmentClient {
             }.resume()
         }
     }
-    func upload(_ bytes: Data, incident: UUID, key: String) async throws -> FeedbackAttachmentReceipt {
+    func upload(_ bytes: Data, incident: UUID, key: String, sharePublic: Bool = false) async throws -> FeedbackAttachmentReceipt {
         guard !bytes.isEmpty, bytes.count <= 25 * 1024 * 1024, FeedbackAttachmentReceipt.hex(key) else { throw FeedbackAttachmentError.tooLarge }
         let sha = Self.digest(bytes)
         // Every retry reconciles the original capability first, including after a timeout/restart.
@@ -56,13 +77,14 @@ final class FeedbackAttachmentClient {
         if status == 200 { data = statusData }
         else if status == 404 {
             try Task.checkCancellation()
-            let (posted, code) = try await send(request("uploads", method: "POST", headers: ["Content-Type": "application/zip", "X-Incident-ID": incident.uuidString, "X-Upload-Key": key, "X-Content-SHA256": sha], body: bytes))
+            let (posted, code) = try await send(request("uploads", method: "POST", headers: ["Content-Type": "application/zip", "X-Incident-ID": incident.uuidString, "X-Upload-Key": key, "X-Content-SHA256": sha, "X-Attachment-Visibility": sharePublic ? "public" : "private"], body: bytes))
             guard code == 200 else { throw FeedbackAttachmentError.http(code) }; data = posted
         } else { throw FeedbackAttachmentError.http(status) }
         let receipt = try JSONDecoder().decode(FeedbackAttachmentReceipt.self, from: data)
-        guard receipt.valid(size: bytes.count, sha: sha) else { throw FeedbackAttachmentError.invalid }
+        guard receipt.schema_version == 2, receipt.visibility == (sharePublic ? "public" : "private"), receipt.valid(size: bytes.count, sha: sha) else { throw FeedbackAttachmentError.invalid }
+        guard sharePublic, let url = receipt.url else { return receipt }
         try Task.checkCancellation()
-        let (download, code) = try await send(request("files/\(receipt.id).zip"))
+        let (download, code) = try await send(request("files/\(url.lastPathComponent)"))
         guard code == 200, download.count == bytes.count, Self.digest(download) == sha else { throw FeedbackAttachmentError.invalid }
         return receipt
     }
@@ -97,6 +119,7 @@ struct FeedbackAttachmentJob: Codable {
     var fingerprint: String
     var key: String
     var receipt: FeedbackAttachmentReceipt?
+    var sharePublic: Bool? = nil
     var opened = false
     var linked = false
     var created = Date()
@@ -120,7 +143,7 @@ struct FeedbackAttachmentJob: Codable {
     }
     static func prepare(_ draft: IncidentDraft, zip: URL) throws -> Self {
         let fingerprint = draft.attachmentFingerprint ?? FeedbackAttachmentClient.digest(Data((draft.materialContext?.document ?? "").utf8) + Data(draft.report.utf8))
-        if let previous = try? load(draft.incident.id), previous.fingerprint == fingerprint, FileManager.default.fileExists(atPath: previous.zip.path) { return previous }
+        if let previous = try? load(draft.incident.id), previous.fingerprint == fingerprint, (previous.sharePublic ?? false) == draft.shareAttachment, FileManager.default.fileExists(atPath: previous.zip.path) { return previous }
         // Retain any already uploaded revision and its delete capability, rather than overwriting it.
         if (try? load(draft.incident.id)) != nil { throw FeedbackAttachmentError.busy }
         let root = Self.root
@@ -128,7 +151,7 @@ struct FeedbackAttachmentJob: Codable {
         let count = try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil).count
         guard count < 100 || FileManager.default.fileExists(atPath: root.appendingPathComponent(draft.incident.id.uuidString).path) else { throw FeedbackAttachmentError.busy }
         let key = (UUID().uuidString + UUID().uuidString).replacingOccurrences(of: "-", with: "").lowercased()
-        let job = Self(incident: draft.incident, notes: draft.notes, includeDiagnostics: draft.includeDiagnostics, document: draft.materialContext?.document ?? "", displayName: draft.documentName, fingerprint: fingerprint, key: key)
+        let job = Self(incident: draft.incident, notes: draft.notes, includeDiagnostics: draft.includeDiagnostics, document: draft.materialContext?.document ?? "", displayName: draft.documentName, fingerprint: fingerprint, key: key, sharePublic: draft.shareAttachment)
         try job.save(); try Data(contentsOf: zip).write(to: job.zip, options: .atomic)
         try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: job.zip.path)
         return job
@@ -140,7 +163,9 @@ struct FeedbackAttachmentJob: Codable {
     func draft() -> IncidentDraft {
         let draft = IncidentDraft(incident); draft.restoreNotes(notes); draft.includeDiagnostics = includeDiagnostics
         draft.materialContext = FeedbackMaterialContext(document: document, sample: nil, originalURL: nil, provenance: "restored-feedback-draft", displayName: displayName)
-        draft.attachmentURL = zip; draft.restoredUpload = true; draft.attachmentFingerprint = fingerprint; draft.uploadedAttachment = receipt?.url
+        draft.attachmentURL = zip; draft.restoredUpload = true; draft.attachmentFingerprint = fingerprint; draft.shareAttachment = sharePublic ?? false
+        draft.uploadedAttachment = draft.shareAttachment && receipt?.visibility == "public" ? receipt?.url : nil
+        draft.uploadedAttachmentReference = receipt?.visibility == "private" ? receipt?.reference : nil
         return draft
     }
     static func associate(incident: UUID, issue: Int) {

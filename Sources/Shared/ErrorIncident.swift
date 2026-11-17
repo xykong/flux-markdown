@@ -206,9 +206,13 @@ struct ErrorIncident: Codable {
         }
         return lines.joined(separator: "\n")
     }
-    func feedbackURL(includeDiagnostics: Bool = true, notes: String = "", useTemplate: Bool = false, attachment: URL? = nil) -> URL {
+    func feedbackURL(includeDiagnostics: Bool = true, notes: String = "", useTemplate: Bool = false, attachment: URL? = nil, attachmentReference: String? = nil) -> URL {
         var c = URLComponents(string: "https://github.com/xykong/flux-markdown/issues/new")!
-        let attachmentText = attachment.map { "\n\n[Download reproduction ZIP](\($0.absoluteString))\n" } ?? ""
+        let privateText = attachmentReference.flatMap { value -> String? in
+            guard value.hasPrefix("FM-"), value.utf8.count == 67, value.dropFirst(3).utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) }) else { return nil }
+            return "\n\nAttachment reference: \(value) (private; maintainers only)\n"
+        } ?? ""
+        let attachmentText = !privateText.isEmpty ? privateText : attachment.map { "\n\n[Download reproduction ZIP](\($0.absoluteString))\n" } ?? ""
         var description = "Operation: \(kind.rawValue)\nObserved result: \(titleForReport)\nIncident: \(id.uuidString)\n"
         // Bound user-entered additions. The complete edited report remains local.
         description += String(notes.prefix(600))

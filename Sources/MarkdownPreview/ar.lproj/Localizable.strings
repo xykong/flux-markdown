@@ -194,3 +194,11 @@
 "Click Continue to upload the selected document to FluxMarkdown’s attachment service (t.xykong.cc). Its download link will be public in the Issue. Uncheck to exclude it. Unpublished attachments expire after 7 days; verified Issue attachments remain until deleted." = "المتابعة ترفع المستند إلى خدمة مرفقات FluxMarkdown ‏(t.xykong.cc). سيصبح رابط التنزيل علنيًا في البلاغ. ألغِ التحديد للاستبعاد. ينتهي المرفق غير المرتبط بعد 7 أيام، ويُحتفظ بالمرتبط حتى حذفه.";
 
 "Click Open Feedback Page to review your document in the feedback dialog, then upload it to FluxMarkdown’s attachment service before continuing to GitHub." = "راجع المستند في نافذة الملاحظات ثم ارفعه إلى خدمة FluxMarkdown قبل الانتقال إلى GitHub.";
+
+"Share attachment download link publicly" = "نشر رابط تنزيل المرفق";
+
+"Attachment submitted privately; only maintainers can retrieve it." = "تم إرسال المرفق بشكل خاص؛ يمكن للمشرفين فقط استرجاعه.";
+
+"A previous upload is saved. Continue to verify its receipt." = "تم حفظ رفع سابق. تابع للتحقق من إيصال الاستلام.";
+
+"Attachments go to FluxMarkdown (t.xykong.cc), privately by default. Only maintainers can retrieve private files; GitHub shows a reference only. Enable public sharing to publish a download link. Unlinked files expire in 7 days; private files within 30 days. You can delete uploaded files here." = "تُرسل المرفقات إلى FluxMarkdown ‏(t.xykong.cc) بشكل خاص افتراضيًا. يسترجعها المشرفون فقط ويعرض GitHub رقمًا مرجعيًا. حدد المشاركة العامة لنشر رابط تنزيل. تنتهي غير المرتبطة بعد 7 أيام والخاصة خلال 30 يومًا. يمكنك حذفها هنا.";
