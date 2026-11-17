@@ -13,3 +13,23 @@
 - Jest 全量 67 suites / 623 tests 通过；TypeScript、Vite 和 Release 本地构建通过。
 - 真实 WKWebView 的 compact mathematical feedback entry 验证右上角几何、关闭状态按钮不可见、材料操作存在、Escape 和导出 DOM 清理；现有 contextual feedback bridge 验证事件隐私和旧代次拦截。
 - 这次调整不更改原生渲染器失效后备界面，不扩大现有真实 GitHub 上传/系统通知的验收结论。
+
+## 第二次验收：入口文字与外框错位
+
+用户截图显示文字/悬停底色与黑色焦点框没有重合。此前 WebKit 只验证容器角点，未检查按钮文本范围和真实像素，不能代替视觉验收。本次增加行内/块公式与聚焦状态下的文本包含性验证，并保存 WebKit 快照检查。
+
+
+## 用户确认的最终交互（取代行内展开面板）
+
+- 用户进一步要求：点击“反馈”直接弹出反馈对话框，不再显示旧选项菜单。
+- renderer 只保留一个 `aria-haspopup=dialog` 的反馈按钮；点击仅发送当前 incident 的 inspect 事件。页面不创建面板、不直接提交或打开 GitHub。
+- 原生反馈对话框首屏包含问题说明、可选补充说明、可选复现材料、折叠诊断信息、取消和前往 GitHub；复制/保存仅在打开反馈页面失败时出现。“我的反馈”等管理操作留在帮助菜单。
+- 入口明确使用 inline-flex、固定高度、自适应文字宽度及统一 box-sizing，重置 WebKit 原生按钮外观与 outline；键盘焦点框在按钮内部绘制。错误区预留入口上方空间，避免覆盖公式。
+- 新增真实 WebKit 行内公式、较大字号、窄窗口、实际聚焦及文本范围测试，快照位于本地 `build/feedback-visual-after/feedback-focus.png`，已逐图查看。文字与红色焦点框现已重合；此前几何测试不足以证明像素正确。
+- 全量渲染器 623 项通过；3 项真实 WebKit feedback 测试通过；原生 ErrorIncident/FeedbackFollowUp 34 项（1 项显式 live 网络测试未启用而跳过）通过，覆盖对话框正常/失败时可见动作。
+
+### 实际安装后的检查边界
+
+- 本机安装版读取为 `1.51.834-dev-20261117-200535`，无障碍树确认仅有一个“反馈”入口。
+- orca-computer-use 后台点击该入口返回 `background_unavailable`，无事件发送；它将带 aria-haspopup=dialog 的按钮识别为弹出控件。未使用 restore-window，未把该点击记作成功。
+- 因而当前已验证的是实际 WKWebView 点击 → inspect 桥事件、原生对话框正常/失败状态测试及已安装包回读；安装包中的完整 GUI 点击仍待用户验收。未进行 GitHub 发布或附件上传。

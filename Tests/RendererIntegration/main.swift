@@ -287,15 +287,10 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         """),
         ("contextual feedback bridge", """
         window.setFeedbackGeneration('11111111-1111-1111-1111-111111111111');
-        await window.renderMarkdown('```mermaid\\nSAMPLE-DO-NOT-INCLUDE ! invalid\\n```');
+        await window.renderMarkdown('```mermaid'+String.fromCharCode(10)+'SAMPLE-DO-NOT-INCLUDE ! invalid'+String.fromCharCode(10)+'```');
         await new Promise(resolve=>setTimeout(resolve,20));
-        const trigger=document.querySelector('.error-feedback-region [data-feedback-action="toggle"]');
-        const panel=document.querySelector('.error-feedback-panel');
-        if(!trigger || !panel || !panel.hidden)return false;
-        trigger.click();
-        if(panel.hidden || trigger.getAttribute('aria-expanded')!=='true')return false;
-        const button=panel.querySelector('[data-feedback-action="report"]');
-        if(!button)return false;
+        const button=document.querySelector('.error-feedback-trigger');
+        if(!button || document.querySelector('.error-feedback-panel'))return false;
         button.click();
         const exported=window.exportHTML();
         window.setFeedbackGeneration('22222222-2222-2222-2222-222222222222');
@@ -307,17 +302,30 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         await window.renderMarkdown('$$'+String.fromCharCode(10)+String.fromCharCode(92)+'unknownMarkdownPreviewCommand{x}'+String.fromCharCode(10)+'$$',{uiLanguage:'zh-Hans'});
         await new Promise(resolve=>setTimeout(resolve,20));
         const region=document.querySelector('.error-feedback-region');
-        const trigger=region?.querySelector('[data-feedback-action="toggle"]');
-        const panel=region?.querySelector('.error-feedback-panel');
-        if(!region || !trigger || !panel || !panel.hidden || trigger.textContent!=='! 反馈')throw new Error('compact entry absent: '+document.getElementById('markdown-preview').innerHTML);
+        const trigger=region?.querySelector('.error-feedback-trigger');
+        if(!region || !trigger || trigger.textContent!=='! 反馈' || region.querySelectorAll('button').length!==1 || document.querySelector('.error-feedback-panel'))return false;
         const box=region.getBoundingClientRect(), badge=trigger.getBoundingClientRect();
-        if(Math.abs(box.right-badge.right)>12 || badge.top<box.top || badge.top>box.top+12)throw new Error('compact geometry '+JSON.stringify({box:box.toJSON(),badge:badge.toJSON()}));
-        if([...panel.querySelectorAll('button')].some(button=>button.getClientRects().length))return false;
-        trigger.click();
-        if(panel.hidden || !panel.querySelector('[data-feedback-action="materials"]'))return false;
-        panel.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+        if(Math.abs(box.right-badge.right)>12 || badge.top<box.top || badge.top>box.top+12)return false;
+        if(trigger.getAttribute('aria-haspopup')!=='dialog')return false;
         const exported=window.exportHTML();
-        if(!panel.hidden || new DOMParser().parseFromString(exported,'text/html').querySelector('.error-feedback-region, [data-feedback-action]'))throw new Error('compact cleanup failed'); return true;
+        return !new DOMParser().parseFromString(exported,'text/html').querySelector('.error-feedback-region, [data-feedback-action]');
+        """),
+        ("compact feedback focus and text bounds", """
+        window.setFeedbackGeneration('44444444-4444-4444-4444-444444444444');
+        const slash=String.fromCharCode(92);
+        for (const fontSize of [24,32,14]) {
+        await window.renderMarkdown('# 这不是 Issue'+String.fromCharCode(10).repeat(2)+'$'+slash+'unknownMarkdownPreviewCommand{x}$',{uiLanguage:'zh-Hans',fontSize,showLineNumbers:false});
+        await new Promise(resolve=>setTimeout(resolve,30));
+        const button=document.querySelector('.error-feedback-trigger');
+        if(!button)throw new Error('No feedback button');
+        button.focus();
+        const range=document.createRange(); range.selectNodeContents(button);
+        const text=range.getBoundingClientRect(), box=button.getBoundingClientRect(), style=getComputedStyle(button);
+        window.webkit.messageHandlers.logger.postMessage('Feedback geometry '+JSON.stringify({text:text.toJSON(),box:box.toJSON(),outline:style.outline,appearance:style.appearance,font:style.font,width:style.width}));
+        if(style.outlineStyle!=='none' || style.display!=='inline-flex')throw new Error('Native button chrome was not reset');
+        if(text.left<box.left || text.right>box.right || text.top<box.top || text.bottom>box.bottom)throw new Error('Feedback text outside button');
+        }
+        return true;
         """),
         ("passive HTML", "await window.renderMarkdown('<img src=\"missing.png\" onerror=\"window.pwned=true\"><details><summary>ok</summary></details>'); return !document.querySelector('[onerror]') && !window.pwned && !!document.querySelector('details');"),
         ("new render wins", "const a=window.renderMarkdown('# OLD\\n\\n$x$'); const b=window.renderMarkdown('# NEW',{enableKatex:false}); await Promise.all([a,b]); return document.querySelector('h1').textContent==='NEW';"),
@@ -681,7 +689,8 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private func next() {
         if index == cases.count { print("PASS all \(cases.count) real WebKit cases"); exit(0) }
         let (name, js) = cases[index]
-        if name == "inline math copy controls preserve text spacing" || name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
+        if name == "compact feedback focus and text bounds" { webView.setFrameSize(NSSize(width: 480, height: 480)) }
+        if name == "compact feedback focus and text bounds" || name == "inline math copy controls preserve text spacing" || name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
             // :focus-within requires an active WebKit page, not just activeElement
             // in the otherwise windowless integration harness.
             guard let policy = TestWindowPolicy(environment: ProcessInfo.processInfo.environment), policy.allowsFocus else {
@@ -700,6 +709,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
             app.activate(ignoringOtherApps: true)
             focusWindow = window
         }
+        if name == "compact feedback focus and text bounds" { webView.setFrameSize(NSSize(width: 480, height: 480)) }
         if name == "wide reading layout" || name == "RTL wide geometry" { webView.setFrameSize(NSSize(width: 1800, height: 900)) }
         if name == "narrow reading layout" || name == "RTL narrow geometry" || name == "block copy narrow RTL geometry" { webView.setFrameSize(NSSize(width: 600, height: 600)) }
         webView.callAsyncJavaScript(js, arguments: ["imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData, "sizingSVGData": sizingSVGData], in: nil, in: .page) { result in
@@ -710,17 +720,31 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
                     self.mathPasteboard.releaseGlobally()
                 }
                 if name == "contextual feedback bridge" {
-                    let reports = self.feedbackEvents.filter { $0["action"] as? String == "report" }
+                    let reports = self.feedbackEvents.filter { $0["action"] as? String == "inspect" }
                     guard reports.count == 1, reports[0]["kind"] as? String == "mermaid",
                           reports[0]["generation"] as? String == "11111111-1111-1111-1111-111111111111",
                           !String(describing: self.feedbackEvents).contains("SAMPLE-DO-NOT-INCLUDE") else { print("FAIL feedback payload or stale action"); exit(1) }
                 }
-                if name == "inline math copy controls preserve text spacing" || name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
+                if (name == "compact feedback focus and text bounds" && ProcessInfo.processInfo.environment["FLUX_WEBKIT_SNAPSHOT_DIR"] == nil) || name == "inline math copy controls preserve text spacing" || name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
                     self.focusWindow?.contentView = nil
                     self.focusWindow?.orderOut(nil)
                     self.focusWindow = nil
                     self.previousApplication?.activate(options: [.activateIgnoringOtherApps])
                     app.setActivationPolicy(.prohibited)
+                }
+                if name == "compact feedback focus and text bounds", let directory = ProcessInfo.processInfo.environment["FLUX_WEBKIT_SNAPSHOT_DIR"] {
+                    self.webView.takeSnapshot(with: nil) { image, error in
+                        guard let image, let tiff = image.tiffRepresentation, let bitmap = NSBitmapImageRep(data: tiff), let png = bitmap.representation(using: .png, properties: [:]) else { print("FAIL feedback snapshot: \(String(describing: error))"); exit(1) }
+                        do {
+                            let folder = URL(fileURLWithPath: directory)
+                            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+                            try png.write(to: folder.appendingPathComponent("feedback-focus.png"))
+                        } catch { print("FAIL feedback snapshot save: \(error)"); exit(1) }
+                        self.focusWindow?.contentView = nil; self.focusWindow?.orderOut(nil); self.focusWindow = nil
+                        self.previousApplication?.activate(options: [.activateIgnoringOtherApps]); app.setActivationPolicy(.prohibited)
+                        print("PASS \(name) with snapshot"); self.index += 1; self.next()
+                    }
+                    return
                 }
                 print("PASS \(name)"); self.index += 1; self.next()
             default: print("FAIL \(name): \(result)"); exit(1)

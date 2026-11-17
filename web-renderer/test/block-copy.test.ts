@@ -96,8 +96,8 @@ test('copy failures use contextual feedback without document text', async () => 
     const controller = installBlockCopy(root, 'incident-generation', async () => false);
     await controller.copy(root.querySelector('blockquote')!);
     await new Promise(resolve => setTimeout(resolve, 0));
-    root.querySelector<HTMLButtonElement>('[data-feedback-action="report"]')!.click();
-    expect(postMessage.mock.calls.map(call => call[0].action)).toEqual(['record','report']);
+    root.querySelector<HTMLButtonElement>('[data-feedback-action="inspect"]')!.click();
+    expect(postMessage.mock.calls.map(call => call[0].action)).toEqual(['record','inspect']);
     expect(postMessage.mock.calls[1][0]).toMatchObject({kind:'copy', generation:'incident-generation'});
     expect(JSON.stringify(postMessage.mock.calls)).not.toContain('private document');
     const select = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find(b=>b.textContent==='Select Text')!;

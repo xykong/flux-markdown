@@ -314,53 +314,74 @@ final class IncidentNotice: NSView {
     }
 }
 
-private final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
+final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
     let draft: IncidentDraft
     private let notes = NSTextView()
     private let details = NSTextView()
+    private let technical = NSStackView()
+    private let failureActions = NSStackView()
     private let status = NSTextField(wrappingLabelWithString: "")
     var onClose: (() -> Void)?
     init(draft: IncidentDraft) {
         self.draft = draft
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 660, height: 590), styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
-        super.init(window: window); window.delegate = self; window.isReleasedWhenClosed = false; window.title = ErrorFeedback.text("Report This Problem")
-        let content = NSStackView(); content.orientation = .vertical; content.alignment = .leading; content.spacing = 10; content.translatesAutoresizingMaskIntoConstraints = false
-        let heading = NSTextField(labelWithString: ErrorFeedback.text(draft.incident.kind.title)); heading.font = .boldSystemFont(ofSize: 15)
-        content.addArrangedSubview(heading); content.addArrangedSubview(status)
+        let window = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 580, height: 430), styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
+        super.init(window: window); window.delegate = self; window.isReleasedWhenClosed = false
+        window.title = ErrorFeedback.text("Report This Problem"); window.minSize = NSSize(width: 540, height: 430)
+        let content = NSStackView(); content.orientation = .vertical; content.alignment = .leading; content.spacing = 12; content.translatesAutoresizingMaskIntoConstraints = false
+        let heading = NSTextField(wrappingLabelWithString: ErrorFeedback.text(draft.incident.kind.title)); heading.font = .boldSystemFont(ofSize: 16)
+        content.addArrangedSubview(heading)
+        let guidance = NSTextField(wrappingLabelWithString: ErrorFeedback.text(draft.incident.guidance)); guidance.textColor = .secondaryLabelColor
+        content.addArrangedSubview(guidance)
         content.addArrangedSubview(NSTextField(labelWithString: ErrorFeedback.text("Additional details (optional)")))
-        for (view, height) in [(notes, CGFloat(95)), (details, CGFloat(240))] {
+        var scrollViews: [NSScrollView] = []
+        func scroll(_ view: NSTextView, height: CGFloat) -> NSScrollView {
             let scroll = NSScrollView(); scroll.documentView = view; scroll.hasVerticalScroller = true; scroll.borderType = .bezelBorder
             view.isRichText = false; view.isVerticallyResizable = true; view.autoresizingMask = [.width]; view.textContainer?.widthTracksTextView = true
-            content.addArrangedSubview(scroll); scroll.heightAnchor.constraint(greaterThanOrEqualToConstant: height).isActive = true
-            scroll.widthAnchor.constraint(equalTo: content.widthAnchor).isActive = true
+            scroll.heightAnchor.constraint(greaterThanOrEqualToConstant: height).isActive = true
+            scrollViews.append(scroll)
+            return scroll
         }
-        notes.string = draft.notes; details.string = draft.incident.report; details.isEditable = false; details.isHidden = !draft.includeDiagnostics; details.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
+        notes.string = draft.notes; notes.setAccessibilityLabel(ErrorFeedback.text("Additional details (optional)"))
+        content.addArrangedSubview(scroll(notes, height: 100))
+        content.addArrangedSubview(ErrorActionButton(title: ErrorFeedback.text("Attach Reproduction Materials…")) { [weak self] in
+            guard let self else { return }; self.draft.notes = self.notes.string; ErrorFeedback.prepareMaterials(self.draft)
+        })
+        let disclosure = NSButton(title: "▸ " + ErrorFeedback.text("Diagnostic report"), target: self, action: #selector(toggleTechnical(_:)))
+        disclosure.setButtonType(.pushOnPushOff); disclosure.bezelStyle = .inline; disclosure.setAccessibilityValue("collapsed")
+        content.addArrangedSubview(disclosure)
+        technical.orientation = .vertical; technical.alignment = .leading; technical.spacing = 8
         let include = NSButton(checkboxWithTitle: ErrorFeedback.text("Include diagnostics"), target: self, action: #selector(toggle(_:))); include.state = draft.includeDiagnostics ? .on : .off
-        content.addArrangedSubview(include)
-        let actions = NSStackView()
-        for (title, action) in [("Open Feedback Page", #selector(openPage)), ("Copy Report", #selector(copyReport)), ("Save Report…", #selector(saveReport))] {
-            actions.addArrangedSubview(NSButton(title: ErrorFeedback.text(title), target: self, action: action))
+        technical.addArrangedSubview(include)
+        details.string = draft.incident.report; details.isEditable = false; details.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
+        technical.addArrangedSubview(scroll(details, height: 160)); technical.isHidden = true
+        content.addArrangedSubview(technical)
+        status.font = .systemFont(ofSize: 11); status.textColor = .secondaryLabelColor; status.isSelectable = true
+        content.addArrangedSubview(status)
+        for (title, action) in [("Copy Report", #selector(copyReport)), ("Save Report…", #selector(saveReport))] {
+            failureActions.addArrangedSubview(NSButton(title: ErrorFeedback.text(title), target: self, action: action))
         }
-        content.addArrangedSubview(actions)
-        content.addArrangedSubview(ErrorActionButton(title: ErrorFeedback.text("Attach Reproduction Materials…")) { ErrorFeedback.prepareMaterials(draft) })
-        content.addArrangedSubview(ErrorActionButton(title: ErrorFeedback.text("My Feedback")) { ErrorFeedback.openFollowUp(draft.incident) })
-        if draft.incident.kind == .update {
-            content.addArrangedSubview(ErrorActionButton(title: ErrorFeedback.text("Download Latest Version")) { [weak self] in
-                guard NSWorkspace.shared.open(URL(string: "https://github.com/xykong/flux-markdown/releases/latest")!) else {
-                    self?.status.stringValue = ErrorFeedback.text("Copy the download link and paste it into your browser to download the latest version.") + "\nhttps://github.com/xykong/flux-markdown/releases/latest"
-                    self?.status.isSelectable = true; return
-                }
-            })
-        }
+        failureActions.isHidden = true; content.addArrangedSubview(failureActions)
+        let actions = NSStackView(); actions.spacing = 10
+        let cancel = NSButton(title: ErrorFeedback.text("Cancel"), target: self, action: #selector(dismiss)); cancel.keyEquivalent = "\u{1b}"
+        let submit = NSButton(title: ErrorFeedback.text("Continue on GitHub…"), target: self, action: #selector(openPage)); submit.keyEquivalent = "\r"
+        actions.addArrangedSubview(cancel); actions.addArrangedSubview(submit); content.addArrangedSubview(actions)
+        for text in [heading, guidance, status] { text.widthAnchor.constraint(equalTo: content.widthAnchor).isActive = true }
         window.contentView!.addSubview(content)
-        NSLayoutConstraint.activate([content.leadingAnchor.constraint(equalTo: window.contentView!.leadingAnchor, constant: 20), content.trailingAnchor.constraint(equalTo: window.contentView!.trailingAnchor, constant: -20), content.topAnchor.constraint(equalTo: window.contentView!.topAnchor, constant: 20), content.bottomAnchor.constraint(equalTo: window.contentView!.bottomAnchor, constant: -20)])
-        window.center()
+        for scroll in scrollViews { scroll.widthAnchor.constraint(equalTo: content.widthAnchor).isActive = true }
+        NSLayoutConstraint.activate([content.leadingAnchor.constraint(equalTo: window.contentView!.leadingAnchor, constant: 24), content.trailingAnchor.constraint(equalTo: window.contentView!.trailingAnchor, constant: -24), content.topAnchor.constraint(equalTo: window.contentView!.topAnchor, constant: 20), content.bottomAnchor.constraint(lessThanOrEqualTo: window.contentView!.bottomAnchor, constant: -20)])
+        window.initialFirstResponder = notes; window.center()
     }
     required init?(coder: NSCoder) { nil }
     func updateStatus(failed: Bool) {
-        status.stringValue = ErrorFeedback.text(failed ? "The feedback page could not be opened. Copy or save this report and try again later." : "The report is ready. GitHub requires you to confirm publication. You can reopen, copy or save it here.")
+        failureActions.isHidden = !failed
+        status.stringValue = ErrorFeedback.text(failed ? "The feedback page could not be opened. Copy or save this report and try again later." : "Opens GitHub with this error and system information. You confirm publication there.")
     }
-    @objc private func toggle(_ sender: NSButton) { draft.includeDiagnostics = sender.state == .on; details.isHidden = !draft.includeDiagnostics }
+    @objc private func toggleTechnical(_ sender: NSButton) {
+        technical.isHidden = sender.state != .on; sender.title = (technical.isHidden ? "▸ " : "▾ ") + ErrorFeedback.text("Diagnostic report"); sender.setAccessibilityValue(technical.isHidden ? "collapsed" : "expanded")
+        if !technical.isHidden, let window { var frame = window.frame; frame.size.height = max(frame.height, 670); window.setFrame(frame, display: true) }
+    }
+    @objc private func toggle(_ sender: NSButton) { draft.includeDiagnostics = sender.state == .on }
+    @objc private func dismiss() { window?.close() }
     @objc private func openPage() { draft.notes = notes.string; ErrorFeedback.report(draft) }
     @objc private func copyReport() { draft.notes = notes.string; NSPasteboard.general.clearContents(); NSPasteboard.general.setString(draft.report, forType: .string) }
     @objc private func saveReport() {

@@ -1,34 +1,20 @@
-/* Only the compact trigger participates in the collapsed error presentation. */
-.error-feedback-region { position: relative; min-height: 26px; }
+/* The error surface has one entry. All interaction lives in a native dialog. */
+.error-feedback-region { position: relative; min-height: 26px; padding-top: 28px; }
 .error-feedback-region-inline { display: inline-block; max-width: 100%; vertical-align: baseline; }
-.error-feedback-region > .math-error,
-.error-feedback-region > .katex-error { padding-right: 66px; box-sizing: border-box; }
-.error-feedback-controls { position: absolute; top: 3px; right: 4px; z-index: 20; font: 13px/1.5 system-ui; text-align: start; }
-.error-feedback-trigger {
-    appearance: none; border: 0; border-radius: 5px; background: transparent;
-    color: #bd2424; font: 600 12px/1.5 system-ui; cursor: pointer; padding: 3px 6px;
-    white-space: nowrap;
+.error-feedback-controls { position: absolute; top: 0; right: 0; z-index: 20; font: 13px/1.5 system-ui; text-align: start; }
+.error-feedback-controls > .error-feedback-trigger {
+    -webkit-appearance: none; appearance: none;
+    display: inline-flex; align-items: center; justify-content: center; gap: 3px;
+    box-sizing: border-box; width: max-content; min-width: 0; height: 26px;
+    margin: 0; padding: 3px 6px; border: 1px solid transparent; border-radius: 5px;
+    background: transparent; color: #bd2424; font: 600 12px/18px system-ui;
+    white-space: nowrap; text-indent: 0; cursor: pointer; outline: none; box-shadow: none;
 }
-.error-feedback-trigger:hover { background: rgba(200, 40, 40, .09); }
-.error-feedback-trigger:focus-visible,
-.error-feedback-panel button:focus-visible { outline: 2px solid #bd2424; outline-offset: 2px; }
-.error-feedback-panel[hidden] { display: none !important; }
-.error-feedback-panel {
-    position: absolute; top: 100%; right: 0; display: flex; flex-wrap: wrap; gap: 8px;
-    width: min(360px, 80vw); max-height: 320px; overflow: auto; padding: 14px;
-    box-sizing: border-box; border: 1px solid rgba(128,128,128,.3); border-radius: 9px;
-    color: #24292f; background: #fff; box-shadow: 0 5px 22px rgba(0,0,0,.16);
-    font-weight: normal; white-space: normal;
-}
-.error-feedback-panel small { color: #57606a; font-size: 11px; }
-@media (prefers-color-scheme: dark) {
-    .error-feedback-trigger { color: #ff7777; }
-    .error-feedback-panel { color: #e6edf3; background: #22272e; }
-    .error-feedback-panel small { color: #adbac7; }
-}
-[data-theme="dark"] .error-feedback-trigger { color: #ff7777; }
-[data-theme="dark"] .error-feedback-panel { color: #e6edf3; background: #22272e; }
-[data-theme="dark"] .error-feedback-panel small { color: #adbac7; }
-[data-theme="light"] .error-feedback-trigger { color: #bd2424; }
-[data-theme="light"] .error-feedback-panel { color: #24292f; background: #fff; }
-[data-theme="light"] .error-feedback-panel small { color: #57606a; }
+.error-feedback-trigger > span { display: inline; font: inherit; line-height: inherit; }
+.error-feedback-controls > .error-feedback-trigger:hover { background: rgba(200,40,40,.07); }
+/* Draw the keyboard ring inside the actual button, never a native anonymous box. */
+.error-feedback-controls > .error-feedback-trigger:focus { outline: none; }
+.error-feedback-controls > .error-feedback-trigger:focus-visible { box-shadow: inset 0 0 0 2px currentColor; }
+@media (prefers-color-scheme: dark) { .error-feedback-controls > .error-feedback-trigger { color: #ff7777; } }
+[data-theme="dark"] .error-feedback-controls > .error-feedback-trigger { color: #ff7777; }
+[data-theme="light"] .error-feedback-controls > .error-feedback-trigger { color: #bd2424; }

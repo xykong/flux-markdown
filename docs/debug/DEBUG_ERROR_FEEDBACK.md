@@ -163,3 +163,8 @@ Display formula copy actions also float instead of reserving an invisible row. B
 ## 2026-11-17：验收调整——紧凑反馈入口
 
 用户要求错误区域只保留右上角红色“! 反馈”，点击后再展示恢复、报告、复现材料、我的反馈与披露说明。该显式验收要求取代 renderer 的常驻恢复/报告按钮排布；原生渲染失败后备仍保留。详见 [DEBUG_COMPACT_ERROR_FEEDBACK.md](DEBUG_COMPACT_ERROR_FEEDBACK.md)。
+
+
+## 最终验收方向：原生反馈对话框
+
+点击红色入口直接打开简化原生反馈对话框，移除行内选项面板。入口外观、文字范围、窄窗口和真实聚焦状态新增 WebKit 快照验证；见 DEBUG_COMPACT_ERROR_FEEDBACK.md 的最终交互章节。先前“点击展开旧选项”的记录是已替代方案。

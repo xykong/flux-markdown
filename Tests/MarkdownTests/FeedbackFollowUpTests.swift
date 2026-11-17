@@ -210,3 +210,32 @@ extension FeedbackFollowUpTests {
         XCTAssertEqual(try FeedbackFollowUpState.load(from: file).reports.first?.issue?.number, 73)
     }
 }
+
+extension FeedbackFollowUpTests {
+    @MainActor func testFeedbackDialogHasNoMenuAndOnlyShowsFailureRecoveryAfterFailure() async throws {
+        let draft = IncidentDraft(ErrorIncident(kind: .math, source: .app))
+        let controller = IncidentReportWindow(draft: draft)
+        controller.updateStatus(failed: false)
+        let window = try XCTUnwrap(controller.window)
+        window.contentView?.layoutSubtreeIfNeeded()
+        func visibleButtons(_ view: NSView) -> [NSButton] {
+            if view.isHidden { return [] }
+            return (view as? NSButton).map { [$0] } ?? view.subviews.flatMap(visibleButtons)
+        }
+        let titles = visibleButtons(window.contentView!).map(\.title)
+        XCTAssertTrue(titles.contains(ErrorFeedback.text("Continue on GitHub…")))
+        XCTAssertTrue(titles.contains(ErrorFeedback.text("Cancel")))
+        XCTAssertFalse(titles.contains(ErrorFeedback.text("Copy Report")))
+        XCTAssertFalse(titles.contains(ErrorFeedback.text("My Feedback")))
+        XCTAssertFalse(titles.contains(ErrorFeedback.text("Include diagnostics")))
+        if ProcessInfo.processInfo.environment["FLUX_DIALOG_VISUAL_HOLD"] == "1", let screen = NSScreen.screens.dropFirst().first {
+            window.setFrameOrigin(NSPoint(x:screen.visibleFrame.midX-window.frame.width/2,y:screen.visibleFrame.midY-window.frame.height/2))
+            window.orderFront(nil)
+            print("Feedback native visual fixture PID \(ProcessInfo.processInfo.processIdentifier)")
+            try await Task.sleep(nanoseconds: 30_000_000_000)
+        }
+        controller.updateStatus(failed: true)
+        XCTAssertTrue(visibleButtons(window.contentView!).map(\.title).contains(ErrorFeedback.text("Copy Report")))
+        window.close()
+    }
+}

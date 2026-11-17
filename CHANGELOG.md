@@ -1,6 +1,6 @@
 ## [Unreleased]
 ### Changed
-- **Inline error feedback**: Show one compact red Feedback entry in the error region’s upper-right corner; reveal recovery, reporting and attachment options only after activation.
+- **Inline error feedback**: Show one compact red Feedback entry in the error region’s upper-right corner; open a focused native feedback dialog on activation, with optional notes/materials and collapsed diagnostics.
 
 ### Added
 - **Feedback reproduction packages**: Review and edit a failed formula fragment, choose a complete document and referenced local resources, and save a bounded ZIP for attachment on GitHub. Mathematical reports now distinguish failure categories and preserve per-formula incident identity. Thanks to [@syutheoria](https://github.com/syutheoria) for the report in [#73](https://github.com/xykong/flux-markdown/issues/73) that exposed the missing reproduction context; the reported formula failure itself is still under investigation.
