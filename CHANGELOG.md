@@ -1,5 +1,6 @@
 ## [Unreleased]
 ### Changed
+- **Prefilled feedback and current-document attachment**: Restore an editable automatic issue summary and select the current document snapshot by default, preparing a reviewable ZIP locally with an opt-out. Quick Look transfers the snapshot to the host through a bounded private handoff; GitHub attachment upload and final publication remain explicit user actions.
 - **Inline error feedback**: Show one compact red Feedback entry in the error region’s upper-right corner; open a focused native feedback dialog on activation, with optional notes/materials and collapsed diagnostics. Failed formulas no longer show a competing hover-copy button over the feedback entry; copying valid formulas remains available.
 
 ### Added

@@ -168,3 +168,8 @@ Display formula copy actions also float instead of reserving an invisible row. B
 ## 最终验收方向：原生反馈对话框
 
 点击红色入口直接打开简化原生反馈对话框，移除行内选项面板。入口外观、文字范围、窄窗口和真实聚焦状态新增 WebKit 快照验证；见 DEBUG_COMPACT_ERROR_FEEDBACK.md 的最终交互章节。先前“点击展开旧选项”的记录是已替代方案。
+
+
+## 自动摘要与默认当前文档
+
+首次打开反馈对话框预填摘要并默认准备当前文档 ZIP，清楚展示排除和准备失败状态；Quick Look 使用受信任 XPC 与私有一次性文件交接快照。详见 [DEBUG_FEEDBACK_AUTOFILL_ATTACHMENTS.md](DEBUG_FEEDBACK_AUTOFILL_ATTACHMENTS.md)。

@@ -159,3 +159,19 @@
 "Your Issue has a new reply. Click to open it." = "Tu Issue tiene una nueva respuesta. Pulsa para abrirla.";
 "ZIP prepared locally. Attach it on GitHub; it has not been uploaded." = "ZIP creado localmente, aún no se ha subido. Adjúntalo en GitHub.";
 "Attach the ZIP on GitHub by dragging it from Finder. GitHub uploads attachments immediately; you publish the Issue there. No attachment is required to report." = "Arrastra el ZIP desde Finder a GitHub. Los adjuntos se suben inmediatamente; tú publicas el Issue allí. Adjuntar archivos es opcional.";
+
+/* Automatic feedback summary and default document */
+"Observed problem:" = "Problema observado:";
+"Source:" = "Origen:";
+"Operation:" = "Operación:";
+"Failure category:" = "Categoría del error:";
+"App version:" = "Versión de la aplicación:";
+"Feedback description" = "Descripción del problema";
+"Include current document" = "Adjuntar el documento actual";
+"Review Attachment…" = "Revisar adjunto…";
+"Choose Another Document…" = "Elegir otro documento…";
+"The selected document will be prepared as a ZIP. Drag it onto GitHub to upload it publicly. Uncheck to exclude it." = "El documento se preparará como ZIP. Arrástralo a GitHub para subirlo públicamente. Desmarca para excluirlo.";
+"Document excluded." = "Documento excluido.";
+"Preparing current document…" = "Preparando el documento actual…";
+"ZIP ready locally; not uploaded." = "ZIP preparado localmente; aún no se ha subido.";
+"Current document unavailable. Choose a document or uncheck its attachment to continue." = "Documento actual no disponible. Elige un documento o desmarca el adjunto para continuar.";

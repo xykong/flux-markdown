@@ -159,3 +159,19 @@
 "Your Issue has a new reply. Click to open it." = "Your Issue has a new reply. Click to open it.";
 "ZIP prepared locally. Attach it on GitHub; it has not been uploaded." = "ZIP prepared locally. Attach it on GitHub; it has not been uploaded.";
 "Attach the ZIP on GitHub by dragging it from Finder. GitHub uploads attachments immediately; you publish the Issue there. No attachment is required to report." = "Attach the ZIP on GitHub by dragging it from Finder. GitHub uploads attachments immediately; you publish the Issue there. No attachment is required to report.";
+
+/* Automatic feedback summary and default document */
+"Observed problem:" = "Observed problem:";
+"Source:" = "Source:";
+"Operation:" = "Operation:";
+"Failure category:" = "Failure category:";
+"App version:" = "App version:";
+"Feedback description" = "Feedback description";
+"Include current document" = "Include current document";
+"Review Attachment…" = "Review Attachment…";
+"Choose Another Document…" = "Choose Another Document…";
+"The selected document will be prepared as a ZIP. Drag it onto GitHub to upload it publicly. Uncheck to exclude it." = "The selected document will be prepared as a ZIP. Drag it onto GitHub to upload it publicly. Uncheck to exclude it.";
+"Document excluded." = "Document excluded.";
+"Preparing current document…" = "Preparing current document…";
+"ZIP ready locally; not uploaded." = "ZIP ready locally; not uploaded.";
+"Current document unavailable. Choose a document or uncheck its attachment to continue." = "Current document unavailable. Choose a document or uncheck its attachment to continue.";

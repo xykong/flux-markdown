@@ -239,3 +239,97 @@ extension FeedbackFollowUpTests {
         window.close()
     }
 }
+
+extension FeedbackFollowUpTests {
+    @MainActor func testFeedbackDraftPrefillsSummaryAndIncludesCurrentDocumentByDefault() throws {
+        let draft = IncidentDraft(ErrorIncident(kind: .math, source: .app, environment: ["appVersion":"1.51.834"]))
+        draft.materialContext = .captured(document: "# Public sample\n$x$", url: nil, first: 2, last: 2)
+        draft.prepareDefaultContent()
+        XCTAssertFalse(draft.notes.isEmpty)
+        XCTAssertTrue(draft.notes.contains("math"))
+        XCTAssertTrue(draft.notes.contains("1.51.834"))
+        XCTAssertTrue(draft.includeDocument)
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let zip = try draft.prepareDocumentAttachment(in: root)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: zip.path))
+        let unzip = Process(); unzip.executableURL = URL(fileURLWithPath:"/usr/bin/unzip"); unzip.arguments = ["-p",zip.path,"document.md"]
+        let pipe=Pipe(); unzip.standardOutput=pipe; try unzip.run()
+        let content=pipe.fileHandleForReading.readDataToEndOfFile(); unzip.waitUntilExit()
+        XCTAssertEqual(String(data:content,encoding:.utf8),"# Public sample\n$x$")
+        draft.notes="My edited report"; draft.prepareDefaultContent()
+        XCTAssertEqual(draft.notes,"My edited report")
+        draft.includeDocument=false
+        XCTAssertFalse(draft.includeDocument)
+        XCTAssertFalse(draft.report.contains("# Public sample"))
+    }
+    func testDefaultDocumentTransferHasBoundedOneTimeLocalHandoff() throws {
+        let incident=ErrorIncident(kind:.math,source:.quicklook)
+        var request=IncidentFeedbackRequest(incident:incident,includeDiagnostics:true,notes:"");request.review=true
+        let transfer=IncidentDocumentTransfer(request:request,document:"# Safe sample",sample:"$x$",displayName:"sample.md")
+        let root=FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at:root) }
+        let token=try transfer.persist(in:root)
+        let received=try IncidentDocumentTransfer.consume(token:token,in:root)
+        XCTAssertEqual(received.document,"# Safe sample")
+        XCTAssertEqual(received.request.incident.id,incident.id)
+        XCTAssertThrowsError(try IncidentDocumentTransfer.consume(token:token,in:root))
+        XCTAssertNil(IncidentDocumentTransfer.decode(Data(repeating:65,count:32*1024*1024+1)))
+    }
+}
+
+extension FeedbackFollowUpTests {
+    @MainActor func testDialogActuallyShowsAutofilledTextAndCheckedReadyDocument() async throws {
+        let draft=IncidentDraft(ErrorIncident(kind:.math,source:.app,environment:["appVersion":"1.51.834"]))
+        draft.materialContext = .captured(document:"# Public fixture\n$x$",url:nil,first:2,last:2)
+        let controller=IncidentReportWindow(draft:draft)
+        XCTAssertFalse((controller.window as? NSPanel)?.hidesOnDeactivate ?? true)
+        controller.updateStatus(failed:false)
+        let window=try XCTUnwrap(controller.window)
+        func descendants(_ view:NSView)->[NSView] { [view]+view.subviews.flatMap(descendants) }
+        let views=descendants(window.contentView!)
+        XCTAssertTrue(views.compactMap{$0 as? NSTextView}.contains{$0.isEditable && $0.string.contains("math") && $0.string.contains("1.51.834")})
+        let checkbox=try XCTUnwrap(views.compactMap{$0 as? NSButton}.first{$0.title==ErrorFeedback.text("Include current document")})
+        XCTAssertEqual(checkbox.state,.on)
+        for _ in 0..<100 { if draft.attachmentURL != nil { break }; try await Task.sleep(nanoseconds:20_000_000) }
+        let zip=try XCTUnwrap(draft.attachmentURL)
+        XCTAssertTrue(FileManager.default.fileExists(atPath:zip.path))
+        XCTAssertTrue(views.compactMap{$0 as? NSTextField}.contains{$0.stringValue.contains(ErrorFeedback.text("ZIP ready locally; not uploaded."))})
+        checkbox.state = .off
+        _ = checkbox.target?.perform(checkbox.action,with:checkbox)
+        XCTAssertFalse(draft.includeDocument)
+        XCTAssertTrue(views.compactMap{$0 as? NSTextField}.contains{$0.stringValue==ErrorFeedback.text("Document excluded.")})
+        draft.notes=""; draft.prepareDefaultContent(); XCTAssertEqual(draft.notes,"")
+        window.close()
+        try? FileManager.default.removeItem(at:zip.deletingLastPathComponent())
+    }
+    func testDocumentTransferRejectsNonReviewAndSymlinks() throws {
+        let incident=ErrorIncident(kind:.math,source:.quicklook)
+        var request=IncidentFeedbackRequest(incident:incident,includeDiagnostics:true,notes:"")
+        let unsafe=IncidentDocumentTransfer(request:request,document:"safe",sample:nil,displayName:"document.md")
+        XCTAssertNil(IncidentDocumentTransfer.decode(try JSONEncoder().encode(unsafe)))
+        request.review=true
+        let transfer=IncidentDocumentTransfer(request:request,document:"safe",sample:nil,displayName:"document.md")
+        let root=FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer{try? FileManager.default.removeItem(at:root)}
+        let token=try transfer.persist(in:root)
+        let file=root.appendingPathComponent(token.uuidString+".json"),target=root.appendingPathComponent("target.json")
+        try FileManager.default.moveItem(at:file,to:target)
+        try FileManager.default.createSymbolicLink(at:file,withDestinationURL:target)
+        XCTAssertThrowsError(try IncidentDocumentTransfer.consume(token:token,in:root))
+        XCTAssertTrue(FileManager.default.fileExists(atPath:target.path))
+    }
+}
+
+extension FeedbackFollowUpTests {
+    func testPrepareInstalledFeedbackSmokeFixtureWhenExplicitlyEnabled() throws {
+        guard ProcessInfo.processInfo.environment["FLUX_INSTALLED_FEEDBACK_FIXTURE"] == "1" else { throw XCTSkip("Explicit local installed-app smoke fixture") }
+        var incident=ErrorIncident(kind:.math,source:.app,environment:["appVersion":"1.51.834"]);incident.reason = .mathSyntax
+        var request=IncidentFeedbackRequest(incident:incident,includeDiagnostics:true,notes:"");request.review=true
+        let transfer=IncidentDocumentTransfer(request:request,document:"# 自动反馈验收\n\n这是公开的本地测试材料。\n\n$\\unknownCommand{x}$",sample:nil,displayName:"自动反馈验收.md")
+        request.transferToken=try transfer.persist()
+        let url=try XCTUnwrap(request.hostURL)
+        XCTAssertFalse(url.absoluteString.contains("unknownCommand"))
+        try url.absoluteString.write(to:URL(fileURLWithPath:"/tmp/flux-installed-feedback-smoke.url"),atomically:true,encoding:.utf8)
+    }
+}

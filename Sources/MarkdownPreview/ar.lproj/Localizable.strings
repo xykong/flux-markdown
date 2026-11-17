@@ -154,3 +154,19 @@
 "Your Issue has a new reply. Click to open it." = "وصل رد جديد على بلاغك. انقر لفتحه.";
 "ZIP prepared locally. Attach it on GitHub; it has not been uploaded." = "تم إنشاء ZIP محليًا ولم يُرفع بعد. أرفقه على GitHub.";
 "Attach the ZIP on GitHub by dragging it from Finder. GitHub uploads attachments immediately; you publish the Issue there. No attachment is required to report." = "اسحب ZIP من Finder إلى GitHub لإرفاقه. تُرفع المرفقات فورًا؛ وأنت تؤكد نشر البلاغ هناك. الإرفاق اختياري.";
+
+/* Automatic feedback summary and default document */
+"Observed problem:" = "المشكلة الملحوظة:";
+"Source:" = "المصدر:";
+"Operation:" = "العملية:";
+"Failure category:" = "فئة الخطأ:";
+"App version:" = "إصدار التطبيق:";
+"Feedback description" = "وصف المشكلة";
+"Include current document" = "إرفاق المستند الحالي";
+"Review Attachment…" = "مراجعة المرفق…";
+"Choose Another Document…" = "اختيار مستند آخر…";
+"The selected document will be prepared as a ZIP. Drag it onto GitHub to upload it publicly. Uncheck to exclude it." = "سيُجهز المستند كملف ZIP. اسحبه إلى GitHub لرفعه علنًا. أزل التحديد لاستبعاده.";
+"Document excluded." = "تم استبعاد المستند.";
+"Preparing current document…" = "جارٍ تجهيز المستند الحالي…";
+"ZIP ready locally; not uploaded." = "ZIP جاهز محليًا؛ لم يُرفع بعد.";
+"Current document unavailable. Choose a document or uncheck its attachment to continue." = "المستند الحالي غير متاح. اختر مستندًا أو ألغِ إرفاقه للمتابعة.";

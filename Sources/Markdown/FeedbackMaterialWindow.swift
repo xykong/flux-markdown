@@ -37,7 +37,8 @@ final class FeedbackMaterialWindow: NSWindowController, NSWindowDelegate {
         source.isRichText = false; source.isVerticallyResizable = true; source.autoresizingMask = [.width]; source.textContainer?.widthTracksTextView = true
         source.font = .monospacedSystemFont(ofSize: 12, weight: .regular)
         source.setAccessibilityLabel(ErrorFeedback.text("Reproduction content"))
-        source.string = draft.materialContext?.sample ?? ""
+        source.string = draft.materialContext?.document ?? draft.materialContext?.sample ?? ""
+        if draft.materialContext?.document != nil { mode.selectItem(at: 1); previousMode = 1 }
         stack.addArrangedSubview(scroll); scroll.heightAnchor.constraint(greaterThanOrEqualToConstant: 230).isActive = true; scroll.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
         include.state = draft.includeDiagnostics ? .on : .off; stack.addArrangedSubview(include)
         let resourceActions = NSStackView(views: [NSButton(title: ErrorFeedback.text("Choose Referenced Resources…"), target: self, action: #selector(chooseResources)), NSButton(title: ErrorFeedback.text("Remove Resources"), target: self, action: #selector(removeResources))]); stack.addArrangedSubview(resourceActions)

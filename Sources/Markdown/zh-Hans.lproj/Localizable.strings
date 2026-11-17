@@ -314,3 +314,19 @@
 "Your Issue has a new reply. Click to open it." = "你的 Issue 有新回复，点击查看。";
 "ZIP prepared locally. Attach it on GitHub; it has not been uploaded." = "ZIP 已在本地生成，尚未上传。请在 GitHub 附上此文件。";
 "Attach the ZIP on GitHub by dragging it from Finder. GitHub uploads attachments immediately; you publish the Issue there. No attachment is required to report." = "将 ZIP 从 Finder 拖到 GitHub 页面即可附带。GitHub 会立即上传附件，Issue 由你在那里确认发布。不附附件也可以反馈。";
+
+/* Automatic feedback summary and default document */
+"Observed problem:" = "遇到的问题：";
+"Source:" = "来源：";
+"Operation:" = "操作：";
+"Failure category:" = "错误类型：";
+"App version:" = "应用版本：";
+"Feedback description" = "反馈内容";
+"Include current document" = "附带当前文档";
+"Review Attachment…" = "查看附件…";
+"Choose Another Document…" = "更换文档…";
+"The selected document will be prepared as a ZIP. Drag it onto GitHub to upload it publicly. Uncheck to exclude it." = "默认将当前文档准备为 ZIP。在 GitHub 拖入附件后会公开上传；不想分享可取消勾选。";
+"Document excluded." = "未附带文档。";
+"Preparing current document…" = "正在准备当前文档…";
+"ZIP ready locally; not uploaded." = "ZIP 已在本地准备，尚未上传。";
+"Current document unavailable. Choose a document or uncheck its attachment to continue." = "无法取得当前文档。请选择文档，或取消附带文档后继续。";

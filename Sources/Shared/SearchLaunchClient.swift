@@ -11,6 +11,10 @@ enum SearchLaunchClient {
         guard let url = components.url else { completion(false); return }
         perform { $0.openDocument(url.absoluteString, reply: $1) } completion: { completion($0) }
     }
+    static func reportDocumentError(_ data: Data, completion: @escaping (Bool) -> Void) {
+        guard IncidentDocumentTransfer.decode(data) != nil else { completion(false); return }
+        perform({ $0.reportDocumentError(data, reply: $1) }, timeout: 20, completion: completion)
+    }
     static func reportError(_ data: Data, completion: @escaping (Bool) -> Void) {
         guard IncidentFeedbackRequest.decode(data) != nil else { completion(false); return }
         perform { $0.reportError(data, reply: $1) } completion: { completion($0) }

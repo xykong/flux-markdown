@@ -29,3 +29,8 @@
 - 多条回复时，打开该 Issue 的首条未读评论；保留之后未点击覆盖的评论提示。一次点击期间新到的评论始终保持未读，不能用“最新时间”整体清零。
 - 关闭系统横幅不是点击消息，不清除应用内标记。通知被系统移除后仍可从 App 找回。Issue 已关闭不清理未读，已删除评论显示不可用并需用户主动处理该项；网络失败不作为删除证据。
 - 官方评论 API：https://docs.github.com/en/rest/issues/comments 。客户端不内置维护者 Token，不依赖用户开启 GitHub 邮件；仅跟踪明确关联的公开 Issue，不要求读取用户其他仓库或通知。
+
+
+## 默认摘要与附件（用户进一步验收要求）
+
+反馈对话框预填可编辑摘要并默认选中当前文档快照，明示公开范围和可取消选项。本地自动打包不代表远程上传。Quick Look 改为经现有受信任 peer 校验的新增 XPC 方法传完整快照，launcher 使用专用 FeedbackTransfers 目录和一次性 token 交给宿主；只增加该目录的沙箱写权限。详细数据/缓存预算和验证见 docs/debug/DEBUG_FEEDBACK_AUTOFILL_ATTACHMENTS.md。此前“Quick Look 全文必须重新选取”的方案被这次用户要求替代。

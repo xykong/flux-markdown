@@ -5,7 +5,38 @@ final class IncidentDraft {
     var incident: ErrorIncident
     var includeDiagnostics = true
     var notes = ""
+    private var didPrepareDefaultContent = false
     var materialContext: FeedbackMaterialContext?
+    var includeDocument = true
+    var attachmentURL: URL?
+    var documentName: String { materialContext?.displayName ?? materialContext?.originalURL?.lastPathComponent ?? "document.md" }
+    func prepareDefaultContent() {
+        guard !didPrepareDefaultContent else { return }; didPrepareDefaultContent = true
+        guard notes.isEmpty else { return }
+        notes = ErrorFeedback.text("Observed problem:") + " " + ErrorFeedback.text(incident.kind.title)
+            + "\n" + ErrorFeedback.text("Source:") + " " + incident.source.rawValue
+            + "\n" + ErrorFeedback.text("Operation:") + " " + incident.kind.rawValue
+            + "\n" + ErrorFeedback.text("Failure category:") + " " + (incident.reason?.rawValue ?? "operationFailed")
+            + "\n" + ErrorFeedback.text("App version:") + " " + (incident.environment["appVersion"] ?? "unknown")
+    }
+    static var attachmentDirectory: URL { FileManager.default.temporaryDirectory.appendingPathComponent("FluxMarkdown-FeedbackAttachments", isDirectory: true) }
+    func prepareDocumentAttachment(in root: URL = IncidentDraft.attachmentDirectory) throws -> URL {
+        guard includeDocument, let document = materialContext?.document else { throw CocoaError(.fileReadNoSuchFile) }
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+        guard try root.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink != true else { throw CocoaError(.fileWriteNoPermission) }
+        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: root.path)
+        for child in try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: [.contentModificationDateKey]) where UUID(uuidString: child.lastPathComponent) != nil {
+            if let date = try child.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate, date < Date().addingTimeInterval(-86400) { try FileManager.default.removeItem(at: child) }
+        }
+        let folder = root.appendingPathComponent(incident.id.uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+        let package = try FeedbackReproduction.prepare(source: document, mode: "document", diagnostics: includeDiagnostics ? report : "", incident: incident.id, provenance: materialContext?.provenance ?? "unknown")
+        let url = folder.appendingPathComponent("FluxMarkdown-reproduction.zip")
+        try package.writeZIP(to: url)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
+        attachmentURL = url
+        return url
+    }
     init(_ incident: ErrorIncident) { self.incident = incident }
     var report: String { "Operation: \(incident.kind.rawValue)\nObserved result: \(incident.kind.title)\n" + notes + (includeDiagnostics ? "\n\n" + incident.report : "") }
 }
@@ -30,7 +61,9 @@ enum ErrorFeedback {
         if let existing = drafts[incoming.incident.id] {
             if existing !== incoming {
                 existing.includeDiagnostics = existing.includeDiagnostics && incoming.includeDiagnostics
+                existing.includeDocument = existing.includeDocument && incoming.includeDocument
                 if existing.notes.isEmpty { existing.notes = incoming.notes }
+                if existing.materialContext == nil { existing.materialContext = incoming.materialContext }
             }
             return existing
         }
@@ -110,7 +143,18 @@ enum ErrorFeedback {
         store.record(draft.incident)
         if Bundle.main.bundleIdentifier == "com.xykong.Markdown.QuickLook" {
             var request = IncidentFeedbackRequest(incident: draft.incident, includeDiagnostics: draft.includeDiagnostics, notes: String(draft.notes.prefix(600)))
-            request.review = review
+            request.review = review; request.includeDocument = draft.includeDocument
+            if review, draft.includeDocument, let document = draft.materialContext?.document {
+                let transfer = IncidentDocumentTransfer(request: request, document: document, sample: draft.materialContext?.sample, displayName: draft.documentName.replacingOccurrences(of: "\\", with: "_"))
+                guard let data = try? JSONEncoder().encode(transfer), IncidentDocumentTransfer.decode(data) != nil else {
+                    pending.remove(draft.incident.id); failure?(draft); return
+                }
+                SearchLaunchClient.reportDocumentError(data) { success in
+                    pending.remove(draft.incident.id)
+                    if !success { failure?(draft) }
+                }
+                return
+            }
             guard let data = try? JSONEncoder().encode(request), data.count <= 16384 else {
                 pending.remove(draft.incident.id); failure?(draft); return
             }
@@ -135,9 +179,13 @@ enum ErrorFeedback {
               items.count == 1, items[0].name == "payload", let value = items[0].value, value.utf8.count <= 24000,
               let data = Data(base64Encoded: value), let request = IncidentFeedbackRequest.decode(data) else { return true }
         let draft = IncidentDraft(request.incident)
-        draft.includeDiagnostics = request.includeDiagnostics; draft.notes = request.notes
+        draft.includeDiagnostics = request.includeDiagnostics; draft.notes = request.notes; draft.includeDocument = request.includeDocument ?? true
+        if let token = request.transferToken,
+           let transfer = try? IncidentDocumentTransfer.consume(token: token), transfer.request.incident.id == request.incident.id {
+            draft.materialContext = FeedbackMaterialContext(document: transfer.document, sample: transfer.sample, originalURL: nil, provenance: "captured-quicklook-render-input", displayName: transfer.displayName)
+        }
         if request.materialReview == true {
-            draft.materialContext = FeedbackMaterialContext(document: nil, sample: request.sample, originalURL: nil, provenance: "user-reviewed-fragment")
+            if draft.materialContext == nil { draft.materialContext = FeedbackMaterialContext(document: nil, sample: request.sample, originalURL: nil, provenance: "user-reviewed-fragment") }
             materialPresenter?(draft)
             return true
         }
@@ -196,6 +244,7 @@ enum ErrorFeedback {
 
     static func showDraft(_ incoming: IncidentDraft, failed: Bool = false, bringForward: Bool = true) {
         let draft = remember(incoming)
+        draft.prepareDefaultContent()
         if let existing = windows[draft.incident.id] {
             existing.updateStatus(failed: failed)
             if bringForward { existing.showWindow(nil); existing.window?.makeKeyAndOrderFront(nil) }
@@ -320,19 +369,27 @@ final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
     private let details = NSTextView()
     private let technical = NSStackView()
     private let failureActions = NSStackView()
+    private let attachmentInfo = NSTextField(wrappingLabelWithString: "")
+    private let includeFile = NSButton(checkboxWithTitle: ErrorFeedback.text("Include current document"), target: nil, action: nil)
+    private let revealFile = NSButton(title: ErrorFeedback.text("Review Attachment…"), target: nil, action: nil)
+    private var preparingAttachment = false
+    private var continueWhenReady = false
+    private var isClosed = false
     private let status = NSTextField(wrappingLabelWithString: "")
     var onClose: (() -> Void)?
     init(draft: IncidentDraft) {
         self.draft = draft
-        let window = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 580, height: 430), styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
+        draft.prepareDefaultContent()
+        let window = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 580, height: 660), styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
         super.init(window: window); window.delegate = self; window.isReleasedWhenClosed = false
-        window.title = ErrorFeedback.text("Report This Problem"); window.minSize = NSSize(width: 540, height: 430)
+        window.hidesOnDeactivate = false; window.isFloatingPanel = false
+        window.title = ErrorFeedback.text("Report This Problem"); window.minSize = NSSize(width: 540, height: 660)
         let content = NSStackView(); content.orientation = .vertical; content.alignment = .leading; content.spacing = 12; content.translatesAutoresizingMaskIntoConstraints = false
         let heading = NSTextField(wrappingLabelWithString: ErrorFeedback.text(draft.incident.kind.title)); heading.font = .boldSystemFont(ofSize: 16)
         content.addArrangedSubview(heading)
         let guidance = NSTextField(wrappingLabelWithString: ErrorFeedback.text(draft.incident.guidance)); guidance.textColor = .secondaryLabelColor
         content.addArrangedSubview(guidance)
-        content.addArrangedSubview(NSTextField(labelWithString: ErrorFeedback.text("Additional details (optional)")))
+        content.addArrangedSubview(NSTextField(labelWithString: ErrorFeedback.text("Feedback description")))
         var scrollViews: [NSScrollView] = []
         func scroll(_ view: NSTextView, height: CGFloat) -> NSScrollView {
             let scroll = NSScrollView(); scroll.documentView = view; scroll.hasVerticalScroller = true; scroll.borderType = .bezelBorder
@@ -341,11 +398,19 @@ final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
             scrollViews.append(scroll)
             return scroll
         }
-        notes.string = draft.notes; notes.setAccessibilityLabel(ErrorFeedback.text("Additional details (optional)"))
+        notes.string = draft.notes; notes.setAccessibilityLabel(ErrorFeedback.text("Feedback description"))
         content.addArrangedSubview(scroll(notes, height: 100))
-        content.addArrangedSubview(ErrorActionButton(title: ErrorFeedback.text("Attach Reproduction Materials…")) { [weak self] in
-            guard let self else { return }; self.draft.notes = self.notes.string; ErrorFeedback.prepareMaterials(self.draft)
-        })
+        includeFile.target = self; includeFile.action = #selector(toggleDocument(_:)); includeFile.state = draft.includeDocument ? .on : .off
+        content.addArrangedSubview(includeFile)
+        attachmentInfo.font = .systemFont(ofSize: 11); attachmentInfo.textColor = .secondaryLabelColor; attachmentInfo.isSelectable = true
+        content.addArrangedSubview(attachmentInfo)
+        let attachmentActions = NSStackView()
+        revealFile.target = self; revealFile.action = #selector(reviewAttachment); revealFile.isEnabled = false
+        attachmentActions.addArrangedSubview(revealFile)
+        attachmentActions.addArrangedSubview(NSButton(title: ErrorFeedback.text("Choose Another Document…"), target: self, action: #selector(chooseDocument)))
+        content.addArrangedSubview(attachmentActions)
+        let sharing = NSTextField(wrappingLabelWithString: ErrorFeedback.text("The selected document will be prepared as a ZIP. Drag it onto GitHub to upload it publicly. Uncheck to exclude it.")); sharing.font = .systemFont(ofSize: 11); sharing.textColor = .secondaryLabelColor
+        content.addArrangedSubview(sharing); sharing.widthAnchor.constraint(equalTo: content.widthAnchor).isActive = true
         let disclosure = NSButton(title: "▸ " + ErrorFeedback.text("Diagnostic report"), target: self, action: #selector(toggleTechnical(_:)))
         disclosure.setButtonType(.pushOnPushOff); disclosure.bezelStyle = .inline; disclosure.setAccessibilityValue("collapsed")
         content.addArrangedSubview(disclosure)
@@ -365,11 +430,12 @@ final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
         let cancel = NSButton(title: ErrorFeedback.text("Cancel"), target: self, action: #selector(dismiss)); cancel.keyEquivalent = "\u{1b}"
         let submit = NSButton(title: ErrorFeedback.text("Continue on GitHub…"), target: self, action: #selector(openPage)); submit.keyEquivalent = "\r"
         actions.addArrangedSubview(cancel); actions.addArrangedSubview(submit); content.addArrangedSubview(actions)
-        for text in [heading, guidance, status] { text.widthAnchor.constraint(equalTo: content.widthAnchor).isActive = true }
+        for text in [heading, guidance, status, attachmentInfo] { text.widthAnchor.constraint(equalTo: content.widthAnchor).isActive = true }
         window.contentView!.addSubview(content)
         for scroll in scrollViews { scroll.widthAnchor.constraint(equalTo: content.widthAnchor).isActive = true }
         NSLayoutConstraint.activate([content.leadingAnchor.constraint(equalTo: window.contentView!.leadingAnchor, constant: 24), content.trailingAnchor.constraint(equalTo: window.contentView!.trailingAnchor, constant: -24), content.topAnchor.constraint(equalTo: window.contentView!.topAnchor, constant: 20), content.bottomAnchor.constraint(lessThanOrEqualTo: window.contentView!.bottomAnchor, constant: -20)])
         window.initialFirstResponder = notes; window.center()
+        prepareAttachment()
     }
     required init?(coder: NSCoder) { nil }
     func updateStatus(failed: Bool) {
@@ -378,11 +444,57 @@ final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
     }
     @objc private func toggleTechnical(_ sender: NSButton) {
         technical.isHidden = sender.state != .on; sender.title = (technical.isHidden ? "▸ " : "▾ ") + ErrorFeedback.text("Diagnostic report"); sender.setAccessibilityValue(technical.isHidden ? "collapsed" : "expanded")
-        if !technical.isHidden, let window { var frame = window.frame; frame.size.height = max(frame.height, 670); window.setFrame(frame, display: true) }
+        if !technical.isHidden, let window { var frame = window.frame; frame.size.height = max(frame.height, 860); window.setFrame(frame, display: true) }
     }
-    @objc private func toggle(_ sender: NSButton) { draft.includeDiagnostics = sender.state == .on }
+    @objc private func toggle(_ sender: NSButton) { draft.includeDiagnostics = sender.state == .on; prepareAttachment() }
     @objc private func dismiss() { window?.close() }
-    @objc private func openPage() { draft.notes = notes.string; ErrorFeedback.report(draft) }
+    private func prepareAttachment(continueToGitHub: Bool = false) {
+        guard draft.includeDocument else { attachmentInfo.stringValue = ErrorFeedback.text("Document excluded."); revealFile.isEnabled = false; if continueToGitHub { ErrorFeedback.report(draft) }; return }
+        if preparingAttachment { continueWhenReady = continueWhenReady || continueToGitHub; return }
+        preparingAttachment = true; continueWhenReady = continueToGitHub; revealFile.isEnabled = false
+        attachmentInfo.stringValue = ErrorFeedback.text("Preparing current document…")
+        draft.notes = notes.string
+        let snapshot = IncidentDraft(draft.incident)
+        snapshot.notes = draft.notes; snapshot.includeDiagnostics = draft.includeDiagnostics
+        snapshot.materialContext = draft.materialContext
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            let result = Result { try snapshot.prepareDocumentAttachment() }
+            DispatchQueue.main.async {
+                guard let self, !self.isClosed else { return }
+                self.preparingAttachment = false
+                let shouldContinue = self.continueWhenReady; self.continueWhenReady = false
+                guard self.draft.includeDocument else {
+                    self.attachmentInfo.stringValue = ErrorFeedback.text("Document excluded."); self.revealFile.isEnabled = false
+                    if shouldContinue { ErrorFeedback.report(self.draft) }; return
+                }
+                if self.draft.materialContext?.document != snapshot.materialContext?.document || self.draft.includeDiagnostics != snapshot.includeDiagnostics || (shouldContinue && self.notes.string != snapshot.notes) {
+                    self.prepareAttachment(continueToGitHub: shouldContinue); return
+                }
+                switch result {
+                case .success(let url):
+                    self.draft.attachmentURL = url
+                    self.attachmentInfo.stringValue = self.draft.documentName + " · " + ErrorFeedback.text("ZIP ready locally; not uploaded.")
+                    self.revealFile.isEnabled = true
+                    if shouldContinue { NSWorkspace.shared.activateFileViewerSelecting([url]); ErrorFeedback.report(self.draft) }
+                case .failure:
+                    self.attachmentInfo.stringValue = ErrorFeedback.text("Current document unavailable. Choose a document or uncheck its attachment to continue.")
+                    self.revealFile.isEnabled = false
+                }
+            }
+        }
+    }
+    @objc private func toggleDocument(_ sender: NSButton) { draft.includeDocument = sender.state == .on; prepareAttachment() }
+    @objc private func reviewAttachment() { if let url = draft.attachmentURL { NSWorkspace.shared.activateFileViewerSelecting([url]) } }
+    @objc private func chooseDocument() {
+        let panel = NSOpenPanel(); panel.canChooseDirectories = false; panel.allowsMultipleSelection = false; panel.allowedFileTypes = ["md", "markdown", "mdx", "txt", "tsv"]
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            let snapshot = try FeedbackReproduction.document(url)
+            draft.materialContext = .captured(document: snapshot.source, url: url, first: nil, last: nil)
+            draft.includeDocument = true; includeFile.state = .on; prepareAttachment()
+        } catch { attachmentInfo.stringValue = ErrorFeedback.text("Could not read this document within the 20 MB limit. Choose another file or paste a smaller sample.") }
+    }
+    @objc private func openPage() { draft.notes = notes.string; prepareAttachment(continueToGitHub: true) }
     @objc private func copyReport() { draft.notes = notes.string; NSPasteboard.general.clearContents(); NSPasteboard.general.setString(draft.report, forType: .string) }
     @objc private func saveReport() {
         draft.notes = notes.string
@@ -391,7 +503,7 @@ final class IncidentReportWindow: NSWindowController, NSWindowDelegate {
         do { try draft.report.write(to: url, atomically: true, encoding: .utf8) }
         catch { status.stringValue = ErrorFeedback.text("Could not save the report. You can copy it instead.") }
     }
-    func windowWillClose(_ notification: Notification) { draft.notes = notes.string; onClose?() }
+    func windowWillClose(_ notification: Notification) { isClosed = true; draft.notes = notes.string; onClose?() }
 }
 
 final class RendererErrorRegistry {

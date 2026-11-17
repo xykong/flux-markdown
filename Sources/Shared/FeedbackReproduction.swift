@@ -100,6 +100,7 @@ struct FeedbackMaterialContext {
     let sample: String?
     let originalURL: URL?
     let provenance: String
+    var displayName: String? = nil
     private static func withReferenceContext(_ fragment: String, document: String) -> String {
         guard let refs = try? NSRegularExpression(pattern: #"\\(?:eqref|ref)\{([^{}]+)\}"#),
               let formulas = try? NSRegularExpression(pattern: #"(?s)\$\$.*?\$\$|\\\[.*?\\\]|\\\(.*?\\\)|\$[^$\n]+\$|(?m)^```(?:math|latex|tex)[^\n]*\n.*?^```"#) else { return fragment }

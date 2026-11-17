@@ -284,6 +284,8 @@ struct IncidentFeedbackRequest: Codable {
     var materialReview: Bool?
     var sample: String?
     var followUp: Bool?
+    var transferToken: UUID?
+    var includeDocument: Bool?
     static func decode(_ data: Data) -> IncidentFeedbackRequest? {
         guard data.count <= 16384, let request = try? JSONDecoder().decode(Self.self, from: data),
               request.incident.isValid, request.notes.utf8.count <= 8000,
@@ -317,4 +319,55 @@ struct IncidentQuickLookCheck: Codable {
         }
     }
     var isValid: Bool { fields == Self.sanitize(fields) && (-62135596800...253402300799).contains(date.timeIntervalSince1970) }
+}
+
+/// Bulk document snapshots use authenticated XPC and a private one-time file.
+/// Only the opaque token and ordinary diagnostic request travel in the app URL.
+struct IncidentDocumentTransfer: Codable {
+    let request: IncidentFeedbackRequest
+    let document: String
+    let sample: String?
+    let displayName: String
+    static let maxBytes = 32 * 1024 * 1024
+    static var directory: URL { SharedPreferenceStore.applicationSupportDirectory().appendingPathComponent("FeedbackTransfers", isDirectory: true) }
+    static func decode(_ data: Data) -> Self? {
+        guard data.count <= maxBytes, let value = try? JSONDecoder().decode(Self.self, from: data),
+              value.document.utf8.count <= 20 * 1024 * 1024, (value.sample?.utf8.count ?? 0) <= 6000,
+              value.displayName.utf8.count <= 255, !value.displayName.contains("/"), !value.displayName.contains("\\"),
+              value.request.review || value.request.materialReview == true,
+              let metadata = try? JSONEncoder().encode(value.request), IncidentFeedbackRequest.decode(metadata) != nil else { return nil }
+        return value
+    }
+    func persist(in directory: URL = Self.directory) throws -> UUID {
+        let data = try JSONEncoder().encode(self)
+        guard Self.decode(data) != nil else { throw CocoaError(.fileWriteOutOfSpace) }
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+        guard try directory.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink != true else { throw CocoaError(.fileWriteNoPermission) }
+        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: directory.path)
+        let files = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.contentModificationDateKey, .isRegularFileKey, .isSymbolicLinkKey])
+        var retained = 0
+        for file in files where file.pathExtension == "json" && UUID(uuidString: file.deletingPathExtension().lastPathComponent) != nil {
+            let values = try file.resourceValues(forKeys: [.contentModificationDateKey, .isRegularFileKey, .isSymbolicLinkKey])
+            guard values.isRegularFile == true, values.isSymbolicLink != true else { continue }
+            if let date = values.contentModificationDate, date < Date().addingTimeInterval(-3600) { try FileManager.default.removeItem(at: file) }
+            else { retained += 1 }
+        }
+        guard retained < 10 else { throw CocoaError(.fileWriteOutOfSpace) }
+        let token = UUID(), file = directory.appendingPathComponent(token.uuidString + ".json")
+        try data.write(to: file, options: .atomic)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: file.path)
+        return token
+    }
+    static func consume(token: UUID, in directory: URL = Self.directory) throws -> Self {
+        let file = directory.appendingPathComponent(token.uuidString + ".json")
+        let values = try file.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey, .contentModificationDateKey])
+        let attributes = try FileManager.default.attributesOfItem(atPath: file.path)
+        guard values.isRegularFile == true, values.isSymbolicLink != true,
+              (attributes[.ownerAccountID] as? NSNumber)?.uint32Value == getuid(),
+              (attributes[.posixPermissions] as? NSNumber)?.intValue == 0o600,
+              let date = values.contentModificationDate, date > Date().addingTimeInterval(-3600) else { throw CocoaError(.fileReadNoPermission) }
+        defer { try? FileManager.default.removeItem(at: file) }
+        guard let value = decode(try BoundedFileReader.read(file, maxBytes: maxBytes)) else { throw CocoaError(.fileReadCorruptFile) }
+        return value
+    }
 }
