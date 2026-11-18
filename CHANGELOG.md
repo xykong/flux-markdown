@@ -1,4 +1,7 @@
 ## [Unreleased]
+_无待发布的变更_
+
+## [1.53.865] - 2026-11-18
 ### Fixed
 - **Reading zoom on older WebKit**: Keep reading anchors and diagram zoom centered on the correct point on macOS versions that report CSS zoom coordinates differently.
 - **Compact diagram controls**: Keep diagram buttons and the More menu at a uniform compact height; isolate them from Markdown details margins and focused-view button styles across document zoom levels.
