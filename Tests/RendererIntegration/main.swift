@@ -960,10 +960,20 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private func next() {
         if index == cases.count { print("PASS all \(cases.count) real WebKit cases"); exit(0) }
         let (name, js) = cases[index]
-        // Keep each case independent from the previous case's viewport.
-        webView.setFrameSize(NSSize(width: 800, height: 600))
-        if name.hasPrefix("Reading zoom") || name.hasPrefix("Reading workflow") { webView.setFrameSize(NSSize(width: name.contains("narrow") ? 600 : 1200, height: 800)) }
-        if name == "compact feedback focus and text bounds" { webView.setFrameSize(NSSize(width: 480, height: 480)) }
+        // Send one resize per case so WebKit cannot lay out an intermediate viewport.
+        let size: NSSize
+        if name.hasPrefix("Reading zoom") || name.hasPrefix("Reading workflow") {
+            size = NSSize(width: name.contains("narrow") ? 600 : 1200, height: 800)
+        } else if name == "compact feedback focus and text bounds" {
+            size = NSSize(width: 480, height: 480)
+        } else if name == "wide reading layout" || name == "RTL wide geometry" {
+            size = NSSize(width: 1800, height: 900)
+        } else if name == "narrow reading layout" || name == "RTL narrow geometry" || name == "block copy narrow RTL geometry" {
+            size = NSSize(width: 600, height: 600)
+        } else {
+            size = NSSize(width: 800, height: 600)
+        }
+        webView.setFrameSize(size)
         if name == "compact feedback focus and text bounds" || name == "inline math copy controls preserve text spacing" || name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
             // :focus-within requires an active WebKit page, not just activeElement
             // in the otherwise windowless integration harness.
@@ -983,10 +993,12 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
             app.activate(ignoringOtherApps: true)
             focusWindow = window
         }
-        if name == "compact feedback focus and text bounds" { webView.setFrameSize(NSSize(width: 480, height: 480)) }
-        if name == "wide reading layout" || name == "RTL wide geometry" { webView.setFrameSize(NSSize(width: 1800, height: 900)) }
-        if name == "narrow reading layout" || name == "RTL narrow geometry" || name == "block copy narrow RTL geometry" { webView.setFrameSize(NSSize(width: 600, height: 600)) }
         let viewportGeometry = """
+        const resizeDeadline=performance.now()+1500;
+        while ((Math.abs(innerWidth-expectedWidth)>1 || Math.abs(innerHeight-expectedHeight)>1) && performance.now()<resizeDeadline) {
+          await new Promise(resolve=>setTimeout(resolve,20));
+        }
+        if(Math.abs(innerWidth-expectedWidth)>1 || Math.abs(innerHeight-expectedHeight)>1)throw new Error('WebKit viewport did not settle: '+innerWidth+'x'+innerHeight+' expected '+expectedWidth+'x'+expectedHeight);
         const probe=document.createElement('span');
         probe.style.cssText='position:fixed;left:0;top:0;width:100px;visibility:hidden;zoom:2;font:16px monospace';
         probe.textContent='MMMM';
@@ -1005,7 +1017,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
           return new DOMRect((box.x+scrollX)*zoom-scrollX,(box.y+scrollY)*zoom-scrollY,box.width*zoom,box.height*zoom);
         }
         """
-        webView.callAsyncJavaScript(viewportGeometry + "\n" + js, arguments: ["imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData, "sizingSVGData": sizingSVGData], in: nil, in: .page) { result in
+        webView.callAsyncJavaScript(viewportGeometry + "\n" + js, arguments: ["expectedWidth":size.width, "expectedHeight":size.height, "imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData, "sizingSVGData": sizingSVGData], in: nil, in: .page) { result in
             switch result {
             case .success(let value) where value as? Bool == true:
                 if name == "math native keyboard copy and reference" {
