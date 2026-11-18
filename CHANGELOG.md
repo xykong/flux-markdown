@@ -1,5 +1,6 @@
 ## [Unreleased]
 ### Fixed
+- **Compact diagram controls**: Keep diagram buttons and the More menu at a uniform compact height; isolate them from Markdown details margins and focused-view button styles across document zoom levels.
 - **Diagram smart zoom reset**: Double-tap with two fingers over a Mermaid or standalone SVG diagram to restore its local 100% scale while preserving the document zoom; the same gesture over body text resets the document zoom.
 - **Mermaid gestures and File menu**: Pinch the diagram under the pointer without resizing surrounding text; keep diagram controls at a stable size, share continuous scales with their buttons, and prevent automatic fitting from cancelling reading zoom. Remove duplicate native Open/Open Recent entries while preserving durable recent-file history.
 - **Reading zoom**: Keep the outline and controls at a stable size while pinch, keyboard and Command-scroll zoom only the reading column. Preserve the text under the gesture throughout reflow, share the same 50–300% scale and reset across controls, and avoid multiplying PDF print size by the reading zoom twice.

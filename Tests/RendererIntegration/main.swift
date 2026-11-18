@@ -16,6 +16,31 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private var index = 0
     private var feedbackEvents: [[String: Any]] = []
     private var cases: [(String, String)] = [
+        ("Reading workflow compact diagram toolbar geometry", """
+        for(const context of ['app','quicklook']) {
+          await window.renderMarkdown('```mermaid\\nflowchart LR; A-->B;\\n```\\n\\n'+svgMarkdown,{context,uiLanguage:'zh',imageData:svgImageData});
+          const hosts=Array.from(document.querySelectorAll('.mermaid,.svg-image-diagram'));
+          if(hosts.length<2)throw new Error('Missing diagram types');
+          const check=(host,label)=>{
+            const tools=host.querySelector('.diagram-tools'), menu=tools.querySelector('details');
+            for(const expanded of [false,true]) {
+              menu.open=expanded;
+              for(const control of tools.querySelectorAll(':scope > button, :scope > details > summary')) {
+                const rect=control.getBoundingClientRect();
+                if(Math.abs(rect.height-28)>1)throw new Error(label+' toolbar control height '+rect.height+' expanded '+expanded);
+                if(!control.matches('[data-diagram-zoom=reset]') && Math.abs(rect.width-28)>1)throw new Error(label+' icon is not square: '+rect.width);
+              }
+            }
+            menu.open=false;
+          };
+          for(const theme of ['light','dark'])for(const zoom of [0.5,1,1.5,3]) {
+            window.updateTheme(theme);window.setZoomLevel(zoom);
+            hosts.forEach(host=>check(host,context+' '+theme+' '+zoom));
+          }
+          hosts[0].querySelector('[data-diagram-action=focus]').click();check(hosts[0],'focused');window.closeDiagramFocus();
+        }
+        window.setZoomLevel(1);return true;
+        """),
         ("Reading workflow interrupted opening restores saved position", """
         const text=Array.from({length:30},(_,i)=>'Distinct paragraph '+i+' '+('Reading. '.repeat(40))).join('\\n\\n')+'\\n\\n## Saved Position\\n\\n'+('After the anchor.\\n\\n'.repeat(40))+'\\n\\n```mermaid\\nflowchart LR; A-->B;\\n```';
         const options={context:'app',uiLanguage:'en',documentId:'interrupted-open',readingState:{id:'saved-position',hash:'',index:30,top:120,scrollY:900,zoom:1.5}};
