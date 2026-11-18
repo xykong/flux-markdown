@@ -43,3 +43,25 @@ test('theme rerenders do not replay an old update notice; filename stays text-on
     expect((document.querySelector('.reading-updated') as HTMLElement).hidden).toBe(true);
     status.dispose(); jest.useRealTimers();
 });
+test('a paused Follow keeps showing that the document changed until it updates again', () => {
+    jest.useFakeTimers();
+    document.documentElement.dataset.context = 'quicklook';
+    document.body.innerHTML = '<div id="reading-status"></div><div id="markdown-preview"><h1 id="a">Root</h1></div>';
+    const status = new ReadingStatus(document.getElementById('reading-status')!);
+    status.render('text', 'notes.md');
+    const updated = document.querySelector('.reading-updated') as HTMLElement;
+    expect(updated.hidden).toBe(true);
+    status.waiting(true);
+    expect(updated.hidden).toBe(false);
+    expect(updated.textContent).toBe('Document updated');
+    expect(updated.dataset.waiting).toBe('');
+    expect((document.querySelector('.reading-progress') as HTMLElement).hidden).toBe(true);
+    jest.advanceTimersByTime(10000);
+    expect(updated.hidden).toBe(false);
+    status.render('text\nmore', 'notes.md');
+    expect(updated.hidden).toBe(true);
+    expect(updated.dataset.waiting).toBeUndefined();
+    status.waiting(true); status.waiting(false);
+    expect(updated.hidden).toBe(true);
+    status.dispose(); jest.useRealTimers();
+});

@@ -41,6 +41,22 @@ last window until Resume reads the latest snapshot.
 - **THEN** the reading anchor is preserved without forcing a jump to the bottom
 - **AND** Resume Following applies current content and returns to the end
 
+#### Scenario: Pause, resume or stop Follow from its button
+- **WHEN** Follow is paused after the user scrolled or selected text
+- **THEN** the Follow button shows the paused state as an orange icon instead of the blue filled circle
+- **AND** one click resumes Follow and moves the preview to the end of the file
+- **AND** a double click turns Follow off, and later file changes no longer move the view
+- **AND** Resume Following and Stop Following stay available from the button's menu
+
+#### Scenario: New lines while paused
+- **WHEN** Follow is paused and the file changes
+- **THEN** the view stays where the reader is
+- **AND** the reading status shows "Document updated" until Follow resumes or stops
+
+#### Scenario: Turn Follow on with text selected
+- **WHEN** text is selected and the user turns Follow on
+- **THEN** the selection is cleared and the preview moves to the end of the file
+
 #### Scenario: Copy during updates
 - **WHEN** the user selects content or clicks a code copy button as the file grows
 - **THEN** copy behavior and native acknowledgement remain correct

@@ -38,6 +38,7 @@ interface WebkitMessageHandlers {
 interface Window {
     setQuickLookFollow: (enabled: boolean) => void;
     quickLookFollowStatus: () => {active:boolean;paused:boolean;selected:boolean;copying?:boolean};
+    quickLookFollowWaiting?: (on: boolean) => void;
     webkit?: {
         messageHandlers: WebkitMessageHandlers;
     };
