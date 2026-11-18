@@ -262,7 +262,10 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
           if(Math.abs(rect.left-viewport.left-(viewport.right-rect.right))>1)throw new Error('SVG reset lost centering');
           buttons[0].click();if(images[0].getBoundingClientRect().width>=base)throw new Error('SVG zoom out failed');
           buttons[1].click();buttons[2].focus();
-          if(getComputedStyle(hosts[0].querySelector('.diagram-tools')).opacity!=='1')throw new Error('SVG keyboard controls hidden');
+          await new Promise(resolve=>requestAnimationFrame(()=>resolve()));
+          if(document.activeElement!==buttons[2] || getComputedStyle(hosts[0].querySelector('.diagram-tools')).opacity!=='1') {
+            throw new Error('SVG keyboard controls hidden: '+JSON.stringify({focused:document.hasFocus(),active:document.activeElement?.tagName,disabled:buttons[2].disabled,focusWithin:hosts[0].querySelector('.diagram-tools').matches(':focus-within')}));
+          }
           root.querySelector('.mermaid .diagram-tools [data-diagram-zoom=in]').click();
           if(mermaid.getBoundingClientRect().width<=mermaidBase || images[0].getBoundingClientRect().width!==base)throw new Error('Mermaid zoom not independent');
           if(images[1].closest('a')?.href!=='https://example.com/')throw new Error('SVG link lost');
@@ -999,6 +1002,11 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
           await new Promise(resolve=>setTimeout(resolve,20));
         }
         if(Math.abs(innerWidth-expectedWidth)>1 || Math.abs(innerHeight-expectedHeight)>1)throw new Error('WebKit viewport did not settle: '+innerWidth+'x'+innerHeight+' expected '+expectedWidth+'x'+expectedHeight);
+        if (needsFocus) {
+          const focusDeadline=performance.now()+2000;
+          while(!document.hasFocus() && performance.now()<focusDeadline)await new Promise(resolve=>setTimeout(resolve,20));
+          if(!document.hasFocus())throw new Error('Foreground WebKit document did not receive focus');
+        }
         const probe=document.createElement('span');
         probe.style.cssText='position:fixed;left:0;top:0;width:100px;visibility:hidden;zoom:2;font:16px monospace';
         probe.textContent='MMMM';
@@ -1017,7 +1025,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
           return new DOMRect((box.x+scrollX)*zoom-scrollX,(box.y+scrollY)*zoom-scrollY,box.width*zoom,box.height*zoom);
         }
         """
-        webView.callAsyncJavaScript(viewportGeometry + "\n" + js, arguments: ["expectedWidth":size.width, "expectedHeight":size.height, "imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData, "sizingSVGData": sizingSVGData], in: nil, in: .page) { result in
+        webView.callAsyncJavaScript(viewportGeometry + "\n" + js, arguments: ["needsFocus":focusWindow != nil, "expectedWidth":size.width, "expectedHeight":size.height, "imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData, "sizingSVGData": sizingSVGData], in: nil, in: .page) { result in
             switch result {
             case .success(let value) where value as? Bool == true:
                 if name == "math native keyboard copy and reference" {
