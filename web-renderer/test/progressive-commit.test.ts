@@ -138,3 +138,30 @@ test.each(['app', 'quicklook', 'finder'] as const)('multiline reference definiti
     await window.renderMarkdown(text, {context});
     expect(root().querySelector('a')?.getAttribute('href')).toBe('https://example.com');
 });
+
+test('the first batch is sanitized on its own with whole-window references resolved', async () => {
+    const sanitizer = jest.spyOn(require('../src/safe-html'), 'sanitizeDocumentFragment');
+    try {
+        const text = '[guide topic]\n\n' + stream() + '\n[guide\ntopic]: https://example.com/guide\n';
+        await window.renderMarkdown(text, {...options, progressive: false});
+        const expected = clean();
+        sanitizer.mockClear();
+        await window.renderMarkdown(text, options);
+        const inputs = sanitizer.mock.calls.map(([html]) => String(html));
+        expect(inputs.length).toBeGreaterThan(1);
+        expect(inputs[0]).toContain('href="https://example.com/guide"');
+        expect(inputs[0]).not.toContain('FINAL-MARKER');
+        expect(clean()).toBe(expected);
+    } finally {
+        sanitizer.mockRestore();
+    }
+});
+
+test('raw HTML enclosing Markdown blocks keeps the same tree as a single commit', async () => {
+    const text = '<section>\n\n' + stream() + '\n</section>\n';
+    await window.renderMarkdown(text, {...options, progressive: false});
+    const expected = clean();
+    await window.renderMarkdown(text, options);
+    expect(root().querySelector('section')?.textContent).toContain('FINAL-MARKER');
+    expect(clean()).toBe(expected);
+});

@@ -288,8 +288,9 @@ function resolveLanguage(lang: string): string {
     return LANG_ALIASES[lower] ?? lower;
 }
 
-// @ts-ignore
 import emoji from 'markdown-it-emoji';
+import { largePreviewEmoji } from './emoji';
+import { quickLookTokenBatches } from './quicklook-token-batches';
 // @ts-ignore
 import footnote from 'markdown-it-footnote';
 // @ts-ignore
@@ -1137,7 +1138,8 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         const frontMatterHtml = yaml ? `<div data-source-line="1" data-source-line-end="${sourceLineOffset}">${renderFrontMatterHtml(yaml)}</div>` : '';
 
         const parser = buildMd(options.enableTypst !== false);
-        if (options.enableEmoji !== false) parser.use(emoji);
+        const largePreview = options.context === 'quicklook' && body.length > LARGE_DOCUMENT_CHARS;
+        if (options.enableEmoji !== false) parser.use(largePreview ? largePreviewEmoji : emoji);
         const enableTypst = options.enableTypst !== false;
         const mathNamespace = `fxeq-${callId}-${Array.from(crypto.getRandomValues(new Uint32Array(2))).join('-')}`;
         const mathSources = installMathSyntax(parser, mathNamespace);
@@ -1181,7 +1183,23 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         const headings = previous ? [...previous.headings.filter(heading => heading.line < restartLine!), ...parsedHeadings] : parsedHeadings;
         const outline = buildHeadingTree(headings.map(({ level, text, id }): HeadingNode => ({ level, text, id, children: [] })));
         const tempDiv = document.createElement('div');
-        const documentFragment = sanitizeDocumentFragment((previous ? '' : frontMatterHtml) + parser.renderer.render(tokens, parser.options, environment));
+        const following = followCapable && followFile?.status().active === true;
+        const canBatch = largePreview &&
+            options.progressive !== false && !previous && !(following && wasFollowing) && !mathSources.length && !environment.footnotes;
+        const batches = canBatch ? quickLookTokenBatches(tokens, following) : [];
+        const renderBatch = (index: number) => {
+            const {start, end} = batches[index];
+            const html = parser.renderer.render(tokens.slice(start, end), parser.options, environment);
+            return sanitizeDocumentFragment((start === 0 ? frontMatterHtml : '') + html);
+        };
+        // On navigation the old view may already have queued DOM mutations.
+        // Commit the first new batch before yielding when a document is on screen.
+        if (batches.length && !outputDiv.firstElementChild) {
+            await nextTask();
+            if (!isCurrent()) return;
+        }
+        const documentFragment = batches.length ? renderBatch(0) :
+            sanitizeDocumentFragment((previous ? '' : frontMatterHtml) + parser.renderer.render(tokens, parser.options, environment));
 
         if (options.enableKatex !== false) {
             documentFragment.querySelectorAll('math').forEach(math => {
@@ -1266,7 +1284,6 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         disposeMermaidLayout?.(); disposeMermaidLayout = undefined;
         disposeSVGZoom?.(); disposeSVGZoom = undefined;
         searchEngine?.clear();
-        const following = followCapable && followFile?.status().active === true;
         const newRestartLine = lastBlockLine(tokens);
         const restartNode = newRestartLine === undefined ? undefined : blockElement(tempDiv, newRestartLine + 1);
         let restartHtml = restartNode?.outerHTML;
@@ -1299,7 +1316,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
             // Math numbering and layout span the document, so math keeps one commit.
             // A window that re-forms while followed commits in one step: after many
             // incremental updates, each yield between slices costs far more (task 7.4).
-            slices = options.progressive !== false && mathSources.length === 0 && !(following && wasFollowing)
+            slices = !batches.length && options.progressive !== false && mathSources.length === 0 && !(following && wasFollowing)
                 ? progressiveSlices(Array.from(tempDiv.childNodes), following) : [Array.from(tempDiv.childNodes)];
             outputDiv.replaceChildren(...slices[0]);
         }
@@ -1325,7 +1342,8 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
             if (target) rememberMathSource(target, source.raw);
         }
         disposeMathLayout = mathSources.length ? installMathLayout(outputDiv) : undefined;
-        if (toc && slices.length > 1) {
+        const batchCount = Math.max(batches.length, slices.length);
+        if (toc && batchCount > 1) {
             // Show the contents column now, so later slices do not reflow the whole page,
             // listing only the headings already committed; the full list follows the last slice.
             const committed = new Set(slices[0].flatMap(node => node instanceof Element
@@ -1348,16 +1366,17 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
             addLineNumbersToCodeBlocks(outputDiv);
         }
 
-        for (const slice of slices.slice(1)) {
+        for (let index = 1; index < batchCount; index++) {
             await nextTask();
             if (!isCurrent()) return;
+            const slice = batches.length ? Array.from(renderBatch(index).childNodes) : slices[index];
             if (following) outputDiv.prepend(...slice); else outputDiv.append(...slice);
             const sliceRoots = slice.filter((node): node is Element => node instanceof Element);
             prepareRenderedImages(sliceRoots, options);
             blockCopy?.extend(sliceRoots);
             if (showLineNumbers) addLineNumbersToCodeBlocks(outputDiv);
         }
-        if (slices.length > 1) {
+        if (batchCount > 1) {
             // Whole-document controls, once every slice is in place, in separate tasks.
             // A short timer first lets input and paint run after the last slice's layout.
             await (document.visibilityState === 'hidden' ? nextTask() : new Promise<void>(resolve => setTimeout(resolve, 16)));

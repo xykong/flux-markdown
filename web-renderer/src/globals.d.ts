@@ -1,3 +1,19 @@
+declare module 'markdown-it-emoji/lib/data/full.json' {
+    const definitions: Record<string, string>;
+    export default definitions;
+}
+
+declare module 'markdown-it-emoji/lib/data/shortcuts' {
+    const shortcuts: Record<string, string[]>;
+    export default shortcuts;
+}
+
+declare module 'markdown-it-emoji' {
+    import MarkdownIt from 'markdown-it';
+    const plugin: (md: MarkdownIt) => void;
+    export default plugin;
+}
+
 declare module 'vega-lite' {
     export function compile(spec: any, options?: any): { spec: any };
 }
