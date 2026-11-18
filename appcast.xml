@@ -7,6 +7,46 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 1.55.872</title>
+            <link>https://github.com/xykong/flux-markdown/releases/tag/v1.55.872</link>
+            <sparkle:version>872</sparkle:version>
+            <sparkle:shortVersionString>1.55.872</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+            <pubDate>Wed, 18 Nov 2026 07:31:53 +0000</pubDate>
+            <enclosure
+                url="https://github.com/xykong/flux-markdown/releases/download/v1.55.872/FluxMarkdown.dmg"
+                sparkle:edSignature="ZG5MgUbR8URJ+59lUSx/3DRwIclvIIhggU57sKfPH5yLxAiRA4+cUTHmKm2jFDzuRyGRXXIR7cfvw/r/qlbiCg=="
+                length="46360517"
+                type="application/octet-stream" />
+            <description><![CDATA[
+                <h2>更新内容</h2>
+<h3>Fixed</h3>
+<ul>
+<li><strong>Reading zoom on older WebKit</strong>: Keep reading anchors and diagram zoom centered on the correct point on macOS versions that report CSS zoom coordinates differently.</li>
+<li><strong>Compact diagram controls</strong>: Keep diagram buttons and the More menu at a uniform compact height; isolate them from Markdown details margins and focused-view button styles across document zoom levels.</li>
+<li><strong>Diagram smart zoom reset</strong>: Double-tap with two fingers over a Mermaid or standalone SVG diagram to restore its local 100% scale while preserving the document zoom; the same gesture over body text resets the document zoom.</li>
+<li><strong>Mermaid gestures and File menu</strong>: Pinch the diagram under the pointer without resizing surrounding text; keep diagram controls at a stable size, share continuous scales with their buttons, and prevent automatic fitting from cancelling reading zoom. Remove duplicate native Open/Open Recent entries while preserving durable recent-file history.</li>
+<li><strong>Reading zoom</strong>: Keep the outline and controls at a stable size while pinch, keyboard and Command-scroll zoom only the reading column. Preserve the text under the gesture throughout reflow, share the same 50–300% scale and reset across controls, and avoid multiplying PDF print size by the reading zoom twice.</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li><strong>Feedback attachment privacy</strong>: When continuing to GitHub with a document attached, upload it privately by default and include a reference in the report. Public download links require an explicit choice.</li>
+<li><strong>Prefilled feedback and current-document attachment</strong>: Restore an editable automatic issue summary and select the current document snapshot by default, preparing a reviewable ZIP locally with an opt-out. Quick Look transfers the snapshot to the host through a bounded private handoff; GitHub attachment upload and final publication remain explicit user actions.</li>
+<li><strong>Inline error feedback</strong>: Show one compact red Feedback entry in the error region’s upper-right corner; open a focused native feedback dialog on activation, with optional notes/materials and collapsed diagnostics. Failed formulas no longer show a competing hover-copy button over the feedback entry; copying valid formulas remains available.</li>
+</ul>
+<h3>Added</h3>
+<ul>
+<li><strong>Reading workflow</strong>: Show scoped zoom feedback and gesture help, inspect diagrams in a focused fit/100% view, navigate back/forward across outline jumps and local document links, restore per-file semantic reading positions and document zoom, and copy/save standalone diagram PNG/SVG files with native confirmation and recovery. Quick Look hands file saving to the host app.</li>
+<li><strong>Feedback reproduction packages</strong>: Review and edit a failed formula fragment, choose a complete document and referenced local resources, and save a bounded ZIP for attachment on GitHub. Mathematical reports now distinguish failure categories and preserve per-formula incident identity. Thanks to <a href="https://github.com/syutheoria">@syutheoria</a> for the report in <a href="https://github.com/xykong/flux-markdown/issues/73">#73</a> that exposed the missing reproduction context; the reported formula failure itself is still under investigation.</li>
+<li><strong>Issue reply reminders</strong>: Track verified submitted Issues, retain unread replies across restarts, and open each exact new comment when its reminder is clicked. App-running checks, optional system notifications and manual Issue linking are available in My Feedback.</li>
+</ul>
+<p><a href="https://github.com/xykong/flux-markdown/releases/tag/v1.55.872">查看完整更新日志</a></p>
+            ]]></description>
+        </item>
+        
+
+
+        <item>
             <title>Version 1.51.834</title>
             <link>https://github.com/xykong/flux-markdown/releases/tag/v1.51.834</link>
             <sparkle:version>834</sparkle:version>
