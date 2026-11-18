@@ -960,6 +960,8 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private func next() {
         if index == cases.count { print("PASS all \(cases.count) real WebKit cases"); exit(0) }
         let (name, js) = cases[index]
+        // Keep each case independent from the previous case's viewport.
+        webView.setFrameSize(NSSize(width: 800, height: 600))
         if name.hasPrefix("Reading zoom") || name.hasPrefix("Reading workflow") { webView.setFrameSize(NSSize(width: name.contains("narrow") ? 600 : 1200, height: 800)) }
         if name == "compact feedback focus and text bounds" { webView.setFrameSize(NSSize(width: 480, height: 480)) }
         if name == "compact feedback focus and text bounds" || name == "inline math copy controls preserve text spacing" || name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
@@ -970,7 +972,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
             }
             let window = NSWindow(contentRect: webView.frame, styleMask: [.titled], backing: .buffered, defer: false)
             guard let frame = policy.frame(size: window.frame.size, screens: NSScreen.screens.map { $0.visibleFrame }) else {
-                fputs("FAIL Environment: required test display is unavailable or too small\n", stderr); exit(1)
+                fputs("FAIL Environment: required test display is unavailable or too small for \(name) (\(window.frame.size))\n", stderr); exit(1)
             }
             window.setFrame(frame, display: false)
             previousApplication = NSWorkspace.shared.frontmostApplication
