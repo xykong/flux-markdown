@@ -38,8 +38,8 @@ available in the current preview mode.
 - **THEN** the notice offers Open in FluxMarkdown
 
 ### Requirement: Follow shows the end of a large file
-When Follow is turned on for a Markdown file larger than the preview limit,
-the system SHALL show the last part of the file, at most 2 MiB, starting at a
+The system SHALL show the end of a Markdown file larger than the preview limit when Follow is on.
+The window displays at most 2 MiB, starting at a
 line outside a top-level fenced code block when such a line exists in the
 window, and SHALL scroll to the end. Line
 numbers shown and used for navigation SHALL be the file's own line numbers. A
