@@ -1,3 +1,4 @@
+import { readingRect } from './reading-geometry';
 import { jumpToReadingTarget } from './reading-state';
 import type { HeadingNode } from './outline';
 import { readingLabels, updateReadingControlsLayout, captureReadingAnchor, restoreReadingAnchor, ReadingAnchor } from './reading-controls';
@@ -160,7 +161,7 @@ export class TableOfContents {
             : Math.max(64, (controls && !controls.hidden ? controls.getBoundingClientRect().bottom : 0) + 8) + 16) + 2;
         let active = this.headings[0];
         for (const heading of this.headings) {
-            if (heading.getBoundingClientRect().top > threshold) break;
+            if (readingRect(heading).top > threshold) break;
             active = heading;
         }
         this.setActiveItem(active.id);

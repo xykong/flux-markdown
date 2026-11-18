@@ -46,7 +46,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         const options={context:'app',uiLanguage:'en',documentId:'interrupted-open',readingState:{id:'saved-position',hash:'',index:30,top:120,scrollY:900,zoom:1.5}};
         const first=window.renderMarkdown(text,options);
         await window.renderMarkdown(text,options);await first;
-        const top=document.getElementById('saved-position').getBoundingClientRect().top;
+        const top=viewportRect(document.getElementById('saved-position')).top;
         if(Math.abs(top-120)>3 || window.captureReadingState().zoom!==1.5)throw new Error('unfinished opening replaced the durable reading position: '+top);
         window.setZoomLevel(1);return true;
         """),
@@ -74,7 +74,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         host.querySelector('[data-diagram-action=focus]').click();
         const dialog=document.getElementById('diagram-focus'),stage=dialog?.querySelector('.focus-stage');
         if(!dialog || !stage.contains(originalSVG) || root.contains(host))throw new Error('focus did not move the original drawing');
-        const box=originalSVG.getBoundingClientRect();
+        const box=viewportRect(originalSVG);
         if(box.width>stage.clientWidth+2 || box.height>stage.clientHeight+2)throw new Error('fit-to-window overflow');
         dialog.querySelector('.focus-toolbar button:nth-child(2)').click();
         if(host.querySelector('[data-diagram-zoom=reset]').textContent!=='100%')throw new Error('focus 100 percent failed');
@@ -115,7 +115,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
           const svg=hosts[0].querySelector('svg'), other=hosts[1].querySelector('svg');
           const viewport=hosts[0].querySelector('.mermaid-viewport'), tools=hosts[0].querySelector('.diagram-tools');
           svg.scrollIntoView({block:'center'});
-          const base=svg.getBoundingClientRect(), otherWidth=other.getBoundingClientRect().width;
+          const base=viewportRect(svg), otherWidth=viewportRect(other).width;
           const toolWidth=tools.getBoundingClientRect().width, button=tools.querySelector('button').getBoundingClientRect();
           const bodySize=getComputedStyle(root).fontSize;
           const point={x:viewport.getBoundingClientRect().left+120,y:Math.max(90,base.top+base.height/2),gesture:901};
@@ -124,47 +124,47 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
           const fx=(point.x-base.left)/base.width, fy=(point.y-base.top)/base.height;
           for(let i=1;i<=40;i++) {
             window.applyPinchZoom(1,i/40,{...point,x:i===40?innerWidth-5:point.x,finished:i===40});
-            const rect=svg.getBoundingClientRect();
+            const rect=viewportRect(svg);
             if(Math.abs(rect.left+rect.width*fx-point.x)>3 || Math.abs(rect.top+rect.height*fy-point.y)>3)throw new Error('diagram anchor drifted during pinch');
           }
-          if(Math.abs(svg.getBoundingClientRect().width/base.width-2)>0.03)throw new Error('pinch did not scale Mermaid drawing');
-          if(other.getBoundingClientRect().width!==otherWidth || getComputedStyle(root).fontSize!==bodySize || root.style.getPropertyValue('zoom')!=='1')throw new Error('diagram pinch changed body or other drawing');
+          if(Math.abs(viewportRect(svg).width/base.width-2)>0.03)throw new Error('pinch did not scale Mermaid drawing');
+          if(viewportRect(other).width!==otherWidth || getComputedStyle(root).fontSize!==bodySize || root.style.getPropertyValue('zoom')!=='1')throw new Error('diagram pinch changed body or other drawing');
           if(Math.abs(tools.querySelector('button').getBoundingClientRect().width-button.width)>1)throw new Error('diagram pinch scaled controls');
           if(viewport.scrollWidth<=viewport.clientWidth)throw new Error('zoomed diagram lacks local scrolling');
           tools.querySelector('[data-diagram-zoom=in]').click();
-          if(Math.abs(svg.getBoundingClientRect().width/base.width-2.5)>0.04)throw new Error('button and gesture scales diverged');
-          const beforeGlobal=svg.getBoundingClientRect().width;
+          if(Math.abs(viewportRect(svg).width/base.width-2.5)>0.04)throw new Error('button and gesture scales diverged');
+          const beforeGlobal=viewportRect(svg).width;
           window.setZoomLevel(2);
           await new Promise(r=>setTimeout(r,80));
-          if(Math.abs(svg.getBoundingClientRect().width/beforeGlobal-2)>0.05)throw new Error('automatic fit cancelled global diagram zoom '+JSON.stringify({beforeGlobal,after:svg.getBoundingClientRect().width,svgWidth:svg.style.width,zoom:root.style.getPropertyValue('zoom'),viewport:viewport.clientWidth,rootWidth:root.getBoundingClientRect().width}));
+          if(Math.abs(viewportRect(svg).width/beforeGlobal-2)>0.05)throw new Error('automatic fit cancelled global diagram zoom '+JSON.stringify({beforeGlobal,after:viewportRect(svg).width,svgWidth:svg.style.width,zoom:root.style.getPropertyValue('zoom'),viewport:viewport.clientWidth,rootWidth:viewportRect(root).width}));
           if(Math.abs(tools.querySelector('button').getBoundingClientRect().width-button.width)>1)throw new Error('body zoom scaled diagram controls');
           if(document.documentElement.scrollWidth>innerWidth+2)throw new Error('diagram overflow escaped its viewport');
           window.setZoomLevel(1);
           other.scrollIntoView({block:'center'});
-          const tall=other.getBoundingClientRect();
+          const tall=viewportRect(other);
           if(tall.height<innerHeight)throw new Error('test requires a diagram taller than the screen');
           const tallPoint={x:tall.left+tall.width/2,y:innerHeight/2,gesture:902};
           const tallFy=(tallPoint.y-tall.top)/tall.height;
           const tallButton=hosts[1].querySelector('button').getBoundingClientRect().width;
           for(let i=0;i<=40;i++) {
             if(window.applyPinchZoom(1,i/40,{...tallPoint,finished:i===40})!==null)throw new Error('full-screen diagram gesture escaped');
-            const rect=other.getBoundingClientRect();
+            const rect=viewportRect(other);
             if(Math.abs(rect.top+rect.height*tallFy-tallPoint.y)>3)throw new Error('full-screen diagram shook vertically');
           }
-          if(Math.abs(other.getBoundingClientRect().height/tall.height-2)>0.03)throw new Error('tall diagram did not zoom');
+          if(Math.abs(viewportRect(other).height/tall.height-2)>0.03)throw new Error('tall diagram did not zoom');
           if(Math.abs(hosts[1].querySelector('button').getBoundingClientRect().width-tallButton)>1)throw new Error('tall diagram controls grew');
-          const enlarged=other.getBoundingClientRect();
+          const enlarged=viewportRect(other);
           if(window.resetZoomAt({x:enlarged.left+enlarged.width/2,y:innerHeight/2})!==null)throw new Error('diagram smart magnify escaped');
-          if(Math.abs(other.getBoundingClientRect().height-tall.height)>2 || hosts[1].querySelectorAll('button')[1].textContent!=='100%')throw new Error('smart magnify did not restore diagram default');
+          if(Math.abs(viewportRect(other).height-tall.height)>2 || hosts[1].querySelectorAll('button')[1].textContent!=='100%')throw new Error('smart magnify did not restore diagram default');
           window.setZoomLevel(1.5);
           await new Promise(r=>setTimeout(r,50));
           other.scrollIntoView({block:'center'});
-          const defaultAtReadingZoom=other.getBoundingClientRect().height;
-          const at=other.getBoundingClientRect();
+          const defaultAtReadingZoom=viewportRect(other).height;
+          const at=viewportRect(other);
           window.applyPinchZoom(1.5,1,{x:at.left+at.width/2,y:innerHeight/2,gesture:903,finished:true});
-          const zoomed=other.getBoundingClientRect();
+          const zoomed=viewportRect(other);
           window.resetZoomAt({x:zoomed.left+zoomed.width/2,y:innerHeight/2});
-          if(Math.abs(other.getBoundingClientRect().height-defaultAtReadingZoom)>2 || root.style.getPropertyValue('zoom')!=='1.5')throw new Error('diagram reset changed the document zoom');
+          if(Math.abs(viewportRect(other).height-defaultAtReadingZoom)>2 || root.style.getPropertyValue('zoom')!=='1.5')throw new Error('diagram reset changed the document zoom');
           window.setZoomLevel(1);
         }
         return true;
@@ -179,28 +179,28 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
           const para=root.querySelectorAll('p')[35];para.scrollIntoView({block:'center'});
           await new Promise(r=>setTimeout(r,50));
           const range=document.createRange();range.setStart(para.firstChild,20);range.setEnd(para.firstChild,21);
-          const base=range.getBoundingClientRect(), width=root.getBoundingClientRect().width;
+          const base=viewportRect(range), width=viewportRect(root).width;
           const tocWidth=toc.getBoundingClientRect().width, tocFont=getComputedStyle(toc).fontSize;
           if(Math.abs(tocWidth-240)>1 || toc.querySelector('.toc-nav').hidden)throw new Error('test requires a visible docked contents sidebar');
           for(const level of [1.5,2,0.5,3,1]) {
-            const before=range.getBoundingClientRect();
+            const before=viewportRect(range);
             const start=performance.now();
             window.setZoomLevel(level,{x:before.left+before.width/2,y:before.top+before.height/2});
             const elapsed=performance.now()-start;
             await new Promise(r=>setTimeout(r,50));
-            const after=range.getBoundingClientRect();
+            const after=viewportRect(range);
             zoomMetrics.push({context,side,level,drift:Math.abs(after.top-before.top),layoutMs:elapsed});
             if(Math.abs(after.top-before.top)>3)throw new Error('reading anchor jumped: '+JSON.stringify({context,side,level,before:before.top,after:after.top,scrollY}));
             if(Math.abs(after.height/base.height-level)>0.15)throw new Error('body did not scale: '+level+' '+after.height/base.height);
             if(Math.abs(toc.getBoundingClientRect().width-tocWidth)>1 || getComputedStyle(toc).fontSize!==tocFont)throw new Error('contents zoomed');
-            if(Math.abs(root.getBoundingClientRect().width-width)>2 || document.documentElement.scrollWidth>innerWidth+1)throw new Error('zoom overflow');
+            if(Math.abs(viewportRect(root).width-width)>2 || document.documentElement.scrollWidth>innerWidth+1)throw new Error('zoom overflow');
             if(scrollY<100)throw new Error('jumped to document start');
           }
-          const initial=range.getBoundingClientRect();
+          const initial=viewportRect(range);
           const fixedPoint={x:initial.left+initial.width/2,y:initial.top+initial.height/2,gesture:17};
           for(let i=1;i<=40;i++) {
             window.setZoomLevel(1+i/40,fixedPoint);
-            if(Math.abs(range.getBoundingClientRect().top-initial.top)>3)throw new Error('continuous gesture lost its original text anchor');
+            if(Math.abs(viewportRect(range).top-initial.top)>3)throw new Error('continuous gesture lost its original text anchor');
           }
           window.setZoomLevel(1,{...fixedPoint,finished:true});
         }
@@ -214,9 +214,9 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         window.scrollTo(0,document.documentElement.scrollHeight/2);
         const target=document.elementFromPoint(300,300);
         const range=document.caretRangeFromPoint(300,300);range.setEnd(range.startContainer,Math.min(range.startOffset+1,range.startContainer.length));
-        const before=range.getBoundingClientRect();
+        const before=viewportRect(range);
         window.setZoomLevel(1.5,{x:before.left,y:before.top+before.height/2});
-        if(Math.abs(range.getBoundingClientRect().top-before.top)>3)throw new Error('source anchor jumped');
+        if(Math.abs(viewportRect(range).top-before.top)>3)throw new Error('source anchor jumped');
         await window.renderMarkdown('# Export\\n\\nText',{context:'app'});
         window.setZoomLevel(2);
         const html=new DOMParser().parseFromString(window.exportHTML(),'text/html');
@@ -233,13 +233,13 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
           for(const scale of [0.5,1.5,3,1]) {
             window.setZoomLevel(scale);
             if(document.documentElement.scrollWidth>innerWidth+2)throw new Error('rich zoom overflows page: '+JSON.stringify({context,uiLanguage,scale,width:document.documentElement.scrollWidth}));
-            if(image.getBoundingClientRect().width>root.getBoundingClientRect().width+1)throw new Error('diagram exceeds reading column');
+            if(viewportRect(image).width>viewportRect(root).width+1)throw new Error('diagram exceeds reading column');
             if(table.scrollWidth<=table.clientWidth)throw new Error('wide table lost local scrolling');
           }
           root.querySelector('.svg-image-diagram .diagram-tools [data-diagram-zoom=in]').click();
-          const localWidth=image.getBoundingClientRect().width;
+          const localWidth=viewportRect(image).width;
           window.setZoomLevel(1.5);window.setZoomLevel(1);
-          if(Math.abs(image.getBoundingClientRect().width-localWidth)>1)throw new Error('reading zoom erased diagram scale');
+          if(Math.abs(viewportRect(image).width-localWidth)>1)throw new Error('reading zoom erased diagram scale');
         }
         return true;
         """),
@@ -984,7 +984,26 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         if name == "compact feedback focus and text bounds" { webView.setFrameSize(NSSize(width: 480, height: 480)) }
         if name == "wide reading layout" || name == "RTL wide geometry" { webView.setFrameSize(NSSize(width: 1800, height: 900)) }
         if name == "narrow reading layout" || name == "RTL narrow geometry" || name == "block copy narrow RTL geometry" { webView.setFrameSize(NSSize(width: 600, height: 600)) }
-        webView.callAsyncJavaScript(js, arguments: ["imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData, "sizingSVGData": sizingSVGData], in: nil, in: .page) { result in
+        let viewportGeometry = """
+        const probe=document.createElement('span');
+        probe.style.cssText='position:fixed;left:0;top:0;width:100px;visibility:hidden;zoom:2;font:16px monospace';
+        probe.textContent='MMMM';
+        document.body.append(probe);
+        const sample=document.createRange();sample.selectNodeContents(probe);
+        const zoomedRange=sample.getBoundingClientRect().width;
+        const legacyElementRects=probe.getBoundingClientRect().width<150;
+        probe.style.zoom='1';
+        const legacyRangeRects=zoomedRange<sample.getBoundingClientRect().width*1.5;
+        probe.remove();
+        function viewportRect(target) {
+          const box=target.getBoundingClientRect();
+          const node=target instanceof Range ? target.commonAncestorContainer.parentElement : target;
+          const root=node.closest('#markdown-preview');
+          const zoom=(target instanceof Range ? legacyRangeRects : legacyElementRects) && root ? Number(root.style.zoom)||1 : 1;
+          return new DOMRect(box.x*zoom,box.y*zoom,box.width*zoom,box.height*zoom);
+        }
+        """
+        webView.callAsyncJavaScript(viewportGeometry + "\n" + js, arguments: ["imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData, "sizingSVGData": sizingSVGData], in: nil, in: .page) { result in
             switch result {
             case .success(let value) where value as? Bool == true:
                 if name == "math native keyboard copy and reference" {

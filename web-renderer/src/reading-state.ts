@@ -1,3 +1,4 @@
+import { readingRect } from './reading-geometry';
 import { setReadingZoom } from './reading-zoom';
 import { feedbackGeneration } from './error-feedback';
 import { workflowButton, workflowLabels } from './reading-workflow-ui';
@@ -24,12 +25,12 @@ function fingerprint(element: HTMLElement): string {
 export function captureReadingState(): ReadingState {
     const root=document.getElementById('markdown-preview');
     const list=blocks();
-    const rect=root?.getBoundingClientRect();
+    const rect=root && readingRect(root);
     const top=Math.max(80,document.getElementById('reading-controls')?.getBoundingClientRect().bottom || 0)+8;
     let element=rect && document.elementFromPoint?.(Math.max(2,rect.left)+Math.min(rect.width,innerWidth-Math.max(2,rect.left))/2,Math.min(top,innerHeight-2));
     while(element?.parentElement && element.parentElement!==root)element=element.parentElement;
-    const target=list.find(el=>el===element) || list.find(el=>el.getBoundingClientRect().bottom>top) || list[0];
-    return {id:target?.id || '',hash:target?fingerprint(target):'',index:Math.max(0,list.indexOf(target)),top:target?.getBoundingClientRect().top || 0,scrollY:window.scrollY,zoom:parseFloat(root?.style.getPropertyValue('zoom') || '') || 1};
+    const target=list.find(el=>el===element) || list.find(el=>readingRect(el).bottom>top) || list[0];
+    return {id:target?.id || '',hash:target?fingerprint(target):'',index:Math.max(0,list.indexOf(target)),top:(target && readingRect(target).top) || 0,scrollY:window.scrollY,zoom:parseFloat(root?.style.getPropertyValue('zoom') || '') || 1};
 }
 export function restoreReadingState(state: ReadingState): boolean {
     if(!state || !Number.isFinite(state.zoom) || !Number.isFinite(state.top) || !Number.isInteger(state.index))return false;
@@ -40,7 +41,7 @@ export function restoreReadingState(state: ReadingState): boolean {
     const matches=list.filter(el=>fingerprint(el)===state.hash);
     matches.sort((a,b)=>Math.abs(list.indexOf(a)-state.index)-Math.abs(list.indexOf(b)-state.index));
     const target=byID && root?.contains(byID)?byID:matches[0] || list[Math.max(0,Math.min(list.length-1,state.index))];
-    if(target)window.scrollBy({top:target.getBoundingClientRect().top-state.top,left:0,behavior:'instant' as ScrollBehavior});
+    if(target)window.scrollBy({top:readingRect(target).top-state.top,left:0,behavior:'instant' as ScrollBehavior});
     else window.scrollTo({top:state.scrollY || 0,left:0,behavior:'instant' as ScrollBehavior});
     restoring=false;
     window.dispatchEvent(new Event('scroll'));
@@ -87,8 +88,8 @@ export function jumpToReadingTarget(target: Element): void {
     while(block.parentElement && block.parentElement.id!=='markdown-preview')block=block.parentElement;
     const zoom=before.zoom;
     const margin=(parseFloat(getComputedStyle(target).scrollMarginTop) || 0)*zoom;
-    const delta=target.getBoundingClientRect().top-margin;
-    const after:ReadingState={id:block.id,hash:fingerprint(block as HTMLElement),index:Math.max(0,list.indexOf(block as HTMLElement)),top:block.getBoundingClientRect().top-delta,scrollY:Math.max(0,window.scrollY+delta),zoom};
+    const delta=readingRect(target).top-margin;
+    const after:ReadingState={id:block.id,hash:fingerprint(block as HTMLElement),index:Math.max(0,list.indexOf(block as HTMLElement)),top:readingRect(block).top-delta,scrollY:Math.max(0,window.scrollY+delta),zoom};
     const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     target.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});
     recordReadingJump(before,after);

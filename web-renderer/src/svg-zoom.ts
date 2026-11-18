@@ -1,3 +1,4 @@
+import { readingRect } from './reading-geometry';
 import { createDiagramZoomControls, registerDiagramZoom } from './diagram-zoom-controls';
 
 /** Image isolation and the original link remain intact while only its viewport scrolls. */
@@ -27,7 +28,7 @@ export function installSVGZoom(root: HTMLElement): () => void {
             entry.img.style.cssText = entry.style;
             const focused=!!entry.host.closest('#diagram-focus');
             if(focused){entry.img.style.maxWidth='none';entry.img.style.width=entry.img.naturalWidth+'px';}
-            const width = entry.img.getBoundingClientRect().width / (focused?1:(parseFloat(root.style.getPropertyValue('zoom')) || 1));
+            const width = readingRect(entry.img).width / (focused?1:(parseFloat(root.style.getPropertyValue('zoom')) || 1));
             const ready = entry.img.naturalWidth > 0 && width > 0;
             entry.controls.setReady(ready);
             if (!ready || entry.controls.factor === 1) continue;

@@ -1,3 +1,4 @@
+import { readingRect } from './reading-geometry';
 /** Shared, measured layout for the reading controls (below native window tools). */
 declare global { interface Window { __fluxLang?: string; } }
 const labels = {
@@ -76,7 +77,7 @@ export interface ReadingAnchor { element: HTMLElement; top: number; scrollY: num
 export function captureReadingAnchor(): ReadingAnchor | null {
     if (window.scrollY <= 0 || typeof document.elementFromPoint !== 'function') return null;
     const preview = document.getElementById('markdown-preview');
-    const bounds = preview?.getBoundingClientRect();
+    const bounds = preview && readingRect(preview);
     if (!bounds) return null;
     const controls = document.getElementById('reading-controls');
     const top = Math.max(64, (controls && !controls.hidden ? controls.getBoundingClientRect().bottom : 0) + 8);
@@ -84,13 +85,13 @@ export function captureReadingAnchor(): ReadingAnchor | null {
     const searchBottom = search?.style.display === 'flex' ? search.getBoundingClientRect().bottom + 8 : 0;
     const hit = document.elementFromPoint(bounds.left + bounds.width / 2, Math.min(Math.max(top + 16, searchBottom), window.innerHeight - 1));
     const element = hit?.closest<HTMLElement>('#markdown-preview > *');
-    return element ? { element, top: element.getBoundingClientRect().top, scrollY: window.scrollY } : null;
+    return element ? { element, top: readingRect(element).top, scrollY: window.scrollY } : null;
 }
 export function restoreReadingAnchor(anchor: ReadingAnchor | null): void {
     if (!anchor) return;
     Promise.resolve().then(() => {
         if (!anchor.element.isConnected || Math.abs(window.scrollY - anchor.scrollY) > 1) return;
-        const delta = anchor.element.getBoundingClientRect().top - anchor.top;
+        const delta = readingRect(anchor.element).top - anchor.top;
         if (Math.abs(delta) > 1) window.scrollBy(0, delta);
     });
 }
