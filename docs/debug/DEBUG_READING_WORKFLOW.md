@@ -22,24 +22,34 @@
 
 | 检查 | 结果 | 证据 |
 | --- | --- | --- |
-| 全量 renderer Jest | 633项、70套通过 | `/tmp/flux-workflow-jest-final.log` |
+| 全量 renderer Jest | 634项、70套通过 | `/tmp/flux-workflow-jest-final.log` |
 | 原生历史/持久化/真实文档打开/WebKit/导出、已有手势/菜单/错误模型 | 38项通过（包括外部资源属性及 CDATA 的安全回归） | `/tmp/flux-workflow-native-final.log` |
-| Apple Silicon 真实 WebKit | 阅读工作流2项 + 原缩放/布局6项通过 | `/tmp/flux-workflow-arm-final.log` |
-| Intel 真机 x86_64 WebKit | 同8项通过 | `/tmp/flux-workflow-intel-final.log`，远端 `/tmp/flux-reading-zoom.Dxjina` |
+| Apple Silicon 真实 WebKit | 阅读工作流3项 + 原缩放/布局6项通过 | `/tmp/flux-workflow-arm-final.log` |
+| Intel 真机 x86_64 WebKit | 同9项通过 | `/tmp/flux-workflow-intel-final.log`，远端 `/tmp/flux-reading-zoom.Dxjina` |
 | TSV 20,000单元格与恢复后备回归 | 通过 | `/tmp/flux-workflow-tsv.log` |
 | 导出制品 | PNG解码、文件字节和剪贴板读回通过；Mermaid PNG视觉检查通过 | `/tmp/flux-workflow-evidence/diagram-{1.png,2.png,3.svg}`；Intel `/tmp/flux-workflow-intel-artifacts` |
 | 六种 native 字符串 | 12份文件 plutil通过 | App与Quick Look所有语言 |
 | 原菜单 | 安装App回读“打开…”/“打开最近使用”各1项，新增后退/前进有中文 | `/tmp/flux-workflow-installed-menu.txt` |
-| 安装 | `1.51.834-dev-reading1`，host/extension 173份 renderer 资源逐项SHA256匹配 | `/tmp/flux-workflow-install.log` |
+| 安装 | `1.51.834-dev-reading3`，host/extension 173份 renderer 资源逐项SHA256匹配 | `/tmp/flux-workflow-install.log` |
 
 实际安装验收发现 native history availability 被直接赋给 disabled，导致按钮状态颠倒；新增先失败的回归用例后改为取反。合成 WebKit 测试不替代物理触控板主观验收。
 
-## 安装验收与待补齐项
+## 安装验收结果与边界
 
 已重新安装含导航按钮修正的最终本地版，深度签名校验通过。后台 AX 回读初始后退/前进均禁用，目录跳转后“后退”可用、“前进”禁用；点击真实本地链接后新增 `linked.md` 原生窗口，验证了安装版链接到文档控制器的链路。日志：`/tmp/flux-workflow-installed-{toc,link}.json`。已备份先前用户验收版本到 `~/Library/Application Support/FluxMarkdown/Install Backups/20261118-022811/FluxMarkdown.app`，保留原编辑器关联。
 
-真实 App 位于另一桌面。后台 AX 能读取菜单、文档和目录跳转，但图表按钮/键盘需要前台操作，Orca 返回 `background_unavailable` 且未发送操作。已按技能要求请求临时前台许可。专注层和系统保存面板的安装 GUI 验收结果在完成后追加。
+用户随后明确授权前台操作。已实际完成：
 
+- 打开专注层，Cmd+= 调整局部125%，Cmd+0恢复局部100%，Esc关闭后原段落/倍率及偏移恢复。
+- 点击复制 PNG，系统剪贴板实际读回4096×668图像；通过 NSSavePanel 保存 PNG/SVG，PNG与剪贴板 SHA256完全一致，SVG XML可解析且没有工具栏；视觉检查中文、连线和完整图形。
+- 再次打开保存并取消，显示“已取消”，没有创建目标文件。
+- 点击本地链接打开 linked.md；真实“后退”按钮切回 origin.md，真实“前进”按钮再次切到 linked.md。
+- 真正退出/重启App、重新打开文件，恢复同一图表章节与110%文档倍率，屏幕偏移误差0.15625px。专注层关闭前后进度均为71%。
+- 31节点超宽图进入专注层自动适应至16%，整图可见；100%显示清晰节点；实际横向滚动后从步骤0移动到步骤4—9；再次点击适应窗口回到16%，Esc关闭。
+
+前台验收另发现并修正两项问题：恢复位置未发生实际滚动时，阅读进度需要显式刷新；启动连续两次渲染时，第二次不得捕获尚未完成的临时页面顶部覆盖持久锚点。后者先由原生临时诊断确认“两次读取均为正确保存位置，最终保存却是顶部”，再新增真实WebKit并发首次渲染用例复现失败，修正后两种架构均通过。临时诊断代码已移除，最终安装包仅含正式实现。
+
+持久证据：[`evidence/reading-workflow/acceptance.json`](evidence/reading-workflow/acceptance.json)、[适应窗口](evidence/reading-workflow/focus-fit.png)、[100%](evidence/reading-workflow/focus-100.png)、[横向平移](evidence/reading-workflow/focus-pan.png)、[实际导出PNG](evidence/reading-workflow/export.png)、[实际导出SVG](evidence/reading-workflow/export.svg)。GUI操作日志位于 `/tmp/flux-workflow-*.json`。导出操作在reading1完成，随后reading3只修正恢复和进度逻辑，原生导出实现不变。
 未执行正式发布、签名公证发布门禁或 macOS 11 运行测试；现有最低目标保持不变。本机新 Xcode 的 Debug 构建使用诊断覆盖 `MACOSX_DEPLOYMENT_TARGET=12.0`。Quick Look 文件保存交接的真实 Finder UI 尚待人工验收。
 
 ## 重跑

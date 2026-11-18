@@ -19,6 +19,14 @@ describe('reading workflow', () => {
         updateNavigation(false,true);expect(buttons[0].disabled).toBe(true);expect(buttons[1].disabled).toBe(false);
         updateNavigation(false,false);expect(buttons[0].disabled).toBe(true);expect(buttons[1].disabled).toBe(true);
     });
+    test('restoration refreshes reading indicators even when scroll position does not change', () => {
+        document.body.innerHTML='<div id="markdown-preview"><p>Reading</p></div>';
+        document.elementFromPoint=jest.fn(()=>document.querySelector('#markdown-preview p'));
+        window.scrollBy=jest.fn();window.scrollTo=jest.fn();
+        const refresh=jest.fn();window.addEventListener('scroll',refresh);
+        restoreReadingState(captureReadingState());
+        expect(refresh).toHaveBeenCalled();window.removeEventListener('scroll',refresh);
+    });
     test('semantic anchors survive insertion and do not persist paragraph text', () => {
         document.body.innerHTML='<div id="markdown-preview"><p>Before</p><p id="target">Private reading paragraph</p><p>After</p></div>';
         document.elementFromPoint=jest.fn(()=>document.getElementById('target'));

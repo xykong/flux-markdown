@@ -1,0 +1,43 @@
+{
+  "installedVersion": "1.51.834-dev-reading3",
+  "rendererTests": 634,
+  "nativeTests": 38,
+  "realWebKitPerArchitecture": 9,
+  "architectures": [
+    "arm64",
+    "x86_64"
+  ],
+  "pngClipboardMatchesSavedPNG": true,
+  "pngDimensions": [
+    4096,
+    668
+  ],
+  "cancelledSaveCreatedFile": false,
+  "readingAfterRestartAndFocusClose": {
+    "id": "图表验收",
+    "index": 19,
+    "top": 87.84375,
+    "scrollY": 3324,
+    "zoom": 1.1,
+    "hash": "d6ad4ea9"
+  },
+  "readingBeforeRestart": {
+    "zoom": 1.1,
+    "scrollY": 3323.84375,
+    "index": 19,
+    "id": "图表验收",
+    "hash": "d6ad4ea9",
+    "top": 88
+  },
+  "progressBeforeAndAfterFocus": [
+    71,
+    71
+  ],
+  "files": {
+    "export.svg": "ccaebec58e91005eb18ccd1759d5f4cf799d7057b6f2a31cf71dddfd2e353e79",
+    "focus-100.png": "1c8129bc1f5d4b41822a6f7d6d99742d4c237a01a058f2978e8e4c549c108cbc",
+    "export.png": "38ef6ff223cc133b72b5a7b2dcf9e8c122890d2672a74b610518ac287df5d656",
+    "focus-fit.png": "a739a31c662d36aac6bc3a9419a864d784c054dc077f000a52ab39bed81c4306",
+    "focus-pan.png": "3a3510b61a21590152929596df7b07dcce7894292abc8ea2f01aa34bbd2364ed"
+  }
+}

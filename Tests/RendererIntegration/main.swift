@@ -16,6 +16,15 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private var index = 0
     private var feedbackEvents: [[String: Any]] = []
     private var cases: [(String, String)] = [
+        ("Reading workflow interrupted opening restores saved position", """
+        const text=Array.from({length:30},(_,i)=>'Distinct paragraph '+i+' '+('Reading. '.repeat(40))).join('\\n\\n')+'\\n\\n## Saved Position\\n\\n'+('After the anchor.\\n\\n'.repeat(40))+'\\n\\n```mermaid\\nflowchart LR; A-->B;\\n```';
+        const options={context:'app',uiLanguage:'en',documentId:'interrupted-open',readingState:{id:'saved-position',hash:'',index:30,top:120,scrollY:900,zoom:1.5}};
+        const first=window.renderMarkdown(text,options);
+        await window.renderMarkdown(text,options);await first;
+        const top=document.getElementById('saved-position').getBoundingClientRect().top;
+        if(Math.abs(top-120)>3 || window.captureReadingState().zoom!==1.5)throw new Error('unfinished opening replaced the durable reading position: '+top);
+        window.setZoomLevel(1);return true;
+        """),
         ("Reading workflow focus navigation and refresh", """
         const text=Array.from({length:45},(_,i)=>'## Chapter '+i+'\\n\\nDistinct paragraph for chapter '+i+'. '+('Readable text. '.repeat(25))).join('\\n\\n')+'\\n\\n```mermaid\\nflowchart LR; A[Inspect]-->B[Diagram];\\n```';
         await window.renderMarkdown(text,{context:'app',documentId:'workflow-a',uiLanguage:'en'});

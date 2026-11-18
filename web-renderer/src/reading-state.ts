@@ -7,6 +7,8 @@ let documentId='';
 let history: ReadingState[]=[];
 let cursor=-1;
 let restoring=false;
+let rendering=false;
+let renderAnchor: ReadingState | undefined;
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
 let nativeHistory=false;
 function blocks(): HTMLElement[] { return Array.from(document.getElementById('markdown-preview')?.children || []).filter((el): el is HTMLElement=>el instanceof HTMLElement); }
@@ -41,6 +43,7 @@ export function restoreReadingState(state: ReadingState): boolean {
     if(target)window.scrollBy({top:target.getBoundingClientRect().top-state.top,left:0,behavior:'instant' as ScrollBehavior});
     else window.scrollTo({top:state.scrollY || 0,left:0,behavior:'instant' as ScrollBehavior});
     restoring=false;
+    window.dispatchEvent(new Event('scroll'));
     saveReadingState();return true;
 }
 function post(action: string, extra: Record<string,unknown>={}): boolean {
@@ -49,18 +52,24 @@ function post(action: string, extra: Record<string,unknown>={}): boolean {
     bridge.postMessage({action,generation:feedbackGeneration(),documentId,...extra});return true;
 }
 export function saveReadingState(): void {
-    if(!restoring && !document.getElementById('diagram-focus') && document.getElementById('markdown-preview')?.childElementCount)post('save',{state:captureReadingState()});
+    if(!restoring && !rendering && !document.getElementById('diagram-focus') && document.getElementById('markdown-preview')?.childElementCount)post('save',{state:captureReadingState()});
 }
 window.addEventListener('scroll',()=>{clearTimeout(saveTimer);saveTimer=setTimeout(saveReadingState,200);},{passive:true});
 window.addEventListener('pagehide',saveReadingState);
 window.addEventListener('readingZoomChanged',()=>{clearTimeout(saveTimer);saveTimer=setTimeout(saveReadingState,200);});
 export function beginReadingRender(nextId?: string): ReadingState | undefined {
-    const previous=nextId && nextId===documentId && blocks().length?captureReadingState():undefined;
-    if(nextId && nextId!==documentId){history=[];cursor=-1;window.scrollTo({top:0,left:0,behavior:'instant' as ScrollBehavior});}
+    const sameDocument=!!nextId && nextId===documentId;
+    // A superseded render has only a partial tree. Carry the last completed
+    // reading anchor through it instead of replacing durable state with its top.
+    if(!sameDocument)renderAnchor=undefined;
+    else if(!rendering && blocks().length)renderAnchor=captureReadingState();
+    if(nextId && !sameDocument){history=[];cursor=-1;window.scrollTo({top:0,left:0,behavior:'instant' as ScrollBehavior});}
     documentId=nextId || '';
-    return previous;
+    rendering=true;
+    return renderAnchor;
 }
 export function finishReadingRender(saved?: ReadingState, preserved?: ReadingState): void {
+    rendering=false;renderAnchor=undefined;
     if(preserved || saved)restoreReadingState(preserved || saved);
     installNavigation();saveReadingState();
 }
