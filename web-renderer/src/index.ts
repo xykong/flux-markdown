@@ -1,5 +1,4 @@
 import { FollowFile, type FollowSnapshot, blockElement, documentSelection, lastBlockLine, lineStart, queryRoots, uniqueHeadingSlug, waitForSafeCommit } from './follow-file';
-import { sourceSegments } from './segments';
 import { diagramActionResult } from './diagram-actions';
 import { beginReadingRender, finishReadingRender, captureReadingState, restoreReadingState, navigateReadingHistory, updateNavigation, jumpToReadingTarget, saveReadingState, ReadingState } from './reading-state';
 import { closeDiagramFocus, stepFocusedDiagram, scrollReadingSurface } from './diagram-focus';
@@ -496,12 +495,15 @@ function followKey(options: RenderOptions): string {
 function reusableSnapshot(text: string, key: string, prefix: string, root: HTMLElement): (FollowSnapshot & { restart: NonNullable<FollowSnapshot['restart']> }) | undefined {
     const snapshot = followSnapshot;
     const restart = snapshot?.restart;
-    if (!snapshot || !restart || snapshot.key !== key || snapshot.footnotes || snapshot.prefix !== prefix || !text.startsWith(snapshot.text)) return undefined;
+    if (!snapshot || !restart || snapshot.key !== key || snapshot.hasDefinitions || snapshot.prefix !== prefix || !text.startsWith(snapshot.text)) return undefined;
     // Math numbering and references span the whole document.
     if (snapshot.firstMathLine !== undefined && snapshot.firstMathLine <= restart.line) return undefined;
     return blockElement(root, restart.line + 1) ? { ...snapshot, restart } : undefined;
 }
-const keyCount = (record?: Record<string, unknown>) => record ? Object.keys(record).length : 0;
+function hasDefinitions(environment: { references: Record<string, unknown>; abbreviations?: Record<string, string>; footnotes?: unknown }): boolean {
+    return !!environment.footnotes || Object.keys(environment.references).length > 0 ||
+        Object.keys(environment.abbreviations ?? {}).length > 0;
+}
 /**
  * Splits a rendered document into commit slices: a small first slice nearest the
  * reading position (the beginning, or the end while following), then larger ones.
@@ -529,8 +531,6 @@ function progressiveSlices(nodes: ChildNode[], fromEnd: boolean, firstChars = 24
  */
 /** Above this many characters, distant top-level blocks skip layout and paint. */
 const LARGE_DOCUMENT_CHARS = 400_000;
-/** Characters of source per parse task for a large window. */
-const SEGMENT_CHARS = 64_000;
 const nextTask = () => new Promise<void>(resolve => {
     if (document.visibilityState !== 'hidden' || typeof MessageChannel === 'undefined') { setTimeout(resolve, 0); return; }
     const channel = new MessageChannel();
@@ -1153,8 +1153,8 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         const key = followKey(options);
         const parseEnvironment = (lineOffset: number, seed?: FollowSnapshot) => ({
             baseUrl: options.baseUrl, imageData: options.imageData, renderVersion: options.renderVersion, sourceLineOffset: lineOffset,
-            references: {...seed?.references} as Record<string, unknown>,
-            abbreviations: seed?.abbreviations ? {...seed.abbreviations} : undefined as Record<string, string> | undefined,
+            references: {} as Record<string, unknown>,
+            abbreviations: undefined as Record<string, string> | undefined,
             headingSlugs: new Set(seed?.headings.filter(heading => heading.line < lineOffset).map(heading => heading.id)),
             footnotes: undefined as unknown,
         });
@@ -1168,51 +1168,12 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
             tailSource = text.slice(previous.restart.offset);
             environment = parseEnvironment(previous.restart.line, previous);
             tokens = parser.parse(tailSource, environment);
-            // New definitions can change blocks above the tail.
-            if (environment.footnotes || keyCount(environment.references) !== keyCount(previous.references) ||
-                keyCount(environment.abbreviations) !== keyCount(previous.abbreviations)) previous = undefined;
+            // Definitions can change earlier blocks, including by extending an existing definition.
+            if (hasDefinitions(environment)) previous = undefined;
         }
-        // A large window is parsed and sanitized in segments, one per task, and the
-        // nearest segment is shown at once as a provisional page (task 10.2).
-        let segmentFragments: DocumentFragment[] | undefined;
         if (!previous) {
             environment = parseEnvironment(sourceLineOffset);
-            const segments = options.progressive !== false ? sourceSegments(renderBody, SEGMENT_CHARS) : [];
-            if (segments.length > 1) {
-                const following = followCapable && followFile?.status().active === true;
-                // Only a new document, or the switch to Follow, gets a provisional page;
-                // a re-render of the same page keeps showing the old one until it is ready.
-                if ((!protectSelection || (following && !wasFollowing)) && !documentSelection(outputDiv)) {
-                    const nearest = following ? segments[segments.length - 1] : segments[0];
-                    const preview = parser.parse(nearest.text, { ...parseEnvironment(sourceLineOffset + nearest.line), headingSlugs: new Set<string>() });
-                    if (!mathSources.length) {
-                        const fragment = sanitizeDocumentFragment((following || !frontMatterHtml ? '' : frontMatterHtml) + parser.renderer.render(preview, parser.options, environment));
-                        disposeBlockCopy();
-                        disposeMermaidLayout?.(); disposeMermaidLayout = undefined;
-                        disposeSVGZoom?.(); disposeSVGZoom = undefined;
-                        searchEngine?.clear();
-                        outputDiv.replaceChildren(fragment);
-                        if (toc) toc.render(buildHeadingTree(extractHeadings(preview)));
-                        if (following) followFile?.settle();
-                    }
-                }
-                segmentFragments = [];
-                for (const segment of segments) {
-                    await nextTask();
-                    if (!isCurrent()) return;
-                    environment.sourceLineOffset = sourceLineOffset + segment.line;
-                    const segmentTokens = parser.parse(segment.text, environment);
-                    // Math numbering and footnotes span the window: parse it whole instead.
-                    if (mathSources.length || environment.footnotes) { segmentFragments = undefined; break; }
-                    for (const token of segmentTokens) tokens.push(token);
-                    segmentFragments.push(sanitizeDocumentFragment(parser.renderer.render(segmentTokens, parser.options, environment)));
-                }
-                if (!segmentFragments) tokens = [];
-            }
-            if (!segmentFragments) {
-                environment = parseEnvironment(sourceLineOffset);
-                tokens = parser.parse(renderBody, environment);
-            }
+            tokens = parser.parse(renderBody, environment);
         }
         const headingLines = tokens.filter(token => token.type === 'heading_open').map(token => token.map?.[0] ?? 0);
         const parsedHeadings = extractHeadings(tokens).map((heading, index) => ({ line: headingLines[index], level: heading.level, text: heading.text, id: heading.id }));
@@ -1220,8 +1181,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         const headings = previous ? [...previous.headings.filter(heading => heading.line < restartLine!), ...parsedHeadings] : parsedHeadings;
         const outline = buildHeadingTree(headings.map(({ level, text, id }): HeadingNode => ({ level, text, id, children: [] })));
         const tempDiv = document.createElement('div');
-        const documentFragment = sanitizeDocumentFragment((previous ? '' : frontMatterHtml) + (segmentFragments ? '' : parser.renderer.render(tokens, parser.options, environment)));
-        segmentFragments?.forEach(fragment => documentFragment.appendChild(fragment));
+        const documentFragment = sanitizeDocumentFragment((previous ? '' : frontMatterHtml) + parser.renderer.render(tokens, parser.options, environment));
 
         if (options.enableKatex !== false) {
             documentFragment.querySelectorAll('math').forEach(math => {
@@ -1351,8 +1311,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
             followSnapshot = {
                 text, key, prefix, headings,
                 restart: newRestartLine !== undefined && restartHtml !== undefined && restartOffset >= 0 ? { line: newRestartLine, offset: restartOffset, html: restartHtml } : undefined,
-                references: environment.references, abbreviations: environment.abbreviations,
-                footnotes: !!environment.footnotes, firstMathLine,
+                hasDefinitions: hasDefinitions(environment), firstMathLine,
             };
         } else {
             followSnapshot = undefined;

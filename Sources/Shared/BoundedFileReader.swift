@@ -22,26 +22,9 @@ enum BoundedFileReader {
 /// app keeps `BoundedFileReader.documentLimit`.
 enum MarkdownPreviewPolicy {
     static let previewLimit = 2 * 1024 * 1024
-    /// Follow may stay below the preview limit until long-running appends are measured.
-    static let followLimit = 2 * 1024 * 1024
-
-    static func readLimit(for url: URL, following: Bool) -> Int {
-        if url.pathExtension.lowercased() == "tsv" { return PreviewFileReader.previewLimit }
-        return following ? min(previewLimit, followLimit) : previewLimit
+    static func readLimit(for url: URL) -> Int {
+        url.pathExtension.lowercased() == "tsv" ? PreviewFileReader.previewLimit : previewLimit
     }
-
-    /// While following, the window may grow by a quarter before it re-forms at the end.
-    static let followWindowCeiling = followLimit + followLimit / 4
-    /// While Follow is paused the window stays put; it may grow to this size, then updates wait.
-    static let pausedWindowCeiling = 4 * 1024 * 1024
-
-    enum OverLimitStep: Equatable { case hold, reread }
-
-    /// The largest file an append may extend a followed window to before another step is needed.
-    static func appendLimit(windowStart: UInt64) -> Int { Int(windowStart) + pausedWindowCeiling }
-    static func shouldReform(heldBytes: Int, paused: Bool) -> Bool { !paused && heldBytes > followWindowCeiling }
-    /// Past the append limit: wait while paused, otherwise read the end of the file again.
-    static func overLimitStep(paused: Bool) -> OverLimitStep { paused ? .hold : .reread }
 
 }
 
@@ -49,6 +32,7 @@ enum MarkdownPreviewPolicy {
 enum PreviewLimitNotice {
     /// The status line under the incomplete-preview panel, and its Follow counterpart.
     static let headStatus = "Showing the first %1$@ of %2$@; the rest is not shown. Click Follow Changes to see the end."
+    static let limitedHeadStatus = "Showing the first %1$@ of %2$@."
     static let tailStatus = "Showing the last %1$@ of %2$@."
 }
 
@@ -140,69 +124,69 @@ struct MarkdownLineScanner {
     }
 }
 
-/// Where a complete read ended, so a later poll can read only appended bytes.
-struct FollowCursor: Equatable {
-    let offset: UInt64
-    /// Up to the last 4 KiB before `offset`; a mismatch means the file was rewritten.
-    let tail: Data
-    let device: UInt64
-    let inode: UInt64
-    let modification: timespec
+/// Identity and timestamps used to skip reading unchanged preview files.
+struct PreviewFileRevision: Equatable {
+    private let device: dev_t
+    private let inode: ino_t
+    let size: UInt64
+    private let modified: timespec
+    private let changed: timespec
 
-    static let tailLength = 4096
-
-    init(offset: UInt64, tail: Data, status: stat) {
-        self.offset = offset
-        self.tail = Data(tail.suffix(Self.tailLength))
-        device = UInt64(status.st_dev)
-        inode = UInt64(status.st_ino)
-        modification = status.st_mtimespec
+    fileprivate init(_ status: stat) throws {
+        guard status.st_mode & S_IFMT == S_IFREG else { throw CocoaError(.fileReadUnsupportedScheme) }
+        device = status.st_dev
+        inode = status.st_ino
+        size = UInt64(status.st_size)
+        modified = status.st_mtimespec
+        changed = status.st_ctimespec
     }
 
-    static func == (lhs: FollowCursor, rhs: FollowCursor) -> Bool {
-        lhs.offset == rhs.offset && lhs.tail == rhs.tail && lhs.device == rhs.device && lhs.inode == rhs.inode &&
-            lhs.modification.tv_sec == rhs.modification.tv_sec && lhs.modification.tv_nsec == rhs.modification.tv_nsec
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.device == rhs.device && lhs.inode == rhs.inode && lhs.size == rhs.size &&
+            lhs.modified.tv_sec == rhs.modified.tv_sec && lhs.modified.tv_nsec == rhs.modified.tv_nsec &&
+            lhs.changed.tv_sec == rhs.changed.tv_sec && lhs.changed.tv_nsec == rhs.changed.tv_nsec
     }
-}
-
-enum FollowAppendResult: Equatable {
-    case unchanged
-    case appended(String, FollowCursor)
-    /// Rewritten, replaced, shrunk or undecodable: read the whole file again.
-    case reload
-    case limited
 }
 
 enum PreviewFileReader {
     struct Snapshot {
         let content: String
-        let size: UInt64
-        let modificationDate: Date?
         let isTruncated: Bool
-        /// Present only for a complete, unwrapped read.
-        let cursor: FollowCursor?
+        let revision: PreviewFileRevision
+        var size: UInt64 { revision.size }
         /// For a tail window: where it starts in the file, and how many lines precede it.
         var startByte: UInt64 = 0
         var startLine = 0
     }
     static let previewLimit = 500 * 1024
 
+    static func revision(at url: URL) throws -> PreviewFileRevision {
+        var status = stat()
+        let result = url.withUnsafeFileSystemRepresentation { path in
+            guard let path else { return Int32(-1) }
+            return stat(path, &status)
+        }
+        guard result == 0 else {
+            throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
+        }
+        return try PreviewFileRevision(status)
+    }
+
+    private static func revision(of file: FileHandle) throws -> PreviewFileRevision {
+        var status = stat()
+        guard fstat(file.fileDescriptor, &status) == 0 else { throw CocoaError(.fileReadUnknown) }
+        return try PreviewFileRevision(status)
+    }
+
     static func read(_ url: URL, limit: Int = previewLimit) throws -> Snapshot {
-        var metadataURL = url
-        metadataURL.removeAllCachedResourceValues()
-        let values = try metadataURL.resourceValues(forKeys: [.fileSizeKey, .contentModificationDateKey, .isRegularFileKey])
-        guard values.isRegularFile == true else { throw CocoaError(.fileReadUnsupportedScheme) }
+        _ = try revision(at: url)
         let file = try FileHandle(forReadingFrom: url)
         defer { try? file.close() }
+        let revision = try revision(of: file)
         let data = try file.read(upToCount: limit + 1) ?? Data()
         let preview = try decode(data, limit: limit)
-        var content = preview.content
-        let wrapped = url.pathExtension.lowercased() == "mmd"
-        if wrapped { content = "```mermaid\n\(content)\n```" }
-        var status = stat()
-        let cursor = !preview.isTruncated && !wrapped && fstat(file.fileDescriptor, &status) == 0
-            ? FollowCursor(offset: UInt64(data.count), tail: data, status: status) : nil
-        return Snapshot(content: content, size: UInt64(values.fileSize ?? data.count), modificationDate: values.contentModificationDate, isTruncated: preview.isTruncated, cursor: cursor)
+        let content = url.pathExtension.lowercased() == "mmd" ? "```mermaid\n\(preview.content)\n```" : preview.content
+        return Snapshot(content: content, isTruncated: preview.isTruncated, revision: revision)
     }
 
     /// Reads the end of a file, at most `window` bytes, starting at a line that is
@@ -210,12 +194,11 @@ enum PreviewFileReader {
     /// a line it starts at the first line outside a fence after the cut, then at the
     /// first line after the cut, then at the first character boundary after it.
     static func readTail(_ url: URL, window: Int) throws -> Snapshot {
+        _ = try revision(at: url)
         let file = try FileHandle(forReadingFrom: url)
         defer { try? file.close() }
-        var status = stat()
-        guard fstat(file.fileDescriptor, &status) == 0 else { throw CocoaError(.fileReadUnknown) }
-        guard status.st_mode & S_IFMT == S_IFREG else { throw CocoaError(.fileReadUnsupportedScheme) }
-        let size = UInt64(status.st_size)
+        let revision = try revision(of: file)
+        let size = revision.size
         let cut = size > UInt64(window) ? size - UInt64(window) : 0
         var finder = WindowStartFinder(cut: cut, size: size)
         var scanner = MarkdownLineScanner()
@@ -242,61 +225,22 @@ enum PreviewFileReader {
         }
         try file.seek(toOffset: chosen.byte)
         let data = try file.read(upToCount: Int(size - chosen.byte)) ?? Data()
-        guard let (text, used) = completePrefix(data) else { throw CocoaError(.fileReadInapplicableStringEncoding) }
-        let cursor = FollowCursor(offset: chosen.byte + UInt64(used), tail: data.prefix(used), status: status)
-        return Snapshot(content: text, size: size, modificationDate: Date(timeIntervalSince1970: TimeInterval(status.st_mtimespec.tv_sec)),
-                        isTruncated: false, cursor: cursor, startByte: chosen.byte, startLine: chosen.line)
-    }
-
-    /// Moves a held tail window forward to at most `window` bytes, using only the text
-    /// already held: it starts outside a fence, so no file read is needed. Returns nil
-    /// when the text already fits or no line starts after the cut.
-    static func reformWindow(_ text: String, startByte: UInt64, startLine: Int, window: Int) -> (text: String, startByte: UInt64, startLine: Int)? {
-        let bytes = Data(text.utf8)
-        guard bytes.count > window else { return nil }
-        var finder = WindowStartFinder(cut: UInt64(bytes.count - window), size: UInt64(bytes.count))
-        var scanner = MarkdownLineScanner()
-        _ = bytes.withUnsafeBytes { raw in scanner.feed(raw) { finder.lineEnded(next: $0, wasBlank: $1, lines: $2, inFence: $3) } }
-        guard let start = finder.start else { return nil }
-        return (String(decoding: bytes.suffix(from: Int(start.byte)), as: UTF8.self), startByte + start.byte, startLine + start.line)
-    }
-
-    /// Reads only bytes added after `cursor`, after checking that the bytes before it are unchanged.
-    static func readAppend(_ url: URL, after cursor: FollowCursor, limit: Int) throws -> FollowAppendResult {
-        let file = try FileHandle(forReadingFrom: url)
-        defer { try? file.close() }
-        var status = stat()
-        guard fstat(file.fileDescriptor, &status) == 0 else { throw CocoaError(.fileReadUnknown) }
-        guard status.st_mode & S_IFMT == S_IFREG else { throw CocoaError(.fileReadUnsupportedScheme) }
-        guard UInt64(status.st_dev) == cursor.device, UInt64(status.st_ino) == cursor.inode else { return .reload }
-        let size = UInt64(status.st_size)
-        guard size >= cursor.offset else { return .reload }
-        guard size <= UInt64(limit) else { return .limited }
-        try file.seek(toOffset: cursor.offset - UInt64(cursor.tail.count))
-        guard (try file.read(upToCount: cursor.tail.count) ?? Data()) == cursor.tail else { return .reload }
-        if size == cursor.offset {
-            let unchanged = status.st_mtimespec.tv_sec == cursor.modification.tv_sec && status.st_mtimespec.tv_nsec == cursor.modification.tv_nsec
-            return unchanged ? .unchanged : .reload
-        }
-        let added = try file.read(upToCount: Int(size - cursor.offset)) ?? Data()
-        // A writer may not have finished the final character yet; read it next time.
-        guard let (text, used) = completePrefix(added) else { return .reload }
-        if used == 0 { return .unchanged }
-        return .appended(text, FollowCursor(offset: cursor.offset + UInt64(used), tail: cursor.tail + added.prefix(used), status: status))
+        guard let decoded = completePrefix(data) else { throw CocoaError(.fileReadInapplicableStringEncoding) }
+        return Snapshot(content: decoded, isTruncated: false, revision: revision, startByte: chosen.byte, startLine: chosen.line)
     }
 
     static func decode(_ input: Data, limit: Int = previewLimit) throws -> (content: String, isTruncated: Bool) {
         let truncated = input.count > limit
         let data = Data(input.prefix(limit))
-        let decoded = truncated ? completePrefix(data)?.text : String(data: data, encoding: .utf8)
+        let decoded = truncated ? completePrefix(data) : String(data: data, encoding: .utf8)
         guard let content = decoded else { throw CocoaError(.fileReadInapplicableStringEncoding) }
         return (content, truncated)
     }
 
     /// Decodes UTF-8, leaving out only an incomplete final character. A valid
     /// character has at most four bytes; malformed bytes are never concealed.
-    private static func completePrefix(_ data: Data) -> (text: String, used: Int)? {
-        if let text = String(data: data, encoding: .utf8) { return (text, data.count) }
+    private static func completePrefix(_ data: Data) -> String? {
+        if let text = String(data: data, encoding: .utf8) { return text }
         for removed in 1...min(3, data.count) {
             let prefix = data.dropLast(removed)
             let tail = Array(data.suffix(removed))
@@ -304,7 +248,7 @@ enum PreviewFileReader {
             let expected = lead >= 0xC2 && lead <= 0xDF ? 2 : lead >= 0xE0 && lead <= 0xEF ? 3 : lead >= 0xF0 && lead <= 0xF4 ? 4 : 0
             if expected > removed && tail.dropFirst().allSatisfy({ $0 >= 0x80 && $0 <= 0xBF }),
                let text = String(data: prefix, encoding: .utf8) {
-                return (text, prefix.count)
+                return text
             }
         }
         return nil

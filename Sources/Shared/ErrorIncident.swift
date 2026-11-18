@@ -331,6 +331,19 @@ struct IncidentQuickLookCheck: Codable {
 }
 
 extension PreviewLimitNotice {
+    enum Recovery: Equatable {
+        case openInApp, follow, revealInFinder
+    }
+
+    static let openInAppGuidance = "Open the document in FluxMarkdown to read beyond the preview limits."
+    static let revealTitle = "Reveal in Finder"
+    static let revealGuidance = "The file is too large to open in FluxMarkdown. Reveal it in Finder to open it with another editor."
+
+    static func recovery(for kind: FailureKind, followAvailable: Bool) -> Recovery {
+        guard kind == .previewLimitBeyondApp else { return .openInApp }
+        return followAvailable ? .follow : .revealInFinder
+    }
+
     /// The incomplete-preview incident; above the app's limit it offers Follow, not the app.
     static func failureKind(fileSize: UInt64) -> FailureKind {
         fileSize > UInt64(BoundedFileReader.documentLimit) ? .previewLimitBeyondApp : .previewLimit

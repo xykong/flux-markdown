@@ -11,9 +11,7 @@ export interface FollowSnapshot {
     prefix: string;
     restart?: { line: number; offset: number; html: string };
     headings: Array<{ line: number; level: number; text: string; id: string }>;
-    references: Record<string, unknown>;
-    abbreviations?: Record<string, string>;
-    footnotes: boolean;
+    hasDefinitions: boolean;
     firstMathLine?: number;
 }
 

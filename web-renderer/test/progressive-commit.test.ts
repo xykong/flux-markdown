@@ -132,3 +132,9 @@ test('only large pages ask WebKit to skip distant blocks', async () => {
     await window.renderMarkdown('# Small\n', {...options, documentGeneration: 'small'});
     expect(document.documentElement.dataset.largeDocument).toBe('false');
 });
+
+test.each(['app', 'quicklook', 'finder'] as const)('multiline reference definitions work throughout a large %s preview', async context => {
+    const text = '[multi line]\n\n' + 'Padding '.repeat(9000) + '\n\n# Later\n\n[multi\nline]: https://example.com\n';
+    await window.renderMarkdown(text, {context});
+    expect(root().querySelector('a')?.getAttribute('href')).toBe('https://example.com');
+});

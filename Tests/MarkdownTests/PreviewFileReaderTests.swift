@@ -46,6 +46,40 @@ final class PreviewFileReaderTests: XCTestCase {
 }
 
 final class FollowFileSnapshotTests: XCTestCase {
+    func testRewriteBeforeAnUnchangedTailThenAppendRefreshesHeadAndFollow() throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".md")
+        defer { try? FileManager.default.removeItem(at: url) }
+        let initial = "OLD\n" + String(repeating: "x", count: 8192)
+        try Data(initial.utf8).write(to: url)
+        let before = try PreviewFileReader.read(url)
+        XCTAssertEqual(try PreviewFileReader.revision(at: url), before.revision)
+
+        let writer = try FileHandle(forWritingTo: url)
+        defer { try? writer.close() }
+        try writer.write(contentsOf: Data("NEW".utf8))
+        try writer.seekToEnd()
+        try writer.write(contentsOf: Data("\nAPPENDED\n".utf8))
+
+        let head = try PreviewFileReader.read(url)
+        let tail = try PreviewFileReader.readTail(url, window: 16_384)
+        XCTAssertNotEqual(head.revision, before.revision)
+        XCTAssertEqual(head.revision, tail.revision)
+        XCTAssertTrue(head.content.hasPrefix("NEW"))
+        XCTAssertEqual(head.content, tail.content)
+        XCTAssertTrue(tail.content.hasSuffix("APPENDED\n"))
+    }
+
+    func testSameSizeReplacementWithCopiedModificationDateChangesRevision() throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".md")
+        defer { try? FileManager.default.removeItem(at: url) }
+        try Data("old".utf8).write(to: url)
+        let before = try PreviewFileReader.revision(at: url)
+        let timestamp = try url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
+        try Data("new".utf8).write(to: url, options: .atomic)
+        try FileManager.default.setAttributes([.modificationDate: try XCTUnwrap(timestamp)], ofItemAtPath: url.path)
+        XCTAssertNotEqual(try PreviewFileReader.revision(at: url), before)
+    }
+
     func testAppendReplacementAndLimitSnapshots() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -134,16 +168,13 @@ final class MarkdownPreviewPolicyTests: XCTestCase {
 
     func testMarkdownLimitsAreTwoMebibytesAndTSVKeepsItsOwn() {
         XCTAssertEqual(MarkdownPreviewPolicy.previewLimit, 2_097_152)
-        XCTAssertEqual(MarkdownPreviewPolicy.followLimit, 2_097_152)
-        XCTAssertEqual(MarkdownPreviewPolicy.readLimit(for: URL(fileURLWithPath: "/a/notes.md"), following: false), 2_097_152)
-        XCTAssertEqual(MarkdownPreviewPolicy.readLimit(for: URL(fileURLWithPath: "/a/notes.md"), following: true), 2_097_152)
-        XCTAssertEqual(MarkdownPreviewPolicy.readLimit(for: URL(fileURLWithPath: "/a/table.TSV"), following: false), 512_000)
+        XCTAssertEqual(MarkdownPreviewPolicy.readLimit(for: URL(fileURLWithPath: "/a/notes.md")), 2_097_152)
+        XCTAssertEqual(MarkdownPreviewPolicy.readLimit(for: URL(fileURLWithPath: "/a/table.TSV")), 512_000)
         XCTAssertEqual(BoundedFileReader.documentLimit, 33_554_432, "The app keeps its own limit")
     }
 
     func testLimitsAreWholeMebibytes() {
         XCTAssertEqual(MarkdownPreviewPolicy.previewLimit % 1_048_576, 0)
-        XCTAssertEqual(MarkdownPreviewPolicy.followLimit % 1_048_576, 0)
     }
 
     func testMarkdownPreviewLimitBelowAtAndAbove() throws {
@@ -152,10 +183,9 @@ final class MarkdownPreviewPolicyTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: url) }
         for count in [limit - 1, limit, limit + 1] {
             try Data(repeating: 65, count: count).write(to: url)
-            let snapshot = try PreviewFileReader.read(url, limit: MarkdownPreviewPolicy.readLimit(for: url, following: false))
+            let snapshot = try PreviewFileReader.read(url, limit: MarkdownPreviewPolicy.readLimit(for: url))
             XCTAssertEqual(snapshot.content.utf8.count, min(count, limit), "size \(count)")
             XCTAssertEqual(snapshot.isTruncated, count > limit, "size \(count)")
-            XCTAssertEqual(snapshot.cursor == nil, count > limit, "Only a complete read can be followed by appends")
         }
     }
 
@@ -175,6 +205,7 @@ final class MarkdownPreviewPolicyTests: XCTestCase {
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         let notices = [
             PreviewLimitNotice.headStatus: ["%1$@", "%2$@"],
+            PreviewLimitNotice.limitedHeadStatus: ["%1$@", "%2$@"],
             PreviewLimitNotice.tailStatus: ["%1$@", "%2$@"],
         ]
         for target in ["Markdown", "MarkdownPreview"] {
@@ -198,9 +229,6 @@ final class MarkdownPreviewPolicyTests: XCTestCase {
         }
     }
 
-    func testFollowWindowCeiling() {
-        XCTAssertEqual(MarkdownPreviewPolicy.followWindowCeiling, 2_621_440, "The window may grow by a quarter before it re-forms")
-    }
 }
 
 final class TailWindowReaderTests: XCTestCase {
@@ -226,7 +254,7 @@ final class TailWindowReaderTests: XCTestCase {
             XCTAssertEqual(snapshot.content, text, "size \(size)")
             XCTAssertEqual(snapshot.startByte, 0); XCTAssertEqual(snapshot.startLine, 0)
             XCTAssertFalse(snapshot.isTruncated)
-            XCTAssertEqual(snapshot.cursor?.offset, UInt64(size))
+            XCTAssertEqual(snapshot.size, UInt64(size))
         }
     }
 
@@ -237,7 +265,7 @@ final class TailWindowReaderTests: XCTestCase {
         XCTAssertEqual(snapshot.startByte, 7)
         XCTAssertEqual(snapshot.startLine, 2)
         XCTAssertTrue(snapshot.content.hasPrefix("para\n"))
-        XCTAssertEqual(snapshot.cursor?.offset, UInt64(text.utf8.count))
+        XCTAssertEqual(snapshot.size, UInt64(text.utf8.count))
     }
 
     func testWindowNeverStartsInsideAFencedBlock() throws {
@@ -297,170 +325,37 @@ final class TailWindowReaderTests: XCTestCase {
         try Data(Data("intro\n\nbody\n".utf8) + Data(Array("😀".utf8).prefix(2))).write(to: url)
         let snapshot = try PreviewFileReader.readTail(url, window: 8)
         XCTAssertEqual(snapshot.content, "body\n")
-        let cursor = try XCTUnwrap(snapshot.cursor)
-        XCTAssertEqual(cursor.offset, 12)
+        XCTAssertEqual(snapshot.size, 14)
         let writer = try FileHandle(forWritingTo: url)
         try writer.seekToEnd(); try writer.write(contentsOf: Data(Array("😀".utf8).suffix(2)) + Data("!".utf8)); try writer.close()
-        guard case .appended(let text, _) = try PreviewFileReader.readAppend(url, after: cursor, limit: 1_000) else { return XCTFail("expected append") }
-        XCTAssertEqual(text, "😀!")
+        let updated = try PreviewFileReader.readTail(url, window: 32)
+        XCTAssertTrue(updated.content.hasSuffix("body\n😀!"))
+        XCTAssertNotEqual(updated.revision, snapshot.revision)
     }
 
     func testShrinkAndRewriteReloadTheTail() throws {
         try write("one\n\ntwo\n\nthree\n")
         let first = try PreviewFileReader.readTail(url, window: 8)
         try write("new\n\nend\n")
-        XCTAssertEqual(try PreviewFileReader.readAppend(url, after: XCTUnwrap(first.cursor), limit: 1_000), .reload)
-        XCTAssertEqual(try PreviewFileReader.readTail(url, window: 8).content, "end\n")
+        let updated = try PreviewFileReader.readTail(url, window: 8)
+        XCTAssertNotEqual(updated.revision, first.revision)
+        XCTAssertEqual(updated.content, "end\n")
+    }
+
+    func testEditsBeforeAnUnchangedWindowUpdateItsSourceLine() throws {
+        try write("line one\nline two\n\nlast\n")
+        let before = try PreviewFileReader.readTail(url, window: 5)
+        try write("line one line two\n\nlast\n")
+        let after = try PreviewFileReader.readTail(url, window: 5)
+        XCTAssertEqual(before.content, "last\n")
+        XCTAssertEqual(after.content, before.content)
+        XCTAssertEqual(after.startByte, before.startByte)
+        XCTAssertEqual(after.startLine, before.startLine - 1)
+        XCTAssertNotEqual(after.revision, before.revision)
     }
 
     func testMalformedBytesInTheWindowFail() throws {
         try Data(Data("ok\n\n".utf8) + Data([0x61, 0xff, 0x62, 0x0A])).write(to: url)
         XCTAssertThrowsError(try PreviewFileReader.readTail(url, window: 4))
-    }
-}
-
-final class FollowAppendReaderTests: XCTestCase {
-    private var directory: URL!
-    private var url: URL!
-    override func setUpWithError() throws {
-        directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        url = directory.appendingPathComponent("follow.md")
-    }
-    override func tearDownWithError() throws { try? FileManager.default.removeItem(at: directory) }
-
-    private func append(_ data: Data) throws {
-        let writer = try FileHandle(forWritingTo: url)
-        try writer.seekToEnd(); try writer.write(contentsOf: data); try writer.close()
-    }
-    private func cursor() throws -> FollowCursor {
-        try XCTUnwrap(PreviewFileReader.read(url, limit: 1_000_000).cursor)
-    }
-
-    func testReadsOnlyAppendedTextAndAdvances() throws {
-        try Data("# Log\n\nfirst\n".utf8).write(to: url)
-        let start = try cursor()
-        XCTAssertEqual(try PreviewFileReader.readAppend(url, after: start, limit: 1_000), .unchanged)
-        try append(Data("second\n".utf8))
-        guard case .appended(let text, let next) = try PreviewFileReader.readAppend(url, after: start, limit: 1_000) else { return XCTFail("expected append") }
-        XCTAssertEqual(text, "second\n")
-        XCTAssertEqual(next.offset, start.offset + 7)
-        XCTAssertEqual(try PreviewFileReader.readAppend(url, after: next, limit: 1_000), .unchanged)
-        try append(Data("third".utf8))
-        guard case .appended(let third, _) = try PreviewFileReader.readAppend(url, after: next, limit: 1_000) else { return XCTFail("expected append") }
-        XCTAssertEqual(third, "third")
-    }
-
-    func testIncompleteCharacterWaitsForItsRemainingBytes() throws {
-        try Data("start ".utf8).write(to: url)
-        let start = try cursor()
-        let emoji = Array("😀".utf8)
-        try append(Data("a".utf8) + Data(emoji.prefix(2)))
-        guard case .appended(let first, let middle) = try PreviewFileReader.readAppend(url, after: start, limit: 1_000) else { return XCTFail("expected append") }
-        XCTAssertEqual(first, "a")
-        XCTAssertEqual(try PreviewFileReader.readAppend(url, after: middle, limit: 1_000), .unchanged, "Only part of a character was written")
-        try append(Data(emoji.suffix(2)) + Data("b".utf8))
-        guard case .appended(let rest, _) = try PreviewFileReader.readAppend(url, after: middle, limit: 1_000) else { return XCTFail("expected append") }
-        XCTAssertEqual(rest, "😀b")
-    }
-
-    func testRewritesShrinksReplacementsAndMalformedBytesNeedAFullRead() throws {
-        try Data("0123456789\nabcdef\n".utf8).write(to: url)
-        var start = try cursor()
-        try Data("0123456789\nABCDEF\n".utf8).write(to: url, options: .atomic)
-        XCTAssertEqual(try PreviewFileReader.readAppend(url, after: start, limit: 1_000), .reload, "Replaced file")
-
-        start = try cursor()
-        let handle = try FileHandle(forWritingTo: url)
-        try handle.seek(toOffset: 12); try handle.write(contentsOf: Data("X".utf8)); try handle.close()
-        XCTAssertEqual(try PreviewFileReader.readAppend(url, after: start, limit: 1_000), .reload, "Rewritten in place")
-
-        start = try cursor()
-        let truncating = try FileHandle(forWritingTo: url)
-        try truncating.truncate(atOffset: 4); try truncating.close()
-        XCTAssertEqual(try PreviewFileReader.readAppend(url, after: start, limit: 1_000), .reload, "Shrunk")
-
-        start = try cursor()
-        try append(Data([0x61, 0xff, 0x62]))
-        XCTAssertEqual(try PreviewFileReader.readAppend(url, after: start, limit: 1_000), .reload, "Malformed bytes are reported by a full read")
-    }
-
-    func testFollowLimitBelowAtAndAbove() throws {
-        try Data(repeating: 65, count: 10).write(to: url)
-        let start = try cursor()
-        try append(Data(repeating: 66, count: 10))
-        for limit in [21, 20] {
-            guard case .appended(let text, _) = try PreviewFileReader.readAppend(url, after: start, limit: limit) else { return XCTFail("limit \(limit)") }
-            XCTAssertEqual(text, String(repeating: "B", count: 10))
-        }
-        XCTAssertEqual(try PreviewFileReader.readAppend(url, after: start, limit: 19), .limited)
-    }
-
-    func testMermaidFilesAndTruncatedReadsCannotAppend() throws {
-        let mermaid = directory.appendingPathComponent("chart.mmd")
-        try Data("graph TD; A-->B\n".utf8).write(to: mermaid)
-        XCTAssertNil(try PreviewFileReader.read(mermaid, limit: 1_000).cursor)
-        try Data(repeating: 65, count: 11).write(to: url)
-        XCTAssertNil(try PreviewFileReader.read(url, limit: 10).cursor)
-    }
-}
-
-final class SlidingWindowTests: XCTestCase {
-    func testPolicyReformsPastTheCeilingAndHoldsWhilePaused() {
-        XCTAssertEqual(MarkdownPreviewPolicy.pausedWindowCeiling, 4 * 1024 * 1024)
-        XCTAssertEqual(MarkdownPreviewPolicy.appendLimit(windowStart: 100), 100 + 4 * 1024 * 1024)
-        let ceiling = MarkdownPreviewPolicy.followWindowCeiling
-        XCTAssertFalse(MarkdownPreviewPolicy.shouldReform(heldBytes: ceiling, paused: false))
-        XCTAssertTrue(MarkdownPreviewPolicy.shouldReform(heldBytes: ceiling + 1, paused: false))
-        XCTAssertFalse(MarkdownPreviewPolicy.shouldReform(heldBytes: ceiling + 1, paused: true), "a paused window never moves")
-        XCTAssertEqual(MarkdownPreviewPolicy.overLimitStep(paused: true), .hold)
-        XCTAssertEqual(MarkdownPreviewPolicy.overLimitStep(paused: false), .reread)
-    }
-
-    func testReformStartsAtASafeLineAndKeepsFileLineNumbers() throws {
-        let held = "intro\n\n```text\n" + String(repeating: "code\n\n", count: 20) + "```\n\nafter\n\nend\n"
-        let reformed = try XCTUnwrap(PreviewFileReader.reformWindow(held, startByte: 1_000, startLine: 50, window: 30))
-        XCTAssertEqual(reformed.text, "after\n\nend\n", "never inside the fence")
-        let skipped = held.utf8.count - reformed.text.utf8.count
-        XCTAssertEqual(reformed.startByte, 1_000 + UInt64(skipped))
-        XCTAssertEqual(reformed.startLine, 50 + held.utf8.prefix(skipped).filter { $0 == 0x0A }.count)
-        XCTAssertNil(PreviewFileReader.reformWindow("short\n", startByte: 0, startLine: 0, window: 100), "already within the window")
-    }
-
-    /// Three MiB appended in small writes: the held window never passes the ceiling
-    /// and always equals the file from its start byte, with the file's line number.
-    func testLongStreamOfAppendsKeepsABoundedWindowThatMatchesTheFile() throws {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".md")
-        defer { try? FileManager.default.removeItem(at: url) }
-        func block(_ i: Int) -> String { "## Turn \(i)\n\ntext \(i) " + String(repeating: "x", count: 900) + "\n\n```text\nlog \(i)\n\nmore\n```\n\n" }
-        var initial = ""
-        var i = 0
-        while initial.utf8.count < 1_048_576 { initial += block(i); i += 1 }
-        try Data(initial.utf8).write(to: url)
-        let first = try PreviewFileReader.readTail(url, window: MarkdownPreviewPolicy.followLimit)
-        var held = first.content, start = first.startByte, line = first.startLine
-        var cursor = try XCTUnwrap(first.cursor)
-        var appended = 0, reforms = 0
-        while appended < 3 * 1_048_576 {
-            var chunk = ""
-            while chunk.utf8.count < 64 * 1024 { chunk += block(i); i += 1 }
-            let writer = try FileHandle(forWritingTo: url)
-            try writer.seekToEnd(); try writer.write(contentsOf: Data(chunk.utf8)); try writer.close()
-            appended += chunk.utf8.count
-            guard case .appended(let text, let next) = try PreviewFileReader.readAppend(url, after: cursor, limit: MarkdownPreviewPolicy.appendLimit(windowStart: start)) else { return XCTFail("expected append") }
-            held += text; cursor = next
-            if MarkdownPreviewPolicy.shouldReform(heldBytes: held.utf8.count, paused: false),
-               let reformed = PreviewFileReader.reformWindow(held, startByte: start, startLine: line, window: MarkdownPreviewPolicy.followLimit) {
-                held = reformed.text; start = reformed.startByte; line = reformed.startLine; reforms += 1
-            }
-            XCTAssertLessThanOrEqual(held.utf8.count, MarkdownPreviewPolicy.followWindowCeiling)
-        }
-        XCTAssertGreaterThan(reforms, 0)
-        let file = try Data(contentsOf: url)
-        XCTAssertEqual(Data(held.utf8), file.suffix(from: Int(start)))
-        XCTAssertEqual(line, file.prefix(Int(start)).filter { $0 == 0x0A }.count)
-        let before = String(decoding: file.prefix(Int(start)), as: UTF8.self)
-        XCTAssertEqual(before.split(separator: "\n", omittingEmptySubsequences: false).filter { $0.hasPrefix("```") }.count % 2, 0,
-                       "a re-formed window never starts inside a fence")
     }
 }

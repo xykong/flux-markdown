@@ -33,8 +33,8 @@ using a full-render fallback when safe partial replacement is not possible.
 ### Requirement: Respect reading and copying
 The system SHALL follow the bottom only while actively following. User scrolling,
 navigation or selection SHALL pause bottom tracking. Updates SHALL NOT destroy
-an active selection before it can be copied; only the newest pending snapshot
-SHALL be retained when a patch must be deferred.
+an active selection before it can be copied. Paused previews SHALL hold their
+last window until Resume reads the latest snapshot.
 
 #### Scenario: Read earlier content and resume
 - **WHEN** the user scrolls upward while new content arrives
@@ -51,8 +51,7 @@ The system SHALL use bounded short-lived file reads, bounded coalescing and
 document-generation checks. It SHALL NOT hold a file descriptor for the lifetime
 of a Quick Look preview. It SHALL preserve the last good view on read failure.
 A document larger than the preview limit SHALL be followed through a window at
-the end of the file, as specified by `update-quicklook-large-documents`
-(revised; Follow previously stopped at the 500 KiB limit).
+the end of the file, as specified by `update-quicklook-large-documents`.
 
 #### Scenario: Rapid writes and stale callbacks
 - **WHEN** writes arrive faster than updates complete or the preview switches files

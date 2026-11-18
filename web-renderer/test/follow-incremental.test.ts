@@ -156,3 +156,10 @@ test('option order does not matter: native dictionaries reach the renderer in an
     expect(await window.renderMarkdown('second\n', reordered)).toBeUndefined();
     expect(root().textContent).toContain('second');
 });
+
+test('extending an existing reference definition refreshes its earlier links', async () => {
+    const before = '[x]\n\nA paragraph.\n\n[x]: /first\n';
+    await follow(before);
+    await window.renderMarkdown(before + ' "updated title"\n', options);
+    expect(root().querySelector('a')?.title).toBe('updated title');
+});

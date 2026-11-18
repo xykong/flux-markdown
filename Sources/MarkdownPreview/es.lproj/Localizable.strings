@@ -219,3 +219,6 @@
 "Diagram could not be copied or saved" = "No se pudo copiar o guardar el diagrama";
 
 "Try the diagram action again, or choose another writable folder. Your document is unchanged." = "Reintenta la acción o elige otra carpeta con permiso de escritura. El documento no cambia.";
+"Showing the first %1$@ of %2$@." = "Se muestran los primeros %1$@ de %2$@.";
+"Reveal in Finder" = "Mostrar en el Finder";
+"The file is too large to open in FluxMarkdown. Reveal it in Finder to open it with another editor." = "El archivo es demasiado grande para FluxMarkdown. Muéstralo en el Finder para abrirlo con otro editor.";

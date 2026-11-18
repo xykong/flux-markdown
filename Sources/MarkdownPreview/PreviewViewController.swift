@@ -85,14 +85,24 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         if kind == .renderer || kind == .rendererResources { logDiagnosticStage(.rendererFailed, error: error) }
         let incident = errorRegistry.nativeFailure(kind, error: error)
         // The app cannot open a file over its own limit; Follow can still show the end.
-        let followInstead = kind == .previewLimitBeyondApp
-        IncidentNotice.attach(to: view, incident: incident, recoveryTitle: followInstead ? "Follow Changes" : "Open in FluxMarkdown", recovery: { [weak self] in
-            if followInstead { self?.toggleFollow(); return }
-            guard let self, let url = self.currentURL else { return }
-            SearchLaunchClient.openForReading(url) { success in
-                if !success { IncidentNotice.fallback(in: self.view, draft: IncidentDraft(incident)) }
+        switch PreviewLimitNotice.recovery(for: kind, followAvailable: followEligible) {
+        case .follow:
+            IncidentNotice.attach(to: view, incident: incident, recoveryTitle: "Follow Changes") { [weak self] in
+                self?.toggleFollow()
             }
-        })
+        case .revealInFinder:
+            IncidentNotice.attach(to: view, incident: incident, guidance: PreviewLimitNotice.revealGuidance, recoveryTitle: PreviewLimitNotice.revealTitle) { [weak self] in
+                if let url = self?.currentURL { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+            }
+        case .openInApp:
+            let guidance = kind == .previewLimit && !followEligible ? PreviewLimitNotice.openInAppGuidance : nil
+            IncidentNotice.attach(to: view, incident: incident, guidance: guidance, recoveryTitle: "Open in FluxMarkdown") { [weak self] in
+                guard let self, let url = self.currentURL else { return }
+                SearchLaunchClient.openForReading(url) { success in
+                    if !success { IncidentNotice.fallback(in: self.view, draft: IncidentDraft(incident)) }
+                }
+            }
+        }
     }
     private var previewIsTruncated = false
     private var previewHasUnreadableImages = false
@@ -100,8 +110,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     private var showsImageWarning: Bool { previewHasUnreadableImages && !followState.enabled }
     /// The limit applied to the current read, named by the incomplete-preview notice.
     private var previewReadLimit = MarkdownPreviewPolicy.previewLimit
-    /// End of the last complete read; Follow then reads only appended bytes.
-    private var followCursor: FollowCursor?
+    private var previewRevision: PreviewFileRevision?
     /// Size of the file at the last complete read, and where a tail window starts in it.
     private var previewFileSize: UInt64 = 0
     private var windowStartByte: UInt64 = 0
@@ -114,7 +123,8 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .binary)
     }
     private var limitNotice: String {
-        String(format: NSLocalizedString(PreviewLimitNotice.headStatus, comment: "QuickLook truncation notice"),
+        let status = followEligible ? PreviewLimitNotice.headStatus : PreviewLimitNotice.limitedHeadStatus
+        return String(format: NSLocalizedString(status, comment: "QuickLook truncation notice"),
                byteCount(min(UInt64(previewReadLimit), previewFileSize)), byteCount(previewFileSize))
     }
     private var tailNotice: String {
@@ -124,14 +134,14 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
 
     /// Records where a read came from, for the notices, the renderer's line numbers and Follow.
     private func applyWindow(_ snapshot: PreviewFileReader.Snapshot, limit: Int) {
-        followCursor = snapshot.cursor
+        previewRevision = snapshot.revision
         previewReadLimit = limit
         previewFileSize = snapshot.size
         windowStartByte = snapshot.startByte
         windowStartLine = snapshot.startLine
     }
 
-    private func updateTruncationNotice(_ truncated: Bool) {
+    private func updateTruncationNotice(_ truncated: Bool, presentIncident: Bool = true) {
         previewIsTruncated = truncated
         if currentURL?.pathExtension.lowercased() == "tsv" {
             truncationNotice?.isHidden = true
@@ -153,7 +163,16 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         // A tail window is a status line only; it raises no incident.
         truncationNotice?.isHidden = !truncated && !showsImageWarning && !showsTailWindow
         layoutTruncationNotice()
-        if truncated || showsImageWarning { showFailure(truncated ? PreviewLimitNotice.failureKind(fileSize: previewFileSize) : .images) }
+        if presentIncident && (truncated || showsImageWarning) {
+            showFailure(truncated ? PreviewLimitNotice.failureKind(fileSize: previewFileSize) : .images)
+        }
+    }
+
+    private func refreshLimitRecovery() {
+        guard previewIsTruncated else { return }
+        let hasLimitIncident = view.subviews.compactMap { $0 as? IncidentNotice }
+            .contains { [.previewLimit, .previewLimitBeyondApp].contains($0.failureKind) }
+        updateTruncationNotice(true, presentIncident: hasLimitIncident)
     }
 
     private func layoutTruncationNotice() {
@@ -378,8 +397,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         webView.evaluateJavaScript("window.setQuickLookFollow && window.setQuickLookFollow(true);", completionHandler: nil)
         updateFollowButton()
         startPollingTimer()
-        // A preview limited to its beginning switches to the end of the file.
-        reloadFromDisk(force: previewIsTruncated)
+        reloadFromDisk(force: true)
     }
     @objc private func stopFollowing() {
         followState.stop()
@@ -389,8 +407,9 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     }
     /// Without Follow, a large file shows its beginning and the limit notice.
     @objc private func userStopsFollowing() {
+        let wasFollowing = followState.enabled
         stopFollowing()
-        if showsTailWindow && isWebViewLoaded { reloadFromDisk(force: true) }
+        if (wasFollowing || showsTailWindow) && isWebViewLoaded { reloadFromDisk(force: true) }
         else if previewHasUnreadableImages { updateTruncationNotice(previewIsTruncated) }
     }
     private func setupFollowButton() {
@@ -661,6 +680,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         let isCompact = (currentPreviewMode == .compact)
         if isCompact { userStopsFollowing() }
         updateFollowButton()
+        refreshLimitRecovery()
         
         themeButton?.isHidden = isCompact
         sourceButton?.isHidden = isCompact
@@ -908,6 +928,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                    self.isWebViewLoaded ? "true" : "false")
             self.updateSourceButtonState()
             self.updateFollowButton()
+            self.refreshLimitRecovery()
             
             if self.isWebViewLoaded {
                 self.renderCurrentMode()
@@ -1381,7 +1402,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         followRenderBusy = false
         followPollBusy = false
         followState.reset()
-        followCursor = nil
+        previewRevision = nil
         webView?.evaluateJavaScript("window.invalidateRender && window.invalidateRender();", completionHandler: nil)
         _ = errorRegistry.beginDocument()
         for notice in view.subviews.compactMap({ $0 as? IncidentNotice }) { notice.removeFromSuperview() }
@@ -1442,7 +1463,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
             AppearancePreference.shared.apply(to: self.view)
             self.updateThemeButtonState()
             
-            let limit = MarkdownPreviewPolicy.readLimit(for: url, following: false)
+            let limit = MarkdownPreviewPolicy.readLimit(for: url)
             DispatchQueue.global(qos: .userInitiated).async {
                 let result = Result { try PreviewFileReader.read(url, limit: limit) }
                 DispatchQueue.main.async {
@@ -2237,116 +2258,70 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                 let state = result as? [String: Any]
                 self.followState.paused = state?["paused"] as? Bool ?? false
                 self.updateFollowButton()
-                if state?["selected"] as? Bool != true && state?["copying"] as? Bool != true { self.pollSnapshot() }
-            }
-        } else { pollSnapshot() }
-    }
-    private func pollSnapshot() {
-        guard let url = currentURL else { return }
-        do { _ = try FileManager.default.attributesOfItem(atPath: url.path) }
-        catch { handleRefreshFailure(error); return }
-        guard let cursor = followCursor else { reloadFromDisk(); return }
-        appendFromDisk(after: cursor)
-    }
-
-    /// Reads only bytes appended since the last complete read. A rewrite,
-    /// replacement or shrink falls back to a full read; the handle closes after each read.
-    private func appendFromDisk(after cursor: FollowCursor) {
-        guard let url = currentURL, !fileReadInFlight, !followRenderBusy else { return }
-        fileReadInFlight = true
-        let version = fileReadVersion.next()
-        // While following, appends extend the window up to the paused ceiling; see overLimitStep.
-        let following = followState.enabled
-        let limit = following
-            ? MarkdownPreviewPolicy.appendLimit(windowStart: windowStartByte)
-            : MarkdownPreviewPolicy.readLimit(for: url, following: false)
-        DispatchQueue.global(qos: .userInitiated).async {
-            let result = Result { try PreviewFileReader.readAppend(url, after: cursor, limit: limit) }
-            DispatchQueue.main.async {
-                guard self.fileReadVersion.isCurrent(version), self.currentURL == url else { return }
-                self.fileReadInFlight = false
-                switch result {
-                case .success(.unchanged):
-                    self.followState.succeeded()
-                    self.removeReloadNotices()
-                case .success(.appended(let text, let next)):
-                    self.followState.succeeded()
-                    self.removeReloadNotices()
-                    let base = self.pendingMarkdown ?? ""
-                    let held = base + text
-                    self.followCursor = next
-                    self.previewFileSize = next.offset
-                    self.previewHasUnreadableImages = false
-                    // A followed window past its ceiling slides forward, using only the text it holds.
-                    if following, MarkdownPreviewPolicy.shouldReform(heldBytes: held.utf8.count, paused: self.followState.paused),
-                       let reformed = PreviewFileReader.reformWindow(held, startByte: self.windowStartByte, startLine: self.windowStartLine,
-                                                                    window: MarkdownPreviewPolicy.followLimit) {
-                        self.prevMarkdown = nil
-                        self.pendingMarkdown = reformed.text
-                        self.windowStartByte = reformed.startByte
-                        self.windowStartLine = reformed.startLine
-                        self.updateTruncationNotice(false)
-                        if self.isWebViewLoaded { self.renderCurrentMode() }
-                        return
-                    }
-                    self.prevMarkdown = base
-                    self.pendingMarkdown = held
-                    if self.showsTailWindow { self.updateTruncationNotice(false) }
-                    guard self.isWebViewLoaded else { return }
-                    if following && self.currentViewMode == .preview {
-                        self.renderPendingMarkdown(appending: text, toLength: base.utf16.count)
-                    } else {
-                        self.renderCurrentMode()
-                    }
-                case .success(.limited) where following:
-                    // Paused: hold the window so nothing being read moves; otherwise read the end again.
-                    if MarkdownPreviewPolicy.overLimitStep(paused: self.followState.paused) == .reread { self.reloadFromDisk() }
-                case .success(.reload), .success(.limited):
-                    self.reloadFromDisk()
-                case .failure(let error):
-                    self.handleRefreshFailure(error)
+                if !self.followState.paused && state?["selected"] as? Bool != true && state?["copying"] as? Bool != true {
+                    self.reloadFromDisk(onlyIfChanged: true)
                 }
             }
-        }
+        } else { reloadFromDisk(onlyIfChanged: true) }
     }
 
-    private func removeReloadNotices() {
-        for notice in view.subviews.compactMap({ $0 as? IncidentNotice }) where notice.failureKind == .reload {
-            notice.removeFromSuperview()
-        }
-    }
-
-    private func reloadFromDisk(force: Bool = false, completion: ((Bool) -> Void)? = nil) {
+    private func reloadFromDisk(force: Bool = false, onlyIfChanged: Bool = false, completion: ((Bool) -> Void)? = nil) {
         guard let url = currentURL else { completion?(false); return }
         if (fileReadInFlight || followRenderBusy) && !force { return }
         fileReadInFlight = true
         let version = fileReadVersion.next()
         let following = followState.enabled
-        let limit = MarkdownPreviewPolicy.readLimit(for: url, following: following)
+        let limit = MarkdownPreviewPolicy.readLimit(for: url)
+        let previousRevision = !following && showsTailWindow ? nil : previewRevision
         DispatchQueue.global(qos: .userInitiated).async {
-            // Follow shows the end of the file; otherwise the preview shows its beginning.
-            let result = Result { following ? try PreviewFileReader.readTail(url, window: limit) : try PreviewFileReader.read(url, limit: limit) }
+            let result = Result<PreviewFileReader.Snapshot?, Error> {
+                if onlyIfChanged, try PreviewFileReader.revision(at: url) == previousRevision { return nil }
+                return following ? try PreviewFileReader.readTail(url, window: limit) : try PreviewFileReader.read(url, limit: limit)
+            }
             DispatchQueue.main.async {
                 guard self.fileReadVersion.isCurrent(version), self.currentURL == url else { completion?(false); return }
                 self.fileReadInFlight = false
                 do {
-                    let snapshot = try result.get()
+                    guard let snapshot = try result.get() else {
+                        self.followState.succeeded()
+                        for notice in self.view.subviews.compactMap({ $0 as? IncidentNotice }) where notice.failureKind == .reload {
+                            notice.removeFromSuperview()
+                        }
+                        completion?(true)
+                        return
+                    }
                     self.followState.succeeded()
                     for notice in self.view.subviews.compactMap({ $0 as? IncidentNotice })
                         // Following shows the end, so the incomplete-preview panel goes until Follow is off.
                         where notice.failureKind == .reload || ([.previewLimit, .previewLimitBeyondApp].contains(notice.failureKind) && !snapshot.isTruncated) {
                         notice.removeFromSuperview()
                     }
-                    let moved = snapshot.startByte != self.windowStartByte
+                    let moved = snapshot.startByte != self.windowStartByte || snapshot.startLine != self.windowStartLine
+                    let sizeChanged = snapshot.size != self.previewFileSize
+                    let limitKindChanged = PreviewLimitNotice.failureKind(fileSize: self.previewFileSize) != PreviewLimitNotice.failureKind(fileSize: snapshot.size)
+                    let previous = self.pendingMarkdown
                     if moved && !following { self.scrollToTopAfterRender = true }
                     self.applyWindow(snapshot, limit: limit)
-                    if force || moved || snapshot.content != self.pendingMarkdown || snapshot.isTruncated != self.previewIsTruncated {
-                        // Change highlights compare like with like; a moved window starts afresh.
-                        self.prevMarkdown = moved ? nil : self.pendingMarkdown
+                    let needsRender = force || moved || snapshot.content != previous || snapshot.isTruncated != self.previewIsTruncated
+                    if needsRender { self.previewHasUnreadableImages = false }
+                    if needsRender || sizeChanged {
+                        let presentIncident = force || limitKindChanged || snapshot.isTruncated != self.previewIsTruncated
+                        self.updateTruncationNotice(snapshot.isTruncated, presentIncident: presentIncident)
+                    }
+                    if needsRender {
+                        self.prevMarkdown = moved ? nil : previous
                         self.pendingMarkdown = snapshot.content
-                        self.previewHasUnreadableImages = false
-                        self.updateTruncationNotice(snapshot.isTruncated)
-                        if self.isWebViewLoaded { self.renderCurrentMode() }
+                        if self.isWebViewLoaded {
+                            // Only hand off a suffix after comparing the actual bytes in both windows.
+                            if following, !force, !moved, let previous,
+                               snapshot.content.utf8.count > previous.utf8.count,
+                               snapshot.content.utf8.starts(with: previous.utf8) {
+                                let added = String(decoding: snapshot.content.utf8.dropFirst(previous.utf8.count), as: UTF8.self)
+                                self.renderPendingMarkdown(appending: added, toLength: previous.utf16.count)
+                            } else {
+                                self.renderCurrentMode()
+                            }
+                        }
                     }
                     completion?(true)
                 } catch {

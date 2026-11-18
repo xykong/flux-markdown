@@ -219,3 +219,6 @@
 "Diagram could not be copied or saved" = "Diagram could not be copied or saved";
 
 "Try the diagram action again, or choose another writable folder. Your document is unchanged." = "Try the diagram action again, or choose another writable folder. Your document is unchanged.";
+"Showing the first %1$@ of %2$@." = "Showing the first %1$@ of %2$@.";
+"Reveal in Finder" = "Reveal in Finder";
+"The file is too large to open in FluxMarkdown. Reveal it in Finder to open it with another editor." = "The file is too large to open in FluxMarkdown. Reveal it in Finder to open it with another editor.";

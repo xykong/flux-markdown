@@ -219,3 +219,6 @@
 "Diagram could not be copied or saved" = "无法复制或保存图表";
 
 "Try the diagram action again, or choose another writable folder. Your document is unchanged." = "请重新执行图表操作，或选择其他可写入的文件夹。文档内容不受影响。";
+"Showing the first %1$@ of %2$@." = "仅显示文件开头的 %1$@，文件共 %2$@。";
+"Reveal in Finder" = "在 Finder 中显示";
+"The file is too large to open in FluxMarkdown. Reveal it in Finder to open it with another editor." = "文件过大，无法用 FluxMarkdown 打开。请在 Finder 中找到该文件，并用其他编辑器打开。";

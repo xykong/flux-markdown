@@ -208,6 +208,13 @@ extension ErrorIncidentTests {
         XCTAssertEqual(localLink.kind.title, "The destination could not be opened")
         XCTAssertNotEqual(ErrorIncident(kind: .browser, source: .app).guidance, localLink.guidance)
     }
+    func testPreviewLimitRecoveryRespectsFollowAvailabilityAndApplicationSizeLimit() {
+        XCTAssertEqual(PreviewLimitNotice.recovery(for: .previewLimit, followAvailable: false), .openInApp)
+        XCTAssertEqual(PreviewLimitNotice.recovery(for: .previewLimit, followAvailable: true), .openInApp)
+        XCTAssertEqual(PreviewLimitNotice.recovery(for: .previewLimitBeyondApp, followAvailable: false), .revealInFinder)
+        XCTAssertEqual(PreviewLimitNotice.recovery(for: .previewLimitBeyondApp, followAvailable: true), .follow)
+    }
+
     func testPreviewLimitGuidancePointsToFollowAndNamesTheButtonInEveryLanguage() throws {
         XCTAssertTrue(FailureKind.previewLimit.guidance.contains("Follow Changes"))
         // Above the app's own limit, the app cannot open the file either.
@@ -224,6 +231,8 @@ extension ErrorIncidentTests {
                 let strings = try XCTUnwrap(PropertyListSerialization.propertyList(from: Data(contentsOf: root.appendingPathComponent("Sources/\(target)/\(language).lproj/Localizable.strings")), format: nil) as? [String: String])
                 XCTAssertTrue(try XCTUnwrap(strings[FailureKind.previewLimit.guidance], "\(target)/\(language)").contains(button), "\(target)/\(language)")
                 XCTAssertTrue(try XCTUnwrap(strings[FailureKind.previewLimitBeyondApp.guidance], "\(target)/\(language)").contains(button), "\(target)/\(language)")
+                XCTAssertNotNil(strings[PreviewLimitNotice.revealGuidance])
+                XCTAssertNotNil(strings[PreviewLimitNotice.revealTitle])
             }
         }
     }

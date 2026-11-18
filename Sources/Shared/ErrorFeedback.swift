@@ -324,14 +324,14 @@ final class IncidentNotice: NSView {
     private let draft: IncidentDraft
     private let recovery: (() -> Void)?
     private var buttonStack: NSStackView?
-    init(incident: ErrorIncident, recoveryTitle: String? = nil, recovery: (() -> Void)? = nil) {
+    init(incident: ErrorIncident, guidance: String? = nil, recoveryTitle: String? = nil, recovery: (() -> Void)? = nil) {
         draft = IncidentDraft(incident); self.recovery = recovery
         super.init(frame: .zero)
         setAccessibilityElement(true)
         setAccessibilityRole(.group)
         setAccessibilityLabel(ErrorFeedback.text(incident.kind.title))
         wantsLayer = true; layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor; layer?.cornerRadius = 8
-        let message = NSTextField(wrappingLabelWithString: ErrorFeedback.text(incident.kind.title) + ". " + ErrorFeedback.text(incident.guidance))
+        let message = NSTextField(wrappingLabelWithString: ErrorFeedback.text(incident.kind.title) + ". " + ErrorFeedback.text(guidance ?? incident.guidance))
         let buttons = NSStackView(); buttons.orientation = .horizontal; buttons.spacing = 8
         buttonStack = buttons
         if let recoveryTitle, recovery != nil { buttons.addArrangedSubview(NSButton(title: ErrorFeedback.text(recoveryTitle), target: self, action: #selector(recover))) }
@@ -372,9 +372,9 @@ final class IncidentNotice: NSView {
         NSLayoutConstraint.activate([notice.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12), notice.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12), notice.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -12)])
     }
     @objc private func close() { removeFromSuperview() }
-    static func attach(to view: NSView, incident: ErrorIncident, recoveryTitle: String? = nil, recovery: (() -> Void)? = nil) {
+    static func attach(to view: NSView, incident: ErrorIncident, guidance: String? = nil, recoveryTitle: String? = nil, recovery: (() -> Void)? = nil) {
         for existing in view.subviews.compactMap({ $0 as? IncidentNotice }) { existing.removeFromSuperview() }
-        let notice = IncidentNotice(incident: incident, recoveryTitle: recoveryTitle, recovery: recovery)
+        let notice = IncidentNotice(incident: incident, guidance: guidance, recoveryTitle: recoveryTitle, recovery: recovery)
         notice.translatesAutoresizingMaskIntoConstraints = false; view.addSubview(notice)
         NSLayoutConstraint.activate([notice.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12), notice.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12), notice.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -12)])
     }

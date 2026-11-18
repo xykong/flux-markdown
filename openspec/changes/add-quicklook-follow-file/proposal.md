@@ -13,12 +13,12 @@ has no explicit Follow control. Repeated replacement can disrupt reading and cop
 - Reparse bounded snapshots and retain unchanged leading DOM, replacing the affected suffix.
 - Fall back to full rendering when earlier Markdown semantics or non-append edits require it.
 - Use short-lived reads and bounded polling in the extension; guard all asynchronous work by document generation.
-- Stop explicitly at the existing 500 KiB limit and use existing contextual error/recovery infrastructure.
+- Read a bounded preview snapshot when file metadata changes and use existing contextual error/recovery infrastructure.
 
 ## Impact
 
 - New capability: `quicklook-follow-file`.
 - Native extension toolbar, refresh lifecycle, renderer DOM lifecycle and tests.
 - No Follow feature in app document windows, compact preview, source view or exports.
-- Status: implemented; core Finder checks and automated tests pass.
+- Status: local integration candidate. Finder acceptance and performance validation are tracked in the tasks.
 - The preview limit behaviour is revised by `update-quicklook-large-documents`.

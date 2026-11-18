@@ -373,3 +373,6 @@
 /* Reading navigation */
 "Back" = "Atrás";
 "Forward" = "Adelante";
+"Showing the first %1$@ of %2$@." = "Se muestran los primeros %1$@ de %2$@.";
+"Reveal in Finder" = "Mostrar en el Finder";
+"The file is too large to open in FluxMarkdown. Reveal it in Finder to open it with another editor." = "El archivo es demasiado grande para FluxMarkdown. Muéstralo en el Finder para abrirlo con otro editor.";
