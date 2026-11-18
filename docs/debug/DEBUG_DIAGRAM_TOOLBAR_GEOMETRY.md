@@ -20,4 +20,3 @@
 - 全量Jest：634项、70套通过；TypeScript/Vite及Debug App构建通过。未修改Swift逻辑或正式部署目标。
 - 安装本地 `1.51.834-dev-reading4`；实际前台复核正文、更多菜单、专注层，控件紧凑同高。截图：[正文](evidence/diagram-toolbar/normal.png)、[展开菜单](evidence/diagram-toolbar/menu-open.png)、[专注层](evidence/diagram-toolbar/focus.png)。
 - 先前安装版保留在 `~/Library/Application Support/FluxMarkdown/Install Backups/20261118-110127/FluxMarkdown.app`；保持编辑器关联，签名与安装资源摘要再次校验。
-
