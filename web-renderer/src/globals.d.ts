@@ -18,7 +18,10 @@ interface WebkitMessageHandlers {
     linkClicked: { postMessage: (href: string) => void };
 }
 
+
 interface Window {
+    setQuickLookFollow: (enabled: boolean) => void;
+    quickLookFollowStatus: () => {active:boolean;paused:boolean;selected:boolean;copying?:boolean};
     webkit?: {
         messageHandlers: WebkitMessageHandlers;
     };

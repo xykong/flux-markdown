@@ -116,7 +116,7 @@ enum ErrorFeedback {
             let change = IncidentSettingChange(key: $0.key, before: $0.oldValue, after: $0.newValue, date: $0.date)
             return change.isValid ? change : nil
         } ?? []
-        if source == .app, [.quickLook, .images, .previewLimit].contains(kind) {
+        if source == .app, [.quickLook, .images, .previewLimit, .previewLimitBeyondApp].contains(kind) {
             let result = UserDefaults.standard.string(forKey: "quickLookLastProbeResult") ?? "not-run"
             incident.previewTest = ["rendered", "unconfirmed", "not-run"].contains(result) ? result : "not-run"
         }
@@ -136,7 +136,7 @@ enum ErrorFeedback {
         guard pending.count < 100 else { failure?(draft); return }
         guard pending.insert(draft.incident.id).inserted else { return }
         if collectSupplement, draft.includeDiagnostics, draft.incident.quickLookCheck == nil,
-           [.quickLook, .images, .previewLimit, .fileRead].contains(draft.incident.kind),
+           [.quickLook, .images, .previewLimit, .previewLimitBeyondApp, .fileRead].contains(draft.incident.kind),
            let provider = supplementProvider, Bundle.main.bundleIdentifier != "com.xykong.Markdown.QuickLook" {
             var finished = false
             let finish: (ErrorIncident) -> Void = { incident in
@@ -320,6 +320,7 @@ final class IncidentFeedbackControls: NSStackView {
 
 /// Native, persistent fallback for failed WebViews as well as lightweight notices.
 final class IncidentNotice: NSView {
+    var failureKind: FailureKind { draft.incident.kind }
     private let draft: IncidentDraft
     private let recovery: (() -> Void)?
     private var buttonStack: NSStackView?

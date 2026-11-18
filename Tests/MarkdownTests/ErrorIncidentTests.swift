@@ -208,6 +208,26 @@ extension ErrorIncidentTests {
         XCTAssertEqual(localLink.kind.title, "The destination could not be opened")
         XCTAssertNotEqual(ErrorIncident(kind: .browser, source: .app).guidance, localLink.guidance)
     }
+    func testPreviewLimitGuidancePointsToFollowAndNamesTheButtonInEveryLanguage() throws {
+        XCTAssertTrue(FailureKind.previewLimit.guidance.contains("Follow Changes"))
+        // Above the app's own limit, the app cannot open the file either.
+        XCTAssertTrue(FailureKind.previewLimitBeyondApp.guidance.contains("Follow Changes"))
+        XCTAssertFalse(FailureKind.previewLimitBeyondApp.guidance.contains("open the document in FluxMarkdown"))
+        XCTAssertEqual(PreviewLimitNotice.failureKind(fileSize: UInt64(BoundedFileReader.documentLimit)), .previewLimit)
+        XCTAssertEqual(PreviewLimitNotice.failureKind(fileSize: UInt64(BoundedFileReader.documentLimit) + 1), .previewLimitBeyondApp)
+        XCTAssertFalse(FailureKind.images.guidance.contains("Follow Changes"))
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        for language in ["en", "zh-Hans", "de", "fr", "es", "ar"] {
+            let preview = try XCTUnwrap(PropertyListSerialization.propertyList(from: Data(contentsOf: root.appendingPathComponent("Sources/MarkdownPreview/\(language).lproj/Localizable.strings")), format: nil) as? [String: String])
+            let button = try XCTUnwrap(preview["Follow Changes"])
+            for target in ["Markdown", "MarkdownPreview"] {
+                let strings = try XCTUnwrap(PropertyListSerialization.propertyList(from: Data(contentsOf: root.appendingPathComponent("Sources/\(target)/\(language).lproj/Localizable.strings")), format: nil) as? [String: String])
+                XCTAssertTrue(try XCTUnwrap(strings[FailureKind.previewLimit.guidance], "\(target)/\(language)").contains(button), "\(target)/\(language)")
+                XCTAssertTrue(try XCTUnwrap(strings[FailureKind.previewLimitBeyondApp.guidance], "\(target)/\(language)").contains(button), "\(target)/\(language)")
+            }
+        }
+    }
+
     func testAllIncidentGuidanceHasTranslationsForBothBundles() throws {
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         let keys = FailureKind.allCases.flatMap { [$0.title, $0.guidance] } + ["Report This Problem", "Review Feedback…", "Include diagnostics", "Open Feedback Page", "Copy Report", "Save Report…", "Close"]

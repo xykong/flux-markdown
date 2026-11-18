@@ -112,19 +112,40 @@ export class TableOfContents {
         const collect = (nodes: HeadingNode[]) => nodes.forEach(node => { levels.push(node.level); collect(node.children); });
         collect(headings);
         nav.appendChild(this.renderList(headings, levels.reduce((minimum, level) => Math.min(minimum, level), 6)));
+        // One listener for every link: thousands of per-link listeners slow a large outline.
+        nav.addEventListener('click', event => {
+            const link = (event.target as Element | null)?.closest?.<HTMLAnchorElement>('a.toc-link');
+            if (!link || link.dataset.target === undefined) return;
+            event.preventDefault();
+            const target = findElementByAnchor(link.dataset.target);
+            if (!target) return;
+            if (!this.wide) this.closeOverlay(document.documentElement.dataset.context === 'app');
+            jumpToReadingTarget(target);
+            this.setActiveItem(target.id);
+        });
         for (const event of ['wheel', 'touchstart', 'pointerdown', 'keydown']) {
             nav.addEventListener(event, () => { this.userScrollUntil = Date.now() + 2000; }, { passive: true });
         }
         this.container.querySelector('.toc-nav')?.remove();
         this.container.appendChild(nav);
-        // Let the browser resolve dir=auto, then batch writes to avoid interleaved style reads.
-        // Physical CSS fallbacks also cover Safari 14.0, before logical inset properties.
-        const directions = Array.from(nav.querySelectorAll<HTMLAnchorElement>('.toc-link'))
-            .map(link => ({ link, direction: getComputedStyle(link).direction }));
+        // dir=auto follows the first strong character. Ask the browser only for text with
+        // right-to-left letters: a style read per link costs about 70 ms at 1,500 headings.
+        // Text with other letters is left-to-right; text without letters inherits.
+        // Reads are batched before writes. Physical CSS fallbacks also cover Safari 14.0.
+        const rightToLeft = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/;
+        let inherited: string | undefined;
+        const directions = Array.from(nav.querySelectorAll<HTMLAnchorElement>('.toc-link')).map(link => {
+            const text = link.textContent || '';
+            const direction = rightToLeft.test(text) ? getComputedStyle(link).direction
+                : /\p{L}/u.test(text) ? 'ltr' : (inherited ??= getComputedStyle(nav).direction);
+            return { link, direction };
+        });
         for (const { link, direction } of directions) link.dataset.textDirection = direction === 'rtl' ? 'rtl' : 'ltr';
         this.headings = Array.from(document.querySelectorAll<HTMLElement>('#markdown-preview h1[id], #markdown-preview h2[id], #markdown-preview h3[id], #markdown-preview h4[id], #markdown-preview h5[id], #markdown-preview h6[id]'));
         this.updateLayout();
-        this.updateActiveHeading();
+        // In the next frame: reading heading positions now would force a layout of the
+        // whole document in this task (about 150 ms at 2,800 headings).
+        this.scrollHandler();
     }
 
     private renderList(headings: HeadingNode[], baseLevel: number): HTMLElement {
@@ -137,15 +158,7 @@ export class TableOfContents {
             link.dataset.level = String(heading.level);
             link.dataset.depth = String(Math.min(5, heading.level - baseLevel));
             link.style.setProperty('--toc-indent', `${Math.min(5, heading.level - baseLevel) * 12}px`);
-            link.addEventListener('click', event => {
-                event.preventDefault();
-                const target = findElementByAnchor(heading.id);
-                if (!target) return;
-                if (!this.wide) this.closeOverlay(document.documentElement.dataset.context === 'app');
-                const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-                jumpToReadingTarget(target);
-                this.setActiveItem(target.id);
-            });
+            link.dataset.target = heading.id;
             item.appendChild(link);
             if (heading.children.length) item.appendChild(this.renderList(heading.children, baseLevel));
             list.appendChild(item);
