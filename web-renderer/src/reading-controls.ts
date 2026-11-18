@@ -21,7 +21,8 @@ export function updateReadingControlsLayout(): void {
     if (!controls) return;
     const compact = root.dataset.context === 'finder';
     const toolbar = document.getElementById('reading-toolbar');
-    const nativeBase = root.dataset.context === 'app' ? 268 : 306;
+    // Native buttons on the right; Quick Look adds the Follow button (30 px + 8 px gap) when offered.
+    const nativeBase = (root.dataset.context === 'app' ? 268 : 306) + (root.dataset.context === 'quicklook' && root.dataset.followControl === 'true' ? 38 : 0);
     const status = document.getElementById('reading-status');
     const hasStatus = !!status && !status.hidden && window.innerWidth >= nativeBase + 156;
     const hasTools = ['toc-button-container', 'collapse-btn-container'].some(id => {
@@ -38,9 +39,11 @@ export function updateReadingControlsLayout(): void {
     const shared = visible && window.innerWidth >= naturalWidth + nativeBase + 56;
     root.dataset.readingShared = String(shared);
     const directory = document.getElementById('toc-button-container');
+    // The page lays out left of a classic scroll bar; native controls measure from the view edge.
+    const scrollbar = root.clientWidth > 0 ? Math.max(0, window.innerWidth - root.clientWidth) : 0;
     const rightInset = shared && root.dataset.tocSide !== 'left' && directory && !directory.hidden
-        ? directory.getBoundingClientRect().width + 20 : 0;
-    root.style.setProperty('--reading-native-reserve', `${nativeBase + (rightInset ? rightInset + 14 : 12)}px`);
+        ? directory.getBoundingClientRect().width + 20 + scrollbar : 0;
+    root.style.setProperty('--reading-native-reserve', `${Math.round(Math.max(0, nativeBase + (rightInset ? rightInset + 14 : 12) - scrollbar))}px`);
     const handler = window.webkit?.messageHandlers.readingToolsLayout;
     const key = `${rightInset}:${window.innerWidth}:${window.devicePixelRatio}`;
     if (handler && sentLayout.get(controls) !== key) {

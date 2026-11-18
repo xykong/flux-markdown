@@ -116,7 +116,7 @@ enum ErrorFeedback {
             let change = IncidentSettingChange(key: $0.key, before: $0.oldValue, after: $0.newValue, date: $0.date)
             return change.isValid ? change : nil
         } ?? []
-        if source == .app, [.quickLook, .images, .previewLimit].contains(kind) {
+        if source == .app, [.quickLook, .images, .previewLimit, .previewLimitBeyondApp].contains(kind) {
             let result = UserDefaults.standard.string(forKey: "quickLookLastProbeResult") ?? "not-run"
             incident.previewTest = ["rendered", "unconfirmed", "not-run"].contains(result) ? result : "not-run"
         }
@@ -136,7 +136,7 @@ enum ErrorFeedback {
         guard pending.count < 100 else { failure?(draft); return }
         guard pending.insert(draft.incident.id).inserted else { return }
         if collectSupplement, draft.includeDiagnostics, draft.incident.quickLookCheck == nil,
-           [.quickLook, .images, .previewLimit, .fileRead].contains(draft.incident.kind),
+           [.quickLook, .images, .previewLimit, .previewLimitBeyondApp, .fileRead].contains(draft.incident.kind),
            let provider = supplementProvider, Bundle.main.bundleIdentifier != "com.xykong.Markdown.QuickLook" {
             var finished = false
             let finish: (ErrorIncident) -> Void = { incident in
@@ -320,17 +320,18 @@ final class IncidentFeedbackControls: NSStackView {
 
 /// Native, persistent fallback for failed WebViews as well as lightweight notices.
 final class IncidentNotice: NSView {
+    var failureKind: FailureKind { draft.incident.kind }
     private let draft: IncidentDraft
     private let recovery: (() -> Void)?
     private var buttonStack: NSStackView?
-    init(incident: ErrorIncident, recoveryTitle: String? = nil, recovery: (() -> Void)? = nil) {
+    init(incident: ErrorIncident, guidance: String? = nil, recoveryTitle: String? = nil, recovery: (() -> Void)? = nil) {
         draft = IncidentDraft(incident); self.recovery = recovery
         super.init(frame: .zero)
         setAccessibilityElement(true)
         setAccessibilityRole(.group)
         setAccessibilityLabel(ErrorFeedback.text(incident.kind.title))
         wantsLayer = true; layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor; layer?.cornerRadius = 8
-        let message = NSTextField(wrappingLabelWithString: ErrorFeedback.text(incident.kind.title) + ". " + ErrorFeedback.text(incident.guidance))
+        let message = NSTextField(wrappingLabelWithString: ErrorFeedback.text(incident.kind.title) + ". " + ErrorFeedback.text(guidance ?? incident.guidance))
         let buttons = NSStackView(); buttons.orientation = .horizontal; buttons.spacing = 8
         buttonStack = buttons
         if let recoveryTitle, recovery != nil { buttons.addArrangedSubview(NSButton(title: ErrorFeedback.text(recoveryTitle), target: self, action: #selector(recover))) }
@@ -371,9 +372,9 @@ final class IncidentNotice: NSView {
         NSLayoutConstraint.activate([notice.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12), notice.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12), notice.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -12)])
     }
     @objc private func close() { removeFromSuperview() }
-    static func attach(to view: NSView, incident: ErrorIncident, recoveryTitle: String? = nil, recovery: (() -> Void)? = nil) {
+    static func attach(to view: NSView, incident: ErrorIncident, guidance: String? = nil, recoveryTitle: String? = nil, recovery: (() -> Void)? = nil) {
         for existing in view.subviews.compactMap({ $0 as? IncidentNotice }) { existing.removeFromSuperview() }
-        let notice = IncidentNotice(incident: incident, recoveryTitle: recoveryTitle, recovery: recovery)
+        let notice = IncidentNotice(incident: incident, guidance: guidance, recoveryTitle: recoveryTitle, recovery: recovery)
         notice.translatesAutoresizingMaskIntoConstraints = false; view.addSubview(notice)
         NSLayoutConstraint.activate([notice.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12), notice.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12), notice.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -12)])
     }

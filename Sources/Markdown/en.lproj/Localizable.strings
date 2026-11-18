@@ -146,7 +146,8 @@
 "I've Already Starred" = "I've Already Starred";
 "Invite me to support the project on GitHub" = "Invite me to support the project on GitHub";
 
-"Preview limited to 500 KiB. Use Open with FluxMarkdown above to read the complete document." = "Preview limited to 500 KiB. Use Open with FluxMarkdown above to read the complete document.";
+"Showing the first %1$@ of %2$@; the rest is not shown. Click Follow Changes to see the end." = "Showing the first %1$@ of %2$@; the rest is not shown. Click Follow Changes to see the end.";
+"Showing the last %1$@ of %2$@." = "Showing the last %1$@ of %2$@.";
 "Test Quick Look" = "Test Quick Look";
 "Quick Look preview verified" = "Quick Look preview verified";
 "Quick Look preview not confirmed" = "Quick Look preview not confirmed";
@@ -196,6 +197,8 @@
 "Check the search expression, or open the document in FluxMarkdown and press Command-F." = "Check the search expression, or open the document in FluxMarkdown and press Command-F.";
 "Open the document in FluxMarkdown. You can also run Repair Quick Look from the Help menu." = "Open the document in FluxMarkdown. You can also run Repair Quick Look from the Help menu.";
 "Open the document in FluxMarkdown to read beyond the preview limits." = "Open the document in FluxMarkdown to read beyond the preview limits.";
+"Only the first 2 MB is shown. Click Follow Changes to see the end, or open the document in FluxMarkdown to read all of it." = "Only the first 2 MB is shown. Click Follow Changes to see the end, or open the document in FluxMarkdown to read all of it.";
+"Only the first 2 MB is shown. Click Follow Changes to see the end. The file is too large to open in FluxMarkdown." = "Only the first 2 MB is shown. Click Follow Changes to see the end. The file is too large to open in FluxMarkdown.";
 "Open the destination in your browser or editor. You can copy a report if this keeps happening." = "Open the destination in your browser or editor. You can copy a report if this keeps happening.";
 "The link may point to a file that is not on this Mac, or to a path that is not relative to the document. Copy the link to open it manually, or check the path in your editor." = "The link may point to a file that is not on this Mac, or to a path that is not relative to the document. Copy the link to open it manually, or check the path in your editor.";
 "Report This Problem" = "Report This Problem";
@@ -370,3 +373,6 @@
 /* Reading navigation */
 "Back" = "Back";
 "Forward" = "Forward";
+"Showing the first %1$@ of %2$@." = "Showing the first %1$@ of %2$@.";
+"Reveal in Finder" = "Reveal in Finder";
+"The file is too large to open in FluxMarkdown. Reveal it in Finder to open it with another editor." = "The file is too large to open in FluxMarkdown. Reveal it in Finder to open it with another editor.";

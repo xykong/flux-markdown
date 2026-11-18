@@ -1,7 +1,12 @@
 /** Plain-text copying. Document contents stay in memory, never in diagnostic messages. */
 import { originalMathSource } from './math-source-store';
 export interface CopyRequest { id: string; generation: string; text: string }
-export interface CopyController { copy(block: HTMLElement): Promise<void>; dispose(): void }
+export interface CopyController {
+    copy(block: HTMLElement): Promise<void>;
+    /** Adds controls inside `roots` and forgets blocks no longer in the document. */
+    extend(roots: readonly Element[]): void;
+    dispose(): void;
+}
 const snapshots = new WeakMap<Element, string>();
 const ignored = '.diagram-tools, .mermaid-tools, .block-copy-tools, .error-feedback-controls, .blockquote-placeholder, svg, script, style';
 const blocks = new Set(['P', 'DIV', 'BLOCKQUOTE', 'PRE', 'UL', 'OL', 'TABLE', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6']);
@@ -63,8 +68,8 @@ export function installBlockCopy(root: HTMLElement, generation: string, send = n
     const requestIDs = new Set<string>();
     const timers = new Set<ReturnType<typeof setTimeout>>();
     let disposed = false;
-    // Snapshot before line-number decoration. Quotes use these same snapshots for nested code.
-    root.querySelectorAll<HTMLElement>('pre').forEach(pre => snapshots.set(pre, pre.querySelector('code')?.textContent ?? pre.textContent ?? ''));
+    const within = (roots: readonly Element[], selector: string) =>
+        roots.flatMap(scope => [...(scope.matches(selector) ? [scope] : []), ...Array.from(scope.querySelectorAll(selector))]) as HTMLElement[];
     const controller: CopyController = {
         async copy(block) {
             const entry = entries.get(block);
@@ -119,8 +124,19 @@ export function installBlockCopy(root: HTMLElement, generation: string, send = n
             }
             entries.clear();
         },
+        extend(roots) {
+            for (const [block, entry] of entries) {
+                if (root.contains(block)) continue;
+                if (entry.timer) { clearTimeout(entry.timer); timers.delete(entry.timer); }
+                entries.delete(block);
+            }
+            attach(roots);
+        },
     };
-    root.querySelectorAll<HTMLElement>('pre, blockquote, .markdown-alert, .flux-math-source').forEach(block => {
+    const attach = (roots: readonly Element[]) => {
+    // Snapshot before line-number decoration. Quotes use these same snapshots for nested code.
+    within(roots, 'pre').forEach(pre => snapshots.set(pre, pre.querySelector('code')?.textContent ?? pre.textContent ?? ''));
+    within(roots, 'pre, blockquote, .markdown-alert, .flux-math-source').forEach(block => {
         const math = originalMathSource(block);
         if (block.classList.contains('flux-math-source') && math === undefined) return;
         // Failed formula regions expose one feedback entry. A hover-copy toolbar
@@ -147,5 +163,7 @@ export function installBlockCopy(root: HTMLElement, generation: string, send = n
             if (event.isTrusted) void controller.copy(block);
         });
     });
+    };
+    attach([root]);
     return controller;
 }

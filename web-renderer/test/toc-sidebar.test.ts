@@ -57,10 +57,12 @@ test('toolbar labels localize and indentation starts at the shallowest heading',
 test('disposed instances no longer close overlays in another document view', () => {
     resize(700); toc.show(); toc.dispose(); document.getElementById('markdown-preview')!.click(); expect(visible()).toBe(true);
 });
-test('active heading includes the reserved gap and navigation scroll margin', () => {
+test('active heading includes the reserved gap and navigation scroll margin', async () => {
     document.getElementById('reading-controls')!.getBoundingClientRect = jest.fn(() => ({ bottom: 98 } as DOMRect));
     document.getElementById('title')!.getBoundingClientRect = jest.fn(() => ({ top: -100 } as DOMRect));
     document.getElementById('child')!.getBoundingClientRect = jest.fn(() => ({ top: 122 } as DOMRect));
     toc.render(headings);
+    // The active heading is chosen in the next frame, not during render.
+    await new Promise(resolve => requestAnimationFrame(resolve));
     expect(document.querySelector('[aria-current="location"]')?.getAttribute('href')).toBe('#child');
 });

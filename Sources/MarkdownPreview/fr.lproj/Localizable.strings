@@ -16,7 +16,8 @@
 "Could not open GitHub" = "Impossible d’ouvrir GitHub";
 "QuickLook preview does not support link navigation" = "L’aperçu QuickLook ne prend pas en charge la navigation par liens";
 "Double-click .md file to open in main app for full functionality" = "Double-cliquez sur le fichier .md pour l’ouvrir dans l’application principale et accéder à toutes les fonctionnalités";
-"Preview limited to 500 KiB. Use Open with FluxMarkdown above to read the complete document." = "Aperçu limité à 500 Kio. Utilisez « Ouvrir avec FluxMarkdown » ci-dessus pour lire le document complet.";
+"Showing the first %1$@ of %2$@; the rest is not shown. Click Follow Changes to see the end." = "Affichage des premiers %1$@ sur %2$@ ; la suite n’est pas affichée. Cliquez sur « Suivre les modifications » pour voir la fin.";
+"Showing the last %1$@ of %2$@." = "Affichage des derniers %1$@ sur %2$@.";
 "Some local images could not be read. Use Open with FluxMarkdown above to view the document." = "Certaines images locales sont illisibles. Utilisez « Ouvrir avec FluxMarkdown » ci-dessus.";
 "Reload File (⌘R)" = "Recharger le fichier (⌘R)";
 "Zoom Out" = "Zoom arrière";
@@ -48,6 +49,8 @@
 "Check the search expression, or open the document in FluxMarkdown and press Command-F." = "Vérifiez l’expression de recherche ou ouvrez le document dans FluxMarkdown et appuyez sur Commande-F.";
 "Open the document in FluxMarkdown. You can also run Repair Quick Look from the Help menu." = "Ouvrez le document dans FluxMarkdown. Vous pouvez aussi réparer Coup d’œil depuis le menu Aide.";
 "Open the document in FluxMarkdown to read beyond the preview limits." = "Ouvrez le document dans FluxMarkdown pour lire au-delà des limites de l’aperçu.";
+"Only the first 2 MB is shown. Click Follow Changes to see the end, or open the document in FluxMarkdown to read all of it." = "Seuls les 2 premiers Mo sont affichés. Cliquez sur « Suivre les modifications » pour voir la fin, ou ouvrez le document dans FluxMarkdown pour le lire en entier.";
+"Only the first 2 MB is shown. Click Follow Changes to see the end. The file is too large to open in FluxMarkdown." = "Seuls les 2 premiers Mo sont affichés. Cliquez sur « Suivre les modifications » pour voir la fin. Le fichier est trop volumineux pour être ouvert dans FluxMarkdown.";
 "Open the destination in your browser or editor. You can copy a report if this keeps happening." = "Ouvrez la destination dans votre navigateur ou éditeur. Si le problème persiste, vous pouvez copier un rapport.";
 "The link may point to a file that is not on this Mac, or to a path that is not relative to the document. Copy the link to open it manually, or check the path in your editor." = "Le lien peut pointer vers un fichier absent de ce Mac ou vers un chemin qui n’est pas relatif au document. Copiez le lien pour l’ouvrir manuellement, ou vérifiez le chemin dans votre éditeur.";
 "Report This Problem" = "Signaler ce problème";
@@ -118,6 +121,11 @@
 "Text could not be copied" = "Le texte n’a pas pu être copié";
 "Select the text to copy it manually, or try the copy button again." = "Sélectionnez le texte pour le copier manuellement ou réessayez le bouton de copie.";
 
+"Follow Changes" = "Suivre les modifications";
+
+"Resume Following" = "Reprendre le suivi";
+
+"Stop Following" = "Arrêter le suivi";
 /* Reproduction packages and durable Issue replies */
 "Attach Reproduction Materials…" = "Joindre des éléments de reproduction…";
 "My Feedback" = "Mes signalements";
@@ -211,3 +219,6 @@
 "Diagram could not be copied or saved" = "Impossible de copier ou enregistrer le diagramme";
 
 "Try the diagram action again, or choose another writable folder. Your document is unchanged." = "Réessayez ou choisissez un autre dossier accessible en écriture. Votre document reste inchangé.";
+"Showing the first %1$@ of %2$@." = "Affichage des premiers %1$@ sur %2$@.";
+"Reveal in Finder" = "Afficher dans le Finder";
+"The file is too large to open in FluxMarkdown. Reveal it in Finder to open it with another editor." = "Le fichier est trop volumineux pour FluxMarkdown. Affichez-le dans le Finder pour l’ouvrir avec un autre éditeur.";

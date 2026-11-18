@@ -29,8 +29,10 @@ html[data-line-numbers="true"] #markdown-preview:not(.source-mode) > [data-sourc
 html[data-line-numbers="true"] #markdown-preview:not(.source-mode) > [data-source-line]::before {
   content: attr(data-source-line);
   position: absolute;
-  left: -3.5em;
-  width: 3em;
+  /* Anchored on the right and kept on one line, so numbers of any length grow
+     into the gutter instead of wrapping (a followed window starts deep in a file). */
+  right: calc(100% + 0.5em);
+  white-space: nowrap;
   top: 0;
   text-align: right;
   padding-right: 0.4em;
@@ -56,4 +58,17 @@ html[data-line-numbers="true"] #markdown-preview:not(.source-mode) > pre[data-so
 }
 html[data-line-numbers="true"] #markdown-preview:not(.source-mode) > pre[data-source-line] {
   position: static;
+}
+
+/*
+ * Large documents: WebKit skips layout and paint of top-level blocks far from the
+ * viewport (content-visibility). Without it, each slice of a progressive commit and
+ * each contents rebuild re-laid out the whole page (150-300 ms at 2 MB). The DOM
+ * stays complete, so search, selection, copy and Follow are unaffected.
+ * Paint containment clips the gutter numbers, which sit outside each block, and
+ * WebKit ignores overflow-clip-margin there; so it is off while line numbers show.
+ */
+html[data-large-document="true"]:not([data-line-numbers="true"]) #markdown-preview:not(.source-mode) > * {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 120px;
 }

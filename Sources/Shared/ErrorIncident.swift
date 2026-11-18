@@ -6,7 +6,7 @@ enum IncidentReason: String, Codable { case operationFailed, invalidInput, modul
 enum IncidentPhase: String, Codable { case started, failed, completed, timeout }
 enum FailureKind: String, Codable, CaseIterable {
     case diagramExport, attribution, copy, usageSettings, update, fileRead, fileTooLarge, reload, exportHTML, exportPDF, renderer, rendererResources, source
-    case mermaid, typst, graphviz, vega, math, search, quickLook, images, previewLimit, link, browser
+    case mermaid, typst, graphviz, vega, math, search, quickLook, images, previewLimit, previewLimitBeyondApp, link, browser
 
     var title: String {
         switch self {
@@ -25,7 +25,7 @@ enum FailureKind: String, Codable, CaseIterable {
         case .search: return "Search could not be completed"
         case .quickLook: return "Quick Look could not complete this operation"
         case .images: return "Some images could not be displayed"
-        case .previewLimit: return "This preview is incomplete"
+        case .previewLimit, .previewLimitBeyondApp: return "This preview is incomplete"
         case .link, .browser: return "The destination could not be opened"
         }
     }
@@ -46,7 +46,9 @@ enum FailureKind: String, Codable, CaseIterable {
         case .mermaid, .typst, .graphviz, .vega, .math: return "Check the source syntax in your editor. The rest of the document is still available."
         case .search: return "Check the search expression, or open the document in FluxMarkdown and press Command-F."
         case .quickLook: return "Open the document in FluxMarkdown. You can also run Repair Quick Look from the Help menu."
-        case .images, .previewLimit: return "Open the document in FluxMarkdown to read beyond the preview limits."
+        case .images: return "Open the document in FluxMarkdown to read beyond the preview limits."
+        case .previewLimit: return "Only the first 2 MB is shown. Click Follow Changes to see the end, or open the document in FluxMarkdown to read all of it."
+        case .previewLimitBeyondApp: return "Only the first 2 MB is shown. Click Follow Changes to see the end. The file is too large to open in FluxMarkdown."
         case .link: return "The link may point to a file that is not on this Mac, or to a path that is not relative to the document. Copy the link to open it manually, or check the path in your editor."
         case .browser: return "Open the destination in your browser or editor. You can copy a report if this keeps happening."
         }
@@ -326,6 +328,26 @@ struct IncidentQuickLookCheck: Codable {
         }
     }
     var isValid: Bool { fields == Self.sanitize(fields) && (-62135596800...253402300799).contains(date.timeIntervalSince1970) }
+}
+
+extension PreviewLimitNotice {
+    enum Recovery: Equatable {
+        case openInApp, follow, revealInFinder
+    }
+
+    static let openInAppGuidance = "Open the document in FluxMarkdown to read beyond the preview limits."
+    static let revealTitle = "Reveal in Finder"
+    static let revealGuidance = "The file is too large to open in FluxMarkdown. Reveal it in Finder to open it with another editor."
+
+    static func recovery(for kind: FailureKind, followAvailable: Bool) -> Recovery {
+        guard kind == .previewLimitBeyondApp else { return .openInApp }
+        return followAvailable ? .follow : .revealInFinder
+    }
+
+    /// The incomplete-preview incident; above the app's limit it offers Follow, not the app.
+    static func failureKind(fileSize: UInt64) -> FailureKind {
+        fileSize > UInt64(BoundedFileReader.documentLimit) ? .previewLimitBeyondApp : .previewLimit
+    }
 }
 
 /// Bulk document snapshots use authenticated XPC and a private one-time file.

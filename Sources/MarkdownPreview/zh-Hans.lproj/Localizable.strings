@@ -16,7 +16,8 @@
 "Could not open GitHub" = "无法打开 GitHub";
 "QuickLook preview does not support link navigation" = "QuickLook 预览模式不支持链接跳转";
 "Double-click .md file to open in main app for full functionality" = "请双击 .md 文件用主应用打开以使用完整功能";
-"Preview limited to 500 KiB. Use Open with FluxMarkdown above to read the complete document." = "预览仅显示前 500 KiB。请使用上方“通过 FluxMarkdown 打开”阅读完整文档。";
+"Showing the first %1$@ of %2$@; the rest is not shown. Click Follow Changes to see the end." = "正在显示 %2$@ 中的前 %1$@，其余内容未显示。点击“跟随更改”查看结尾。";
+"Showing the last %1$@ of %2$@." = "正在显示 %2$@ 中的最后 %1$@。";
 "Some local images could not be read. Use Open with FluxMarkdown above to view the document." = "部分本地图片无法读取。请使用上方“通过 FluxMarkdown 打开”查看文档。";
 "Reload File (⌘R)" = "重新加载文件 (⌘R)";
 "Zoom Out" = "缩小";
@@ -48,6 +49,8 @@
 "Check the search expression, or open the document in FluxMarkdown and press Command-F." = "请检查搜索表达式，或用 FluxMarkdown 打开文档并按 Command-F 搜索。";
 "Open the document in FluxMarkdown. You can also run Repair Quick Look from the Help menu." = "请用 FluxMarkdown 打开文档，也可以从帮助菜单运行“修复快速查看”。";
 "Open the document in FluxMarkdown to read beyond the preview limits." = "请用 FluxMarkdown 打开文档，阅读超出预览限制的内容。";
+"Only the first 2 MB is shown. Click Follow Changes to see the end, or open the document in FluxMarkdown to read all of it." = "仅显示前 2 MB。点击“跟随更改”查看结尾，或在 FluxMarkdown 中打开文档阅读全文。";
+"Only the first 2 MB is shown. Click Follow Changes to see the end. The file is too large to open in FluxMarkdown." = "仅显示前 2 MB。点击“跟随更改”查看结尾。该文件太大，无法在 FluxMarkdown 中打开。";
 "Open the destination in your browser or editor. You can copy a report if this keeps happening." = "可以在浏览器或编辑器中打开目标。如果问题持续出现，可复制报告进行反馈。";
 "The link may point to a file that is not on this Mac, or to a path that is not relative to the document. Copy the link to open it manually, or check the path in your editor." = "链接指向的文件可能不在这台 Mac 上，或该路径并非相对于当前文档。可复制链接后手动打开，或在编辑器中检查该路径。";
 "Report This Problem" = "反馈此问题";
@@ -118,6 +121,11 @@
 "Text could not be copied" = "无法复制文本";
 "Select the text to copy it manually, or try the copy button again." = "可以选择文本手动复制，或再次点击复制按钮。";
 
+"Follow Changes" = "跟随更改";
+
+"Resume Following" = "继续跟随";
+
+"Stop Following" = "停止跟随";
 /* Reproduction packages and durable Issue replies */
 "Attach Reproduction Materials…" = "附带复现材料…";
 "My Feedback" = "我的反馈";
@@ -211,3 +219,6 @@
 "Diagram could not be copied or saved" = "无法复制或保存图表";
 
 "Try the diagram action again, or choose another writable folder. Your document is unchanged." = "请重新执行图表操作，或选择其他可写入的文件夹。文档内容不受影响。";
+"Showing the first %1$@ of %2$@." = "仅显示文件开头的 %1$@，文件共 %2$@。";
+"Reveal in Finder" = "在 Finder 中显示";
+"The file is too large to open in FluxMarkdown. Reveal it in Finder to open it with another editor." = "文件过大，无法用 FluxMarkdown 打开。请在 Finder 中找到该文件，并用其他编辑器打开。";
