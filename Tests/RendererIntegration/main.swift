@@ -1007,23 +1007,25 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
           while(!document.hasFocus() && performance.now()<focusDeadline)await new Promise(resolve=>setTimeout(resolve,20));
           if(!document.hasFocus())throw new Error('Foreground WebKit document did not receive focus');
         }
-        const probe=document.createElement('span');
-        probe.style.cssText='position:fixed;left:0;top:0;width:100px;visibility:hidden;zoom:2;font:16px monospace';
-        probe.textContent='MMMM';
-        document.body.append(probe);
-        const sample=document.createRange();sample.selectNodeContents(probe);
-        const zoomedRange=sample.getBoundingClientRect().width;
-        const legacyElementRects=probe.getBoundingClientRect().width<150;
-        probe.style.zoom='1';
-        const legacyRangeRects=zoomedRange<sample.getBoundingClientRect().width*1.5;
-        probe.remove();
-        function viewportRect(target) {
-          const box=target.getBoundingClientRect();
-          const node=target instanceof Range ? target.commonAncestorContainer.parentElement : target;
-          const root=node.closest('#markdown-preview');
-          const zoom=(target instanceof Range ? legacyRangeRects : legacyElementRects) && root ? Number(root.style.zoom)||1 : 1;
-          return new DOMRect((box.x+scrollX)*zoom-scrollX,(box.y+scrollY)*zoom-scrollY,box.width*zoom,box.height*zoom);
-        }
+        const viewportRect = (() => {
+          const probe=document.createElement('span');
+          probe.style.cssText='position:fixed;left:0;top:0;width:100px;visibility:hidden;zoom:2;font:16px monospace';
+          probe.textContent='MMMM';
+          document.body.append(probe);
+          const sample=document.createRange();sample.selectNodeContents(probe);
+          const zoomedRange=sample.getBoundingClientRect().width;
+          const legacyElementRects=probe.getBoundingClientRect().width<150;
+          probe.style.zoom='1';
+          const legacyRangeRects=zoomedRange<sample.getBoundingClientRect().width*1.5;
+          probe.remove();
+          return function(target) {
+            const box=target.getBoundingClientRect();
+            const node=target instanceof Range ? target.commonAncestorContainer.parentElement : target;
+            const root=node.closest('#markdown-preview');
+            const zoom=(target instanceof Range ? legacyRangeRects : legacyElementRects) && root ? Number(root.style.zoom)||1 : 1;
+            return new DOMRect((box.x+scrollX)*zoom-scrollX,(box.y+scrollY)*zoom-scrollY,box.width*zoom,box.height*zoom);
+          }
+        })();
         """
         webView.callAsyncJavaScript(viewportGeometry + "\n" + js, arguments: ["needsFocus":focusWindow != nil, "expectedWidth":size.width, "expectedHeight":size.height, "imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData, "sizingSVGData": sizingSVGData], in: nil, in: .page) { result in
             switch result {
