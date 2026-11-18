@@ -1000,7 +1000,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
           const node=target instanceof Range ? target.commonAncestorContainer.parentElement : target;
           const root=node.closest('#markdown-preview');
           const zoom=(target instanceof Range ? legacyRangeRects : legacyElementRects) && root ? Number(root.style.zoom)||1 : 1;
-          return new DOMRect(box.x*zoom,box.y*zoom,box.width*zoom,box.height*zoom);
+          return new DOMRect((box.x+scrollX)*zoom-scrollX,(box.y+scrollY)*zoom-scrollY,box.width*zoom,box.height*zoom);
         }
         """
         webView.callAsyncJavaScript(viewportGeometry + "\n" + js, arguments: ["imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData, "sizingSVGData": sizingSVGData], in: nil, in: .page) { result in

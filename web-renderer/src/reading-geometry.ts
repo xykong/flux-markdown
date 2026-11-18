@@ -28,5 +28,12 @@ export function readingRect(target: Element | Range): DOMRect {
     if (zoom === 1 || element?.closest('.diagram-tools')) return rect;
     if (legacyElements === undefined) measureClientRects();
     if (!(isRange ? legacyRanges : legacyElements)) return rect;
-    return new DOMRect(rect.x * zoom, rect.y * zoom, rect.width * zoom, rect.height * zoom);
+    // WebKit subtracts the document scroll offset after removing zoom from
+    // the document-space rect. Undo that subtraction before scaling.
+    return new DOMRect(
+        (rect.x + window.scrollX) * zoom - window.scrollX,
+        (rect.y + window.scrollY) * zoom - window.scrollY,
+        rect.width * zoom,
+        rect.height * zoom,
+    );
 }

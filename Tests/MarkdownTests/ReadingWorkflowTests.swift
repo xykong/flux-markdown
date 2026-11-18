@@ -87,7 +87,7 @@ import WebKit
         webView.callAsyncJavaScript("await window.renderMarkdown(text,{context:'app'});",arguments:["text":markdown],in:nil,in:.page){result in
             if case .failure = result {Self.loaded?(self,["failed":true]);return}
             ReadingJourneyBridge.restore(webView,url:fileURL,store:store)
-            webView.callAsyncJavaScript("const p=document.createElement('div');p.style.cssText='position:fixed;visibility:hidden;width:100px;zoom:2';document.body.append(p);const legacy=p.getBoundingClientRect().width<150;p.remove();const zoom=document.getElementById('markdown-preview').style.getPropertyValue('zoom');return {top:document.getElementById('journey-destination')?.getBoundingClientRect().top*(legacy ? Number(zoom) : 1),zoom};",arguments:[:],in:nil,in:.page){result in
+            webView.callAsyncJavaScript("const p=document.createElement('div');p.style.cssText='position:fixed;visibility:hidden;width:100px;zoom:2';document.body.append(p);const legacy=p.getBoundingClientRect().width<150;p.remove();const zoom=document.getElementById('markdown-preview').style.getPropertyValue('zoom');const heading=document.getElementById('journey-destination');return {top:heading ? (heading.getBoundingClientRect().top+scrollY)*(legacy ? Number(zoom) : 1)-scrollY : null,zoom};",arguments:[:],in:nil,in:.page){result in
                 if case .success(let value)=result,let value=value as? [String:Any]{Self.loaded?(self,value)}else{Self.loaded?(self,["failed":true])}
             }
         }
