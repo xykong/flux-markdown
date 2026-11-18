@@ -1,8 +1,6 @@
 ## [Unreleased]
-_无待发布的变更_
-
-## [1.52.860] - 2026-11-18
 ### Fixed
+- **Reading zoom on older WebKit**: Keep reading anchors and diagram zoom centered on the correct point on macOS versions that report CSS zoom coordinates differently.
 - **Compact diagram controls**: Keep diagram buttons and the More menu at a uniform compact height; isolate them from Markdown details margins and focused-view button styles across document zoom levels.
 - **Diagram smart zoom reset**: Double-tap with two fingers over a Mermaid or standalone SVG diagram to restore its local 100% scale while preserving the document zoom; the same gesture over body text resets the document zoom.
 - **Mermaid gestures and File menu**: Pinch the diagram under the pointer without resizing surrounding text; keep diagram controls at a stable size, share continuous scales with their buttons, and prevent automatic fitting from cancelling reading zoom. Remove duplicate native Open/Open Recent entries while preserving durable recent-file history.
