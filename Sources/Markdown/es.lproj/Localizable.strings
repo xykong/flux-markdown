@@ -146,7 +146,8 @@
 "I've Already Starred" = "Ya le di una estrella";
 "Invite me to support the project on GitHub" = "Invitarme a apoyar el proyecto en GitHub";
 
-"Preview limited to 500 KiB. Use Open with FluxMarkdown above to read the complete document." = "Vista previa limitada a 500 KiB. Usa «Abrir con FluxMarkdown» arriba para leer el documento completo.";
+"Showing the first %1$@ of %2$@; the rest is not shown. Click Follow Changes to see the end." = "Mostrando los primeros %1$@ de %2$@; el resto no se muestra. Haz clic en «Seguir cambios» para ver el final.";
+"Showing the last %1$@ of %2$@." = "Mostrando los últimos %1$@ de %2$@.";
 "Test Quick Look" = "Probar Quick Look";
 "Quick Look preview verified" = "Vista previa Quick Look verificada";
 "Quick Look preview not confirmed" = "Vista previa Quick Look sin confirmar";
@@ -196,6 +197,8 @@
 "Check the search expression, or open the document in FluxMarkdown and press Command-F." = "Revisa la expresión de búsqueda o abre el documento en FluxMarkdown y pulsa Comando-F.";
 "Open the document in FluxMarkdown. You can also run Repair Quick Look from the Help menu." = "Abre el documento en FluxMarkdown. También puedes reparar Vista rápida desde el menú Ayuda.";
 "Open the document in FluxMarkdown to read beyond the preview limits." = "Abre el documento en FluxMarkdown para leer más allá de los límites de la vista previa.";
+"Only the first 2 MB is shown. Click Follow Changes to see the end, or open the document in FluxMarkdown to read all of it." = "Solo se muestran los primeros 2 MB. Haz clic en «Seguir cambios» para ver el final, o abre el documento en FluxMarkdown para leerlo completo.";
+"Only the first 2 MB is shown. Click Follow Changes to see the end. The file is too large to open in FluxMarkdown." = "Solo se muestran los primeros 2 MB. Haz clic en «Seguir cambios» para ver el final. El archivo es demasiado grande para abrirlo en FluxMarkdown.";
 "Open the destination in your browser or editor. You can copy a report if this keeps happening." = "Abre el destino en tu navegador o editor. Si el problema persiste, puedes copiar un informe.";
 "The link may point to a file that is not on this Mac, or to a path that is not relative to the document. Copy the link to open it manually, or check the path in your editor." = "Es posible que el enlace apunte a un archivo que no está en este Mac o a una ruta que no sea relativa al documento. Copia el enlace para abrirlo manualmente o revisa la ruta en tu editor.";
 "Report This Problem" = "Reportar este problema";

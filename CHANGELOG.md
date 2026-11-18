@@ -1,5 +1,8 @@
 ## [Unreleased]
-_无待发布的变更_
+### Added
+- **Follow Changes in Quick Look**: A Follow Changes button in Finder's Space-bar preview keeps the end of a growing Markdown file in view, such as an agent transcript or a log. Scrolling up or selecting text pauses it; Follow resumes from where the file now ends. Only the bytes added to the file are read and only the end of the document is re-rendered, so earlier blocks, diagrams and copy controls stay in place. Rewritten, replaced or shortened files are reloaded in full.
+- **Large files in Quick Look**: The preview now loads up to 2 MiB of a Markdown file instead of 500 KiB: the beginning, or with Follow Changes on, the end of a file of any size. The end starts at a line outside any code block and keeps the file's own line numbers; while following, the window slides forward as the file grows. For a file over the limit, the notice names the limit and points to Follow Changes. TSV previews keep their 500 KiB limit.
+- **First pages first**: Large previews show the pages nearest where you are reading first (the beginning, or the end while following) and fill in the rest in small steps, so the preview stays responsive while it loads.
 
 ## [1.55.872] - 2026-11-18
 ### Fixed

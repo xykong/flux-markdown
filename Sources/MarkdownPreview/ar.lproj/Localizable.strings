@@ -16,7 +16,8 @@
 "Could not open GitHub" = "تعذّر فتح GitHub";
 "QuickLook preview does not support link navigation" = "لا تدعم معاينة نظرة سريعة التنقل عبر الروابط";
 "Double-click .md file to open in main app for full functionality" = "انقر نقرًا مزدوجًا على ملف ‎.md‎ لفتحه في التطبيق الرئيسي بكل الوظائف";
-"Preview limited to 500 KiB. Use Open with FluxMarkdown above to read the complete document." = "المعاينة محدودة بـ 500 KiB. استخدم «فتح باستخدام FluxMarkdown» أعلاه لقراءة المستند كاملًا.";
+"Showing the first %1$@ of %2$@; the rest is not shown. Click Follow Changes to see the end." = "عرض أول %1$@ من %2$@؛ الباقي غير معروض. انقر «متابعة التغييرات» لرؤية النهاية.";
+"Showing the last %1$@ of %2$@." = "عرض آخر %1$@ من %2$@.";
 "Some local images could not be read. Use Open with FluxMarkdown above to view the document." = "تعذّرت قراءة بعض الصور المحلية. استخدم «فتح باستخدام FluxMarkdown» أعلاه لعرض المستند.";
 "Reload File (⌘R)" = "إعادة تحميل الملف (⌘R)";
 "Zoom Out" = "تصغير";
@@ -48,6 +49,8 @@
 "Check the search expression, or open the document in FluxMarkdown and press Command-F." = "تحقق من تعبير البحث، أو افتح المستند في FluxMarkdown واضغط Command-F.";
 "Open the document in FluxMarkdown. You can also run Repair Quick Look from the Help menu." = "افتح المستند في FluxMarkdown. يمكنك أيضًا تشغيل «إصلاح نظرة سريعة» من قائمة المساعدة.";
 "Open the document in FluxMarkdown to read beyond the preview limits." = "افتح المستند في FluxMarkdown لتقرأ ما يتجاوز حدود المعاينة.";
+"Only the first 2 MB is shown. Click Follow Changes to see the end, or open the document in FluxMarkdown to read all of it." = "تُعرض أول 2 MB فقط. انقر «متابعة التغييرات» لرؤية النهاية، أو افتح المستند في FluxMarkdown لقراءته كاملًا.";
+"Only the first 2 MB is shown. Click Follow Changes to see the end. The file is too large to open in FluxMarkdown." = "تُعرض أول 2 MB فقط. انقر «متابعة التغييرات» لرؤية النهاية. الملف أكبر من أن يُفتح في FluxMarkdown.";
 "Open the destination in your browser or editor. You can copy a report if this keeps happening." = "افتح الوجهة في متصفحك أو محررك. يمكنك نسخ تقرير إذا استمر حدوث ذلك.";
 "The link may point to a file that is not on this Mac, or to a path that is not relative to the document. Copy the link to open it manually, or check the path in your editor." = "قد يشير الرابط إلى ملف غير موجود على هذا الـ Mac أو إلى مسار لا يكون نسبيًا إلى المستند. انسخ الرابط لفتحه يدويًا، أو تحقّق من المسار في المحرر.";
 "Report This Problem" = "الإبلاغ عن هذه المشكلة";
@@ -113,6 +116,11 @@
 "Text could not be copied" = "تعذر نسخ النص";
 "Select the text to copy it manually, or try the copy button again." = "حدد النص لنسخه يدويًا، أو جرّب زر النسخ مجددًا.";
 
+"Follow Changes" = "متابعة التغييرات";
+
+"Resume Following" = "استئناف المتابعة";
+
+"Stop Following" = "إيقاف المتابعة";
 /* Reproduction packages and durable Issue replies */
 "Attach Reproduction Materials…" = "إرفاق مواد لإعادة الإنتاج…";
 "My Feedback" = "ملاحظاتي";

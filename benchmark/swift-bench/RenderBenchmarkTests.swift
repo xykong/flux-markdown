@@ -63,6 +63,7 @@ class BenchmarkWebViewHarness: NSObject, WKNavigationDelegate, WKScriptMessageHa
     private var rendererReadyContinuation: CheckedContinuation<Void, Error>?
     private var renderContinuation: CheckedContinuation<(Double, Int), Error>?
     private var renderStartTime: CFAbsoluteTime = 0
+    private var readyAttempt = UUID()
 
     override init() {
         super.init()
@@ -72,6 +73,10 @@ class BenchmarkWebViewHarness: NSObject, WKNavigationDelegate, WKScriptMessageHa
         ucc.add(self, name: "logger")
         ucc.add(self, name: "benchResult")
         config.userContentController = ucc
+        if let root = findIndexHTML()?.deletingLastPathComponent() {
+            config.setURLSchemeHandler(RendererBundleSchemeHandler(rootDirectory: root),
+                                       forURLScheme: RendererBundleSchemeHandler.scheme)
+        }
         if #available(macOS 11.0, *) {
             let prefs = WKWebpagePreferences()
             prefs.allowsContentJavaScript = true
@@ -81,20 +86,31 @@ class BenchmarkWebViewHarness: NSObject, WKNavigationDelegate, WKScriptMessageHa
         webView.navigationDelegate = self
     }
 
-    /// Load the bundled index.html and wait for "rendererReady" handshake.
+    /// Use the same scheme as production so split JS/CSS/WASM assets can load.
     func loadAndWaitForReady() async throws {
-        guard let bundleURL = findIndexHTML() else {
+        guard findIndexHTML() != nil else {
             throw NSError(domain: "Benchmark", code: 1, userInfo: [NSLocalizedDescriptionKey: "index.html not found"])
         }
         return try await withCheckedThrowingContinuation { continuation in
             rendererReadyContinuation = continuation
-            do {
-                let html = try String(contentsOf: bundleURL, encoding: .utf8)
-                webView.loadHTMLString(html, baseURL: bundleURL.deletingLastPathComponent())
-            } catch {
-                continuation.resume(throwing: error)
+            readyAttempt = UUID()
+            let attempt = readyAttempt
+            webView.load(URLRequest(url: RendererBundleSchemeHandler.rendererURL()))
+            DispatchQueue.main.asyncAfter(deadline: .now() + 15) { [weak self] in
+                guard let self, self.readyAttempt == attempt,
+                      let pending = self.rendererReadyContinuation else { return }
+                self.rendererReadyContinuation = nil
+                pending.resume(throwing: NSError(domain: "Benchmark", code: 4,
+                    userInfo: [NSLocalizedDescriptionKey: "Renderer handshake exceeded 15 seconds"]))
             }
         }
+    }
+
+    func dispose() {
+        webView.stopLoading()
+        webView.configuration.userContentController.removeScriptMessageHandler(forName: "logger")
+        webView.configuration.userContentController.removeScriptMessageHandler(forName: "benchResult")
+        webView.navigationDelegate = nil
     }
 
     private func findIndexHTML() -> URL? {
@@ -181,7 +197,7 @@ class BenchmarkWebViewHarness: NSObject, WKNavigationDelegate, WKScriptMessageHa
         }
     }
 
-    // MARK: - WKNavigationDelegate (required for loadHTMLString)
+    // MARK: - WKNavigationDelegate failure reporting
 
     nonisolated func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         Task { @MainActor in
@@ -274,6 +290,7 @@ final class RenderBenchmarkTests: XCTestCase {
         print("     Cold runs (\(coldRuns))...")
         for i in 0..<coldRuns {
             let harness = BenchmarkWebViewHarness()
+            defer { harness.dispose() }
             try await harness.loadAndWaitForReady()
 
             let (duration, _) = try await harness.renderMarkdown(content)
@@ -284,6 +301,7 @@ final class RenderBenchmarkTests: XCTestCase {
         // ── WARM: same WKWebView, multiple renders ──────────────────────────
         print("     Warm runs (\(warmupRuns) warmup + \(benchRuns) measured)...")
         let warmHarness = BenchmarkWebViewHarness()
+        defer { warmHarness.dispose() }
         try await warmHarness.loadAndWaitForReady()
 
         for i in 0..<warmupRuns {
@@ -365,7 +383,7 @@ final class RenderBenchmarkTests: XCTestCase {
               let coldT2 = cold["t2_roundtrip"] as? [String: Double],
               let warmT2 = warm["t2_roundtrip"] as? [String: Double] else { return }
 
-        print(String(format: "  %-25s cold p50=%.1fms p95=%.1fms  warm p50=%.1fms p95=%.1fms",
+        print(String(format: "  %@ cold p50=%.1fms p95=%.1fms  warm p50=%.1fms p95=%.1fms",
                      fixture as NSString,
                      coldT2["median"] ?? 0,
                      coldT2["p95"] ?? 0,

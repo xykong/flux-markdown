@@ -1,6 +1,8 @@
 import AppKit
 import WebKit
 
+// Unbuffered, so a timeout report shows which cases already passed.
+setvbuf(stdout, nil, _IONBF, 0)
 let app = NSApplication.shared
 app.setActivationPolicy(.prohibited)
 final class RendererIntegration: NSObject, WKScriptMessageHandler {
@@ -420,6 +422,128 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         try{await window.renderMarkdown(fixture,{context:'quicklook'});}finally{crypto.getRandomValues=random;}
         if(verify() || !root.querySelector('.render-error'))throw new Error('caught failure accepted');
         await window.renderMarkdown('# Restored',{context:'app'});
+        return true;
+        """),
+        ("Quick Look follow timed updates", """
+        const options={context:'quicklook',followFile:true,showCopyButtons:true};
+        const wait=()=>new Promise(r=>setTimeout(r,80));
+        let text='# Timed Follow\\n\\n'+Array.from({length:200},(_,i)=>'Paragraph '+i+': stable text.').join('\\n\\n')+'\\n\\n';
+        await window.renderMarkdown(text,options);window.setQuickLookFollow(true);await wait();
+        const check=label=>{
+          if(window.quickLookFollowStatus().paused)throw new Error('Unexpected pause: '+label);
+          const last=document.getElementById('markdown-preview').lastElementChild.getBoundingClientRect();
+          if(last.bottom>innerHeight+1 || last.top<0)throw new Error('Tail outside viewport: '+label);
+        };
+        for(let i=0;i<20;i++){text+='APPEND-'+i+'\\n\\n';await window.renderMarkdown(text,options);await wait();check('append '+i);}
+        await window.renderMarkdown('# Short\\n\\nFINAL-SHORT',options);await wait();check('shrink');
+        await window.renderMarkdown(text+'FINAL-GROWN',options);await wait();check('grow');
+        dispatchEvent(new WheelEvent('wheel',{deltaY:-100}));
+        if(!window.quickLookFollowStatus().paused)throw new Error('User wheel did not pause');
+        window.setQuickLookFollow(true);await wait();check('resume');
+        window.setQuickLookFollow(false);return true;
+        """),
+        ("Progressive commit shows first pages quickly", """
+        const options={context:'quicklook',followFile:true,showCopyButtons:true,showLineNumbers:false,documentGeneration:'progressive'};
+        const root=document.getElementById('markdown-preview');
+        let text='# Session\\n\\n';
+        for(let i=0;text.length<2000000;i++)text+='## Turn '+i+'\\n\\n> prompt '+i+'\\n\\nReply '+'words '.repeat(80)+'\\n\\n```text\\n'+('log line '+i+'\\n').repeat(12)+'```\\n\\n| a | b |\\n|---|---|\\n| '+i+' | x |\\n\\n';
+        const t0=performance.now();let previous=t0,longest=0,firstText=null;
+        const beat=setInterval(()=>{const now=performance.now();longest=Math.max(longest,now-previous-16);previous=now;},16);
+        const observer=new MutationObserver(()=>{if(firstText===null&&root.querySelector('[data-source-line]')){firstText=performance.now()-t0;observer.disconnect();}});
+        observer.observe(root,{childList:true});
+        await window.renderMarkdown(text,options);
+        const total=performance.now()-t0;
+        await new Promise(r=>setTimeout(r,100));clearInterval(beat);
+        const result={firstText:Math.round(firstText),longest:Math.round(longest),total:Math.round(total),visibility:document.visibilityState};
+        if(!root.textContent.includes('Turn 0')||root.querySelectorAll('h2').length<1000)throw new Error('incomplete');
+        // The first pages must appear well before the whole window is done.
+        if(firstText===null||result.firstText*2>result.total)throw new Error('first pages were not shown first: '+JSON.stringify(result));
+        // Step 3 target (update-quicklook-large-documents): first text within 300 ms, no task over 200 ms.
+        // Timing is checked on a real Mac only; shared CI runners are far slower and uneven.
+        if(strictTiming&&(result.firstText>300||result.longest>200))throw new Error('progressive commit missed its target: '+JSON.stringify(result));
+        return true;
+        """),
+        ("Large document line numbers stay visible", """
+        const root=document.getElementById('markdown-preview');
+        let text='';
+        for(let i=0;text.length<450000;i++)text+='## Section '+i+'\\n\\n'+'Body text. '.repeat(40)+'\\n\\n';
+        for(const showLineNumbers of [true,false]) {
+          await window.renderMarkdown(text,{context:'quicklook',showLineNumbers,progressive:false});
+          const first=root.querySelector(':scope > [data-source-line]');
+          const skipped=getComputedStyle(first).contentVisibility==='auto';
+          if(showLineNumbers && skipped)throw new Error('Skipped layout clips the line-number gutter');
+          if(showLineNumbers && getComputedStyle(first,'::before').content!=='"1"')throw new Error('First line number missing');
+          if(showLineNumbers && getComputedStyle(first,'::before').whiteSpace!=='nowrap')throw new Error('Long line numbers wrap');
+          if(!showLineNumbers && !skipped)throw new Error('Large document lost skipped layout');
+        }
+        return true;
+        """),
+        ("Quick Look tail window keeps file lines and shows the end", """
+        const options={context:'quicklook',followFile:true,showCopyButtons:true,sourceLineStart:86169};
+        const root=document.getElementById('markdown-preview');
+        let text='---\\nnot front matter\\n---\\n\\n';
+        for(let i=0;i<400;i++)text+='## Turn '+i+'\\n\\nline '+i+'\\n\\n```text\\nlog '+i+'\\n```\\n\\n';
+        text+='LAST-LINE\\n';
+        await window.renderMarkdown(text,options);window.setQuickLookFollow(true);await window.renderMarkdown(text,options);
+        await new Promise(r=>setTimeout(r,80));
+        if(root.firstElementChild.tagName!=='HR'||root.firstElementChild.getAttribute('data-source-line')!=='86170')throw new Error('window start: '+root.firstElementChild.outerHTML.slice(0,120));
+        const last=root.lastElementChild;
+        if(!last.textContent.includes('LAST-LINE'))throw new Error('last block missing');
+        const box=last.getBoundingClientRect();
+        if(box.bottom>innerHeight+1||box.top<0)throw new Error('last line not visible');
+        window.setQuickLookFollow(false);return true;
+        """),
+        ("Quick Look follow appends to a two-mebibyte document", """
+        const options={context:'quicklook',followFile:true,showCopyButtons:true};
+        const root=document.getElementById('markdown-preview');
+        const block=i=>'## Turn '+i+'\\n\\nOutput line '+i+' '+'x'.repeat(600)+'\\n\\n```text\\n'+'log '.repeat(150)+'\\n```\\n\\n';
+        let text='# Session\\n\\n';
+        for(let i=0;text.length<2000000;i++)text+=block(i);
+        let started=performance.now();
+        await window.renderMarkdown(text,options);
+        const full=performance.now()-started;
+        window.setQuickLookFollow(true);await window.renderMarkdown(text,options);
+        const headings=root.querySelectorAll('h2'), first=root.firstElementChild, middle=headings[Math.floor(headings.length/2)];
+        let slowest=0;
+        for(let i=0;i<10;i++){
+          const added='Appended paragraph '+i+'\\n\\n';
+          started=performance.now();
+          const result=await window.renderMarkdown(added,{...options,followAppendBase:text.length});
+          slowest=Math.max(slowest,performance.now()-started);
+          if(result)throw new Error('append '+i+' asked for a full render');
+          text+=added;
+        }
+        if(root.firstElementChild!==first||!root.contains(middle))throw new Error('earlier blocks were replaced: first '+(root.firstElementChild===first)+', middle '+root.contains(middle));
+        if(!root.textContent.includes('Appended paragraph 9'))throw new Error('missing appended text');
+        if(slowest>full/4)throw new Error('append took '+Math.round(slowest)+' ms; full render '+Math.round(full)+' ms');
+        if((await window.renderMarkdown('x',{...options,followAppendBase:1}))?.needsFullRender!==true)throw new Error('mismatched base accepted');
+        window.clearDiffMarks&&window.clearDiffMarks();
+        const clean=html=>html.replace(/ class=""/g,'').replace(/ style="(animation-delay: \\d+ms;)?"/g,'');
+        const incremental=clean(root.innerHTML);
+        window.setQuickLookFollow(false);
+        await window.renderMarkdown(text,{...options,followFile:false});
+        if(clean(root.innerHTML)!==incremental)throw new Error('incremental result differs from a full render');
+        return true;
+        """),
+        ("Quick Look follow suffix and scroll", """
+        const options={context:'quicklook',followFile:true,showCopyButtons:true};
+        const text='# Follow\\n\\n'+Array.from({length:80},(_,i)=>'paragraph '+i).join('\\n\\n')+'\\n\\n';
+        await window.renderMarkdown(text,options);
+        const root=document.getElementById('markdown-preview');
+        window.setQuickLookFollow(true);
+        await window.renderMarkdown(text,options);
+        const first=root.firstElementChild;
+        await window.renderMarkdown(text+'new ending',options);
+        if(root.firstElementChild!==first)throw new Error('unchanged heading replaced');
+        if(document.documentElement.scrollHeight-innerHeight-scrollY>5)throw new Error('not following end');
+        const last=root.lastElementChild.getBoundingClientRect();
+        if(last.bottom>innerHeight+1 || last.top<0)throw new Error('last line obscured');
+        dispatchEvent(new WheelEvent('wheel',{deltaY:-100}));
+        if(!window.quickLookFollowStatus().paused)throw new Error('navigation did not pause');
+        await window.renderMarkdown(text+'new ending extended',options);
+        if(!root.textContent.includes('new ending extended'))throw new Error('missing last append');
+        window.setQuickLookFollow(false);
+        await window.renderMarkdown('restored',{context:'app'});
         return true;
         """),
         ("block copy delayed visibility and focus", """
@@ -902,7 +1026,8 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         config.setURLSchemeHandler(images, forURLScheme: "local-md")
         webView = WKWebView(frame: CGRect(x: 0, y: 0, width: 800, height: 600), configuration: config)
         webView.load(URLRequest(url: RendererBundleSchemeHandler.rendererURL()))
-        DispatchQueue.main.asyncAfter(deadline: .now() + 90) { fputs("FAIL integration timeout\n", stderr); exit(1) }
+        // The 2 MiB Follow and progressive-commit cases take about 70 s on a shared CI runner.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 240) { fputs("FAIL integration timeout\n", stderr); exit(1) }
     }
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
         guard RendererBridgePolicy.accepts(message) else { print("FAIL bridge origin"); exit(1) }
@@ -977,7 +1102,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
             size = NSSize(width: 800, height: 600)
         }
         webView.setFrameSize(size)
-        if name == "compact feedback focus and text bounds" || name == "inline math copy controls preserve text spacing" || name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
+        if name == "compact feedback focus and text bounds" || name == "inline math copy controls preserve text spacing" || name == "Quick Look follow timed updates" || name == "Progressive commit shows first pages quickly" || name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
             // :focus-within requires an active WebKit page, not just activeElement
             // in the otherwise windowless integration harness.
             guard let policy = TestWindowPolicy(environment: ProcessInfo.processInfo.environment), policy.allowsFocus else {
@@ -1027,7 +1152,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
           }
         })();
         """
-        webView.callAsyncJavaScript(viewportGeometry + "\n" + js, arguments: ["needsFocus":focusWindow != nil, "expectedWidth":size.width, "expectedHeight":size.height, "imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData, "sizingSVGData": sizingSVGData], in: nil, in: .page) { result in
+        webView.callAsyncJavaScript(viewportGeometry + "\n" + js, arguments: ["strictTiming": ProcessInfo.processInfo.environment["CI"] == nil, "needsFocus":focusWindow != nil, "expectedWidth":size.width, "expectedHeight":size.height, "imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData, "sizingSVGData": sizingSVGData], in: nil, in: .page) { result in
             switch result {
             case .success(let value) where value as? Bool == true:
                 if name == "math native keyboard copy and reference" {
@@ -1040,7 +1165,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
                           reports[0]["generation"] as? String == "11111111-1111-1111-1111-111111111111",
                           !String(describing: self.feedbackEvents).contains("SAMPLE-DO-NOT-INCLUDE") else { print("FAIL feedback payload or stale action"); exit(1) }
                 }
-                if (name == "compact feedback focus and text bounds" && ProcessInfo.processInfo.environment["FLUX_WEBKIT_SNAPSHOT_DIR"] == nil) || name == "inline math copy controls preserve text spacing" || name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
+                if (name == "compact feedback focus and text bounds" && ProcessInfo.processInfo.environment["FLUX_WEBKIT_SNAPSHOT_DIR"] == nil) || name == "inline math copy controls preserve text spacing" || name == "Quick Look follow timed updates" || name == "Progressive commit shows first pages quickly" || name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
                     self.focusWindow?.contentView = nil
                     self.focusWindow?.orderOut(nil)
                     self.focusWindow = nil

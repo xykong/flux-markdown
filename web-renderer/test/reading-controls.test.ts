@@ -64,3 +64,31 @@ test('rightmost directory reserves its measured width for the native circle grou
     expect(postMessage).toHaveBeenLastCalledWith({ rightInset: 0 });
     delete window.webkit;
 });
+test('Quick Look reserves room for the native Follow button when it is shown', () => {
+    const reserve = () => document.documentElement.style.getPropertyValue('--reading-native-reserve');
+    document.documentElement.dataset.context = 'quicklook';
+    delete document.documentElement.dataset.followControl;
+    updateReadingControlsLayout();
+    expect(reserve()).toBe('318px');
+    document.documentElement.dataset.followControl = 'true';
+    updateReadingControlsLayout();
+    expect(reserve()).toBe('356px');
+    document.documentElement.dataset.context = 'app';
+    updateReadingControlsLayout();
+    expect(reserve()).toBe('280px');
+    delete document.documentElement.dataset.followControl;
+});
+test('a visible scroll bar is included in the room native controls leave for Contents', () => {
+    document.documentElement.dataset.tocSide = 'right';
+    const slot = document.getElementById('toc-button-container')!;
+    slot.hidden = false;
+    slot.getBoundingClientRect = jest.fn(() => ({ width: 48 } as DOMRect));
+    // The page is laid out left of a 15 px scroll bar; native controls measure from the view edge.
+    Object.defineProperty(document.documentElement, 'clientWidth', { configurable: true, value: window.innerWidth - 15 });
+    const postMessage = jest.fn();
+    window.webkit = { messageHandlers: { logger: { postMessage: jest.fn() }, linkClicked: { postMessage: jest.fn() }, readingToolsLayout: { postMessage } } };
+    updateReadingControlsLayout();
+    expect(postMessage).toHaveBeenLastCalledWith({ rightInset: 83 });
+    delete (document.documentElement as unknown as { clientWidth?: number }).clientWidth;
+    delete window.webkit;
+});
