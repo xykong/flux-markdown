@@ -6,7 +6,7 @@ import { waitForSafeCommit } from '../src/follow-file';
 
 beforeEach(()=>{document.body.innerHTML='<div id="markdown-preview"></div><div id="toc-container"></div><div id="search-container"></div>';Range.prototype.getClientRects=jest.fn(()=>[] as unknown as DOMRectList);window.scrollTo=jest.fn();window.getSelection()?.removeAllRanges();});
 test('selection starting during async preparation keeps old copy controls until commit',async()=>{
- const options={context:'quicklook' as const,followFile:true,showCopyButtons:true};
+ const options={context:'quicklook' as const,selectionCopy:true,followFile:true,showCopyButtons:true};
  await window.renderMarkdown('existing **selection**\n\n```\ncode\n```',options);
  const root=document.getElementById('markdown-preview')!;
  const old=root.querySelector('strong')!;const control=root.querySelector('.block-copy-tools');
@@ -19,6 +19,7 @@ test('selection starting during async preparation keeps old copy controls until 
  release();await new Promise(resolve=>setTimeout(resolve,20));
  expect(root.querySelector('strong')).toBe(old);expect(window.getSelection()?.toString()).toBe('selection');
  expect(root.querySelector('.block-copy-tools')).toBe(control);
+ expect(window.copyQuickLookSelection).toBeDefined();
  window.getSelection()?.removeAllRanges();await update;
  expect(root.textContent).toContain('replacement');
 });
@@ -31,7 +32,7 @@ test('pending clipboard acknowledgement holds commit and cancellation releases s
  current=false;expect(await waiting).toBe(false);
 });
 test('document replacement cancels a selected old document instead of waiting forever',async()=>{
- const options={context:'quicklook' as const,followFile:true,documentGeneration:'first'};
+ const options={context:'quicklook' as const,followFile:true,selectionCopy:true,documentGeneration:'first'};
  await window.renderMarkdown('old selected',options);
  const root=document.getElementById('markdown-preview')!;const range=document.createRange();range.selectNodeContents(root.querySelector('p')!);window.getSelection()?.addRange(range);
  await window.renderMarkdown('new document',{...options,documentGeneration:'second'});

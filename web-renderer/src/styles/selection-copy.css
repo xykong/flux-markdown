@@ -1,0 +1,11 @@
+.selection-copy-tools { position: fixed; z-index: 10000; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; max-width: calc(100vw - 16px); padding: 3px; border: 1px solid #8886; border-radius: 7px; background: Canvas; color: CanvasText; box-shadow: 0 3px 14px #0003; font: 12px system-ui; user-select: none; -webkit-user-select: none; }
+.selection-copy-tools[hidden] { display: none; }
+.selection-copy-tools button { color: inherit; background: transparent; border: 1px solid #8886; border-radius: 4px; padding: 5px 8px; cursor: pointer; }
+.selection-copy-tools > button:first-child { border: 0; min-width: 28px; height: 28px; padding: 3px 6px; font: 18px system-ui; }
+.selection-copy-tools button:focus-visible { outline: 2px solid Highlight; }
+.selection-copy-tools [role=status]:empty { display: none; }
+@media print { .selection-copy-tools { display: none !important; } }
+.selection-copy-tools[data-copy-state=pending] > button:first-child { opacity: .5; cursor: progress; }
+.selection-copy-tools[data-copy-state=success] > button:first-child { color: #1a7f37; }
+.selection-copy-tools[data-copy-state=success] > [role=status] { padding: 0 6px 0 2px; }
+html[data-theme="dark"] .selection-copy-tools[data-copy-state=success] > button:first-child { color: #3fb950; }

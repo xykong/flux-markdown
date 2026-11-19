@@ -44,18 +44,19 @@ export function blockPlainText(element: Element): string {
 }
 
 let nextID = 0;
+export function nextCopyID(): string { return String(++nextID); }
 const pending = new Map<string, { generation: string; finish: (success: boolean) => void }>();
 export function blockCopyResult(id: string, generation: string, success: boolean): void {
     const request = pending.get(id);
     if (request?.generation === generation) request.finish(success === true);
 }
-function nativeCopy(request: CopyRequest): Promise<boolean> {
+export function nativeCopy(request: CopyRequest, channel: 'blockCopy' | 'selectionCopy' = 'blockCopy'): Promise<boolean> {
     return new Promise(resolve => {
         const finish = (success: boolean): void => { clearTimeout(timeout); pending.delete(request.id); resolve(success); };
         const timeout = setTimeout(() => finish(false), 5000);
         pending.set(request.id, { generation: request.generation, finish });
         try {
-            const bridge = window.webkit?.messageHandlers.blockCopy;
+            const bridge = window.webkit?.messageHandlers[channel];
             if (!bridge) finish(false);
             else bridge.postMessage(request);
         } catch { finish(false); }
@@ -77,7 +78,7 @@ export function installBlockCopy(root: HTMLElement, generation: string, send = n
             if (entry.timer) { clearTimeout(entry.timer); timers.delete(entry.timer); }
             entry.tools.dataset.copyState = 'pending';
             entry.busy = true; entry.button.disabled = true; entry.status.textContent = strings[4];
-            const id = String(++nextID); requestIDs.add(id);
+            const id = nextCopyID(); requestIDs.add(id);
             const text = blockPlainText(block);
             let success = false;
             // The same UTF-8 bound is enforced natively; never truncate silently.
@@ -158,6 +159,11 @@ export function installBlockCopy(root: HTMLElement, generation: string, send = n
             if (inlineMath) wrapper.append(block, tools); else wrapper.append(tools, block);
         } else block.prepend(tools);
         entries.set(block, { tools, button, status, wrapper, busy: false });
+        button.addEventListener('pointerdown', event => {
+            // A mouse click should copy immediately, without WebKit first
+            // moving focus or changing the document's current text selection.
+            if (event.button === 0) event.preventDefault();
+        });
         button.addEventListener('click', event => {
             event.preventDefault(); event.stopPropagation();
             if (event.isTrusted) void controller.copy(block);

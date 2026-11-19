@@ -2,6 +2,56 @@ import XCTest
 
 final class MarkdownImageDataCollectorTests: XCTestCase {
 
+    func testRepeatedAliasMissingUnreadableAndInvalidImagePartitions() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let image = root.appendingPathComponent("pixel.png")
+        let invalid = root.appendingPathComponent("invalid.png")
+        let unreadable = root.appendingPathComponent("unreadable.png")
+        let png = try XCTUnwrap(Data(base64Encoded: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLbtAAAAABJRU5ErkJggg=="))
+        try png.write(to: image)
+        try Data("invalid image bytes".utf8).write(to: invalid)
+        try png.write(to: unreadable)
+        try FileManager.default.setAttributes([.posixPermissions: 0], ofItemAtPath: unreadable.path)
+        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: unreadable.path) }
+        let markdown = "![a](pixel.png)\n![repeat](pixel.png)\n![alias](./pixel.png)\n![alias2](folder/../pixel.png)\n![missing](missing.png)\n![invalid](invalid.png)\n![unreadable](unreadable.png)"
+        let document = root.appendingPathComponent("test.md")
+        let urls = MarkdownImageDataCollector.referencedLocalImageURLs(from: document, content: markdown)
+        XCTAssertEqual(urls, Set([image, invalid, unreadable]), "Aliases share the resource URL; metadata alone does not validate decoding/read access")
+        let data = MarkdownImageDataCollector.collectImageData(from: document, content: markdown)
+        XCTAssertEqual(data["pixel.png"], data["./pixel.png"])
+        XCTAssertEqual(data["pixel.png"], data["folder/../pixel.png"])
+        XCTAssertNil(data["missing.png"])
+        XCTAssertNil(data["unreadable.png"])
+        XCTAssertNotNil(data["invalid.png"], "Collector validates bytes/budget; image decoding must be tested in WebKit separately")
+    }
+
+    func testThirtyOneThirtyTwoThirtyThreeDistinctImageBoundary() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let png = try XCTUnwrap(Data(base64Encoded: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLbtAAAAABJRU5ErkJggg=="))
+        for index in 1...33 { try png.write(to: root.appendingPathComponent("image-\(index).png")) }
+        for count in [31, 32, 33] {
+            let markdown = (1...count).map { "![Image \($0)](image-\($0).png)" }.joined(separator: "\n")
+            let document = root.appendingPathComponent("images.md")
+            let data = MarkdownImageDataCollector.collectImageData(from: document, content: markdown)
+            let urls = MarkdownImageDataCollector.referencedLocalImageURLs(from: document, content: markdown)
+            XCTAssertEqual(urls.count, min(count, 32))
+            for index in 1...count {
+                let name = "image-\(index).png"
+                if index <= 32 {
+                    XCTAssertNotNil(data[name])
+                    XCTAssertTrue(urls.contains(root.appendingPathComponent(name).standardizedFileURL))
+                } else {
+                    XCTAssertNil(data[name], "The 33rd distinct resource must remain outside the budget")
+                    XCTAssertFalse(urls.contains(root.appendingPathComponent(name).standardizedFileURL))
+                }
+            }
+        }
+    }
+
     func testSVGOnlyCollectionLeavesRasterImagesOnTheLocalScheme() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)

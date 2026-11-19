@@ -42,3 +42,8 @@ Copy controls SHALL appear when the pointer enters their code/quote region or ke
 - **THEN** its copy toolbar fades after the delay, while remaining reachable through keyboard navigation
 - **AND** returning to the block or focusing its button reveals it immediately
 
+#### Scenario: First pointer click during reveal
+- **WHEN** the user clicks a block's reserved copy-button hit area before its hover toolbar has fully appeared
+- **THEN** that first click initiates copying without requiring a second click to reveal the toolbar
+- **AND** any existing selection popup does not cover or consume the block-control interaction
+

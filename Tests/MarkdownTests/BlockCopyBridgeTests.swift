@@ -42,6 +42,28 @@ final class BlockCopyBridgeTests: XCTestCase {
         XCTAssertTrue(bridge.acceptSequence(.init(id: "1", generation: "two", text: "private")))
     }
 
+    func testFourMiBUTF8BoundaryAndIndependentPasteboardReadback() throws {
+        let limit = 4 * 1024 * 1024
+        let board = NSPasteboard.withUniqueName()
+        defer { board.releaseGlobally() }
+        for prefix in ["", "中文 😀\t\n"] {
+            for delta in [-1, 0, 1] {
+                let expected = prefix + String(repeating: "x", count: limit + delta - prefix.utf8.count)
+                XCTAssertEqual(expected.utf8.count, limit + delta)
+                let request = BlockCopyBridge.request(
+                    ["id": "1", "generation": "boundary", "text": expected],
+                    generation: "boundary", enabled: true)
+                if delta > 0 {
+                    XCTAssertNil(request, "Above-limit payload must be rejected by UTF-8 byte count")
+                } else {
+                    let accepted = try XCTUnwrap(request)
+                    XCTAssertTrue(BlockCopyBridge.write(accepted.text, to: board))
+                    XCTAssertEqual(board.string(forType: .string), expected)
+                }
+            }
+        }
+    }
+
     func testIndependentPasteboardReadbackPreservesUnicodeWhitespace() {
         let board = NSPasteboard.withUniqueName()
         defer { board.releaseGlobally() }

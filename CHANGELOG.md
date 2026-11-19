@@ -1,5 +1,9 @@
 ## [Unreleased]
+### Added
+- **Copy selected text in Quick Look**: In Finder's expanded Quick Look preview, a small toolbar beside a selection copies it as plain text (⧉) or as Markdown (MD) with one click, which also works in hosts that never pass a right-click to the preview. The selection menu adds Copy as Markdown directly after Copy; Command-C keeps the standard copy. Each copy reports how many lines were copied and in which format. Wholly selected blocks, such as headings, lists, tables, code, alerts, math and Mermaid diagrams, copy as their exact Markdown source; a partly selected block keeps its selected formatting and links, and embedded images use their original relative path. The app window and compact previews keep their current copy behavior.
+
 ### Fixed
+- **Quick Look input after Speech**: The preview's selection menu shows Start Speaking and Stop Speaking directly instead of in a Speech submenu. After any submenu of that menu opened, Quick Look sent later clicks to the preview without a position and stopped passing drags and scrolls until the preview was closed.
 - **Quick Look full screen**: Toolbar buttons and notices keep the chosen theme when Quick Look switches its own window to a dark or translucent style, so they no longer vanish over a light page.
 - **Notice colors**: Error and size-limit notices follow the preview's theme when it differs from the system setting or changes.
 

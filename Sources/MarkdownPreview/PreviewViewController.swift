@@ -29,6 +29,19 @@ enum QuickLookFindShortcut {
 // to the QuickLook host, which would otherwise trigger "Open with default app".
 class InteractiveWebView: NativeMagnifyingWebView {
     var searchShortcutHandler: (() -> Void)?
+    var copyAsMarkdownHandler: (() -> Void)?
+    var copyAsMarkdownEnabled: (() -> Bool)?
+
+    override func willOpenMenu(_ menu: NSMenu, with event: NSEvent) {
+        super.willOpenMenu(menu, with: event)
+        if copyAsMarkdownEnabled?() == true {
+            QuickLookContextMenu.insertCopyAsMarkdown(into: menu, target: self, action: #selector(copySelectionAsMarkdown(_:)))
+        }
+        QuickLookContextMenu.flattenSpeech(in: menu)
+    }
+
+    @objc func copySelectionAsMarkdown(_ sender: Any?) { copyAsMarkdownHandler?() }
+
     override func performTextFinderAction(_ sender: Any?) {
         if QuickLookFindShortcut.isShowFindAction(sender), let searchShortcutHandler {
             searchShortcutHandler()
@@ -70,6 +83,12 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     private var truncationNotice: NSTextField?
     private let errorRegistry = RendererErrorRegistry()
     private let blockCopyBridge = BlockCopyBridge()
+    private let selectionCopyBridge = SelectionCopyBridge()
+    private var selectionCopyHostVisible = false
+    private var selectionCopyEnabled: Bool {
+        SelectionCopyBridge.enabled(expanded: currentPreviewMode != .compact, visible: selectionCopyHostVisible,
+                                    fileExtension: currentURL?.pathExtension)
+    }
     private let diagramExportBridge = DiagramExportBridge()
     private var diagnosticAttempt = UUID()
     private func logDiagnosticStage(_ stage: QuickLookDiagnosticStage, error: Error? = nil) {
@@ -517,6 +536,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         userContentController.add(self, name: "readingToolsLayout")
         userContentController.add(self, name: "errorFeedback")
         userContentController.add(self, name: "blockCopy")
+        userContentController.add(self, name: "selectionCopy")
         userContentController.add(self, name: "readingJourney")
         userContentController.add(self, name: "diagramAction")
         webConfiguration.userContentController = userContentController
@@ -540,6 +560,8 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         os_log("🔵 initializing InteractiveWebView instance...", log: logger, type: .default)
         webView = InteractiveWebView(frame: self.view.bounds, configuration: webConfiguration)
         webView.searchShortcutHandler = { [weak self] in self?.requestSearch() }
+        webView.copyAsMarkdownHandler = { [weak self] in self?.copySelectionAsMarkdown() }
+        webView.copyAsMarkdownEnabled = { [weak self] in self?.selectionCopyEnabled ?? false }
         webView.autoresizingMask = [.width, .height]
         webView.navigationDelegate = self
         self.view.addSubview(webView)
@@ -652,6 +674,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     
     public override func viewDidAppear() {
         super.viewDidAppear()
+        selectionCopyHostVisible = true
         usage.setHostVisible(true)
         usage.attach(view, document: currentURL)
         if usageReady { usage.rendered() }
@@ -699,6 +722,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         stopFollowing()
         followRenderBusy = false
         followPollBusy = false
+        selectionCopyHostVisible = false
         usage.setHostVisible(false)
         usage.stop()
         fileReadVersion.next()
@@ -774,6 +798,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "readingToolsLayout")
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "errorFeedback")
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "blockCopy")
+        webView.configuration.userContentController.removeScriptMessageHandler(forName: "selectionCopy")
         
         for recognizer in webView.gestureRecognizers where recognizer is NSClickGestureRecognizer {
             webView.removeGestureRecognizer(recognizer)
@@ -1214,7 +1239,8 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         let sourceURL = currentURL
         errorRegistry.sourceContext = { (content, sourceURL) }
         webView.evaluateJavaScript("window.setFeedbackGeneration && window.setFeedbackGeneration('\(feedbackGeneration)');", completionHandler: nil)
-        var sourceOptionsObject:[String:Any]=["format":currentURL?.pathExtension.lowercased()=="tsv" ? "tsv":"markdown","isTruncated":previewIsTruncated,"context":"quicklook","uiLanguage":AppearancePreference.shared.uiLanguage]
+        var sourceOptionsObject:[String:Any]=["format":currentURL?.pathExtension.lowercased()=="tsv" ? "tsv":"markdown","isTruncated":previewIsTruncated,"context":"quicklook","uiLanguage":AppearancePreference.shared.uiLanguage,
+                                             "selectionCopy":SelectionCopyBridge.enabled(expanded:currentPreviewMode != .compact,visible:true,fileExtension:currentURL?.pathExtension),"showCopyButtons":AppearancePreference.shared.showCopyButtons]
         if let url=currentURL{sourceOptionsObject.merge(ReadingJourneyBridge.options(for:url)){_,new in new}}
         guard let optionsData=try? JSONSerialization.data(withJSONObject:sourceOptionsObject),let sourceOptions=String(data:optionsData,encoding:.utf8) else{return}
 
@@ -1290,6 +1316,12 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     func handleMonitoredKeyDownEvent(_ event: NSEvent) -> NSEvent? {
         guard let window = view.window, event.windowNumber == window.windowNumber else { return event }
         return handleKeyDownEvent(event)
+    }
+
+    /// The renderer converts and reports the copy; the selectionCopy bridge writes the clipboard.
+    private func copySelectionAsMarkdown() {
+        guard selectionCopyEnabled else { return }
+        webView.evaluateJavaScript("window.copyQuickLookSelection && window.copyQuickLookSelection('markdown');", completionHandler: nil)
     }
 
     private func requestSearch() {
@@ -1563,6 +1595,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
             options["followFile"] = capturedFollowCapability
             if appended != nil { options["followAppendBase"] = baseLength }
             if capturedWindowStart > 0 { options["sourceLineStart"] = capturedWindowLine }
+            options["selectionCopy"] = SelectionCopyBridge.enabled(expanded: capturedPreviewMode != .compact, visible: true, fileExtension: capturedURL?.pathExtension)
             if capturedURL?.pathExtension.lowercased() == "tsv" {
                 options["format"] = "tsv"
                 options["isTruncated"] = capturedTruncated
@@ -1757,6 +1790,12 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard RendererBridgePolicy.accepts(message) else { return }
+        if message.name == "selectionCopy" {
+            selectionCopyBridge.handle(message, generation: errorRegistry.scope.uuidString,
+                                       expanded: currentPreviewMode != .compact, visible: selectionCopyHostVisible && view.window != nil && !view.isHidden,
+                                       fileExtension: currentURL?.pathExtension)
+            return
+        }
         if message.name == "diagramAction" {
             let generation=errorRegistry.scope.uuidString
             diagramExportBridge.handle(message,generation:generation,fileURL:currentURL,quickLook:true,isCurrent:{[weak self] in self?.errorRegistry.scope.uuidString==generation},reload:{[weak self] in self?.reloadFileManually()});return
