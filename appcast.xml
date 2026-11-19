@@ -7,6 +7,36 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 1.57.885</title>
+            <link>https://github.com/xykong/flux-markdown/releases/tag/v1.57.885</link>
+            <sparkle:version>885</sparkle:version>
+            <sparkle:shortVersionString>1.57.885</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+            <pubDate>Thu, 19 Nov 2026 09:13:11 +0000</pubDate>
+            <enclosure
+                url="https://github.com/xykong/flux-markdown/releases/download/v1.57.885/FluxMarkdown.dmg"
+                sparkle:edSignature="l6W47j082b9fr+wVgiOS4BQ5IgSxW5erF8wWSNb7rBAMe+fju3Hv8+Td1EyTdn9r2b2ATOL63zqTUnKka4HYCQ=="
+                length="46436406"
+                type="application/octet-stream" />
+            <description><![CDATA[
+                <h2>更新内容</h2>
+<h3>Added</h3>
+<ul>
+<li><strong>Follow Changes in Quick Look</strong>: Follow the end of a growing Markdown file from the expanded Finder Quick Look toolbar. Scrolling up or selecting text pauses Follow. Resuming refreshes the file and returns to the end. Based on <a href="https://github.com/xykong/flux-markdown/pull/74">PR #74</a> by <a href="https://github.com/ziadulhuq">@ziadulhuq</a>.</li>
+<li><strong>Large files in Quick Look</strong>: Preview up to 2 MiB of Markdown, from the beginning or, with Follow enabled, from the end. Tail windows retain file line numbers. An incomplete preview offers an action suited to the current view and file size. TSV previews retain their existing limit.</li>
+<li><strong>Progressive Quick Look rendering</strong>: Large previews can display the beginning or end first, then add the remaining rendered blocks in batches. Markdown links, footnotes and other definitions resolve across the entire preview window.</li>
+</ul>
+<h3>Fixed</h3>
+<ul>
+<li><strong>Native preview notices</strong>: Keep recovery, reporting and dismissal visible. Move report review, attachments and reply management into Feedback Options.</li>
+</ul>
+<p><a href="https://github.com/xykong/flux-markdown/releases/tag/v1.57.885">查看完整更新日志</a></p>
+            ]]></description>
+        </item>
+        
+
+
+        <item>
             <title>Version 1.55.872</title>
             <link>https://github.com/xykong/flux-markdown/releases/tag/v1.55.872</link>
             <sparkle:version>872</sparkle:version>
