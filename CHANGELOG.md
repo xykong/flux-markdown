@@ -1,4 +1,7 @@
 ## [Unreleased]
+_无待发布的变更_
+
+## [1.57.885] - 2026-11-19
 ### Added
 - **Follow Changes in Quick Look**: Follow the end of a growing Markdown file from the expanded Finder Quick Look toolbar. Scrolling up or selecting text pauses Follow. Resuming refreshes the file and returns to the end. Based on [PR #74](https://github.com/xykong/flux-markdown/pull/74) by [@ziadulhuq](https://github.com/ziadulhuq).
 - **Large files in Quick Look**: Preview up to 2 MiB of Markdown, from the beginning or, with Follow enabled, from the end. Tail windows retain file line numbers. An incomplete preview offers an action suited to the current view and file size. TSV previews retain their existing limit.
