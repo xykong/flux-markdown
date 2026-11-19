@@ -4,6 +4,7 @@
 
 ### Fixed
 - **Quick Look input after Speech**: The preview's selection menu shows Start Speaking and Stop Speaking directly instead of in a Speech submenu. After any submenu of that menu opened, Quick Look sent later clicks to the preview without a position and stopped passing drags and scrolls until the preview was closed.
+- **Quick Look selection after reopening**: When a preview reopened at the last reading position, the screen could keep an older scroll position than the page, so a new selection started a line or two above the pointer. The preview now makes the screen take the page's position after restoring it and when it appears.
 - **Quick Look full screen**: Toolbar buttons and notices keep the chosen theme when Quick Look switches its own window to a dark or translucent style, so they no longer vanish over a light page.
 - **Notice colors**: Error and size-limit notices follow the preview's theme when it differs from the system setting or changes.
 

@@ -4,7 +4,7 @@ import { rememberRenderedSource } from './selection-content';
 import { relativeImageSource } from './image-source';
 import './styles/selection-copy.css';
 import { diagramActionResult } from './diagram-actions';
-import { beginReadingRender, finishReadingRender, captureReadingState, restoreReadingState, navigateReadingHistory, updateNavigation, jumpToReadingTarget, saveReadingState, ReadingState } from './reading-state';
+import { beginReadingRender, finishReadingRender, captureReadingState, restoreReadingState, resyncScrollPosition, navigateReadingHistory, updateNavigation, jumpToReadingTarget, saveReadingState, ReadingState } from './reading-state';
 import { closeDiagramFocus, stepFocusedDiagram, scrollReadingSurface } from './diagram-focus';
 import { setReadingZoom, requestReadingZoom, applyPinchZoom, requestPinchZoom, resetZoomAt, ZoomPoint } from './reading-zoom';
 import './math-compat';
@@ -1907,6 +1907,6 @@ Object.assign(window, { stepReadingZoom:(delta:number | null)=>{
     if(stepFocusedDiagram(delta))return null;
     const level=delta===null?1:Math.max(0.5,Math.min(3,currentZoomLevel+delta));
     window.requestZoomLevel(level);return level;
-}, closeDiagramFocus, scrollReadingSurface, diagramActionResult, captureReadingState, restoreReadingState, navigateReadingHistory, updateReadingNavigation:updateNavigation, blockCopyResult, setFeedbackGeneration: (value: string) => { if (value !== feedbackGeneration()) disposeBlockCopy(); setFeedbackGeneration(value); } });
+}, closeDiagramFocus, scrollReadingSurface, diagramActionResult, captureReadingState, restoreReadingState, resyncScrollPosition, navigateReadingHistory, updateReadingNavigation:updateNavigation, blockCopyResult, setFeedbackGeneration: (value: string) => { if (value !== feedbackGeneration()) disposeBlockCopy(); setFeedbackGeneration(value); } });
 if (document.body) installErrorFeedback(document.body);
 else document.addEventListener("DOMContentLoaded", () => installErrorFeedback(document.body), { once: true });

@@ -681,6 +681,11 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         logScreenEnvironment(context: "viewDidAppear")
         
         updatePreviewMode()
+        // A scroll restored while Quick Look opens the preview can reach the page but not the
+        // screen; clicks then land a line or two away from the text under the pointer.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+            self?.webView?.evaluateJavaScript("window.resyncScrollPosition && window.resyncScrollPosition();", completionHandler: nil)
+        }
         
     }
     

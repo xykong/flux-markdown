@@ -32,6 +32,16 @@ export function captureReadingState(): ReadingState {
     const target=list.find(el=>el===element) || list.find(el=>readingRect(el).bottom>top) || list[0];
     return {id:target?.id || '',hash:target?fingerprint(target):'',index:Math.max(0,list.indexOf(target)),top:(target && readingRect(target).top) || 0,scrollY:window.scrollY,zoom:parseFloat(root?.style.getPropertyValue('zoom') || '') || 1};
 }
+/**
+ * A scroll made while Quick Look shows or resizes the preview can reach the page but not
+ * the screen: clicks then land a line or two away from the text under the pointer.
+ * A real one-pixel scroll and back makes the screen take the page's position again.
+ */
+export function resyncScrollPosition(): void {
+    const y=window.scrollY, x=window.scrollX;
+    window.scrollTo({top:y>0?y-1:y+1,left:x,behavior:'instant' as ScrollBehavior});
+    requestAnimationFrame(()=>window.scrollTo({top:y,left:x,behavior:'instant' as ScrollBehavior}));
+}
 export function restoreReadingState(state: ReadingState): boolean {
     if(!state || !Number.isFinite(state.zoom) || !Number.isFinite(state.top) || !Number.isInteger(state.index))return false;
     restoring=true;
@@ -44,6 +54,7 @@ export function restoreReadingState(state: ReadingState): boolean {
     if(target)window.scrollBy({top:readingRect(target).top-state.top,left:0,behavior:'instant' as ScrollBehavior});
     else window.scrollTo({top:state.scrollY || 0,left:0,behavior:'instant' as ScrollBehavior});
     restoring=false;
+    requestAnimationFrame(()=>requestAnimationFrame(resyncScrollPosition));
     window.dispatchEvent(new Event('scroll'));
     saveReadingState();return true;
 }
