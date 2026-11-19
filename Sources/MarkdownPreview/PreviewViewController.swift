@@ -441,7 +441,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
 
         os_log("🔵 Setting preferred size to: %.0f x %.0f", log: logger, type: .debug, width, height)
 
-        self.view = NSView(frame: NSRect(x: 0, y: 0, width: width, height: height))
+        self.view = AppearanceKeepingView(frame: NSRect(x: 0, y: 0, width: width, height: height))
         self.view.autoresizingMask = [.width, .height]
 
         logScreenEnvironment(context: "loadView-BEFORE")
@@ -603,6 +603,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         } else {
             appearance = mode.nsAppearance
         }
+        (self.view as? AppearanceKeepingView)?.selectedAppearance = appearance
         self.view.appearance = appearance
         self.webView?.appearance = appearance
         applyInitialBackgroundColor()

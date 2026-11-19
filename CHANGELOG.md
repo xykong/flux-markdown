@@ -1,5 +1,7 @@
 ## [Unreleased]
-_无待发布的变更_
+### Fixed
+- **Quick Look full screen**: Toolbar buttons and notices keep the chosen theme when Quick Look switches its own window to a dark or translucent style, so they no longer vanish over a light page.
+- **Notice colors**: Error and size-limit notices follow the preview's theme when it differs from the system setting or changes.
 
 ## [1.57.885] - 2026-11-19
 ### Added
