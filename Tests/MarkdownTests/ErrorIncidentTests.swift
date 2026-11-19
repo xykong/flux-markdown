@@ -158,6 +158,21 @@ extension ErrorIncidentTests {
 }
 
 extension ErrorIncidentTests {
+    func testNativeNoticeKeepsOptionalFeedbackActionsInAMenu() throws {
+        let notice = IncidentNotice(incident: ErrorIncident(kind: .previewLimit, source: .quicklook),
+                                    recoveryTitle: "Open in FluxMarkdown", recovery: {})
+        let content = try XCTUnwrap(notice.subviews.first as? NSStackView)
+        XCTAssertEqual(content.arrangedSubviews.count, 2)
+        let row = try XCTUnwrap(content.arrangedSubviews.last as? NSStackView)
+        let report = try XCTUnwrap(row.arrangedSubviews.compactMap { $0 as? NSButton }
+            .first { $0.title == "Report This Problem" })
+        XCTAssertTrue(report.accessibilityHelp()?.contains("GitHub") == true)
+        let options = try XCTUnwrap(row.arrangedSubviews.compactMap { $0 as? NSPopUpButton }.first)
+        XCTAssertEqual(options.itemTitles, ["Feedback Options", "Review Feedback…",
+                                           "Attach Reproduction Materials…", "My Feedback"])
+        XCTAssertTrue(options.itemArray.dropFirst().allSatisfy { $0.target === notice && $0.action != nil })
+    }
+
     func testExcludingDiagnosticsStillLeavesAnActionableCopiedReport() {
         let draft = IncidentDraft(ErrorIncident(kind: .exportPDF, source: .app))
         draft.includeDiagnostics = false

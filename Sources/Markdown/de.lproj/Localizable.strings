@@ -203,6 +203,7 @@
 "The link may point to a file that is not on this Mac, or to a path that is not relative to the document. Copy the link to open it manually, or check the path in your editor." = "Der Link verweist möglicherweise auf eine Datei, die auf diesem Mac nicht vorhanden ist, oder auf einen Pfad, der nicht relativ zum Dokument ist. Kopiere den Link, um ihn manuell zu öffnen, oder prüfe den Pfad im Editor.";
 "Report This Problem" = "Dieses Problem melden";
 "Include diagnostics" = "Diagnoseinformationen einschließen";
+"Feedback Options" = "Feedback-Optionen";
 "Review Feedback…" = "Feedback prüfen…";
 "Review Last Error…" = "Letzten Fehler ansehen…";
 "Clear Error History" = "Fehlerverlauf löschen";

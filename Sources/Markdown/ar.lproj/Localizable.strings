@@ -203,6 +203,7 @@
 "The link may point to a file that is not on this Mac, or to a path that is not relative to the document. Copy the link to open it manually, or check the path in your editor." = "قد يشير الرابط إلى ملف غير موجود على هذا الـ Mac أو إلى مسار لا يكون نسبيًا إلى المستند. انسخ الرابط لفتحه يدويًا، أو تحقّق من المسار في المحرر.";
 "Report This Problem" = "الإبلاغ عن هذه المشكلة";
 "Include diagnostics" = "تضمين التشخيصات";
+"Feedback Options" = "خيارات الملاحظات";
 "Review Feedback…" = "مراجعة الملاحظات…";
 "Review Last Error…" = "مراجعة آخر خطأ…";
 "Clear Error History" = "مسح سجل الأخطاء";

@@ -203,6 +203,7 @@
 "The link may point to a file that is not on this Mac, or to a path that is not relative to the document. Copy the link to open it manually, or check the path in your editor." = "链接指向的文件可能不在这台 Mac 上，或该路径并非相对于当前文档。可复制链接后手动打开，或在编辑器中检查该路径。";
 "Report This Problem" = "反馈此问题";
 "Include diagnostics" = "附带诊断信息";
+"Feedback Options" = "反馈选项";
 "Review Feedback…" = "查看反馈内容…";
 "Review Last Error…" = "查看最近的错误…";
 "Clear Error History" = "清除错误记录";

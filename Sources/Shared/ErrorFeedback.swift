@@ -335,17 +335,31 @@ final class IncidentNotice: NSView {
         let buttons = NSStackView(); buttons.orientation = .horizontal; buttons.spacing = 8
         buttonStack = buttons
         if let recoveryTitle, recovery != nil { buttons.addArrangedSubview(NSButton(title: ErrorFeedback.text(recoveryTitle), target: self, action: #selector(recover))) }
-        buttons.addArrangedSubview(NSButton(title: ErrorFeedback.text("Report This Problem"), target: self, action: #selector(report)))
-        buttons.addArrangedSubview(NSButton(title: ErrorFeedback.text("Review Feedback…"), target: self, action: #selector(review)))
+        let reportButton = NSButton(title: ErrorFeedback.text("Report This Problem"), target: self, action: #selector(report))
+        let reportHelp = ErrorFeedback.text("Opens GitHub with this error and system information. You confirm publication there.")
+        reportButton.toolTip = reportHelp
+        reportButton.setAccessibilityHelp(reportHelp)
+        buttons.addArrangedSubview(reportButton)
+
+        let options = NSPopUpButton(frame: .zero, pullsDown: true)
+        let optionsTitle = ErrorFeedback.text("Feedback Options")
+        options.addItem(withTitle: optionsTitle)
+        options.setAccessibilityLabel(optionsTitle)
+        options.toolTip = ErrorFeedback.disclosure
+        options.setAccessibilityHelp(ErrorFeedback.disclosure)
+        for (title, action) in [("Review Feedback…", #selector(review)),
+                                ("Attach Reproduction Materials…", #selector(prepareMaterials)),
+                                ("My Feedback", #selector(openFollowUp))] {
+            let item = NSMenuItem(title: ErrorFeedback.text(title), action: action, keyEquivalent: "")
+            item.target = self
+            options.menu?.addItem(item)
+        }
+        buttons.addArrangedSubview(options)
         buttons.addArrangedSubview(NSButton(title: ErrorFeedback.text("Close"), target: self, action: #selector(close)))
-        let disclosure = NSTextField(wrappingLabelWithString: ErrorFeedback.disclosure)
-        disclosure.font = .systemFont(ofSize: 11)
-        let extras = NSStackView(views: [ErrorActionButton(title: ErrorFeedback.text("Attach Reproduction Materials…")) { [weak self] in if let self { ErrorFeedback.prepareMaterials(self.draft) } }, ErrorActionButton(title: ErrorFeedback.text("My Feedback")) { [weak self] in if let self { ErrorFeedback.openFollowUp(self.draft.incident) } }]); extras.orientation = .vertical; extras.alignment = .leading
-        let content = NSStackView(views: [message, buttons, extras, disclosure])
+        let content = NSStackView(views: [message, buttons])
         content.orientation = .vertical; content.alignment = .leading; content.spacing = 6; content.translatesAutoresizingMaskIntoConstraints = false
         addSubview(content)
         message.widthAnchor.constraint(equalTo: content.widthAnchor).isActive = true
-        disclosure.widthAnchor.constraint(equalTo: content.widthAnchor).isActive = true
         NSLayoutConstraint.activate([content.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12), content.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12), content.topAnchor.constraint(equalTo: topAnchor, constant: 10), content.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10)])
     }
     required init?(coder: NSCoder) { nil }
@@ -357,6 +371,8 @@ final class IncidentNotice: NSView {
     @objc private func recover() { removeFromSuperview(); recovery?() }
     @objc private func report() { ErrorFeedback.report(draft, failure: { [weak self] draft in self?.showFallback(draft) }) }
     @objc private func review() { ErrorFeedback.report(draft, review: true, failure: { [weak self] draft in self?.showFallback(draft) }) }
+    @objc private func prepareMaterials() { ErrorFeedback.prepareMaterials(draft) }
+    @objc private func openFollowUp() { ErrorFeedback.openFollowUp(draft.incident) }
     private func showFallback(_ draft: IncidentDraft) {
         guard let parent = superview else { return }
         Self.fallback(in: parent, draft: draft)
