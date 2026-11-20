@@ -1,11 +1,9 @@
 ## ADDED Requirements
 
 ### Requirement: Compact image Markdown
-When converting partly selected rendered content to Markdown, an image whose file
-source is a document-relative path SHALL copy as that path, however the preview
-displays it. Without such a path, Base64 payloads longer than 200 characters and
-the preview's internal `local-md:` addresses SHALL be omitted; web addresses and
-shorter payloads SHALL be kept.
+The system SHALL preserve document-relative image paths when converting partial selections.
+Without such a path, it SHALL omit Base64 payloads longer than 200 characters and internal
+`local-md:` addresses. Web addresses and shorter payloads SHALL be kept.
 
 #### Scenario: Image-only link left out
 - **WHEN** the only content of a selected link is an omitted image
