@@ -7,6 +7,38 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 1.58.899</title>
+            <link>https://github.com/xykong/flux-markdown/releases/tag/v1.58.899</link>
+            <sparkle:version>899</sparkle:version>
+            <sparkle:shortVersionString>1.58.899</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+            <pubDate>Fri, 20 Nov 2026 03:26:13 +0000</pubDate>
+            <enclosure
+                url="https://github.com/xykong/flux-markdown/releases/download/v1.58.899/FluxMarkdown.dmg"
+                sparkle:edSignature="6KOnPLckQavM9t2KwlVBn+OlSVd70vSqPeKpxLCquSKJq3cEYX9RfRN6BhtS6uw3xbKtZdBzFJsgIlDE/JDAAw=="
+                length="46435974"
+                type="application/octet-stream" />
+            <description><![CDATA[
+                <h2>更新内容</h2>
+<h3>Added</h3>
+<ul>
+<li><strong>Copy selected text in Quick Look</strong>: In Finder's expanded Quick Look preview, a small toolbar beside a selection copies it as plain text (⧉) or as Markdown (MD) with one click, which also works in hosts that never pass a right-click to the preview. The selection menu adds Copy as Markdown directly after Copy; Command-C keeps the standard copy. Each copy reports how many lines were copied and in which format. Wholly selected blocks preserve their Markdown source where it can be pasted on its own. Partial selections preserve formatting and links, reference links keep their destinations, and embedded images use their original relative path. Based on <a href="https://github.com/xykong/flux-markdown/pull/75">PR #75</a> by <a href="https://github.com/ziadulhuq">@ziadulhuq</a>.</li>
+</ul>
+<h3>Fixed</h3>
+<ul>
+<li><strong>Quick Look input after Speech</strong>: The preview's selection menu shows Start Speaking and Stop Speaking directly instead of in a Speech submenu. After any submenu of that menu opened, Quick Look sent later clicks to the preview without a position and stopped passing drags and scrolls until the preview was closed. Based on <a href="https://github.com/xykong/flux-markdown/pull/75">PR #75</a> by <a href="https://github.com/ziadulhuq">@ziadulhuq</a>.</li>
+<li><strong>Quick Look selection after reopening</strong>: When a preview reopened at the last reading position, the screen could keep an older scroll position than the page, so a new selection started a line or two above the pointer. The preview now makes the screen take the page's position after restoring it and when it appears. Based on <a href="https://github.com/xykong/flux-markdown/pull/75">PR #75</a> by <a href="https://github.com/ziadulhuq">@ziadulhuq</a>.</li>
+<li><strong>Quick Look full screen</strong>: Toolbar buttons and notices keep the chosen theme when Quick Look switches its own window to a dark or translucent style, so they no longer vanish over a light page. Based on <a href="https://github.com/xykong/flux-markdown/pull/75">PR #75</a> by <a href="https://github.com/ziadulhuq">@ziadulhuq</a>.</li>
+<li><strong>Notice colors</strong>: Error and size-limit notices follow the preview's theme when it differs from the system setting or changes. Based on <a href="https://github.com/xykong/flux-markdown/pull/75">PR #75</a> by <a href="https://github.com/ziadulhuq">@ziadulhuq</a>.</li>
+<li><strong>Quick Look Follow Changes</strong>: Paused Follow has a distinct button and shows when new content is waiting. Use the button to resume or double-click to stop. Based on <a href="https://github.com/xykong/flux-markdown/pull/76">PR #76</a> by <a href="https://github.com/ziadulhuq">@ziadulhuq</a>.</li>
+</ul>
+<p><a href="https://github.com/xykong/flux-markdown/releases/tag/v1.58.899">查看完整更新日志</a></p>
+            ]]></description>
+        </item>
+        
+
+
+        <item>
             <title>Version 1.57.885</title>
             <link>https://github.com/xykong/flux-markdown/releases/tag/v1.57.885</link>
             <sparkle:version>885</sparkle:version>
