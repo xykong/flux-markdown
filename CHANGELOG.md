@@ -7,6 +7,7 @@
 - **Quick Look selection after reopening**: When a preview reopened at the last reading position, the screen could keep an older scroll position than the page, so a new selection started a line or two above the pointer. The preview now makes the screen take the page's position after restoring it and when it appears. Based on [PR #75](https://github.com/xykong/flux-markdown/pull/75) by [@ziadulhuq](https://github.com/ziadulhuq).
 - **Quick Look full screen**: Toolbar buttons and notices keep the chosen theme when Quick Look switches its own window to a dark or translucent style, so they no longer vanish over a light page. Based on [PR #75](https://github.com/xykong/flux-markdown/pull/75) by [@ziadulhuq](https://github.com/ziadulhuq).
 - **Notice colors**: Error and size-limit notices follow the preview's theme when it differs from the system setting or changes. Based on [PR #75](https://github.com/xykong/flux-markdown/pull/75) by [@ziadulhuq](https://github.com/ziadulhuq).
+- **Quick Look Follow Changes**: Paused Follow has a distinct button and shows when new content is waiting. Use the button to resume or double-click to stop. Based on [PR #76](https://github.com/xykong/flux-markdown/pull/76) by [@ziadulhuq](https://github.com/ziadulhuq).
 
 ## [1.57.885] - 2026-11-19
 ### Added

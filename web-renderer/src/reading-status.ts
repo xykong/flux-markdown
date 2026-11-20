@@ -61,7 +61,7 @@ export class ReadingStatus {
     isMounted(): boolean { return this.element === document.getElementById('reading-status'); }
     render(text: string, filename?: string, previous?: string): void {
         if (this.timer) clearTimeout(this.timer);
-        this.updated.hidden = true;
+        this.updated.hidden = true; delete this.updated.dataset.waiting;
         this.headings = Array.from(document.querySelectorAll<HTMLElement>('#markdown-preview h1[id], #markdown-preview h2[id], #markdown-preview h3[id], #markdown-preview h4[id], #markdown-preview h5[id], #markdown-preview h6[id]'));
         this.parent.textContent = ''; this.current.textContent = ''; this.path.title = '';
         this.file.textContent = document.documentElement.dataset.context === 'quicklook' ? filename || '' : '';
@@ -74,12 +74,21 @@ export class ReadingStatus {
         this.lastText = text;
         this.update();
     }
+    /** A paused Follow shows that the file changed until the view updates again. */
+    waiting(on: boolean): void {
+        if (this.timer) { clearTimeout(this.timer); this.timer = null; }
+        this.updated.textContent = on ? this.strings()[1] : '';
+        this.updated.hidden = !on;
+        if (on) this.updated.dataset.waiting = ''; else delete this.updated.dataset.waiting;
+        this.update();
+    }
     private strings(): string[] {
         const lang = (window.__fluxLang || navigator.language || 'en').split('-')[0];
         return labels[lang as keyof typeof labels] || labels.en;
     }
     private update(): void {
-        const value = scrollProgress(window.scrollY, document.documentElement.scrollHeight, window.innerHeight);
+        // While newer lines wait, a position measured in the older text would mislead.
+        const value = 'waiting' in this.updated.dataset ? null : scrollProgress(window.scrollY, document.documentElement.scrollHeight, window.innerHeight);
         this.progress.hidden = value === null;
         this.progress.textContent = value === null ? '' : `${this.strings()[0]} ${value}%`;
         this.progress.title = this.progress.textContent;

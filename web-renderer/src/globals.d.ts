@@ -44,6 +44,7 @@ interface Window {
     setQuickLookFollow: (enabled: boolean) => void;
     quickLookFollowStatus: () => {active:boolean;paused:boolean;selected:boolean;copying?:boolean};
     copyQuickLookSelection?: (format?: 'plain' | 'markdown') => void;
+    quickLookFollowWaiting?: (on: boolean) => void;
     webkit?: {
         messageHandlers: WebkitMessageHandlers;
     };
