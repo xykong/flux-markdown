@@ -1,5 +1,6 @@
 ## [Unreleased]
-_无待发布的变更_
+### Fixed
+- **Quick Look Follow Changes**: Paused Follow has a distinct button and shows when new content is waiting. Use the button to resume or double-click to stop. Based on [PR #76](https://github.com/xykong/flux-markdown/pull/76) by [@ziadulhuq](https://github.com/ziadulhuq).
 
 ## [1.57.885] - 2026-11-19
 ### Added

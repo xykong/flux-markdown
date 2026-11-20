@@ -539,7 +539,7 @@ const nextTask = () => new Promise<void>(resolve => {
     channel.port2.postMessage(null);
 });
 Object.assign(window, {
-    setQuickLookFollow: (enabled: boolean) => { if (!enabled) readingStatus?.waiting(false); followFile?.set(enabled); },
+    setQuickLookFollow: (enabled: boolean) => { readingStatus?.waiting(false); followFile?.set(enabled); },
     quickLookFollowWaiting: (on: boolean) => readingStatus?.waiting(on),
     quickLookFollowStatus: () => followFile?.status() ?? {active:false,paused:false,selected:false}
 });

@@ -17,6 +17,30 @@ final class QuickLookFollowStateTests: XCTestCase {
         state.succeeded(); XCTAssertFalse(state.suspended)
         state.start(); XCTAssertFalse(state.failedAttempt())
     }
+    func testDisplayedRevisionRearmsWaitingNoticeForSamePausedSession() {
+        var state = QuickLookFollowState()
+        state.start()
+        state.paused = true
+        let session = state.session
+        XCTAssertTrue(state.markLinesWaiting(in: session))
+        XCTAssertFalse(state.markLinesWaiting(in: session))
+        state.previewDidRender()
+        XCTAssertTrue(state.paused)
+        XCTAssertTrue(state.markLinesWaiting(in: session))
+    }
+
+    func testStaleRevisionResultCannotUpdateNewPausedSession() {
+        var state = QuickLookFollowState()
+        state.start()
+        state.paused = true
+        let session = state.session
+        state.stop()
+        state.start()
+        state.paused = true
+        XCTAssertFalse(state.markLinesWaiting(in: session))
+        XCTAssertTrue(state.markLinesWaiting(in: state.session))
+    }
+
     func testClickResumesPausedFollowAndDoubleClickStops() {
         var state = QuickLookFollowState()
         XCTAssertEqual(state.buttonLook, .off)
@@ -28,10 +52,10 @@ final class QuickLookFollowStateTests: XCTestCase {
         XCTAssertEqual(state.buttonLook, .paused)
         XCTAssertEqual(state.buttonClick(clickCount: 1), .resume)
         XCTAssertEqual(state.buttonClick(clickCount: 2), .stop, "A double click stops a paused Follow")
-        state.linesWaiting = true
+        XCTAssertTrue(state.markLinesWaiting(in: state.session))
         state.start()
         XCTAssertFalse(state.linesWaiting); XCTAssertFalse(state.paused)
-        state.paused = true; state.linesWaiting = true
+        state.paused = true; XCTAssertTrue(state.markLinesWaiting(in: state.session))
         state.stop()
         XCTAssertEqual(state.buttonLook, .off); XCTAssertFalse(state.linesWaiting)
     }
@@ -53,6 +77,12 @@ final class QuickLookFollowButtonTests: XCTestCase {
         button?.performClick(nil)
         XCTAssertEqual(button?.state, .off)
     }
+    func testPausedIconHasADistinctSymbolWithoutPaletteSupport() {
+        let paused = FollowButtonIcon.systemName(for: .paused)
+        XCTAssertNotEqual(paused, FollowButtonIcon.systemName(for: .off))
+        XCTAssertNotNil(NSImage(systemSymbolName: paused, accessibilityDescription: nil))
+    }
+
     func testPausedIconDrawsOrangeOnAnOffCircularButton() {
         guard #available(macOS 12.0, *) else { return } // palette symbols need macOS 12
         func orangePixels(_ image: NSImage?) -> Int {

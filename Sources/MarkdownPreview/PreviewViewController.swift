@@ -28,9 +28,13 @@ enum QuickLookFindShortcut {
 /// A circular bordered button draws its icon in the label colour while it is off and
 /// ignores contentTintColor, so the paused Follow icon carries its orange in the image.
 enum FollowButtonIcon {
+    static func systemName(for look: QuickLookFollowState.ButtonLook) -> String {
+        look == .paused ? "pause.fill" : "arrow.down.to.line"
+    }
+
     static func paused(_ image: NSImage?) -> NSImage? {
         guard #available(macOS 12.0, *) else { return image }
-        return image?.withSymbolConfiguration(NSImage.SymbolConfiguration(paletteColors: [.systemOrange]))
+        return image?.withSymbolConfiguration(NSImage.SymbolConfiguration(paletteColors: [.systemOrange])) ?? image
     }
 }
 
@@ -402,7 +406,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         switch followState.buttonLook { case .off: title = "Follow Changes"; case .following: title = "Stop Following"; case .paused: title = "Resume Following" }
         let tint: NSColor
         switch followState.buttonLook { case .off: tint = .labelColor; case .following: tint = .systemBlue; case .paused: tint = .systemOrange }
-        followButton?.configure(systemName: "arrow.down.to.line", accessibilityDescription: NSLocalizedString(title, comment: "Follow toolbar"), tintColor: tint, toolTip: NSLocalizedString(title, comment: "Follow toolbar"))
+        followButton?.configure(systemName: FollowButtonIcon.systemName(for: followState.buttonLook), accessibilityDescription: NSLocalizedString(title, comment: "Follow toolbar"), tintColor: tint, toolTip: NSLocalizedString(title, comment: "Follow toolbar"))
         // The on state draws an accent-filled circle that ignores the tint, so a paused
         // Follow shows as an orange icon without the fill.
         followButton?.state = followState.buttonLook == .following ? .on : .off
@@ -436,16 +440,20 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     private func checkForWaitingLines() {
         guard followState.paused, !followState.linesWaiting, let url = currentURL else { return }
         let shown = previewRevision
+        let session = followState.session
         DispatchQueue.global(qos: .utility).async {
             let changed = (try? PreviewFileReader.revision(at: url)).map { $0 != shown } ?? false
             DispatchQueue.main.async { [weak self] in
-                guard let self, changed, self.currentURL == url, self.followState.paused, !self.followState.linesWaiting else { return }
-                self.followState.linesWaiting = true
+                guard let self, changed, self.currentURL == url,
+                      self.previewRevision == shown, !self.fileReadInFlight, !self.followRenderBusy,
+                      self.followState.markLinesWaiting(in: session) else { return }
                 self.webView.evaluateJavaScript("window.quickLookFollowWaiting && window.quickLookFollowWaiting(true);", completionHandler: nil)
             }
         }
     }
     private func startFollowing() {
+        pendingResume?.cancel()
+        pendingResume = nil
         followState.start()
         // A selection holds Follow updates; turning Follow on is a request to see the end now.
         webView.evaluateJavaScript("window.getSelection() && window.getSelection().removeAllRanges();", completionHandler: nil)
@@ -456,6 +464,8 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         reloadFromDisk(force: true)
     }
     @objc private func stopFollowing() {
+        pendingResume?.cancel()
+        pendingResume = nil
         followState.stop()
         if pollingTimer != nil { startPollingTimer() }
         webView?.evaluateJavaScript("window.setQuickLookFollow && window.setQuickLookFollow(false);", completionHandler: nil)
@@ -1687,6 +1697,8 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                             os_log("Quick Look probe did not verify the rendered fixture", log: self.logger, type: .default)
                             break
                         }
+                        // The renderer cleared its waiting notice for the newly displayed content.
+                        self.followState.previewDidRender()
                         self.usageReady = true
                         self.usage.rendered()
                         os_log("🔵 renderMarkdown completed successfully, result: %{public}@", log: self.logger, type: .debug, String(describing: value))
@@ -2311,10 +2323,12 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         if followState.enabled {
             followPollBusy = true
             let url = currentURL
+            let session = followState.session
             webView.evaluateJavaScript("window.quickLookFollowStatus && window.quickLookFollowStatus();") { [weak self] result, _ in
                 guard let self else { return }
                 self.followPollBusy = false
-                guard self.currentURL == url, self.followState.enabled else { return }
+                guard self.currentURL == url, self.followState.enabled,
+                      self.followState.session == session else { return }
                 let state = result as? [String: Any]
                 self.followState.paused = state?["paused"] as? Bool ?? false
                 self.updateFollowButton()
