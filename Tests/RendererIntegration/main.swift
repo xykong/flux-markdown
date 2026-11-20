@@ -11,6 +11,9 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private var previousApplication: NSRunningApplication?
     private let mathPasteboard = NSPasteboard.withUniqueName()
     private let mathCopyBridge = BlockCopyBridge()
+    private let boundaryCopyBridge = BlockCopyBridge()
+    private var imageScheme: LocalSchemeHandler!
+    private var boundaryRequestCount = 0
     private var failNextMathCopy = false
     private let diagramExport=DiagramExportService()
     private let diagramPasteboard=NSPasteboard.withUniqueName()
@@ -51,6 +54,84 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         const top=viewportRect(document.getElementById('saved-position')).top;
         if(Math.abs(top-120)>3 || window.captureReadingState().zoom!==1.5)throw new Error('unfinished opening replaced the durable reading position: '+top);
         window.setZoomLevel(1);return true;
+        """),
+        ("native production clipboard byte boundaries", """
+        const limit=4*1024*1024, received=[];
+        const original=window.blockCopyResult;
+        window.blockCopyResult=(id,generation,success)=>received.push({id,generation,success});
+        let sequence=1000;
+        try {
+          for(const prefix of ['', '中文 😀\\t\\n']) for(const delta of [-1,0,1]) {
+            const text=prefix+'x'.repeat(limit+delta-new TextEncoder().encode(prefix).length);
+            if(new TextEncoder().encode(text).length!==limit+delta)throw new Error('Invalid fixture byte length');
+            const id=String(sequence++), before=received.length;
+            window.webkit.messageHandlers.blockCopy.postMessage({id,generation:'boundary',text});
+            if(delta<=0) {
+              const deadline=Date.now()+5000;
+              while(received.length===before && Date.now()<deadline)await new Promise(r=>setTimeout(r,10));
+              const ack=received[before];
+              if(!ack || ack.id!==id || ack.generation!=='boundary' || ack.success!==true)throw new Error('Missing or wrong native acknowledgement');
+            } else {
+              await new Promise(r=>setTimeout(r,200));
+              if(received.length!==before)throw new Error('Oversized request acknowledged');
+            }
+          }
+          const before=received.length;
+          window.webkit.messageHandlers.blockCopy.postMessage({id:String(sequence),generation:'stale-boundary',text:'STALE'});
+          await new Promise(r=>setTimeout(r,200));
+          if(received.length!==before)throw new Error('Stale request acknowledged');
+          return true;
+        } finally {window.blockCopyResult=original;}
+        """),
+        ("production image count boundaries", """
+        for(const context of ['app','quicklook']) for(const count of [31,32,33]) {
+          const markdown=Array.from({length:count},(_,i)=>`![Image ${i+1}](boundary-${i+1}.png)`).join('\\n\\n')+'\\n\\nIMAGE-BOUNDARY-END';
+          await window.renderMarkdown(markdown,{context,baseUrl:imageBase});
+          const images=[...document.querySelectorAll('#markdown-preview img')];
+          const deadline=Date.now()+5000;
+          while(images.some(i=>!i.complete) && Date.now()<deadline)await new Promise(r=>setTimeout(r,20));
+          if(images.length!==count)throw new Error('Image element count changed');
+          for(let i=0;i<count;i++) {
+            const expected=i<32?1:0;
+            if(images[i].naturalWidth!==expected || images[i].naturalHeight!==expected)throw new Error(JSON.stringify({context,count,index:i+1,width:images[i].naturalWidth,height:images[i].naturalHeight}));
+          }
+          if(!document.getElementById('markdown-preview').textContent.includes('IMAGE-BOUNDARY-END'))throw new Error('Final content lost');
+        }
+        return true;
+        """),
+        ("production image alias and invalid decode partitions", """
+        for(const context of ['app','quicklook']) {
+          await window.renderMarkdown('![one](pixel.png)\\n\\n![repeat](pixel.png)\\n\\n![alias](./pixel.png)\\n\\n![invalid](invalid.png)\\n\\n![missing](missing.png)\\n\\nPARTITION-END',{context,baseUrl:imageBase});
+          const images=[...document.querySelectorAll('#markdown-preview img')], deadline=Date.now()+5000;
+          while(images.some(i=>!i.complete) && Date.now()<deadline)await new Promise(r=>setTimeout(r,20));
+          if(images.length!==5 || images.slice(0,3).some(i=>i.naturalWidth!==1 || i.naturalHeight!==1) || images.slice(3).some(i=>i.naturalWidth!==0))throw new Error('Alias/decode partition mismatch');
+          if(!document.getElementById('markdown-preview').textContent.includes('PARTITION-END'))throw new Error('Partition tail lost');
+        }
+        return true;
+        """),
+        ("Quick Look selection scope and lifecycle", """
+        const root=document.getElementById('markdown-preview');
+        const settle=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+        for(const context of ['app','finder','quicklook']) {
+          await window.renderMarkdown('hello **world**',{context,selectionCopy:true,showCopyButtons:true});
+          const text=root.querySelector('strong').firstChild;
+          const range=document.createRange();range.selectNodeContents(text);
+          const selection=getSelection();selection.removeAllRanges();selection.addRange(range);
+          await settle();
+          let tools=root.querySelector('.selection-copy-tools');
+          if(context==='quicklook') {
+            // selectionchange arrives as its own task, so on a slow runner the toolbar
+            // update can land after the two frames above.
+            for(const deadline=Date.now()+2000;(!tools || tools.hidden) && Date.now()<deadline;tools=root.querySelector('.selection-copy-tools'))await settle();
+            if(!tools || tools.hidden || [...tools.querySelectorAll('button')].map(b=>b.textContent).join()!=='⧉,MD')throw new Error('Selection copy buttons missing');
+            if(new DOMParser().parseFromString(window.exportHTML(),'text/html').querySelector('.selection-copy-tools'))throw new Error('Selection tools leaked into export');
+          } else if(tools)throw new Error('Selection controller enabled outside Quick Look');
+        }
+        window.renderSource('**source**','light',undefined,{context:'quicklook',selectionCopy:true,showCopyButtons:true});
+        if(!root.querySelector('.selection-copy-tools'))throw new Error('Source-first controller missing');
+        window.renderSource('app source','light');
+        if(root.querySelector('.selection-copy-tools'))throw new Error('Source inherited selection capability');
+        return true;
         """),
         ("Reading workflow focus navigation and refresh", """
         const text=Array.from({length:45},(_,i)=>'## Chapter '+i+'\\n\\nDistinct paragraph for chapter '+i+'. '+('Readable text. '.repeat(25))).join('\\n\\n')+'\\n\\n```mermaid\\nflowchart LR; A[Inspect]-->B[Diagram];\\n```';
@@ -552,6 +633,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         while(!document.hasFocus() && performance.now()<nativeFocusDeadline)await new Promise(r=>setTimeout(r,50));
         if(!document.hasFocus())throw new Error('Environment: native test window did not become active');
         const tools=document.querySelector('.block-copy-tools'),button=tools.querySelector('button');
+        if(getComputedStyle(button).pointerEvents!=='auto')throw new Error('Hidden copy button rejects the first pointer click');
         const opacity=()=>Number(getComputedStyle(tools).opacity);
         const hoverless=matchMedia('(hover: none)').matches;
         const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1015,6 +1097,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         let imageURL = imageDirectory.appendingPathComponent("pixel.png")
         try! Data(base64Encoded: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLbtAAAAABJRU5ErkJggg==")!.write(to: imageURL)
         let images = LocalSchemeHandler()
+        imageScheme = images
         images.baseDirectory = imageDirectory
         let svgURL = imageDirectory.appendingPathComponent("plugin/assets/plugin.svg")
         try! FileManager.default.createDirectory(at: svgURL.deletingLastPathComponent(), withIntermediateDirectories: true)
@@ -1023,6 +1106,14 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         svgImageData = MarkdownImageDataCollector.collectImageData(from: markdownURL, content: svgMarkdown)
         guard svgImageData["plugin/assets/plugin.svg"] != nil else { fatalError("SVG collector failed") }
         images.allowedFileURLs = MarkdownImageDataCollector.referencedLocalImageURLs(from: markdownURL, content: svgMarkdown).union([imageURL])
+        for index in 1...33 {
+            try! Data(contentsOf: imageURL).write(to: imageDirectory.appendingPathComponent("boundary-\(index).png"))
+        }
+        let boundaryMarkdown = (1...33).map { "![Image \($0)](boundary-\($0).png)" }.joined(separator: "\n")
+        images.allowedFileURLs.formUnion(MarkdownImageDataCollector.referencedLocalImageURLs(from: markdownURL, content: boundaryMarkdown))
+        let invalidImage = imageDirectory.appendingPathComponent("invalid.png")
+        try! Data("invalid image bytes".utf8).write(to: invalidImage)
+        images.allowedFileURLs.insert(invalidImage)
         config.setURLSchemeHandler(images, forURLScheme: "local-md")
         webView = WKWebView(frame: CGRect(x: 0, y: 0, width: 800, height: 600), configuration: config)
         webView.load(URLRequest(url: RendererBundleSchemeHandler.rendererURL()))
@@ -1050,6 +1141,21 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
             return
         }
         if message.name == "blockCopy" {
+            if index < cases.count, cases[index].0 == "native production clipboard byte boundaries" {
+                let sentinel = "BOUNDARY-SENTINEL-\(boundaryRequestCount)"
+                guard BlockCopyBridge.write(sentinel, to: mathPasteboard) else { fatalError("Boundary sentinel write failed") }
+                boundaryCopyBridge.handle(message, generation: "boundary", enabled: true, pasteboard: mathPasteboard)
+                if boundaryRequestCount < 6 {
+                    let delta = [-1, 0, 1][boundaryRequestCount % 3]
+                    let prefix = boundaryRequestCount < 3 ? "" : "中文 😀\t\n"
+                    let expected = delta > 0 ? sentinel : prefix + String(repeating: "x", count: 4 * 1024 * 1024 + delta - prefix.utf8.count)
+                    guard mathPasteboard.string(forType: .string) == expected else { fatalError("Native boundary pasteboard mismatch") }
+                } else {
+                    guard mathPasteboard.string(forType: .string) == sentinel else { fatalError("Stale request changed clipboard") }
+                }
+                boundaryRequestCount += 1
+                return
+            }
             if failNextMathCopy, let body = message.body as? [String: Any],
                let id = body["id"] as? String, let generation = body["generation"] as? String {
                 failNextMathCopy = false
@@ -1088,6 +1194,8 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private func next() {
         if index == cases.count { print("PASS all \(cases.count) real WebKit cases"); exit(0) }
         let (name, js) = cases[index]
+        // Each case represents a new document and gets a fresh resource-byte budget.
+        imageScheme.allowedFileURLs = imageScheme.allowedFileURLs
         // Send one resize per case so WebKit cannot lay out an intermediate viewport.
         let size: NSSize
         if name.hasPrefix("Reading zoom") || name.hasPrefix("Reading workflow") {
@@ -1102,7 +1210,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
             size = NSSize(width: 800, height: 600)
         }
         webView.setFrameSize(size)
-        if name == "compact feedback focus and text bounds" || name == "inline math copy controls preserve text spacing" || name == "Quick Look follow timed updates" || name == "Progressive commit shows first pages quickly" || name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
+        if name == "compact feedback focus and text bounds" || name == "inline math copy controls preserve text spacing" || name == "Quick Look selection scope and lifecycle" || name == "Quick Look follow timed updates" || name == "Progressive commit shows first pages quickly" || name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
             // :focus-within requires an active WebKit page, not just activeElement
             // in the otherwise windowless integration harness.
             guard let policy = TestWindowPolicy(environment: ProcessInfo.processInfo.environment), policy.allowsFocus else {
@@ -1155,6 +1263,9 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         webView.callAsyncJavaScript(viewportGeometry + "\n" + js, arguments: ["strictTiming": ProcessInfo.processInfo.environment["CI"] == nil, "needsFocus":focusWindow != nil, "expectedWidth":size.width, "expectedHeight":size.height, "imageBase": CommandLine.arguments[2], "svgMarkdown": svgMarkdown, "svgImageData": svgImageData, "sizingSVGData": sizingSVGData], in: nil, in: .page) { result in
             switch result {
             case .success(let value) where value as? Bool == true:
+                if name == "native production clipboard byte boundaries", self.boundaryRequestCount != 7 {
+                    print("FAIL boundary requests did not traverse native bridge"); exit(1)
+                }
                 if name == "math native keyboard copy and reference" {
                     guard self.mathPasteboard.string(forType: .string) == #"\(\frac{x}{2}\)"# else { print("FAIL mathematical clipboard source"); exit(1) }
                     self.mathPasteboard.releaseGlobally()
@@ -1165,7 +1276,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
                           reports[0]["generation"] as? String == "11111111-1111-1111-1111-111111111111",
                           !String(describing: self.feedbackEvents).contains("SAMPLE-DO-NOT-INCLUDE") else { print("FAIL feedback payload or stale action"); exit(1) }
                 }
-                if (name == "compact feedback focus and text bounds" && ProcessInfo.processInfo.environment["FLUX_WEBKIT_SNAPSHOT_DIR"] == nil) || name == "inline math copy controls preserve text spacing" || name == "Quick Look follow timed updates" || name == "Progressive commit shows first pages quickly" || name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
+                if (name == "compact feedback focus and text bounds" && ProcessInfo.processInfo.environment["FLUX_WEBKIT_SNAPSHOT_DIR"] == nil) || name == "inline math copy controls preserve text spacing" || name == "Quick Look follow timed updates" || name == "Progressive commit shows first pages quickly" || name == "Quick Look selection scope and lifecycle" || name == "block copy delayed visibility and focus" || name == "math native keyboard copy and reference" || (name.hasPrefix("Mermaid body-size") || name.hasPrefix("SVG and Mermaid")) {
                     self.focusWindow?.contentView = nil
                     self.focusWindow?.orderOut(nil)
                     self.focusWindow = nil

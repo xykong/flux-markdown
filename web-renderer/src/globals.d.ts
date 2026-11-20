@@ -25,6 +25,7 @@ declare module '@iktakahiro/markdown-it-katex' {
 }
 
 interface WebkitMessageHandlers {
+    selectionCopy?: { postMessage: (request: { id: string; generation: string; text: string }) => void };
     readingJourney?: { postMessage: (request: Record<string, unknown>) => void };
     diagramAction?: { postMessage: (request: Record<string, unknown>) => void };
     blockCopy?: { postMessage: (request: { id: string; generation: string; text: string }) => void };
@@ -34,10 +35,15 @@ interface WebkitMessageHandlers {
     linkClicked: { postMessage: (href: string) => void };
 }
 
+declare module 'turndown-plugin-gfm' {
+    import TurndownService from 'turndown';
+    export const gfm: TurndownService.Plugin;
+}
 
 interface Window {
     setQuickLookFollow: (enabled: boolean) => void;
     quickLookFollowStatus: () => {active:boolean;paused:boolean;selected:boolean;copying?:boolean};
+    copyQuickLookSelection?: (format?: 'plain' | 'markdown') => void;
     quickLookFollowWaiting?: (on: boolean) => void;
     webkit?: {
         messageHandlers: WebkitMessageHandlers;

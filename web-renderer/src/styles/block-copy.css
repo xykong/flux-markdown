@@ -10,12 +10,14 @@
 }
 .block-copy-host { min-width: 0; }
 .block-copy-error { flex-basis: 100%; }
-/* Opacity preserves layout and Tab navigation. Invisible controls cannot intercept clicks. */
+/* The reserved button hit area stays active during reveal. Otherwise a fast
+   first click only reveals the toolbar and never reaches the copy button. */
 .block-copy-tools {
   opacity: 0;
   pointer-events: none;
   transition: opacity 250ms ease 600ms;
 }
+.block-copy-tools > button { pointer-events: auto; }
 .block-copy-host:hover > .block-copy-tools,
 blockquote:hover > .block-copy-tools,
 .markdown-alert:hover > .block-copy-tools,

@@ -324,13 +324,18 @@ final class IncidentNotice: NSView {
     private let draft: IncidentDraft
     private let recovery: (() -> Void)?
     private var buttonStack: NSStackView?
+    override var wantsUpdateLayer: Bool { true }
+    /// A CGColor is fixed when it is made; resolve it in this view's appearance, again whenever that changes.
+    override func updateLayer() {
+        effectiveAppearance.performAsCurrentDrawingAppearance { layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor }
+    }
     init(incident: ErrorIncident, guidance: String? = nil, recoveryTitle: String? = nil, recovery: (() -> Void)? = nil) {
         draft = IncidentDraft(incident); self.recovery = recovery
         super.init(frame: .zero)
         setAccessibilityElement(true)
         setAccessibilityRole(.group)
         setAccessibilityLabel(ErrorFeedback.text(incident.kind.title))
-        wantsLayer = true; layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor; layer?.cornerRadius = 8
+        wantsLayer = true; layer?.cornerRadius = 8
         let message = NSTextField(wrappingLabelWithString: ErrorFeedback.text(incident.kind.title) + ". " + ErrorFeedback.text(guidance ?? incident.guidance))
         let buttons = NSStackView(); buttons.orientation = .horizontal; buttons.spacing = 8
         buttonStack = buttons
