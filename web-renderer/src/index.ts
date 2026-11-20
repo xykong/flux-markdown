@@ -1289,7 +1289,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         // No await between the final selection check and installing controls.
         followFile?.status();
         followFile?.captureAnchor();
-        rememberRenderedSource(outputDiv, text, windowLine);
+        rememberRenderedSource(outputDiv, text, windowLine, Object.keys(environment.references).length > 0);
         // Kept blocks keep their copy controls; re-wrapping every code block
         // would invalidate the layout of the whole document.
         if (previous && blockCopy) { disposeSelectionCopy?.(); disposeSelectionCopy = undefined; }

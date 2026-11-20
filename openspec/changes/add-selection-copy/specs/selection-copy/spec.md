@@ -78,7 +78,8 @@ unselected text.
 
 #### Scenario: Whole blocks
 - **WHEN** a selection copied as Markdown contains all the text of a top-level block, such as a heading, list, table, code block, alert, math block or Mermaid diagram
-- **THEN** that block is copied as its exact source lines, so Markdown editors render it again
+- **THEN** that block is copied as its source lines when they can render independently
+- **AND** reference links or images with external definitions retain their resolved destination in the pasted Markdown
 - **AND** a partly selected block, and any block inside it, is converted from the selected part instead
 - **AND** a whole Mermaid diagram inside a partly selected block is copied as its fenced `mermaid` source
 - **AND** plain-text copies keep the readable text

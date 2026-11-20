@@ -11,9 +11,9 @@ const converter = new TurndownService({ codeBlockStyle: 'fenced', emDelimiter: '
 converter.use(gfm);
 
 /** The text each root shows, and the file line just before its first line (non-zero for a tail window). */
-const renderedSource = new WeakMap<Element, { text: string; firstLine: number }>();
-export function rememberRenderedSource(root: Element, text: string, firstLine: number): void {
-    renderedSource.set(root, { text, firstLine });
+const renderedSource = new WeakMap<Element, { text: string; firstLine: number; hasReferences: boolean }>();
+export function rememberRenderedSource(root: Element, text: string, firstLine: number, hasReferences = false): void {
+    renderedSource.set(root, { text, firstLine, hasReferences });
 }
 
 /** Construct only intersected content while retaining its ancestor semantics. */
@@ -23,7 +23,13 @@ export function selectedContent(root: HTMLElement, range: Range, format: CopyFor
     const rendered = !source && format === 'markdown' ? renderedSource.get(root) : undefined;
     const lines = rendered?.text.split('\n');
     /** All of the node's visible text is selected; a drag need not start before the node. */
-    function wholly(node: Node): boolean {
+    function wholly(node: Element): boolean {
+        for (const leaf of node.querySelectorAll('img, br, hr')) {
+            if (leaf.closest(ignored) || getComputedStyle(leaf).display === 'none') continue;
+            const parent = leaf.parentNode!;
+            const index = Array.prototype.indexOf.call(parent.childNodes, leaf);
+            if (range.comparePoint(parent, index) !== 0 || range.comparePoint(parent, index + 1) !== 0) return false;
+        }
         const texts: Text[] = [];
         const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
         for (let text = walker.nextNode() as Text | null; text; text = walker.nextNode() as Text | null) {
@@ -43,6 +49,9 @@ export function selectedContent(root: HTMLElement, range: Range, format: CopyFor
         const start = Number(node.getAttribute('data-source-line')), end = Number(node.getAttribute('data-source-line-end'));
         if (!Number.isInteger(start) || !Number.isInteger(end) || start <= rendered.firstLine || end < start || end - rendered.firstLine > lines.length) return undefined;
         const text = lines.slice(start - 1 - rendered.firstLine, end - rendered.firstLine).join('\n').replace(/\s+$/, '');
+        // Reference links and images can depend on definitions outside this block.
+        // Convert the rendered selection so its destinations survive a standalone paste.
+        if (rendered.hasReferences && text.includes('[') && node.querySelector('a[href], img')) return undefined;
         return text && wholly(node) ? text : undefined;
     }
     function clone(node: Node, nested = false): Node | null {

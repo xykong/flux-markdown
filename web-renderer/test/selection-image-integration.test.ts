@@ -42,3 +42,22 @@ test('selecting a whole rendered document copies its Markdown source', async () 
     const range = document.createRange(); range.selectNodeContents(root);
     expect(selectedContent(root,range,'markdown')).toBe(source);
 });
+
+test('selected text before an image stays text-only through the actual renderer', async () => {
+    await window.renderMarkdown('Hello ![diagram](img.png)', {context:'quicklook'});
+    const root = document.getElementById('markdown-preview')!;
+    const node = root.querySelector('p')!.firstChild!;
+    const range = document.createRange();
+    range.setStart(node, 0);
+    range.setEnd(node, 5);
+    expect(selectedContent(root, range, 'markdown')).toBe('Hello');
+});
+
+test('selected reference link survives paste from the actual renderer', async () => {
+    await window.renderMarkdown('## [Docs][ref]\n\n[ref]: https://example.org/', {context:'quicklook'});
+    const root = document.getElementById('markdown-preview')!;
+    expect(root.querySelector('h2 a')?.getAttribute('href')).toBe('https://example.org/');
+    const range = document.createRange();
+    range.selectNodeContents(root.querySelector('h2')!);
+    expect(selectedContent(root, range, 'markdown')).toContain('https://example.org/');
+});

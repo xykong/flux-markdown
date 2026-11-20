@@ -1,5 +1,6 @@
 import { copiedMessage, installSelectionCopy, selectionCopyEnabled } from '../src/selection-copy';
 import { blockCopyResult } from '../src/block-copy';
+import { installErrorFeedback, setFeedbackGeneration } from '../src/error-feedback';
 import { TextEncoder } from 'util';
 Object.assign(globalThis, {TextEncoder});
 test.each(['app', 'finder', undefined])('never enables in %s context', context => {
@@ -130,5 +131,86 @@ test('the menu copy reports itself even when copy buttons are turned off, then c
         if (original) Object.defineProperty(Range.prototype,'getClientRects',original);
         else Reflect.deleteProperty(Range.prototype,'getClientRects');
         delete window.webkit;
+    }
+});
+
+test('a late successful clipboard acknowledgment respects Escape', async () => {
+    document.body.innerHTML = '<main><p>selected</p></main>';
+    const root = document.querySelector('main')!;
+    const postMessage = jest.fn();
+    window.webkit = {messageHandlers:{logger:{postMessage:jest.fn()},linkClicked:{postMessage:jest.fn()},selectionCopy:{postMessage}}};
+    const dispose = installSelectionCopy(root, 'one', {context:'quicklook',selectionCopy:true,showCopyButtons:true});
+    const range = document.createRange();
+    range.selectNodeContents(root.querySelector('p')!);
+    const selection = window.getSelection()!;
+    selection.removeAllRanges();
+    selection.addRange(range);
+    try {
+        window.copyQuickLookSelection?.('markdown');
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+        const {id, generation} = postMessage.mock.calls[0][0];
+        blockCopyResult(id, generation, true);
+        await Promise.resolve(); await Promise.resolve();
+        expect(root.querySelector<HTMLElement>('.selection-copy-tools')!.hidden).toBe(true);
+    } finally { dispose(); delete window.webkit; }
+});
+
+test('Copy as Markdown does not reuse a cleared selection', async () => {
+    document.body.innerHTML = '<main><p>old selection</p></main>';
+    const root = document.querySelector('main')!;
+    const postMessage = jest.fn();
+    window.webkit = {messageHandlers:{logger:{postMessage:jest.fn()},linkClicked:{postMessage:jest.fn()},selectionCopy:{postMessage}}};
+    const dispose = installSelectionCopy(root, 'one', {context:'quicklook',selectionCopy:true});
+    const selection = window.getSelection()!;
+    const range = document.createRange();
+    range.selectNodeContents(root);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    try {
+        document.dispatchEvent(new Event('selectionchange'));
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        selection.removeAllRanges();
+        window.copyQuickLookSelection?.('markdown');
+        expect(postMessage).not.toHaveBeenCalled();
+    } finally { dispose(); delete window.webkit; }
+});
+
+test('an unconfirmed copy records shared feedback and ignores a late acknowledgement', async () => {
+    jest.useFakeTimers();
+    document.body.innerHTML = '<main><p>selection text</p></main>';
+    const root = document.querySelector('main')!;
+    const previousRects = Object.getOwnPropertyDescriptor(Range.prototype, 'getClientRects');
+    Object.defineProperty(Range.prototype, 'getClientRects', {configurable:true, value: () => [{left:0,right:100,top:0,bottom:20}]});
+    const copy = jest.fn(), feedback = jest.fn();
+    window.webkit = {messageHandlers:{logger:{postMessage:jest.fn()},linkClicked:{postMessage:jest.fn()},
+        selectionCopy:{postMessage:copy},errorFeedback:{postMessage:feedback}}};
+    setFeedbackGeneration('copy-timeout');
+    const stopFeedback = installErrorFeedback(root);
+    const dispose = installSelectionCopy(root, 'copy-timeout', {context:'quicklook',selectionCopy:true});
+    try {
+        const range = document.createRange();
+        range.selectNodeContents(root.querySelector('p')!);
+        const selection = window.getSelection()!;
+        selection.removeAllRanges();
+        selection.addRange(range);
+        window.copyQuickLookSelection?.('markdown');
+        const request = copy.mock.calls[0][0];
+        jest.advanceTimersByTime(5000);
+        await Promise.resolve(); await Promise.resolve();
+        const toolbar = root.querySelector<HTMLElement>('.selection-copy-tools')!;
+        expect(toolbar.dataset.copyState).toBe('error');
+        expect(feedback).toHaveBeenCalledWith({action:'record', kind:'copy', generation:'copy-timeout',
+            id:expect.any(String), reason:'operationFailed'});
+        expect(toolbar.querySelector('[data-feedback-action=inspect]')).not.toBeNull();
+        blockCopyResult(request.id, request.generation, true);
+        await Promise.resolve();
+        expect(toolbar.dataset.copyState).toBe('error');
+        document.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape'}));
+        expect(toolbar.querySelector('[data-feedback-action=inspect]')).toBeNull();
+    } finally {
+        dispose(); stopFeedback(); setFeedbackGeneration(''); delete window.webkit;
+        if (previousRects) Object.defineProperty(Range.prototype, 'getClientRects', previousRects);
+        else Reflect.deleteProperty(Range.prototype, 'getClientRects');
+        jest.useRealTimers();
     }
 });

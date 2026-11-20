@@ -50,6 +50,7 @@ export function blockCopyResult(id: string, generation: string, success: boolean
     const request = pending.get(id);
     if (request?.generation === generation) request.finish(success === true);
 }
+export function cancelNativeCopy(id: string): void { pending.get(id)?.finish(false); }
 export function nativeCopy(request: CopyRequest, channel: 'blockCopy' | 'selectionCopy' = 'blockCopy'): Promise<boolean> {
     return new Promise(resolve => {
         const finish = (success: boolean): void => { clearTimeout(timeout); pending.delete(request.id); resolve(success); };
@@ -117,7 +118,7 @@ export function installBlockCopy(root: HTMLElement, generation: string, send = n
         },
         dispose() {
             disposed = true;
-            for (const id of requestIDs) pending.get(id)?.finish(false);
+            for (const id of requestIDs) cancelNativeCopy(id);
             for (const timer of timers) clearTimeout(timer);
             for (const [block, entry] of entries) {
                 entry.tools.remove();

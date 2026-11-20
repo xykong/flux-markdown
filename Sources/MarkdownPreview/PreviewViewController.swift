@@ -83,7 +83,6 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     private var truncationNotice: NSTextField?
     private let errorRegistry = RendererErrorRegistry()
     private let blockCopyBridge = BlockCopyBridge()
-    private let selectionCopyBridge = SelectionCopyBridge()
     private var selectionCopyHostVisible = false
     private var selectionCopyEnabled: Bool {
         SelectionCopyBridge.enabled(expanded: currentPreviewMode != .compact, visible: selectionCopyHostVisible,
@@ -1796,9 +1795,8 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard RendererBridgePolicy.accepts(message) else { return }
         if message.name == "selectionCopy" {
-            selectionCopyBridge.handle(message, generation: errorRegistry.scope.uuidString,
-                                       expanded: currentPreviewMode != .compact, visible: selectionCopyHostVisible && view.window != nil && !view.isHidden,
-                                       fileExtension: currentURL?.pathExtension)
+            blockCopyBridge.handle(message, generation: errorRegistry.scope.uuidString,
+                                   enabled: selectionCopyEnabled && view.window != nil && !view.isHidden)
             return
         }
         if message.name == "diagramAction" {

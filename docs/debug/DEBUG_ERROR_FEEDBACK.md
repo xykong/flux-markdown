@@ -191,3 +191,12 @@ Quick Look Markdown truncation uses the shared native incident and reporting act
 ### Native inline notice density
 
 Finder showed the truncation notice while previewing a synthetic 2 MiB file in 1.55.872. Report review, reproduction materials, reply management and delivery instructions occupied several rows over otherwise readable content. The shared native notice must keep recovery, reporting and dismissal visible, put optional actions in one native menu, and expose the report destination and data with accessible help. Verify the layout in wide and narrow viewports and use Finder to distinguish an exact-limit preview from an actually truncated one.
+
+## Quick Look selection-copy failures (PR #75)
+
+The selection toolbar uses the shared inline `copy` incident and validated
+`errorFeedback` bridge. An unconfirmed write offers an explicit retry and
+the normal Command-C recovery. Oversized formatted selections offer Command-C
+without repeating the same oversized request. The diagnostic event excludes
+the selection and clipboard payload. Dismissed or replaced selections cannot
+revive errors from older clipboard acknowledgements.

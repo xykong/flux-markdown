@@ -1,5 +1,6 @@
 .selection-copy-tools { position: fixed; z-index: 10000; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; max-width: calc(100vw - 16px); padding: 3px; border: 1px solid #8886; border-radius: 7px; background: Canvas; color: CanvasText; box-shadow: 0 3px 14px #0003; font: 12px system-ui; user-select: none; -webkit-user-select: none; }
 .selection-copy-tools[hidden] { display: none; }
+.selection-copy-tools[data-offscreen] { visibility: hidden; }
 .selection-copy-tools button { color: inherit; background: transparent; border: 1px solid #8886; border-radius: 4px; padding: 5px 8px; cursor: pointer; }
 .selection-copy-tools > button:first-child { border: 0; min-width: 28px; height: 28px; padding: 3px 6px; font: 18px system-ui; }
 .selection-copy-tools button:focus-visible { outline: 2px solid Highlight; }

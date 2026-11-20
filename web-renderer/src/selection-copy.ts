@@ -1,13 +1,13 @@
 import { selectedContent, CopyFormat } from './selection-content';
-import { nativeCopy, nextCopyID } from './block-copy';
+import { cancelNativeCopy, nativeCopy, nextCopyID } from './block-copy';
 
 const labels: Record<string, string[]> = {
-    en: ['Copy as Plain Text', 'Copy as Markdown', 'Copied', 'Copy was not confirmed. Retry, or use Open in FluxMarkdown.', 'Retry'],
-    zh: ['复制为纯文本', '复制为 Markdown', '已复制', '复制未确认。请重试，或用 FluxMarkdown 打开。', '重试'],
-    de: ['Als Klartext kopieren', 'Als Markdown kopieren', 'Kopiert', 'Kopieren nicht bestätigt. Erneut versuchen oder in FluxMarkdown öffnen.', 'Erneut versuchen'],
-    fr: ['Copier en texte brut', 'Copier en Markdown', 'Copié', 'Copie non confirmée. Réessayez ou ouvrez dans FluxMarkdown.', 'Réessayer'],
-    es: ['Copiar como texto sin formato', 'Copiar como Markdown', 'Copiado', 'Copia no confirmada. Reintenta o abre en FluxMarkdown.', 'Reintentar'],
-    ar: ['نسخ كنص عادي', 'نسخ بصيغة Markdown', 'تم النسخ', 'لم يتم تأكيد النسخ. أعد المحاولة أو افتح في FluxMarkdown.', 'إعادة المحاولة'],
+    en: ['Copy as Plain Text', 'Copy as Markdown', 'Copied', 'Copy was not confirmed. Press Command-C to copy the selected text.', 'Retry'],
+    zh: ['复制为纯文本', '复制为 Markdown', '已复制', '复制未确认。按 Command-C 复制选中的文本。', '重试'],
+    de: ['Als Klartext kopieren', 'Als Markdown kopieren', 'Kopiert', 'Kopieren nicht bestätigt. Drücke Befehlstaste-C, um den ausgewählten Text zu kopieren.', 'Erneut versuchen'],
+    fr: ['Copier en texte brut', 'Copier en Markdown', 'Copié', 'Copie non confirmée. Appuyez sur Commande-C pour copier le texte sélectionné.', 'Réessayer'],
+    es: ['Copiar como texto sin formato', 'Copiar como Markdown', 'Copiado', 'Copia no confirmada. Pulsa Comando-C para copiar el texto seleccionado.', 'Reintentar'],
+    ar: ['نسخ كنص عادي', 'نسخ بصيغة Markdown', 'تم النسخ', 'لم يتم تأكيد النسخ. اضغط على Command-C لنسخ النص المحدد.', 'إعادة المحاولة'],
 };
 /** What a successful copy reports: line count and format, e.g. "Copied 3 lines as plain text". */
 const copiedLabels: Record<string, (lines: number, markdown: boolean) => string> = {
@@ -35,6 +35,7 @@ export function installSelectionCopy(root: HTMLElement, generation: string, opti
     tools.setAttribute('role', 'group'); tools.setAttribute('aria-label', strings[0]);
     const status = document.createElement('span'); status.setAttribute('role', 'status');
     let snapshot: Range | null = null, busy = false, disposed = false, dragging = false, revision = 0;
+    let pendingID: string | undefined;
     let suppressPopup = false;
     let suppressedSelection: Range | null = null;
     let frame = 0;
@@ -50,7 +51,7 @@ export function installSelectionCopy(root: HTMLElement, generation: string, opti
     }
     function capture(): Range | null {
         const selection = window.getSelection();
-        if (!selection?.rangeCount || selection.isCollapsed || editable(document.activeElement) || editable(selection.anchorNode) || editable(selection.focusNode)) return null;
+        if (!selection?.rangeCount || selection.isCollapsed || (editable(document.activeElement) && !tools.contains(document.activeElement)) || editable(selection.anchorNode) || editable(selection.focusNode)) return null;
         const range = selection.getRangeAt(0);
         return root.contains(range.startContainer) && root.contains(range.endContainer) ? range.cloneRange() : null;
     }
@@ -61,14 +62,16 @@ export function installSelectionCopy(root: HTMLElement, generation: string, opti
         // let go; it keeps that place in the document while scrolling.
         if (pointerEnd) {
             const x = pointerEnd.pageX - scrollX, y = pointerEnd.pageY - scrollY;
-            if (y < 0 || y > innerHeight) { tools.hidden = true; return; }
+            tools.toggleAttribute('data-offscreen', y < 0 || y > innerHeight);
+            if (tools.hasAttribute('data-offscreen')) return;
             tools.style.left = `${Math.max(8, Math.min(x + 8, innerWidth - width - 8))}px`;
             tools.style.top = `${Math.max(8, y + 14 + height + 8 < innerHeight ? y + 14 : y - height - 10)}px`;
             return;
         }
         const rects = Array.from(snapshot.getClientRects());
         const rect = rects.reverse().find(r => r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth);
-        if (!rect) { tools.hidden = true; return; }
+        tools.toggleAttribute('data-offscreen', !rect);
+        if (!rect) return;
         tools.style.left = `${Math.max(8, Math.min(rect.left, innerWidth - width - 8))}px`;
         tools.style.top = `${Math.max(8, rect.bottom + height + 8 < innerHeight ? rect.bottom + 6 : rect.top - height - 6)}px`;
     }
@@ -77,7 +80,8 @@ export function installSelectionCopy(root: HTMLElement, generation: string, opti
         if (disposed || dragging || tools.contains(document.activeElement)) return;
         if (suppressPopup) { tools.hidden = true; return; }
         const previous = snapshot;
-        snapshot = capture(); ++revision;
+        snapshot = capture();
+        if (previous && (!snapshot || !sameRange(snapshot, previous))) ++revision;
         // Keep the "Copied …" report while the same text stays selected.
         if (feedbackTimer && snapshot && previous && sameRange(snapshot, previous)) { tools.hidden = false; position(); return; }
         clearFeedback();
@@ -89,7 +93,8 @@ export function installSelectionCopy(root: HTMLElement, generation: string, opti
     }
     function clearFeedback(): void {
         if (feedbackTimer) { clearTimeout(feedbackTimer); feedbackTimer = undefined; }
-        status.textContent = ''; status.className = ''; delete tools.dataset.copyState;
+        status.replaceChildren();
+        if (!busy) delete tools.dataset.copyState;
         plainButton.textContent = '⧉'; markdownButton.textContent = 'MD';
     }
     function schedule(): void { if (!frame) frame = requestAnimationFrame(update); }
@@ -98,29 +103,40 @@ export function installSelectionCopy(root: HTMLElement, generation: string, opti
         const text = selectedContent(root, snapshot, format);
         if (!text) return;
         const copied = snapshot;
+        const startedAt = revision;
         clearFeedback();
         const button = format === 'markdown' ? markdownButton : plainButton;
-        busy = true; tools.dataset.copyState = "pending"; plainButton.disabled = markdownButton.disabled = true;
-        const success = new TextEncoder().encode(text).length <= 4 * 1024 * 1024 &&
-            await nativeCopy({ id: nextCopyID(), generation, text }, 'selectionCopy');
+        const oversized = new TextEncoder().encode(text).length > 4 * 1024 * 1024;
+        busy = true; tools.dataset.copyState = 'pending'; plainButton.disabled = markdownButton.disabled = true;
+        pendingID = oversized ? undefined : nextCopyID();
+        const success = pendingID !== undefined && await nativeCopy({ id: pendingID, generation, text }, 'selectionCopy');
+        pendingID = undefined;
         busy = false; plainButton.disabled = markdownButton.disabled = false;
         if (disposed) return;
-        // Every copy reports its result, from the toolbar or the menu, even when the
-        // selection changed meanwhile or the toolbar is turned off.
-        snapshot = copied; tools.hidden = false;
+        delete tools.dataset.copyState;
+        const current = capture();
+        if (revision !== startedAt || !current || !sameRange(copied, current)) return;
+        tools.hidden = false;
         tools.dataset.copyState = success ? 'success' : 'error';
-        if (success) button.textContent = '✓';
-        status.textContent = success ? copiedMessage(language, text, format) : strings[3];
-        status.className = success ? '' : 'block-copy-error';
-        if (!success) {
-            const retry = document.createElement('button'); retry.type = 'button'; retry.textContent = strings[4];
-            retry.addEventListener('click', event => { if (event.isTrusted) void copy(format); }); status.append(retry);
-        } else {
+        if (success) {
+            button.textContent = '✓';
+            status.textContent = copiedMessage(language, text, format);
             feedbackTimer = setTimeout(() => {
                 clearFeedback();
                 if (options.showCopyButtons !== true) tools.hidden = true;
                 position();
             }, 2000);
+        } else {
+            const failure = document.createElement('span');
+            failure.className = 'block-copy-error';
+            failure.textContent = strings[3];
+            if (!oversized) {
+                const retry = document.createElement('button');
+                retry.type = 'button'; retry.textContent = strings[4];
+                retry.addEventListener('click', event => { if (event.isTrusted) void copy(format); });
+                failure.append(retry);
+            }
+            status.append(failure);
         }
         position();
     }
@@ -138,18 +154,17 @@ export function installSelectionCopy(root: HTMLElement, generation: string, opti
     // The native "Copy as Markdown" menu item copies through here, with the same report.
     const nativeAction = (format: CopyFormat = 'markdown'): void => {
         if (format !== 'plain' && format !== 'markdown') return;
-        const current = capture(); if (current) snapshot = current;
+        snapshot = capture();
         if (snapshot) void copy(format);
     };
     window.copyQuickLookSelection = nativeAction;
     function selectionChanged(event: Event): void {
         if (event.type === 'focusin' && editable(document.activeElement) && !tools.contains(document.activeElement)) {
-            suppressedSelection = snapshot; suppressPopup = true; tools.hidden = true;
+            dismissPopup();
         }
         if (event.type === 'selectionchange' && !editable(document.activeElement)) {
             const current = capture();
-            const same = current && suppressedSelection && current.startContainer === suppressedSelection.startContainer &&
-                current.endContainer === suppressedSelection.endContainer && current.startOffset === suppressedSelection.startOffset && current.endOffset === suppressedSelection.endOffset;
+            const same = current && suppressedSelection && sameRange(current, suppressedSelection);
             if (!same) suppressPopup = false;
         }
         schedule();
@@ -171,7 +186,7 @@ export function installSelectionCopy(root: HTMLElement, generation: string, opti
         suppressPopup = false;
         // A right-click opens the context menu on the current selection; it starts no new one.
         if ((event as PointerEvent).button !== 0) return;
-        dragging = true; tools.hidden = true; status.className = '';
+        ++revision; dragging = true; tools.hidden = true; clearFeedback();
     });
     listen(document, 'pointerup', event => {
         const pointer = event as PointerEvent;
@@ -180,9 +195,16 @@ export function installSelectionCopy(root: HTMLElement, generation: string, opti
     });
     // A selection changed from the keyboard is placed by its text again.
     listen(document, 'keyup', event => { if ((event as KeyboardEvent).shiftKey) { pointerEnd = null; schedule(); } });
+    function dismissPopup(): void {
+        ++revision;
+        suppressedSelection = snapshot;
+        suppressPopup = true;
+        clearFeedback();
+        tools.hidden = true;
+    }
     listen(document, 'keydown', event => {
         const key = event as KeyboardEvent;
-        if (key.key === 'Escape') { tools.hidden = true; (document.activeElement as HTMLElement | null)?.blur(); }
+        if (key.key === 'Escape') { dismissPopup(); (document.activeElement as HTMLElement | null)?.blur(); }
         if (tools.contains(key.target as Node) && ['ArrowLeft','ArrowRight','Home','End'].includes(key.key)) {
             const buttons = Array.from(tools.querySelectorAll('button'));
             const current = buttons.indexOf(document.activeElement as HTMLButtonElement);
@@ -193,9 +215,17 @@ export function installSelectionCopy(root: HTMLElement, generation: string, opti
             tools.hidden = false; position(); tools.querySelector('button')?.focus(); key.preventDefault();
         }
     });
+    const resizeObserver = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(position);
+    resizeObserver?.observe(tools);
     listen(window, 'resize', () => position()); listen(document, 'scroll', () => position());
     return () => {
-        disposed = true; cancelAnimationFrame(frame); for (const remove of listeners) remove(); tools.remove(); snapshot = null;
+        disposed = true;
+        if (pendingID !== undefined) cancelNativeCopy(pendingID);
+        clearFeedback();
+        cancelAnimationFrame(frame);
+        resizeObserver?.disconnect();
+        for (const remove of listeners) remove();
+        tools.remove(); snapshot = null;
         if (window.copyQuickLookSelection === nativeAction) delete window.copyQuickLookSelection;
     };
 }
