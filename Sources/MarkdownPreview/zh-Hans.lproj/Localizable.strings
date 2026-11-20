@@ -223,3 +223,4 @@
 "Showing the first %1$@ of %2$@." = "仅显示文件开头的 %1$@，文件共 %2$@。";
 "Reveal in Finder" = "在 Finder 中显示";
 "The file is too large to open in FluxMarkdown. Reveal it in Finder to open it with another editor." = "文件过大，无法用 FluxMarkdown 打开。请在 Finder 中找到该文件，并用其他编辑器打开。";
+"Copy as Markdown" = "复制为 Markdown";

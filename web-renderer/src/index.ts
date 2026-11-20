@@ -1,6 +1,10 @@
 import { FollowFile, type FollowSnapshot, blockElement, documentSelection, lastBlockLine, lineStart, queryRoots, uniqueHeadingSlug, waitForSafeCommit } from './follow-file';
+import { installSelectionCopy } from './selection-copy';
+import { rememberRenderedSource } from './selection-content';
+import { relativeImageSource } from './image-source';
+import './styles/selection-copy.css';
 import { diagramActionResult } from './diagram-actions';
-import { beginReadingRender, finishReadingRender, captureReadingState, restoreReadingState, navigateReadingHistory, updateNavigation, jumpToReadingTarget, saveReadingState, ReadingState } from './reading-state';
+import { beginReadingRender, finishReadingRender, captureReadingState, restoreReadingState, resyncScrollPosition, navigateReadingHistory, updateNavigation, jumpToReadingTarget, saveReadingState, ReadingState } from './reading-state';
 import { closeDiagramFocus, stepFocusedDiagram, scrollReadingSurface } from './diagram-focus';
 import { setReadingZoom, requestReadingZoom, applyPinchZoom, requestPinchZoom, resetZoomAt, ZoomPoint } from './reading-zoom';
 import './math-compat';
@@ -17,6 +21,7 @@ import { sanitizeDocumentFragment, sanitizeDiagramHTML } from './safe-html';
 import { renderTSVTable } from './tsv';
 import { installMathSyntax } from './math-syntax';
 import { rememberMathSource, uniqueMathTargets } from './math-source-store';
+import { rememberDiagramSource } from './diagram-source-store';
 import { prepareMathPrint } from './math-print';
 import { separateMathLinks } from './math-reference-links';
 import { installMathLayout } from './math-layout';
@@ -455,6 +460,7 @@ function buildMd(enableTypst = true): MarkdownIt {
         const srcIndex = token.attrIndex('src');
         if (srcIndex >= 0) {
             const originalSrc = token.attrs[srcIndex][1];
+            if (relativeImageSource(originalSrc)) token.attrSet('data-original-image-source', originalSrc);
             token.attrs[srcIndex][1] = resolveImageSource(originalSrc, env);
         }
         return defaultImageRender(tokens, idx, options, env, self);
@@ -579,7 +585,8 @@ let searchEngine: SearchEngine | null = null;
 let searchUI: SearchUI | null = null;
 let helpOverlay: HelpOverlay | null = null;
 let blockCopy: CopyController | null = null;
-function disposeBlockCopy(): void { blockCopy?.dispose(); blockCopy = null; }
+let disposeSelectionCopy: (() => void) | undefined;
+function disposeBlockCopy(): void { disposeSelectionCopy?.(); disposeSelectionCopy = undefined; blockCopy?.dispose(); blockCopy = null; }
 let blockquoteCollapse: BlockquoteCollapse | null = null;
 let mermaidInstance: typeof import('mermaid')['default'] | null = null;
 let mermaidCurrentTheme: string | null = null;
@@ -607,6 +614,7 @@ interface RenderOptions {
     prevContent?: string;
     showLineNumbers?: boolean;
     showCopyButtons?: boolean;
+    selectionCopy?: boolean;
     followFile?: boolean;
     /** Follow sends only appended text; this is the length of the source it extends. */
     followAppendBase?: number;
@@ -650,6 +658,8 @@ function prepareRenderedImages(roots: readonly Element[], options: RenderOptions
 
         const source = img.getAttribute('src');
         if (!source) return;
+        // Raw HTML images bypass markdown-it's image rule.
+        if (relativeImageSource(source)) img.setAttribute('data-original-image-source', source);
         const resolvedSource = constrainSVGImage(img, resolveImageSource(source, options));
         if (resolvedSource !== source) img.setAttribute('src', resolvedSource);
     });
@@ -875,7 +885,7 @@ window.exportHTML = function(): string {
     // Ensure we clone the content so we don't modify the active DOM
     const clone = previewDiv ? (previewDiv.cloneNode(true) as HTMLElement) : document.createElement('div');
     
-    clone.querySelectorAll('.block-copy-tools, .mermaid-tools, .diagram-tools').forEach(control => control.remove());
+    clone.querySelectorAll('.selection-copy-tools, .block-copy-tools, .mermaid-tools, .diagram-tools').forEach(control => control.remove());
     clone.querySelectorAll('.block-copy-host').forEach(host => host.replaceWith(...Array.from(host.childNodes)));
     clone.querySelectorAll('.error-feedback-controls').forEach(control => control.remove());
     clone.querySelectorAll('.error-feedback-region').forEach(region => region.replaceWith(...Array.from(region.childNodes)));
@@ -1266,6 +1276,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
                 const div = document.createElement('div');
                 div.classList.add('mermaid');
                 div.textContent = block.textContent || '';
+                rememberDiagramSource(div, 'mermaid', div.textContent);
                 div.id = `mermaid-${callId}-${index}`;
                 copySourceRange(pre, div);
                 pre.replaceWith(div);
@@ -1278,9 +1289,11 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         // No await between the final selection check and installing controls.
         followFile?.status();
         followFile?.captureAnchor();
+        rememberRenderedSource(outputDiv, text, windowLine, Object.keys(environment.references).length > 0);
         // Kept blocks keep their copy controls; re-wrapping every code block
         // would invalidate the layout of the whole document.
-        if (!previous || !blockCopy) disposeBlockCopy();
+        if (previous && blockCopy) { disposeSelectionCopy?.(); disposeSelectionCopy = undefined; }
+        else disposeBlockCopy();
         disposeMermaidLayout?.(); disposeMermaidLayout = undefined;
         disposeSVGZoom?.(); disposeSVGZoom = undefined;
         searchEngine?.clear();
@@ -1355,6 +1368,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         } else if (toc) toc.render(outline);
         prepareRenderedImages(roots, options);
         disposeSVGZoom = installSVGZoom(outputDiv);
+        disposeSelectionCopy = installSelectionCopy(outputDiv, feedbackGeneration(), options);
         logToSwift(`[renderMarkdown:${callId}] DOM UPDATED successfully`);
 
         if (options.showCopyButtons === true && currentContext !== 'finder') {
@@ -1385,6 +1399,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
             await nextTask();
             if (!isCurrent()) return;
             disposeSVGZoom?.(); disposeSVGZoom = installSVGZoom(outputDiv);
+            disposeSelectionCopy?.(); disposeSelectionCopy = installSelectionCopy(outputDiv, feedbackGeneration(), options);
         }
 
         if (previous) {
@@ -1598,6 +1613,7 @@ window.renderSource = function(text: string, theme: string, prevContent?: string
             if (row && id) row.id = id;
         }
         searchUI?.refresh();
+        disposeSelectionCopy = installSelectionCopy(outputDiv, feedbackGeneration(), options);
         finishReadingRender(options.readingState,preservedReading);
         logToSwift(`[Source View] Rendered ${text.length} characters with theme: ${theme}`);
     } catch (e) {
@@ -1891,6 +1907,6 @@ Object.assign(window, { stepReadingZoom:(delta:number | null)=>{
     if(stepFocusedDiagram(delta))return null;
     const level=delta===null?1:Math.max(0.5,Math.min(3,currentZoomLevel+delta));
     window.requestZoomLevel(level);return level;
-}, closeDiagramFocus, scrollReadingSurface, diagramActionResult, captureReadingState, restoreReadingState, navigateReadingHistory, updateReadingNavigation:updateNavigation, blockCopyResult, setFeedbackGeneration: (value: string) => { if (value !== feedbackGeneration()) disposeBlockCopy(); setFeedbackGeneration(value); } });
+}, closeDiagramFocus, scrollReadingSurface, diagramActionResult, captureReadingState, restoreReadingState, resyncScrollPosition, navigateReadingHistory, updateReadingNavigation:updateNavigation, blockCopyResult, setFeedbackGeneration: (value: string) => { if (value !== feedbackGeneration()) disposeBlockCopy(); setFeedbackGeneration(value); } });
 if (document.body) installErrorFeedback(document.body);
 else document.addEventListener("DOMContentLoaded", () => installErrorFeedback(document.body), { once: true });

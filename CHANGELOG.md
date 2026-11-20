@@ -1,5 +1,12 @@
 ## [Unreleased]
-_无待发布的变更_
+### Added
+- **Copy selected text in Quick Look**: In Finder's expanded Quick Look preview, a small toolbar beside a selection copies it as plain text (⧉) or as Markdown (MD) with one click, which also works in hosts that never pass a right-click to the preview. The selection menu adds Copy as Markdown directly after Copy; Command-C keeps the standard copy. Each copy reports how many lines were copied and in which format. Wholly selected blocks preserve their Markdown source where it can be pasted on its own. Partial selections preserve formatting and links, reference links keep their destinations, and embedded images use their original relative path. Based on [PR #75](https://github.com/xykong/flux-markdown/pull/75) by [@ziadulhuq](https://github.com/ziadulhuq).
+
+### Fixed
+- **Quick Look input after Speech**: The preview's selection menu shows Start Speaking and Stop Speaking directly instead of in a Speech submenu. After any submenu of that menu opened, Quick Look sent later clicks to the preview without a position and stopped passing drags and scrolls until the preview was closed. Based on [PR #75](https://github.com/xykong/flux-markdown/pull/75) by [@ziadulhuq](https://github.com/ziadulhuq).
+- **Quick Look selection after reopening**: When a preview reopened at the last reading position, the screen could keep an older scroll position than the page, so a new selection started a line or two above the pointer. The preview now makes the screen take the page's position after restoring it and when it appears. Based on [PR #75](https://github.com/xykong/flux-markdown/pull/75) by [@ziadulhuq](https://github.com/ziadulhuq).
+- **Quick Look full screen**: Toolbar buttons and notices keep the chosen theme when Quick Look switches its own window to a dark or translucent style, so they no longer vanish over a light page. Based on [PR #75](https://github.com/xykong/flux-markdown/pull/75) by [@ziadulhuq](https://github.com/ziadulhuq).
+- **Notice colors**: Error and size-limit notices follow the preview's theme when it differs from the system setting or changes. Based on [PR #75](https://github.com/xykong/flux-markdown/pull/75) by [@ziadulhuq](https://github.com/ziadulhuq).
 
 ## [1.57.885] - 2026-11-19
 ### Added

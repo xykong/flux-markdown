@@ -328,3 +328,24 @@ extension ErrorIncidentTests {
         XCTAssertEqual(probe.context, context)
     }
 }
+
+extension ErrorIncidentTests {
+    /// The notice must not keep the colour of whatever appearance was current when it was created.
+    func testNoticeBackgroundFollowsItsOwnAppearance() {
+        let notice = IncidentNotice(incident: ErrorIncident(kind: .previewLimit, source: .quicklook))
+        let host = NSView(frame: NSRect(x: 0, y: 0, width: 400, height: 200))
+        host.appearance = NSAppearance(named: .darkAqua)
+        host.addSubview(notice)
+        func resolved(_ name: NSAppearance.Name) -> CGColor? {
+            var color: CGColor?
+            NSAppearance(named: name)!.performAsCurrentDrawingAppearance { color = NSColor.windowBackgroundColor.cgColor }
+            return color
+        }
+        NSAppearance(named: .aqua)!.performAsCurrentDrawingAppearance { notice.updateLayer() }
+        XCTAssertEqual(notice.layer?.backgroundColor, resolved(.darkAqua))
+        host.appearance = NSAppearance(named: .aqua)
+        NSAppearance(named: .darkAqua)!.performAsCurrentDrawingAppearance { notice.updateLayer() }
+        XCTAssertEqual(notice.layer?.backgroundColor, resolved(.aqua))
+        XCTAssertTrue(notice.wantsUpdateLayer)
+    }
+}

@@ -128,7 +128,7 @@ export class FollowFile {
     }
     private anchorText(node: Element): string {
         const clone=node.cloneNode(true) as Element;
-        clone.querySelectorAll('.block-copy-tools').forEach(el=>el.remove());
+        clone.querySelectorAll('.block-copy-tools,.selection-copy-tools').forEach(el=>el.remove());
         return clone.textContent || '';
     }
     restoreAnchor(): void {

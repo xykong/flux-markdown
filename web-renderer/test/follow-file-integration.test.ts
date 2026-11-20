@@ -34,7 +34,7 @@ test.each([
 ])('extended ending agrees with fresh full render: %s',async (before,append) => {
  await window.renderMarkdown(before,options); await window.renderMarkdown(before+append,options);
  const root=document.getElementById('markdown-preview')!;
- const semantic=()=> { const clone=root.cloneNode(true) as HTMLElement; clone.querySelectorAll('.block-copy-tools').forEach(n=>n.remove()); return clone.textContent; };
+ const semantic=()=> { const clone=root.cloneNode(true) as HTMLElement; clone.querySelectorAll('.block-copy-tools,.selection-copy-tools').forEach(n=>n.remove()); return clone.textContent; };
  const updated=semantic();
  await window.renderMarkdown(before+append,{...options,followFile:false});
  expect(semantic()).toBe(updated);

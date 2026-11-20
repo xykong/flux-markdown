@@ -223,3 +223,4 @@
 "Showing the first %1$@ of %2$@." = "Die ersten %1$@ von %2$@ werden angezeigt.";
 "Reveal in Finder" = "Im Finder zeigen";
 "The file is too large to open in FluxMarkdown. Reveal it in Finder to open it with another editor." = "Die Datei ist zu groß für FluxMarkdown. Zeige sie im Finder, um sie in einem anderen Editor zu öffnen.";
+"Copy as Markdown" = "Als Markdown kopieren";

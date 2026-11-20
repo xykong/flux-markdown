@@ -1,5 +1,5 @@
 import { showZoomFeedback, workflowLabels } from '../src/reading-workflow-ui';
-import { captureReadingState, restoreReadingState, updateNavigation } from '../src/reading-state';
+import { captureReadingState, restoreReadingState, resyncScrollPosition, updateNavigation } from '../src/reading-state';
 
 describe('reading workflow', () => {
     test('zoom feedback is scoped and does not enter document content', () => {
@@ -39,5 +39,32 @@ describe('reading workflow', () => {
         target.getBoundingClientRect=()=>new DOMRect(0,220,400,100);
         expect(restoreReadingState(state)).toBe(true);
         expect(window.scrollBy).toHaveBeenCalledWith(expect.objectContaining({top:100}));
+    });
+    test('resync scrolls one pixel and back so the screen takes the page position', () => {
+        const frames: FrameRequestCallback[]=[];
+        const raf=jest.spyOn(window,'requestAnimationFrame').mockImplementation(callback=>{frames.push(callback);return frames.length;});
+        window.scrollTo=jest.fn();
+        for(const [y,away] of [[3746,3745],[0,1]]) {
+            (window.scrollTo as jest.Mock).mockClear();frames.length=0;
+            Object.defineProperty(window,'scrollY',{value:y,configurable:true});
+            resyncScrollPosition();
+            expect(window.scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({top:away}));
+            frames.forEach(frame=>frame(0));
+            expect(window.scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({top:y}));
+        }
+        raf.mockRestore();
+    });
+    test('restoring a reading position resyncs the screen two frames later', () => {
+        document.body.innerHTML='<div id="markdown-preview"><p>Reading</p></div>';
+        document.elementFromPoint=jest.fn(()=>document.querySelector('#markdown-preview p'));
+        const frames: FrameRequestCallback[]=[];
+        const raf=jest.spyOn(window,'requestAnimationFrame').mockImplementation(callback=>{frames.push(callback);return frames.length;});
+        window.scrollBy=jest.fn();window.scrollTo=jest.fn();
+        Object.defineProperty(window,'scrollY',{value:200,configurable:true});
+        restoreReadingState(captureReadingState());
+        expect(window.scrollTo).not.toHaveBeenCalledWith(expect.objectContaining({top:199}));
+        frames.splice(0).forEach(frame=>frame(0));frames.splice(0).forEach(frame=>frame(0));
+        expect(window.scrollTo).toHaveBeenCalledWith(expect.objectContaining({top:199}));
+        raf.mockRestore();
     });
 });
