@@ -1,4 +1,7 @@
 ## [Unreleased]
+_无待发布的变更_
+
+## [1.58.899] - 2026-11-20
 ### Added
 - **Copy selected text in Quick Look**: In Finder's expanded Quick Look preview, a small toolbar beside a selection copies it as plain text (⧉) or as Markdown (MD) with one click, which also works in hosts that never pass a right-click to the preview. The selection menu adds Copy as Markdown directly after Copy; Command-C keeps the standard copy. Each copy reports how many lines were copied and in which format. Wholly selected blocks preserve their Markdown source where it can be pasted on its own. Partial selections preserve formatting and links, reference links keep their destinations, and embedded images use their original relative path. Based on [PR #75](https://github.com/xykong/flux-markdown/pull/75) by [@ziadulhuq](https://github.com/ziadulhuq).
 
