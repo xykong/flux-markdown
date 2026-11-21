@@ -38,6 +38,18 @@ describe('DiffAnimator.buildSourceHTML', () => {
     expect(html).toContain('diff-char-removed');
     expect(html).toContain('diff-char-added');
   });
+
+  test('empty lines preserve newline character so WebKit selection copying retains blank lines', () => {
+    const diffs = computeLineDiff('', 'line 1\n\nline 3');
+    const html = animator.buildSourceHTML(diffs, 'light');
+    const container = document.createElement('div');
+    container.innerHTML = html;
+    const lines = container.querySelectorAll('.source-diff-line');
+    expect(lines.length).toBe(3);
+    expect(lines[0].textContent).toBe('line 1');
+    expect(lines[1].textContent).toBe('\n');
+    expect(lines[2].textContent).toBe('line 3');
+  });
 });
 
 describe('DiffAnimator.annotateRenderDOM', () => {
