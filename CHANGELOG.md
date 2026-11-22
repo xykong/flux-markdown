@@ -1,5 +1,6 @@
 ## [Unreleased]
-_无待发布的变更_
+### Fixed
+- **Source view copying**: Preserve Markdown blank lines when copying a selection, including with Quick Look’s plain-text and Markdown copy actions. Thanks to [@Schnee013](https://github.com/Schnee013) for reporting and contributing the WebKit fix in [PR #77](https://github.com/xykong/flux-markdown/pull/77).
 
 ## [1.58.899] - 2026-11-20
 ### Added

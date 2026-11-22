@@ -1,3 +1,5 @@
+import { DiffAnimator } from '../src/diff-animator';
+import { computeLineDiff } from '../src/diff-engine';
 import { selectedContent } from '../src/selection-content';
 import { rememberDiagramSource } from '../src/diagram-source-store';
 import { rememberRenderedSource } from '../src/selection-content';
@@ -133,4 +135,20 @@ test('an image from the file copies as the relative path written there, however 
     expect(selectedImage('<p>a <img alt="local" src="local-md:///Users/me/doc/img/x.png?v=3" data-original-image-source="img/x.png"> b</p>')).toBe('a ![local](img/x.png) b');
     expect(selectedImage('<p>a <img alt="absolute" src="local-md:///Users/me/doc/img/x.png?v=3"> b</p>')).toBe('a b');
     expect(selectedImage('<p>a <img alt="web" src="https://example.com/x.png"> b</p>')).toBe('a ![web](https://example.com/x.png) b');
+});
+
+test.each([
+    ['one empty line', 'alpha\n\nbeta'],
+    ['consecutive empty lines', 'alpha\n\n\nbeta'],
+    ['leading and trailing empty lines', '\nalpha\n\n'],
+    ['whitespace-only line', 'alpha\n \t\nbeta'],
+])('source selection preserves %s in both copy formats', (_label, source) => {
+    const root = document.createElement('main');
+    root.classList.add('source-mode');
+    root.innerHTML = new DiffAnimator().buildSourceHTML(computeLineDiff('', source), 'light');
+    document.body.replaceChildren(root);
+    const range = document.createRange();
+    range.selectNodeContents(root);
+    expect(selectedContent(root, range, 'plain')).toBe(source);
+    expect(selectedContent(root, range, 'markdown')).toBe(source);
 });
