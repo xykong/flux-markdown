@@ -1,0 +1,70 @@
+import { showZoomFeedback, workflowLabels } from '../src/reading-workflow-ui';
+import { captureReadingState, restoreReadingState, resyncScrollPosition, updateNavigation } from '../src/reading-state';
+
+describe('reading workflow', () => {
+    test('zoom feedback is scoped and does not enter document content', () => {
+        document.body.innerHTML='<div id="markdown-preview"><p>Read</p></div>';
+        window.__fluxLang='zh';showZoomFeedback(1.5,'document');
+        expect(document.getElementById('zoom-feedback')?.textContent).toBe('文档 150%');
+        expect(document.querySelector('#markdown-preview #zoom-feedback')).toBeNull();
+        showZoomFeedback(2,'diagram');expect(document.getElementById('zoom-feedback')?.textContent).toBe('图表 200%');
+        for(const language of ['zh','en','de','fr','es','ar']) {
+            window.__fluxLang=language;expect(workflowLabels().gestures).toContain('100%');
+        }
+    });
+    test('native history availability enables only usable navigation actions', () => {
+        document.body.innerHTML='<span id="reading-navigation"><button>Back</button><button>Forward</button></span>';
+        const buttons=document.querySelectorAll<HTMLButtonElement>('#reading-navigation button');
+        updateNavigation(true,false);expect(buttons[0].disabled).toBe(false);expect(buttons[1].disabled).toBe(true);
+        updateNavigation(false,true);expect(buttons[0].disabled).toBe(true);expect(buttons[1].disabled).toBe(false);
+        updateNavigation(false,false);expect(buttons[0].disabled).toBe(true);expect(buttons[1].disabled).toBe(true);
+    });
+    test('restoration refreshes reading indicators even when scroll position does not change', () => {
+        document.body.innerHTML='<div id="markdown-preview"><p>Reading</p></div>';
+        document.elementFromPoint=jest.fn(()=>document.querySelector('#markdown-preview p'));
+        window.scrollBy=jest.fn();window.scrollTo=jest.fn();
+        const refresh=jest.fn();window.addEventListener('scroll',refresh);
+        restoreReadingState(captureReadingState());
+        expect(refresh).toHaveBeenCalled();window.removeEventListener('scroll',refresh);
+    });
+    test('semantic anchors survive insertion and do not persist paragraph text', () => {
+        document.body.innerHTML='<div id="markdown-preview"><p>Before</p><p id="target">Private reading paragraph</p><p>After</p></div>';
+        document.elementFromPoint=jest.fn(()=>document.getElementById('target'));
+        window.scrollBy=jest.fn();window.scrollTo=jest.fn();
+        const target=document.getElementById('target')!;
+        target.getBoundingClientRect=()=>new DOMRect(0,120,400,100);
+        const state=captureReadingState();
+        expect(JSON.stringify(state)).not.toContain('Private reading');
+        document.getElementById('markdown-preview')!.insertAdjacentHTML('afterbegin','<p>Inserted</p>');
+        target.getBoundingClientRect=()=>new DOMRect(0,220,400,100);
+        expect(restoreReadingState(state)).toBe(true);
+        expect(window.scrollBy).toHaveBeenCalledWith(expect.objectContaining({top:100}));
+    });
+    test('resync scrolls one pixel and back so the screen takes the page position', () => {
+        const frames: FrameRequestCallback[]=[];
+        const raf=jest.spyOn(window,'requestAnimationFrame').mockImplementation(callback=>{frames.push(callback);return frames.length;});
+        window.scrollTo=jest.fn();
+        for(const [y,away] of [[3746,3745],[0,1]]) {
+            (window.scrollTo as jest.Mock).mockClear();frames.length=0;
+            Object.defineProperty(window,'scrollY',{value:y,configurable:true});
+            resyncScrollPosition();
+            expect(window.scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({top:away}));
+            frames.forEach(frame=>frame(0));
+            expect(window.scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({top:y}));
+        }
+        raf.mockRestore();
+    });
+    test('restoring a reading position resyncs the screen two frames later', () => {
+        document.body.innerHTML='<div id="markdown-preview"><p>Reading</p></div>';
+        document.elementFromPoint=jest.fn(()=>document.querySelector('#markdown-preview p'));
+        const frames: FrameRequestCallback[]=[];
+        const raf=jest.spyOn(window,'requestAnimationFrame').mockImplementation(callback=>{frames.push(callback);return frames.length;});
+        window.scrollBy=jest.fn();window.scrollTo=jest.fn();
+        Object.defineProperty(window,'scrollY',{value:200,configurable:true});
+        restoreReadingState(captureReadingState());
+        expect(window.scrollTo).not.toHaveBeenCalledWith(expect.objectContaining({top:199}));
+        frames.splice(0).forEach(frame=>frame(0));frames.splice(0).forEach(frame=>frame(0));
+        expect(window.scrollTo).toHaveBeenCalledWith(expect.objectContaining({top:199}));
+        raf.mockRestore();
+    });
+});

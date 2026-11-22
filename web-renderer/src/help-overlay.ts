@@ -1,3 +1,4 @@
+import { workflowLabels } from './reading-workflow-ui';
 const FIRST_RUN_KEY = 'fluxmd-help-shown-v1';
 const CMD_HOLD_DELAY_MS = 2000;
 const CMD_HOLD_ENABLED_KEY = 'fluxmd-cmd-hold-enabled';
@@ -341,6 +342,7 @@ export class HelpOverlay {
             ? `<span class="help-context-badge help-context-ql">${s.contextBadgeQL}</span>`
             : `<span class="help-context-badge help-context-app">${s.contextBadgeApp}</span>`;
 
+        const gestureGuide = `<p class="help-gesture-guide">${workflowLabels().gestures}</p>`;
         const groups = SHORTCUT_GROUPS.map(g => {
             const groupStrings = s.groups[g.groupKey];
             const items = g.items.map(item => {
@@ -367,7 +369,7 @@ export class HelpOverlay {
             return `
                 <div class="help-group">
                     <h3 class="help-group-title">${g.icon} ${groupStrings.title}</h3>
-                    <ul class="help-items">${items}</ul>
+                    <ul class="help-items">${items}</ul>${g.groupKey === 'zoom' ? gestureGuide : ''}
                 </div>
             `;
         }).join('');

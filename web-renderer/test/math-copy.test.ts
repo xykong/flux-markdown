@@ -82,3 +82,38 @@ test.each([['en','Copy failed.'],['zh-Hans','复制失败。'],['de','Kopieren f
     expect(status.parentElement?.getAttribute('data-copy-state')).toBe('success');
     controller.dispose();
 });
+
+test('display copy failure preserves the formula, source and retry recovery',async()=>{
+    const source=String.raw`\[x=1\]`;
+    await window.renderMarkdown(source,{showCopyButtons:false});
+    const root=document.getElementById('markdown-preview')!;
+    let success=false;
+    const send=jest.fn(async()=>success);
+    const controller=installBlockCopy(root,'display-failure',send);
+    const formula=root.querySelector<HTMLElement>('div.flux-math-source')!;
+    const host=formula.parentElement!;
+    expect(host.classList.contains('math-copy-host')).toBe(true);
+    expect(host.classList.contains('math-copy-inline')).toBe(false);
+    await controller.copy(formula);
+    expect(send).toHaveBeenLastCalledWith(expect.objectContaining({text:source}));
+    expect(host.querySelector('.block-copy-tools')?.getAttribute('data-copy-state')).toBe('error');
+    expect(host.querySelector('textarea')?.value).toBe(source);
+    expect(formula.querySelector('svg')).not.toBeNull();
+    success=true;await controller.copy(formula);
+    expect(host.querySelector('.block-copy-error')).toBeNull();
+    expect(host.querySelector('.block-copy-tools')?.getAttribute('data-copy-state')).toBe('success');
+    controller.dispose();
+    expect(root.querySelector('.block-copy-host')).toBeNull();
+    expect(root.querySelector('div.flux-math-source')).toBe(formula);
+});
+
+test('failed mathematics has only feedback while valid mathematics keeps its copy tool',async()=>{
+    await window.renderMarkdown(String.raw`$\unknownCommand{x}$`+'\n\n'+String.raw`\[\unknownCommand{x}\]`+'\n\n$x=1$',{showCopyButtons:false});
+    const root=document.getElementById('markdown-preview')!;
+    const controller=installBlockCopy(root,'hover-collision',jest.fn(async()=>true));
+    const failed=Array.from(root.querySelectorAll<HTMLElement>('.flux-math-source.math-error'));
+    expect(failed).toHaveLength(2);
+    for(const formula of failed)expect(formula.closest('.math-copy-host')?.querySelector('.block-copy-tools')).toBeFalsy();
+    expect(root.querySelector('.flux-math-source:not(.math-error)')?.closest('.math-copy-host')?.querySelector('.block-copy-tools button')).not.toBeNull();
+    controller.dispose();
+});

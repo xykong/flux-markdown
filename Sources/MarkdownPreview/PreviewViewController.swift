@@ -25,10 +25,35 @@ enum QuickLookFindShortcut {
     }
 }
 
+/// A circular bordered button draws its icon in the label colour while it is off and
+/// ignores contentTintColor, so the paused Follow icon carries its orange in the image.
+enum FollowButtonIcon {
+    static func systemName(for look: QuickLookFollowState.ButtonLook) -> String {
+        look == .paused ? "pause.fill" : "arrow.down.to.line"
+    }
+
+    static func paused(_ image: NSImage?) -> NSImage? {
+        guard #available(macOS 12.0, *) else { return image }
+        return image?.withSymbolConfiguration(NSImage.SymbolConfiguration(paletteColors: [.systemOrange])) ?? image
+    }
+}
+
 // Subclass WKWebView to intercept mouse events and prevent them from bubbling up 
 // to the QuickLook host, which would otherwise trigger "Open with default app".
 class InteractiveWebView: NativeMagnifyingWebView {
     var searchShortcutHandler: (() -> Void)?
+    var copyAsMarkdownHandler: (() -> Void)?
+    var copyAsMarkdownEnabled: (() -> Bool)?
+
+    override func willOpenMenu(_ menu: NSMenu, with event: NSEvent) {
+        super.willOpenMenu(menu, with: event)
+        if copyAsMarkdownEnabled?() == true {
+            QuickLookContextMenu.insertCopyAsMarkdown(into: menu, target: self, action: #selector(copySelectionAsMarkdown(_:)))
+        }
+        QuickLookContextMenu.flattenSpeech(in: menu)
+    }
+
+    @objc func copySelectionAsMarkdown(_ sender: Any?) { copyAsMarkdownHandler?() }
 
     override func performTextFinderAction(_ sender: Any?) {
         if QuickLookFindShortcut.isShowFindAction(sender), let searchShortcutHandler {
@@ -53,29 +78,9 @@ class InteractiveWebView: NativeMagnifyingWebView {
     }
     
     override var acceptsFirstResponder: Bool {
-        return false
+        return super.acceptsFirstResponder
     }
     
-    override func scrollWheel(with event: NSEvent) {
-        guard event.phase == .changed || event.phase == .began else {
-            super.scrollWheel(with: event)
-            return
-        }
-
-        if event.modifierFlags.contains(.command) {
-            let delta = event.scrollingDeltaY
-            guard abs(delta) > 0.1 else {
-                super.scrollWheel(with: event)
-                return
-            }
-            let newZoom = max(0.5, min(3.0, self.pageZoom + (delta > 0 ? 0.05 : -0.05)))
-            self.pageZoom = newZoom
-            AppearancePreference.shared.zoomLevel = newZoom
-            os_log("🔵 Cmd+scroll zoom: %.2f", log: logger, type: .debug, newZoom)
-            return
-        }
-        super.scrollWheel(with: event)
-    }
 
 }
 
@@ -91,6 +96,12 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     private var truncationNotice: NSTextField?
     private let errorRegistry = RendererErrorRegistry()
     private let blockCopyBridge = BlockCopyBridge()
+    private var selectionCopyHostVisible = false
+    private var selectionCopyEnabled: Bool {
+        SelectionCopyBridge.enabled(expanded: currentPreviewMode != .compact, visible: selectionCopyHostVisible,
+                                    fileExtension: currentURL?.pathExtension)
+    }
+    private let diagramExportBridge = DiagramExportBridge()
     private var diagnosticAttempt = UUID()
     private func logDiagnosticStage(_ stage: QuickLookDiagnosticStage, error: Error? = nil) {
         guard let url = currentURL, let token = QuickLookProbeEvidence.token(for: url) else { return }
@@ -104,17 +115,64 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     private func showFailure(_ kind: FailureKind, error: Error? = nil) {
         if kind == .renderer || kind == .rendererResources { logDiagnosticStage(.rendererFailed, error: error) }
         let incident = errorRegistry.nativeFailure(kind, error: error)
-        IncidentNotice.attach(to: view, incident: incident, recoveryTitle: "Open in FluxMarkdown", recovery: { [weak self] in
-            guard let self, let url = self.currentURL else { return }
-            SearchLaunchClient.openForReading(url) { success in
-                if !success { IncidentNotice.fallback(in: self.view, draft: IncidentDraft(incident)) }
+        // The app cannot open a file over its own limit; Follow can still show the end.
+        switch PreviewLimitNotice.recovery(for: kind, followAvailable: followEligible) {
+        case .follow:
+            IncidentNotice.attach(to: view, incident: incident, recoveryTitle: "Follow Changes") { [weak self] in
+                self?.toggleFollow()
             }
-        })
+        case .revealInFinder:
+            IncidentNotice.attach(to: view, incident: incident, guidance: PreviewLimitNotice.revealGuidance, recoveryTitle: PreviewLimitNotice.revealTitle) { [weak self] in
+                if let url = self?.currentURL { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+            }
+        case .openInApp:
+            let guidance = kind == .previewLimit && !followEligible ? PreviewLimitNotice.openInAppGuidance : nil
+            IncidentNotice.attach(to: view, incident: incident, guidance: guidance, recoveryTitle: "Open in FluxMarkdown") { [weak self] in
+                guard let self, let url = self.currentURL else { return }
+                SearchLaunchClient.openForReading(url) { success in
+                    if !success { IncidentNotice.fallback(in: self.view, draft: IncidentDraft(incident)) }
+                }
+            }
+        }
     }
     private var previewIsTruncated = false
     private var previewHasUnreadableImages = false
+    /// Follow keeps a clean view of the end: the missing-image warning waits until Follow is off.
+    private var showsImageWarning: Bool { previewHasUnreadableImages && !followState.enabled }
+    /// The limit applied to the current read, named by the incomplete-preview notice.
+    private var previewReadLimit = MarkdownPreviewPolicy.previewLimit
+    private var previewRevision: PreviewFileRevision?
+    /// Size of the file at the last complete read, and where a tail window starts in it.
+    private var previewFileSize: UInt64 = 0
+    private var windowStartByte: UInt64 = 0
+    private var windowStartLine = 0
+    private var showsTailWindow: Bool { windowStartByte > 0 }
+    /// Leaving the end of a file for its beginning starts at the top, not at the old offset.
+    private var scrollToTopAfterRender = false
 
-    private func updateTruncationNotice(_ truncated: Bool) {
+    private func byteCount(_ bytes: UInt64) -> String {
+        ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .binary)
+    }
+    private var limitNotice: String {
+        let status = followEligible ? PreviewLimitNotice.headStatus : PreviewLimitNotice.limitedHeadStatus
+        return String(format: NSLocalizedString(status, comment: "QuickLook truncation notice"),
+               byteCount(min(UInt64(previewReadLimit), previewFileSize)), byteCount(previewFileSize))
+    }
+    private var tailNotice: String {
+        String(format: NSLocalizedString(PreviewLimitNotice.tailStatus, comment: "QuickLook tail window status"),
+               byteCount(previewFileSize - windowStartByte), byteCount(previewFileSize))
+    }
+
+    /// Records where a read came from, for the notices, the renderer's line numbers and Follow.
+    private func applyWindow(_ snapshot: PreviewFileReader.Snapshot, limit: Int) {
+        previewRevision = snapshot.revision
+        previewReadLimit = limit
+        previewFileSize = snapshot.size
+        windowStartByte = snapshot.startByte
+        windowStartLine = snapshot.startLine
+    }
+
+    private func updateTruncationNotice(_ truncated: Bool, presentIncident: Bool = true) {
         previewIsTruncated = truncated
         if currentURL?.pathExtension.lowercased() == "tsv" {
             truncationNotice?.isHidden = true
@@ -122,25 +180,35 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
             return // TSV carries its bounded notice inside the rendered/exported content.
         }
         if truncationNotice == nil {
-            let label = NSTextField(wrappingLabelWithString: NSLocalizedString("Preview limited to 500 KiB. Use Open with FluxMarkdown above to read the complete document.", comment: "QuickLook truncation notice"))
+            let label = NSTextField(wrappingLabelWithString: limitNotice)
             label.font = .systemFont(ofSize: 12)
             label.textColor = .secondaryLabelColor
             label.setAccessibilityLabel(label.stringValue)
             view.addSubview(label)
             truncationNotice = label
         }
-        truncationNotice?.stringValue = truncated
-            ? NSLocalizedString("Preview limited to 500 KiB. Use Open with FluxMarkdown above to read the complete document.", comment: "QuickLook truncation notice")
-            : NSLocalizedString("Some local images could not be read. Use Open with FluxMarkdown above to view the document.", comment: "QuickLook resource notice")
+        truncationNotice?.stringValue = truncated ? limitNotice
+            : showsImageWarning ? NSLocalizedString("Some local images could not be read. Use Open with FluxMarkdown above to view the document.", comment: "QuickLook resource notice")
+            : tailNotice
         truncationNotice?.setAccessibilityLabel(truncationNotice?.stringValue)
-        truncationNotice?.isHidden = !truncated && !previewHasUnreadableImages
+        // A tail window is a status line only; it raises no incident.
+        truncationNotice?.isHidden = !truncated && !showsImageWarning && !showsTailWindow
         layoutTruncationNotice()
-        if truncated || previewHasUnreadableImages { showFailure(truncated ? .previewLimit : .images) }
+        if presentIncident && (truncated || showsImageWarning) {
+            showFailure(truncated ? PreviewLimitNotice.failureKind(fileSize: previewFileSize) : .images)
+        }
+    }
+
+    private func refreshLimitRecovery() {
+        guard previewIsTruncated else { return }
+        let hasLimitIncident = view.subviews.compactMap { $0 as? IncidentNotice }
+            .contains { [.previewLimit, .previewLimitBeyondApp].contains($0.failureKind) }
+        updateTruncationNotice(true, presentIncident: hasLimitIncident)
     }
 
     private func layoutTruncationNotice() {
         guard let webView else { return }
-        let height: CGFloat = currentURL?.pathExtension.lowercased() != "tsv" && (previewIsTruncated || previewHasUnreadableImages) ? 52 : 0
+        let height: CGFloat = currentURL?.pathExtension.lowercased() != "tsv" && (previewIsTruncated || showsImageWarning || showsTailWindow) ? 52 : 0
         // Native chrome stays visible even when truncated Markdown ends in a code fence or image URI.
         webView.frame = NSRect(x: 0, y: height, width: view.bounds.width, height: max(0, view.bounds.height - height))
         truncationNotice?.frame = NSRect(x: 16, y: 8, width: max(0, view.bounds.width - 32), height: 36)
@@ -235,14 +303,9 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     private let fileReadVersion = RenderVersionCounter()
 
     // MARK: - File Monitoring
-    private var fileMonitor: DispatchSourceFileSystemObject?
-    private var monitoredFileDescriptor: Int32 = -1
 
-    private var lastKnownFileSize: UInt64?
-    private var lastKnownFileModificationDate: Date?
 
     private var pollingTimer: Timer?
-    private let pollingInterval: TimeInterval = 2.0
     
     private let logger = OSLog(subsystem: "com.markdownquicklook.app", category: "MarkdownPreview")
     
@@ -343,6 +406,116 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     private var zoomOutButton: CircularToolbarButton!
     private var resetZoomButton: CircularToolbarButton!
     private var reloadButton: CircularToolbarButton!
+    private var followButton: CircularToolbarButton!
+    private var followState = QuickLookFollowState()
+    private var followRenderBusy = false
+    private var followPollBusy = false
+    private static let followExtensions: Set<String> = ["md", "mdx", "markdown", "mdown", "mkd", "mkdn", "mkdown", "mdwn", "rmd", "qmd", "mdoc", "mdc", "livemd"]
+    private var followEligible: Bool {
+        currentViewMode == .preview && currentPreviewMode == .expanded &&
+            Self.followExtensions.contains(currentURL?.pathExtension.lowercased() ?? "")
+    }
+    private weak var followMenuItem: NSMenuItem?
+    private weak var resumeMenuItem: NSMenuItem?
+    private weak var stopMenuItem: NSMenuItem?
+    private func updateFollowButton() {
+        followButton?.isHidden = !followEligible
+        let title: String
+        switch followState.buttonLook { case .off: title = "Follow Changes"; case .following: title = "Stop Following"; case .paused: title = "Resume Following" }
+        let tint: NSColor
+        switch followState.buttonLook { case .off: tint = .labelColor; case .following: tint = .systemBlue; case .paused: tint = .systemOrange }
+        followButton?.configure(systemName: FollowButtonIcon.systemName(for: followState.buttonLook), accessibilityDescription: NSLocalizedString(title, comment: "Follow toolbar"), tintColor: tint, toolTip: NSLocalizedString(title, comment: "Follow toolbar"))
+        // The on state draws an accent-filled circle that ignores the tint, so a paused
+        // Follow shows as an orange icon without the fill.
+        followButton?.state = followState.buttonLook == .following ? .on : .off
+        if followState.buttonLook == .paused { followButton?.image = FollowButtonIcon.paused(followButton?.image) }
+        resumeMenuItem?.isHidden = followState.buttonLook != .paused
+        stopMenuItem?.isHidden = !followState.enabled
+        followMenuItem?.isHidden = followState.enabled
+    }
+    private var pendingResume: DispatchWorkItem?
+    @objc private func toggleFollow() {
+        guard followEligible else { updateFollowButton(); return }
+        pendingResume?.cancel(); pendingResume = nil
+        let event = NSApp.currentEvent
+        let clicks = event?.type == .leftMouseUp || event?.type == .leftMouseDown ? max(1, event?.clickCount ?? 1) : 1
+        switch followState.buttonClick(clickCount: clicks) {
+        case .start: startFollowing()
+        case .stop: if followState.enabled { userStopsFollowing() } else { updateFollowButton() }
+        case .resume:
+            // Wait out the double-click interval: a second click stops Follow instead.
+            updateFollowButton()
+            let resume = DispatchWorkItem { [weak self] in self?.pendingResume = nil; self?.resumeFollowing() }
+            pendingResume = resume
+            DispatchQueue.main.asyncAfter(deadline: .now() + NSEvent.doubleClickInterval, execute: resume)
+        }
+    }
+    @objc private func resumeFollowing() {
+        guard followEligible, followState.buttonLook == .paused else { return }
+        startFollowing()
+    }
+    /// A paused Follow keeps the view still, but still tells the reader that lines arrived.
+    private func checkForWaitingLines() {
+        guard followState.paused, !followState.linesWaiting, let url = currentURL else { return }
+        let shown = previewRevision
+        let session = followState.session
+        DispatchQueue.global(qos: .utility).async {
+            let changed = (try? PreviewFileReader.revision(at: url)).map { $0 != shown } ?? false
+            DispatchQueue.main.async { [weak self] in
+                guard let self, changed, self.currentURL == url,
+                      self.previewRevision == shown, !self.fileReadInFlight, !self.followRenderBusy,
+                      self.followState.markLinesWaiting(in: session) else { return }
+                self.webView.evaluateJavaScript("window.quickLookFollowWaiting && window.quickLookFollowWaiting(true);", completionHandler: nil)
+            }
+        }
+    }
+    private func startFollowing() {
+        pendingResume?.cancel()
+        pendingResume = nil
+        followState.start()
+        // A selection holds Follow updates; turning Follow on is a request to see the end now.
+        webView.evaluateJavaScript("window.getSelection() && window.getSelection().removeAllRanges();", completionHandler: nil)
+        for notice in view.subviews.compactMap({ $0 as? IncidentNotice }) where notice.failureKind == .images { notice.removeFromSuperview() }
+        webView.evaluateJavaScript("window.setQuickLookFollow && window.setQuickLookFollow(true);", completionHandler: nil)
+        updateFollowButton()
+        startPollingTimer()
+        reloadFromDisk(force: true)
+    }
+    @objc private func stopFollowing() {
+        pendingResume?.cancel()
+        pendingResume = nil
+        followState.stop()
+        if pollingTimer != nil { startPollingTimer() }
+        webView?.evaluateJavaScript("window.setQuickLookFollow && window.setQuickLookFollow(false);", completionHandler: nil)
+        updateFollowButton()
+    }
+    /// Without Follow, a large file shows its beginning and the limit notice.
+    @objc private func userStopsFollowing() {
+        let wasFollowing = followState.enabled
+        stopFollowing()
+        if (wasFollowing || showsTailWindow) && isWebViewLoaded { reloadFromDisk(force: true) }
+        else if previewHasUnreadableImages { updateTruncationNotice(previewIsTruncated) }
+    }
+    private func setupFollowButton() {
+        let title = NSLocalizedString("Follow Changes", comment: "Follow toolbar")
+        let button = CircularToolbarButton.make(systemName: "arrow.down.to.line", accessibilityDescription: title,
+            tintColor: .labelColor, target: self, action: #selector(toggleFollow), toolTip: title)
+        button.setButtonType(.pushOnPushOff)
+        let menu = NSMenu()
+        let follow = menu.addItem(withTitle: title, action: #selector(toggleFollow), keyEquivalent: "")
+        follow.target = self; followMenuItem = follow
+        let resume = menu.addItem(withTitle: NSLocalizedString("Resume Following", comment: "Follow toolbar"), action: #selector(resumeFollowing), keyEquivalent: "")
+        resume.target = self; resumeMenuItem = resume
+        let stop = menu.addItem(withTitle: NSLocalizedString("Stop Following", comment: "Follow toolbar"), action: #selector(userStopsFollowing), keyEquivalent: "")
+        stop.target = self; stopMenuItem = stop; button.menu = menu
+        view.addSubview(button); followButton = button
+        NSLayoutConstraint.activate([
+            button.topAnchor.constraint(equalTo: view.topAnchor, constant: 10),
+            button.rightAnchor.constraint(equalTo: reloadButton.leftAnchor, constant: -8),
+            button.widthAnchor.constraint(equalToConstant: 30), button.heightAnchor.constraint(equalToConstant: 30)
+        ])
+        updateFollowButton()
+    }
     private var versionLabel: NSTextField!
     
     public override func loadView() {
@@ -356,7 +529,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
 
         os_log("🔵 Setting preferred size to: %.0f x %.0f", log: logger, type: .debug, width, height)
 
-        self.view = NSView(frame: NSRect(x: 0, y: 0, width: width, height: height))
+        self.view = AppearanceKeepingView(frame: NSRect(x: 0, y: 0, width: width, height: height))
         self.view.autoresizingMask = [.width, .height]
 
         logScreenEnvironment(context: "loadView-BEFORE")
@@ -432,6 +605,9 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         userContentController.add(self, name: "readingToolsLayout")
         userContentController.add(self, name: "errorFeedback")
         userContentController.add(self, name: "blockCopy")
+        userContentController.add(self, name: "selectionCopy")
+        userContentController.add(self, name: "readingJourney")
+        userContentController.add(self, name: "diagramAction")
         webConfiguration.userContentController = userContentController
         
         let schemeHandler = LocalSchemeHandler()
@@ -453,6 +629,8 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         os_log("🔵 initializing InteractiveWebView instance...", log: logger, type: .default)
         webView = InteractiveWebView(frame: self.view.bounds, configuration: webConfiguration)
         webView.searchShortcutHandler = { [weak self] in self?.requestSearch() }
+        webView.copyAsMarkdownHandler = { [weak self] in self?.copySelectionAsMarkdown() }
+        webView.copyAsMarkdownEnabled = { [weak self] in self?.selectionCopyEnabled ?? false }
         webView.autoresizingMask = [.width, .height]
         webView.navigationDelegate = self
         self.view.addSubview(webView)
@@ -468,6 +646,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         setupResetZoomButton()
         setupZoomOutButton()
         setupReloadButton()
+        setupFollowButton()
         setupVersionLabel()
         
         if rendererBundleSchemeHandler != nil {
@@ -487,11 +666,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         webView.addGestureRecognizer(doubleClickGesture)
         
         // Zoom is session-only; always start at 1.0 (Bug 2 fix)
-        webView.pageZoom = 1.0
-        
-        #if DEBUG
-        setupDebugLabel()
-        #endif
+        webView.readingZoom = 1.0
         
         startResizeTracking()
     }
@@ -519,6 +694,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         } else {
             appearance = mode.nsAppearance
         }
+        (self.view as? AppearanceKeepingView)?.selectedAppearance = appearance
         self.view.appearance = appearance
         self.webView?.appearance = appearance
         applyInitialBackgroundColor()
@@ -567,12 +743,18 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     
     public override func viewDidAppear() {
         super.viewDidAppear()
+        selectionCopyHostVisible = true
         usage.setHostVisible(true)
         usage.attach(view, document: currentURL)
         if usageReady { usage.rendered() }
         logScreenEnvironment(context: "viewDidAppear")
         
         updatePreviewMode()
+        // A scroll restored while Quick Look opens the preview can reach the page but not the
+        // screen; clicks then land a line or two away from the text under the pointer.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+            self?.webView?.evaluateJavaScript("window.resyncScrollPosition && window.resyncScrollPosition();", completionHandler: nil)
+        }
         
     }
     
@@ -594,6 +776,9 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     
     private func updateUIForPreviewMode() {
         let isCompact = (currentPreviewMode == .compact)
+        if isCompact { userStopsFollowing() }
+        updateFollowButton()
+        refreshLimitRecovery()
         
         themeButton?.isHidden = isCompact
         sourceButton?.isHidden = isCompact
@@ -608,11 +793,15 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     
     public override func viewWillDisappear() {
         super.viewWillDisappear()
+        stopFollowing()
+        followRenderBusy = false
+        followPollBusy = false
+        selectionCopyHostVisible = false
         usage.setHostVisible(false)
         usage.stop()
         fileReadVersion.next()
         renderVersion.next()
-        webView.evaluateJavaScript("window.invalidateRender && window.invalidateRender();", completionHandler: nil)
+        webView?.evaluateJavaScript("window.invalidateRender && window.invalidateRender();", completionHandler: nil)
         logScreenEnvironment(context: "viewWillDisappear")
 
         stopFileMonitoring()
@@ -642,8 +831,9 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
             os_log("📊 [viewWillDisappear] Skipping save - no user resize detected or size too small", log: logger, type: .default)
         }
 
-        if let url = currentURL {
-            webView.evaluateJavaScript("window.scrollY || document.documentElement.scrollTop") { result, error in
+        // An offset in a tail window means nothing for the beginning shown next time.
+        if let url = currentURL, !showsTailWindow {
+            webView?.evaluateJavaScript("window.scrollY || document.documentElement.scrollTop") { result, error in
                 if let scrollY = result as? Double, scrollY >= 0 {
                     AppearancePreference.shared.setScrollPosition(for: url.path, value: scrollY)
                     os_log("📊 [viewWillDisappear] Saved scroll position: %.0f for %{public}@", 
@@ -682,6 +872,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "readingToolsLayout")
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "errorFeedback")
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "blockCopy")
+        webView.configuration.userContentController.removeScriptMessageHandler(forName: "selectionCopy")
         
         for recognizer in webView.gestureRecognizers where recognizer is NSClickGestureRecognizer {
             webView.removeGestureRecognizer(recognizer)
@@ -820,10 +1011,13 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     }
     
     @objc private func toggleViewMode() {
+        // Leaving the end of a file shows its beginning, from the top.
+        let leavingTail = showsTailWindow
+        userStopsFollowing()
         webView.evaluateJavaScript("window.scrollY || document.documentElement.scrollTop") { [weak self] result, error in
             guard let self = self else { return }
             
-            let scrollY = (result as? Double) ?? 0.0
+            let scrollY = leavingTail ? 0.0 : (result as? Double) ?? 0.0
             
             let prevMode = self.currentViewMode
             self.currentViewMode = (self.currentViewMode == .preview) ? .source : .preview
@@ -833,6 +1027,8 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                    self.currentViewMode == .preview ? "preview" : "source",
                    self.isWebViewLoaded ? "true" : "false")
             self.updateSourceButtonState()
+            self.updateFollowButton()
+            self.refreshLimitRecovery()
             
             if self.isWebViewLoaded {
                 self.renderCurrentMode()
@@ -1100,6 +1296,8 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         
         guard let contentData = try? JSONSerialization.data(withJSONObject: [content], options: []),
               let contentJsonArray = String(data: contentData, encoding: .utf8) else {
+            followRenderBusy = false
+            stopFollowing()
             os_log("🔴 Failed to encode content to JSON", log: self.logger, type: .error)
             return
         }
@@ -1112,8 +1310,14 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         self.prevMarkdown = nil
 
         let feedbackGeneration = errorRegistry.beginDocument()
+        let sourceURL = currentURL
+        errorRegistry.sourceContext = { (content, sourceURL) }
         webView.evaluateJavaScript("window.setFeedbackGeneration && window.setFeedbackGeneration('\(feedbackGeneration)');", completionHandler: nil)
-        let sourceOptions = "{format: '\(currentURL?.pathExtension.lowercased() == "tsv" ? "tsv" : "markdown")', isTruncated: \(previewIsTruncated)}"
+        var sourceOptionsObject:[String:Any]=["format":currentURL?.pathExtension.lowercased()=="tsv" ? "tsv":"markdown","isTruncated":previewIsTruncated,"context":"quicklook","uiLanguage":AppearancePreference.shared.uiLanguage,
+                                             "selectionCopy":SelectionCopyBridge.enabled(expanded:currentPreviewMode != .compact,visible:true,fileExtension:currentURL?.pathExtension),"showCopyButtons":AppearancePreference.shared.showCopyButtons]
+        if let url=currentURL{sourceOptionsObject.merge(ReadingJourneyBridge.options(for:url)){_,new in new}}
+        guard let optionsData=try? JSONSerialization.data(withJSONObject:sourceOptionsObject),let sourceOptions=String(data:optionsData,encoding:.utf8) else{return}
+
         var callJs: String
         if let prev = capturedPrevForSource, !prev.isEmpty,
            let prevData = try? JSONSerialization.data(withJSONObject: [prev]),
@@ -1140,6 +1344,10 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         
         self.webView.evaluateJavaScript(callJs) { (innerResult, innerError) in
             guard self.renderVersion.isCurrent(usageRenderVersion) else { return }
+            if self.scrollToTopAfterRender {
+                self.scrollToTopAfterRender = false
+                self.webView.evaluateJavaScript("window.scrollTo({ top: 0, behavior: 'auto' });", completionHandler: nil)
+            }
             if let innerError = innerError {
                 os_log("🔴 JS Execution Error (renderSource): %{public}@", log: self.logger, type: .error, innerError.localizedDescription)
                 self.showFailure(.source, error: innerError)
@@ -1154,22 +1362,19 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     }
     
     @objc private func zoomIn() {
-        webView.pageZoom = min(3.0, webView.pageZoom + 0.1)
-        AppearancePreference.shared.zoomLevel = webView.pageZoom
-        os_log("🔵 pageZoom in: %.2f", log: logger, type: .debug, webView.pageZoom)
+        webView.stepReadingZoom(0.1)
+        os_log("🔵 readingZoom in: %.2f", log: logger, type: .debug, webView.readingZoom)
     }
     
     @objc private func zoomOut() {
-        webView.pageZoom = max(0.5, webView.pageZoom - 0.1)
-        AppearancePreference.shared.zoomLevel = webView.pageZoom
-        os_log("🔵 pageZoom out: %.2f", log: logger, type: .debug, webView.pageZoom)
+        webView.stepReadingZoom(-0.1)
+        os_log("🔵 readingZoom out: %.2f", log: logger, type: .debug, webView.readingZoom)
     }
     
     @objc private func resetZoom() {
-        webView.pageZoom = 1.0
-        AppearancePreference.shared.zoomLevel = 1.0
+        webView.stepReadingZoom()
         showToolbarFeedbackToast(NSLocalizedString("Zoom reset", comment: "Reset zoom toast"))
-        os_log("🔵 pageZoom reset", log: logger, type: .debug)
+        os_log("🔵 readingZoom reset", log: logger, type: .debug)
     }
 
     @objc private func reloadFileManually() {
@@ -1185,6 +1390,12 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     func handleMonitoredKeyDownEvent(_ event: NSEvent) -> NSEvent? {
         guard let window = view.window, event.windowNumber == window.windowNumber else { return event }
         return handleKeyDownEvent(event)
+    }
+
+    /// The renderer converts and reports the copy; the selectionCopy bridge writes the clipboard.
+    private func copySelectionAsMarkdown() {
+        guard selectionCopyEnabled else { return }
+        webView.evaluateJavaScript("window.copyQuickLookSelection && window.copyQuickLookSelection('markdown');", completionHandler: nil)
     }
 
     private func requestSearch() {
@@ -1291,35 +1502,15 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         super.keyDown(with: event)
     }
     
-    #if DEBUG
-    private func setupDebugLabel() {
-        let debugInfo = Bundle(for: type(of: self)).infoDictionary
-        let version = DisplayVersion.text(from: debugInfo) ?? "Unknown"
-        let build = debugInfo?["CFBundleVersion"] as? String ?? "Unknown"
-        
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "HH:mm"
-        let now = dateFormatter.string(from: Date())
-        
-        let debugLabel = NSTextField(labelWithString: "v\(version)(\(build)) \(now)")
-        debugLabel.font = NSFont.monospacedSystemFont(ofSize: 10, weight: .regular)
-        debugLabel.textColor = NSColor.white
-        debugLabel.drawsBackground = true
-        debugLabel.backgroundColor = NSColor.red.withAlphaComponent(0.6)
-        debugLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        self.view.addSubview(debugLabel)
-        
-        NSLayoutConstraint.activate([
-            debugLabel.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 5),
-            debugLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 5)
-        ])
-        
-        self.view.addSubview(debugLabel, positioned: .above, relativeTo: webView)
-    }
-    #endif
-
     public func preparePreviewOfFile(at url: URL, completionHandler handler: @escaping (Error?) -> Void) {
+        windowStartByte = 0; windowStartLine = 0; scrollToTopAfterRender = false
+        stopFollowing()
+        stopFileMonitoring()
+        followRenderBusy = false
+        followPollBusy = false
+        followState.reset()
+        previewRevision = nil
+        webView?.evaluateJavaScript("window.invalidateRender && window.invalidateRender();", completionHandler: nil)
         _ = errorRegistry.beginDocument()
         for notice in view.subviews.compactMap({ $0 as? IncidentNotice }) { notice.removeFromSuperview() }
         os_log("🔵 preparePreviewOfFile called for: %{public}@", log: logger, type: .default, url.path)
@@ -1330,6 +1521,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         previewHasUnreadableImages = false
         updateTruncationNotice(false)
         self.currentURL = url
+        updateFollowButton()
         diagnosticAttempt = UUID()
         logDiagnosticStage(.prepared)
         if isWebViewLoaded { logDiagnosticStage(.handshake) }
@@ -1348,8 +1540,8 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
             self.logScreenEnvironment(context: "preparePreviewOfFile-ASYNC-START")
 
             let savedZoom = AppearancePreference.shared.zoomLevel
-            self.webView.pageZoom = savedZoom
-            os_log("🔵 Restored pageZoom to %.2f for new file preview", log: self.logger, type: .debug, savedZoom)
+            self.webView.readingZoom = savedZoom
+            os_log("🔵 Restored readingZoom to %.2f for new file preview", log: self.logger, type: .debug, savedZoom)
 
             // Reset tracking to prevent capturing layout thrashing during display switching.
             // This is necessary because when QuickLook switches displays or reuses the view controller,
@@ -1378,8 +1570,9 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
             AppearancePreference.shared.apply(to: self.view)
             self.updateThemeButtonState()
             
+            let limit = MarkdownPreviewPolicy.readLimit(for: url)
             DispatchQueue.global(qos: .userInitiated).async {
-                let result = Result { try PreviewFileReader.read(url) }
+                let result = Result { try PreviewFileReader.read(url, limit: limit) }
                 DispatchQueue.main.async {
                     guard self.fileReadVersion.isCurrent(readVersion), self.currentURL == url else {
                         handler(CocoaError(.userCancelled))
@@ -1389,10 +1582,9 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                     case .success(let snapshot):
                         self.logDiagnosticStage(.fileRead)
                         self.pendingMarkdown = snapshot.content
+                        self.applyWindow(snapshot, limit: limit)
                         self.previewHasUnreadableImages = false
                         self.updateTruncationNotice(snapshot.isTruncated)
-                        self.lastKnownFileSize = snapshot.size
-                        self.lastKnownFileModificationDate = snapshot.modificationDate
                         if self.isWebViewLoaded { self.renderCurrentMode() }
                         self.startFileMonitoring()
                         handler(nil)
@@ -1407,7 +1599,9 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         }
     }
     
-    private func renderPendingMarkdown() {
+    /// With `appended`, sends only text added to a followed document of `baseLength` UTF-16 units;
+    /// the renderer asks for a full render when its retained source differs.
+    private func renderPendingMarkdown(appending appended: String? = nil, toLength baseLength: Int = 0) {
         guard let content = pendingMarkdown else {
             os_log("🟡 renderPendingMarkdown called but pendingMarkdown is nil", log: logger, type: .debug)
             return
@@ -1421,8 +1615,10 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         webView.evaluateJavaScript("window.clearDiffMarks && window.clearDiffMarks();", completionHandler: nil)
         os_log("🔵 renderPendingMarkdown called with content length: %d", log: logger, type: .debug, content.count)
         
-        guard let contentData = try? JSONSerialization.data(withJSONObject: [content], options: []),
+        guard let contentData = try? JSONSerialization.data(withJSONObject: [appended ?? content], options: []),
               let contentJsonArray = String(data: contentData, encoding: .utf8) else {
+            followRenderBusy = false
+            stopFollowing()
             os_log("🔴 Failed to encode content to JSON", log: self.logger, type: .error)
             return
         }
@@ -1457,19 +1653,29 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         usage.rendering()
         usageReady = false
         let capturedTruncated = previewIsTruncated
+        let capturedFollowCapability = followEligible
+        let capturedWindowStart = windowStartByte
+        let capturedWindowLine = windowStartLine
+        let capturedDocumentGeneration = errorRegistry.scope.uuidString
+        followRenderBusy = true
         let capturedRenderVersion = renderVersion.next()
-        webView.evaluateJavaScript("window.invalidateRender && window.invalidateRender();", completionHandler: nil)
 
         Task.detached(priority: .userInitiated) { [weak self] in
             guard let self = self else { return }
             
             let contextValue = capturedPreviewMode == .compact ? "finder" : "quicklook"
             var options: [String: Any] = ["theme": theme, "context": contextValue, "uiLanguage": capturedUILanguage, "collapseBlockquotes": capturedCollapseBlockquotes, "showLineNumbers": capturedShowLineNumbers, "showCopyButtons": capturedShowCopyButtons, "contentsSide": capturedContentsSide, "fontSize": capturedFontSize, "renderVersion": capturedRenderVersion]
+            options["documentGeneration"] = capturedDocumentGeneration
+            options["followFile"] = capturedFollowCapability
+            if appended != nil { options["followAppendBase"] = baseLength }
+            if capturedWindowStart > 0 { options["sourceLineStart"] = capturedWindowLine }
+            options["selectionCopy"] = SelectionCopyBridge.enabled(expanded: capturedPreviewMode != .compact, visible: true, fileExtension: capturedURL?.pathExtension)
             if capturedURL?.pathExtension.lowercased() == "tsv" {
                 options["format"] = "tsv"
                 options["isTruncated"] = capturedTruncated
             }
             if let url = capturedURL {
+                options.merge(ReadingJourneyBridge.options(for:url)){_,new in new}
                 options["filename"] = url.lastPathComponent
                 options["baseUrl"] = url.deletingLastPathComponent().path
                 let imageData = url.pathExtension.lowercased() == "tsv" ? [:] : MarkdownImageDataCollector.collectImageData(from: url, content: content)
@@ -1477,27 +1683,32 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                     options["imageData"] = imageData
                 }
             }
-            if let prev = capturedPrevMarkdown, !prev.isEmpty {
+            if appended == nil, let prev = capturedPrevMarkdown, !prev.isEmpty {
                 options["prevContent"] = prev
             }
             
             guard let optionsData = try? JSONSerialization.data(withJSONObject: options, options: []),
                   let optionsJson = String(data: optionsData, encoding: .utf8) else {
                 await MainActor.run {
+                    self.followRenderBusy = false
+                    self.stopFollowing()
                     os_log("🔴 Failed to encode options to JSON", log: self.logger, type: .error)
                     self.showFailure(.renderer)
                 }
                 return
             }
             
-            let probeToken = capturedURL.flatMap { QuickLookProbeEvidence.token(for: $0) }
+            let probeToken = appended == nil ? capturedURL.flatMap { QuickLookProbeEvidence.token(for: $0) } : nil
             let callJs = probeToken == nil
                 ? "return window.renderMarkdown(\(safeContentArg), \(optionsJson));"
                 : "await window.renderMarkdown(\(safeContentArg), \(optionsJson)); return window.verifyQuickLookProbe(probeHeading, probeBoldText);"
             
             await MainActor.run {
                 guard self.renderVersion.isCurrent(capturedRenderVersion), self.currentURL == capturedURL else { return }
-                let feedbackGeneration = self.errorRegistry.beginDocument()
+                // One feedback generation per document, not per render: Follow updates of
+                // the same document keep their copy controls and incremental state.
+                let feedbackGeneration = self.errorRegistry.scope.uuidString
+                self.errorRegistry.sourceContext = { (content, capturedURL) }
                 ErrorFeedback.capture(.renderer, phase: .started, scope: self.errorRegistry.scope)
                 self.webView.evaluateJavaScript("window.setFeedbackGeneration && window.setFeedbackGeneration('\(feedbackGeneration)');", completionHandler: nil)
                 self.logDiagnosticStage(.renderStarted)
@@ -1508,16 +1719,24 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                     in: WKContentWorld.page
                 ) { result in
                     guard self.renderVersion.isCurrent(capturedRenderVersion), self.currentURL == capturedURL else { return }
+                    self.followRenderBusy = false
                     switch result {
                     case .failure(let error):
+                        self.stopFollowing()
                         os_log("🔴 JS Execution Error (renderMarkdown): %{public}@", log: self.logger, type: .error, error.localizedDescription)
                 self.showFailure(.renderer, error: error)
                     case .success(let value):
+                        if (value as? [String: Any])?["needsFullRender"] as? Bool == true {
+                            self.renderPendingMarkdown()
+                            return
+                        }
                         if probeToken != nil && (value as? Bool) != true {
                             self.logDiagnosticStage(.renderUnverified)
                             os_log("Quick Look probe did not verify the rendered fixture", log: self.logger, type: .default)
                             break
                         }
+                        // The renderer cleared its waiting notice for the newly displayed content.
+                        self.followState.previewDidRender()
                         self.usageReady = true
                         self.usage.rendered()
                         os_log("🔵 renderMarkdown completed successfully, result: %{public}@", log: self.logger, type: .debug, String(describing: value))
@@ -1533,9 +1752,12 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                         self.completePendingSearchRequest()
                     }
                     
-                    if let url = self.currentURL,
+                    if self.scrollToTopAfterRender {
+                        self.scrollToTopAfterRender = false
+                        self.webView.evaluateJavaScript("window.scrollTo({ top: 0, behavior: 'auto' });", completionHandler: nil)
+                    } else if !self.followState.enabled, let url = self.currentURL,
                        let savedScrollY = AppearancePreference.shared.getScrollPosition(for: url.path),
-                       savedScrollY > 0 {
+                       savedScrollY > 0, ReadingJourneyStore.shared.state(for:url)==nil {
                         
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             guard self.renderVersion.isCurrent(capturedRenderVersion), self.currentURL == capturedURL else { return }
@@ -1644,6 +1866,16 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard RendererBridgePolicy.accepts(message) else { return }
+        if message.name == "selectionCopy" {
+            blockCopyBridge.handle(message, generation: errorRegistry.scope.uuidString,
+                                   enabled: selectionCopyEnabled && view.window != nil && !view.isHidden)
+            return
+        }
+        if message.name == "diagramAction" {
+            let generation=errorRegistry.scope.uuidString
+            diagramExportBridge.handle(message,generation:generation,fileURL:currentURL,quickLook:true,isCurrent:{[weak self] in self?.errorRegistry.scope.uuidString==generation},reload:{[weak self] in self?.reloadFileManually()});return
+        }
+        if message.name == "readingJourney" {ReadingJourneyBridge.handle(message,url:currentURL,generation:errorRegistry.scope.uuidString,allowNavigation:false);return}
         if message.name == "blockCopy" { blockCopyBridge.handle(message, generation: errorRegistry.scope.uuidString, enabled: AppearancePreference.shared.showCopyButtons && currentPreviewMode != .compact); return }
         if message.name == "errorFeedback" { errorRegistry.handle(message.body); return }
         if message.name == "logger", let body = message.body as? String {
@@ -1658,7 +1890,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
                 renderCurrentMode()
             }
         } else if message.name == "readingToolsLayout" {
-            themeTrailingConstraint?.constant = -ReadingToolbarLayout.trailingInset(body: message.body, zoom: message.webView?.pageZoom ?? 1)
+            themeTrailingConstraint?.constant = -ReadingToolbarLayout.trailingInset(body: message.body, zoom: 1)
             view.needsLayout = true
         } else if message.name == "linkClicked", let href = message.body as? String {
             os_log("🔵 Link clicked from JS: %{public}@", log: logger, type: .default, href)
@@ -2103,74 +2335,21 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     }
     
     private func startFileMonitoring() {
-        guard let url = currentURL else {
-            os_log("🟡 Cannot start file monitoring: currentURL is nil", log: logger, type: .debug)
-            return
-        }
+        guard currentURL != nil else { return }
 
         stopFileMonitoring()
-
-        let path = url.path
-        let fd = open(path, O_EVTONLY)
-
-        if fd < 0 {
-            os_log("🔴 Failed to open file for monitoring, using polling only: %{public}@", log: logger, type: .error, path)
-            startPollingTimer()
-            return
-        }
-
-        monitoredFileDescriptor = fd
-
-        let source = DispatchSource.makeFileSystemObjectSource(
-            fileDescriptor: fd,
-            eventMask: [.write, .delete, .rename],
-            queue: .main
-        )
-
-        source.setEventHandler { [weak self, weak source] in
-            guard let self else { return }
-            let flags = source?.data ?? []
-            if flags.contains(.delete) || flags.contains(.rename) {
-                os_log("🟡 File replaced/renamed — restarting monitor: %{public}@",
-                       log: self.logger, type: .debug, path)
-                self.stopDispatchMonitor()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
-                    guard let self else { return }
-                    self.startFileMonitoring()
-                    self.reloadFromDisk()
-                }
-                return
-            }
-            self.handleFileChange()
-        }
-
-        source.setCancelHandler { [weak self] in
-            guard let self, self.monitoredFileDescriptor >= 0 else { return }
-            close(self.monitoredFileDescriptor)
-            self.monitoredFileDescriptor = -1
-        }
-
-        source.resume()
-        self.fileMonitor = source
-        os_log("🟢 File monitoring started for: %{public}@", log: logger, type: .default, path)
 
         startPollingTimer()
     }
     
-    private func stopDispatchMonitor() {
-        fileMonitor?.cancel()
-        fileMonitor = nil
-    }
-
     private func stopFileMonitoring() {
-        stopDispatchMonitor()
         stopPollingTimer()
     }
 
     private func startPollingTimer() {
         stopPollingTimer()
         pollingTimer = Timer.scheduledTimer(
-            withTimeInterval: pollingInterval,
+            withTimeInterval: followState.interval,
             repeats: true
         ) { [weak self] _ in
             self?.pollFileForChanges()
@@ -2183,51 +2362,96 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
     }
 
     private func pollFileForChanges() {
-        guard let url = currentURL else { return }
-        guard let attrs = try? FileManager.default.attributesOfItem(atPath: url.path) else { return }
-        let newSize = attrs[.size] as? UInt64 ?? 0
-        let newMtime = attrs[.modificationDate] as? Date
-        guard FileMonitorHelpers.shouldReload(
-            newSize: newSize, newMtime: newMtime,
-            knownSize: lastKnownFileSize ?? 0,
-            knownMtime: lastKnownFileModificationDate
-        ) else { return }
-        os_log("🟢 [poll] File changed, reloading: %{public}@", log: logger, type: .default, url.lastPathComponent)
-        reloadFromDisk()
+        guard !followRenderBusy, !followPollBusy else { return }
+        if followState.enabled {
+            followPollBusy = true
+            let url = currentURL
+            let session = followState.session
+            webView.evaluateJavaScript("window.quickLookFollowStatus && window.quickLookFollowStatus();") { [weak self] result, _ in
+                guard let self else { return }
+                self.followPollBusy = false
+                guard self.currentURL == url, self.followState.enabled,
+                      self.followState.session == session else { return }
+                let state = result as? [String: Any]
+                self.followState.paused = state?["paused"] as? Bool ?? false
+                self.updateFollowButton()
+                if !self.followState.paused && state?["selected"] as? Bool != true && state?["copying"] as? Bool != true {
+                    self.reloadFromDisk(onlyIfChanged: true)
+                } else { self.checkForWaitingLines() }
+            }
+        } else { reloadFromDisk(onlyIfChanged: true) }
     }
 
-    private func reloadFromDisk(force: Bool = false, completion: ((Bool) -> Void)? = nil) {
+    private func reloadFromDisk(force: Bool = false, onlyIfChanged: Bool = false, completion: ((Bool) -> Void)? = nil) {
         guard let url = currentURL else { completion?(false); return }
-        if fileReadInFlight && !force { return }
+        if (fileReadInFlight || followRenderBusy) && !force { return }
         fileReadInFlight = true
         let version = fileReadVersion.next()
+        let following = followState.enabled
+        let limit = MarkdownPreviewPolicy.readLimit(for: url)
+        let previousRevision = !following && showsTailWindow ? nil : previewRevision
         DispatchQueue.global(qos: .userInitiated).async {
-            let result = Result { try PreviewFileReader.read(url) }
+            let result = Result<PreviewFileReader.Snapshot?, Error> {
+                if onlyIfChanged, try PreviewFileReader.revision(at: url) == previousRevision { return nil }
+                return following ? try PreviewFileReader.readTail(url, window: limit) : try PreviewFileReader.read(url, limit: limit)
+            }
             DispatchQueue.main.async {
                 guard self.fileReadVersion.isCurrent(version), self.currentURL == url else { completion?(false); return }
                 self.fileReadInFlight = false
                 do {
-                    let snapshot = try result.get()
-                    if force || snapshot.content != self.pendingMarkdown || snapshot.isTruncated != self.previewIsTruncated {
-                        self.prevMarkdown = self.pendingMarkdown
-                        self.pendingMarkdown = snapshot.content
-                        self.previewHasUnreadableImages = false
-                        self.updateTruncationNotice(snapshot.isTruncated)
-                        if self.isWebViewLoaded { self.renderCurrentMode() }
+                    guard let snapshot = try result.get() else {
+                        self.followState.succeeded()
+                        for notice in self.view.subviews.compactMap({ $0 as? IncidentNotice }) where notice.failureKind == .reload {
+                            notice.removeFromSuperview()
+                        }
+                        completion?(true)
+                        return
                     }
-                    self.lastKnownFileSize = snapshot.size
-                    self.lastKnownFileModificationDate = snapshot.modificationDate
+                    self.followState.succeeded()
+                    for notice in self.view.subviews.compactMap({ $0 as? IncidentNotice })
+                        // Following shows the end, so the incomplete-preview panel goes until Follow is off.
+                        where notice.failureKind == .reload || ([.previewLimit, .previewLimitBeyondApp].contains(notice.failureKind) && !snapshot.isTruncated) {
+                        notice.removeFromSuperview()
+                    }
+                    let moved = snapshot.startByte != self.windowStartByte || snapshot.startLine != self.windowStartLine
+                    let sizeChanged = snapshot.size != self.previewFileSize
+                    let limitKindChanged = PreviewLimitNotice.failureKind(fileSize: self.previewFileSize) != PreviewLimitNotice.failureKind(fileSize: snapshot.size)
+                    let previous = self.pendingMarkdown
+                    if moved && !following { self.scrollToTopAfterRender = true }
+                    self.applyWindow(snapshot, limit: limit)
+                    let needsRender = force || moved || snapshot.content != previous || snapshot.isTruncated != self.previewIsTruncated
+                    if needsRender { self.previewHasUnreadableImages = false }
+                    if needsRender || sizeChanged {
+                        let presentIncident = force || limitKindChanged || snapshot.isTruncated != self.previewIsTruncated
+                        self.updateTruncationNotice(snapshot.isTruncated, presentIncident: presentIncident)
+                    }
+                    if needsRender {
+                        self.prevMarkdown = moved ? nil : previous
+                        self.pendingMarkdown = snapshot.content
+                        if self.isWebViewLoaded {
+                            // Only hand off a suffix after comparing the actual bytes in both windows.
+                            if following, !force, !moved, let previous,
+                               snapshot.content.utf8.count > previous.utf8.count,
+                               snapshot.content.utf8.starts(with: previous.utf8) {
+                                let added = String(decoding: snapshot.content.utf8.dropFirst(previous.utf8.count), as: UTF8.self)
+                                self.renderPendingMarkdown(appending: added, toLength: previous.utf16.count)
+                            } else {
+                                self.renderCurrentMode()
+                            }
+                        }
+                    }
                     completion?(true)
                 } catch {
-                    os_log("Reload failed: %{public}@", log: self.logger, type: .error, error.localizedDescription)
-                self.showFailure(.reload, error: error)
+                    self.handleRefreshFailure(error)
                     completion?(false)
                 }
             }
         }
     }
 
-    private func handleFileChange() {
-        reloadFromDisk()
+    private func handleRefreshFailure(_ error: Error) {
+        guard followState.failedAttempt() else { return }
+        stopFollowing()
+        showFailure(.reload, error: error)
     }
 }

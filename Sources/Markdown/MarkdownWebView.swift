@@ -47,6 +47,8 @@ struct MarkdownWebView: NSViewRepresentable {
         userContentController.add(coordinator, name: "readingToolsLayout")
         userContentController.add(coordinator, name: "errorFeedback")
         userContentController.add(coordinator, name: "blockCopy")
+        userContentController.add(coordinator, name: "readingJourney")
+        userContentController.add(coordinator, name: "diagramAction")
         
         let debugSource = """
         window.onerror = function(msg, url, line, col, error) {
@@ -137,6 +139,7 @@ struct MarkdownWebView: NSViewRepresentable {
         let logger = OSLog(subsystem: "com.markdownquicklook.app", category: "MarkdownWebView")
         let errorRegistry = RendererErrorRegistry()
         private let blockCopyBridge = BlockCopyBridge()
+        private let diagramExportBridge = DiagramExportBridge()
         let usage = UsageTelemetrySession(source: "app")
         func showFailure(_ kind: FailureKind, error: Error? = nil, renderingBlocker: FailureKind? = nil, recoveryTitle: String = "Reload", recovery: (() -> Void)? = nil) {
             guard let view = currentWebView else { return }
@@ -182,7 +185,7 @@ struct MarkdownWebView: NSViewRepresentable {
         weak var starReminder: StarReminderSession?
         var isWebViewLoaded = false
         var pendingRender: (() -> Void)?
-        weak var currentWebView: WKWebView?
+        weak var currentWebView: NativeMagnifyingWebView?
         var rendererBundleSchemeHandler: RendererBundleSchemeHandler?
         var currentFileURL: URL?
         var pendingAnchor: String?
@@ -219,6 +222,10 @@ struct MarkdownWebView: NSViewRepresentable {
 
         override init() {
             super.init()
+            NotificationCenter.default.addObserver(self,selector:#selector(readingBack),name:Notification.Name("FluxMarkdown.readingBack"),object:nil)
+            NotificationCenter.default.addObserver(self,selector:#selector(readingForward),name:Notification.Name("FluxMarkdown.readingForward"),object:nil)
+            NotificationCenter.default.addObserver(self,selector:#selector(updateReadingJourney),name:ReadingJourneyStore.changed,object:nil)
+            NotificationCenter.default.addObserver(self,selector:#selector(restoreReadingJourney),name:ReadingJourneyStore.restore,object:nil)
             NotificationCenter.default.addObserver(self, selector: #selector(handlePositionRequest),
                                                    name: DocumentPositionStore.notification, object: nil)
             NotificationCenter.default.addObserver(
@@ -282,6 +289,16 @@ struct MarkdownWebView: NSViewRepresentable {
             stopFileMonitoring()
         }
         
+        @objc private func readingBack(){if let webView=currentWebView,webView.window?.isKeyWindow==true{webView.evaluateJavaScript("window.navigateReadingHistory?.(-1)",completionHandler:nil)}}
+        @objc private func readingForward(){if let webView=currentWebView,webView.window?.isKeyWindow==true{webView.evaluateJavaScript("window.navigateReadingHistory?.(1)",completionHandler:nil)}}
+        @objc private func updateReadingJourney() { if let webView=currentWebView{ReadingJourneyBridge.update(webView)} }
+        @objc private func restoreReadingJourney(_ notification:Notification) {
+            guard let url=notification.object as? URL,let currentFileURL,
+                  ReadingJourneyStore.path(url)==ReadingJourneyStore.path(currentFileURL),!renderingPositionContent,
+                  let webView=currentWebView else{return}
+            ReadingJourneyBridge.restore(webView,url:url)
+        }
+
         @objc private func handlePositionRequest(_ notification: Notification) {
             guard let url = notification.object as? URL, let currentFileURL,
                   url.standardizedFileURL.resolvingSymlinksInPath() == currentFileURL.standardizedFileURL.resolvingSymlinksInPath(),
@@ -335,25 +352,22 @@ struct MarkdownWebView: NSViewRepresentable {
         @objc func handleZoomIn() {
             guard let webView = currentWebView,
                   webView.window?.isKeyWindow == true else { return }
-            webView.pageZoom = min(3.0, webView.pageZoom + 0.1)
-            AppearancePreference.shared.zoomLevel = webView.pageZoom
+            webView.stepReadingZoom(0.1)
         }
 
         @objc func handleZoomOut() {
             guard let webView = currentWebView,
                   webView.window?.isKeyWindow == true else { return }
-            webView.pageZoom = max(0.5, webView.pageZoom - 0.1)
-            AppearancePreference.shared.zoomLevel = webView.pageZoom
+            webView.stepReadingZoom(-0.1)
         }
 
         @objc func handleResetZoom() {
             guard let webView = currentWebView,
                   let window = webView.window,
                   window.isKeyWindow || window.windowController?.document === NSDocumentController.shared.currentDocument else { return }
-            webView.pageZoom = 1.0
-            AppearancePreference.shared.zoomLevel = 1.0
+            webView.stepReadingZoom()
             NotificationCenter.default.post(name: .resetZoomCompleted, object: window)
-            os_log("🔵 pageZoom reset to 1.0", log: logger, type: .debug)
+            os_log("🔵 readingZoom reset to 1.0", log: logger, type: .debug)
         }
 
         @objc func handleReloadFile() {
@@ -432,7 +446,7 @@ struct MarkdownWebView: NSViewRepresentable {
                   win.isKeyWindow || win.windowController?.document === NSDocumentController.shared.currentDocument else { return }
 
             starReminder?.cancelOpportunity()
-            let effectiveFontSize = AppearancePreference.shared.baseFontSize * webView.pageZoom
+            let effectiveFontSize = AppearancePreference.shared.baseFontSize * webView.readingZoom
 
             let panel = NSSavePanel()
             panel.allowedContentTypes = [.pdf]
@@ -482,7 +496,7 @@ struct MarkdownWebView: NSViewRepresentable {
                 diskIsTruncated = nil
                 currentFileURL = fileURL
                 startFileMonitoring()
-                webView.pageZoom = AppearancePreference.shared.zoomLevel
+                (webView as? NativeMagnifyingWebView)?.readingZoom = AppearancePreference.shared.zoomLevel
             }
 
             if let url = fileURL {
@@ -558,6 +572,7 @@ struct MarkdownWebView: NSViewRepresentable {
             let safeContentArg = String(contentJsonArray.dropFirst().dropLast())
 
             let feedbackGeneration = errorRegistry.beginDocument()
+            errorRegistry.sourceContext = { (content, fileURL) }
             ErrorFeedback.capture(.renderer, phase: .started, scope: errorRegistry.scope)
             webView.evaluateJavaScript("window.setFeedbackGeneration && window.setFeedbackGeneration('\(feedbackGeneration)');", completionHandler: nil)
             for notice in webView.subviews.compactMap({ $0 as? IncidentNotice }) { notice.removeFromSuperview() }
@@ -565,6 +580,7 @@ struct MarkdownWebView: NSViewRepresentable {
 
             if let url = fileURL {
                 let baseUrlString = url.deletingLastPathComponent().path
+                options.merge(ReadingJourneyBridge.options(for:url)){_,new in new}
                 options["filename"] = url.lastPathComponent
                 options["baseUrl"] = baseUrlString
                 if url.pathExtension.lowercased() != "tsv" {
@@ -651,7 +667,8 @@ struct MarkdownWebView: NSViewRepresentable {
                 }
                 self.starReminder?.rendered()
                 self.usage.rendered()
-                if let fileURL { self.applyPendingPosition(in: webView, for: fileURL) }
+                if let fileURL { ReadingJourneyBridge.restore(webView,url:fileURL);self.applyPendingPosition(in: webView, for: fileURL) }
+                ReadingJourneyBridge.update(webView)
             }
         }
 
@@ -711,6 +728,11 @@ struct MarkdownWebView: NSViewRepresentable {
         
         func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard RendererBridgePolicy.accepts(message) else { return }
+            if message.name == "diagramAction" {
+                let generation=errorRegistry.scope.uuidString
+                diagramExportBridge.handle(message,generation:generation,fileURL:currentFileURL,quickLook:false,isCurrent:{[weak self] in self?.errorRegistry.scope.uuidString==generation},reload:{[weak self] in self?.handleReloadFile()});return
+            }
+            if message.name == "readingJourney" {ReadingJourneyBridge.handle(message,url:currentFileURL,generation:errorRegistry.scope.uuidString,allowNavigation:true);return}
             if message.name == "blockCopy" { blockCopyBridge.handle(message, generation: errorRegistry.scope.uuidString, enabled: AppearancePreference.shared.showCopyButtons); return }
             if message.name == "errorFeedback" { errorRegistry.handle(message.body); return }
             if message.name == "logger", let body = message.body as? String {
@@ -723,9 +745,9 @@ struct MarkdownWebView: NSViewRepresentable {
                         isWebViewLoaded = true
                         if !hasAppliedInitialZoomReset {
                             hasAppliedInitialZoomReset = true
-                            if let webView = message.webView {
-                                webView.pageZoom = AppearancePreference.shared.zoomLevel
-                                os_log("🔵 Initial pageZoom restored to %.2f at rendererReady", log: logger, type: .debug, webView.pageZoom)
+                            if let webView = message.webView as? NativeMagnifyingWebView {
+                                webView.readingZoom = AppearancePreference.shared.zoomLevel
+                                os_log("🔵 Initial readingZoom restored to %.2f at rendererReady", log: logger, type: .debug, webView.readingZoom)
                             }
                         }
                         pendingRender?()
@@ -733,7 +755,7 @@ struct MarkdownWebView: NSViewRepresentable {
                     }
                 }
             } else if message.name == "readingToolsLayout" {
-                let inset = ReadingToolbarLayout.trailingInset(body: message.body, zoom: message.webView?.pageZoom ?? 1)
+                let inset = ReadingToolbarLayout.trailingInset(body: message.body, zoom: 1)
                 NotificationCenter.default.post(name: ReadingToolbarLayout.notification, object: currentFileURL, userInfo: ["inset": inset])
             } else if message.name == "linkClicked", let href = message.body as? String {
                 os_log("🔵 Link clicked from JS: %{public}@", log: logger, type: .default, href)
@@ -797,7 +819,7 @@ struct MarkdownWebView: NSViewRepresentable {
                 return
             }
 
-            let resolvedSize = fontSize ?? (AppearancePreference.shared.baseFontSize * webView.pageZoom)
+            let resolvedSize = fontSize ?? (AppearancePreference.shared.baseFontSize * ((webView as? NativeMagnifyingWebView)?.readingZoom ?? 1))
             let exportScope = errorRegistry.scope
             webView.callAsyncJavaScript(RendererExportPreparation.pdfScript, arguments: ["fontSize":resolvedSize], in: nil, in: .page) { [weak self] result in
                 guard self?.errorRegistry.scope == exportScope else { return }
@@ -1001,7 +1023,7 @@ struct MarkdownWebView: NSViewRepresentable {
         private func showDestinationFailure(_ url: URL) {
             showFailure(.link, recoveryTitle: "Copy Link", recovery: {
                 NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(url.absoluteString, forType: .string)
+                NSPasteboard.general.setString(LinkNavigation.clipboardText(for: url), forType: .string)
             })
         }
         private func handleLinkClick(href: String) {
@@ -1022,25 +1044,32 @@ struct MarkdownWebView: NSViewRepresentable {
                 return
             }
             
-            let (targetURL, fragment) = LinkNavigation.resolveLocalURLWithFragment(href: href, relativeTo: fileURL)
+            // Editor-style `path:line[:column]` targets (issue #71) resolve to their file
+            // plus a source line; plain local links keep their previous behavior.
+            guard let link = LinkNavigation.resolveLocalLink(href: href, relativeTo: fileURL) else { return }
+            let targetURL = link.url
+            let fragment = link.fragment
             
-            guard let targetURL = targetURL else { return }
+            os_log("🔵 Opening local file: %{public}@ anchor: %{public}@ line: %{public}@ (href: %{public}@)",
+                   log: logger, type: .default, targetURL.path, fragment ?? "(none)",
+                   link.line.map(String.init) ?? "(none)", href)
             
-            os_log("🔵 Opening local file: %{public}@ anchor: %{public}@ (href: %{public}@)",
-                   log: logger, type: .default, targetURL.path, fragment ?? "(none)", href)
-            
-            let markdownExtensions: Set<String> = ["md", "mdx", "markdown", "mdown", "mkd", "mkdn", "mkdown", "mdwn", "rmd", "qmd", "mdoc", "mdc", "mmd", "livemd", "tsv"]
-            if markdownExtensions.contains(targetURL.pathExtension.lowercased()) {
-                let id = fragment.flatMap { $0.isEmpty ? nil : DocumentPositionStore.shared.set(.anchor($0), for: targetURL) }
+            switch LinkNavigation.action(for: link) {
+            case .openFluxMarkdown(let position):
+                let id = position.map { DocumentPositionStore.shared.set($0, for: targetURL) }
+                let originState=ReadingJourneyStore.shared.state(for:fileURL) ?? .initial
                 NSDocumentController.shared.openDocument(withContentsOf: targetURL, display: true) { _, _, error in
                     if error != nil {
                         if let id { DocumentPositionStore.shared.discard(for: targetURL, id: id) }
                         self.showFailure(.fileRead, error: error)
                     } else {
+                        ReadingJourneyStore.shared.followedLink(from:fileURL,state:originState,to:targetURL)
                         NotificationCenter.default.post(name: DocumentPositionStore.notification, object: targetURL)
                     }
                 }
-            } else if !NSWorkspace.shared.open(targetURL) { showDestinationFailure(targetURL) }
+            case .openExternally:
+                if !NSWorkspace.shared.open(targetURL) { showDestinationFailure(targetURL) }
+            }
         }
         
         func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
@@ -1073,8 +1102,6 @@ class ResizableWKWebView: NativeMagnifyingWebView {
 
     private var hasSetInitialSize = false
     private let logger = OSLog(subsystem: "com.markdownquicklook.app", category: "ResizableWKWebView")
-    private var cmdScrollAccumulator: CGFloat = 0
-    private var cmdScrollBaseZoom: CGFloat = 1.0
     
     override func willOpenMenu(_ menu: NSMenu, with event: NSEvent) {
         super.willOpenMenu(menu, with: event)
@@ -1095,48 +1122,6 @@ class ResizableWKWebView: NativeMagnifyingWebView {
         NotificationCenter.default.post(name: .toggleSearch, object: nil)
     }
     
-    override func scrollWheel(with event: NSEvent) {
-        guard event.modifierFlags.contains(.command) else {
-            super.scrollWheel(with: event)
-            return
-        }
-
-        let phase = event.phase
-        if phase == .mayBegin || phase == .cancelled {
-            super.scrollWheel(with: event)
-            return
-        }
-        if event.momentumPhase != [] {
-            return
-        }
-
-        let delta = event.scrollingDeltaY
-        guard abs(delta) > 0.1 else { return }
-
-        if phase == .began {
-            cmdScrollAccumulator = 0
-            cmdScrollBaseZoom = self.pageZoom
-        }
-
-        cmdScrollAccumulator += delta
-
-        let step: CGFloat = 0.05
-        let rawTarget = cmdScrollBaseZoom + cmdScrollAccumulator * 0.01
-        let clamped = min(3.0, max(0.5, rawTarget))
-        let snapped = (clamped / step).rounded() * step
-
-        if abs(snapped - self.pageZoom) >= step * 0.9 {
-            self.pageZoom = snapped
-        }
-
-        if phase == .ended {
-            let final = min(3.0, max(0.5, cmdScrollBaseZoom + cmdScrollAccumulator * 0.01))
-            self.pageZoom = final
-            AppearancePreference.shared.zoomLevel = final
-            os_log("🔵 Cmd+scroll pageZoom committed: %.2f", log: logger, type: .debug, final)
-        }
-    }
-
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
 
@@ -1144,7 +1129,7 @@ class ResizableWKWebView: NativeMagnifyingWebView {
         self.window?.minSize = WindowAccessor.minimumRestorableWindowSize
         hasSetInitialSize = true
 
-        self.pageZoom = AppearancePreference.shared.zoomLevel
+        self.readingZoom = AppearancePreference.shared.zoomLevel
     }
 }
 

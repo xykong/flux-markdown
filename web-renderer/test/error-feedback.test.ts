@@ -12,9 +12,9 @@ describe('contextual error feedback', () => {
         const stop = installErrorFeedback(document.body);
         document.body.innerHTML = '<div class="mermaid-error">secret /Users/private diagram</div>';
         await new Promise(resolve => setTimeout(resolve, 0));
-        const button = document.querySelector<HTMLButtonElement>('button[data-feedback-action="report"]')!;
+        const button = document.querySelector<HTMLButtonElement>('button[data-feedback-action="inspect"]')!;
         expect(button).not.toBeNull(); button.click();
-        expect(postMessage.mock.calls.map(call => call[0].action)).toEqual(['record', 'report']);
+        expect(postMessage.mock.calls.map(call => call[0].action)).toEqual(['record', 'inspect']);
         expect(JSON.stringify(postMessage.mock.calls)).not.toContain('secret');
         expect(postMessage.mock.calls[1][0].generation).toBe('generation-a');
         stop();
@@ -23,9 +23,9 @@ describe('contextual error feedback', () => {
         const stop = installErrorFeedback(document.body);
         document.body.innerHTML = '<div class="graphviz-error">invalid</div>';
         await new Promise(resolve => setTimeout(resolve, 0));
-        const old = document.querySelector<HTMLButtonElement>('button[data-feedback-action="report"]')!;
+        const old = document.querySelector<HTMLButtonElement>('button[data-feedback-action="inspect"]')!;
         setFeedbackGeneration('generation-b'); old.click();
-        expect(postMessage.mock.calls.filter(call => call[0].action === 'report')).toHaveLength(0);
+        expect(postMessage.mock.calls.filter(call => call[0].action === 'inspect')).toHaveLength(0);
         stop();
     });
     it('uses native inspection for optional diagnostics and avoids duplicate controls', async () => {
@@ -34,7 +34,7 @@ describe('contextual error feedback', () => {
         await new Promise(resolve => setTimeout(resolve, 0));
         document.querySelector('.typst-error')!.appendChild(document.createTextNode('more'));
         await new Promise(resolve => setTimeout(resolve, 0));
-        expect(document.querySelectorAll('[data-feedback-action="report"]')).toHaveLength(1);
+        expect(document.querySelectorAll('[data-feedback-action="inspect"]')).toHaveLength(1);
         document.querySelector<HTMLButtonElement>('[data-feedback-action="inspect"]')!.click();
         expect(postMessage.mock.calls[postMessage.mock.calls.length - 1]?.[0].action).toBe('inspect');
         stop();
@@ -44,7 +44,7 @@ describe('contextual error feedback', () => {
         const stop = installErrorFeedback(document.body);
         document.body.innerHTML = '<div class="mermaid-error">خطأ</div>';
         await new Promise(resolve => setTimeout(resolve, 0));
-        expect(document.querySelector<HTMLButtonElement>('[data-feedback-action="report"]')?.textContent).toBe('الإبلاغ عن هذه المشكلة');
+        expect(document.querySelector<HTMLButtonElement>('[data-feedback-action="inspect"]')?.textContent).toBe('! ملاحظات');
         stop();
     });
 });
@@ -55,7 +55,7 @@ describe('error surface coverage', () => {
         document.body.innerHTML = `<div class="${className}">fixture</div>`;
         setFeedbackGeneration('coverage');
         const stop = installErrorFeedback(document.body);
-        expect(document.querySelector('[data-feedback-action="report"]')).not.toBeNull();
+        expect(document.querySelector('[data-feedback-action="inspect"]')).not.toBeNull();
         stop();
     });
     it('restores controls after input validation replaces the error message', async () => {
@@ -64,17 +64,17 @@ describe('error surface coverage', () => {
         const stop = installErrorFeedback(document.body);
         document.querySelector('.search-error')!.textContent = 'second invalid expression';
         await new Promise(resolve => setTimeout(resolve, 0));
-        expect(document.querySelectorAll('[data-feedback-action="report"]')).toHaveLength(1);
+        expect(document.querySelectorAll('[data-feedback-action="inspect"]')).toHaveLength(1);
         stop();
     });
     it('removes image failure controls after the image loads successfully', async () => {
         document.body.innerHTML = '<img class="image-load-failed">';
         setFeedbackGeneration('image-test');
         const stop = installErrorFeedback(document.body);
-        expect(document.querySelector('[data-feedback-action="report"]')).not.toBeNull();
+        expect(document.querySelector('[data-feedback-action="inspect"]')).not.toBeNull();
         document.querySelector('img')!.className = '';
         await new Promise(resolve => setTimeout(resolve, 0));
-        expect(document.querySelector('[data-feedback-action="report"]')).toBeNull();
+        expect(document.querySelector('[data-feedback-action="inspect"]')).toBeNull();
         stop();
     });
     it.each([
@@ -93,11 +93,88 @@ describe('error surface coverage', () => {
         document.body.innerHTML='<span class="math-error math-resource-unsupported">SENSITIVE-MATH</span>';
         const stop=installErrorFeedback(document.body);
         const controls=document.querySelector('.error-feedback-controls')!;
-        expect(controls.textContent).toContain(hint);
-        expect(controls.querySelector('[data-feedback-action="recover"]')?.textContent).toBe(recovery);
+        expect(controls.querySelectorAll('button')).toHaveLength(1);
+        expect(controls.querySelector('[data-feedback-action="recover"]')).toBeNull();
         expect(postMessage).toHaveBeenCalledWith(expect.objectContaining({kind:'math',reason:'resourceUnavailable',action:'record'}));
         expect(JSON.stringify(postMessage.mock.calls)).not.toContain('SENSITIVE-MATH');
         stop();
     });
 
+});
+
+describe('Issue 73 useful mathematical diagnostics', () => {
+    it.each([['syntax','mathSyntax'],['output','mathOutput'],['unresolved-reference','mathReference'],['input-limit','mathLimit']])('reports %s as a fixed code with line bounds, without formula contents', (code, reason) => {
+        const postMessage = jest.fn();
+        window.webkit = { messageHandlers: { logger: {postMessage: jest.fn()}, linkClicked: {postMessage: jest.fn()}, errorFeedback: { postMessage } } };
+        setFeedbackGeneration('issue73-'+code);
+        document.body.innerHTML = `<span class="math-error" data-math-failure="${code}" data-math-first="2" data-math-last="4">private formula</span>`;
+        const stop = installErrorFeedback(document.body);
+        expect(postMessage).toHaveBeenCalledWith(expect.objectContaining({action:'record', kind:'math', reason, lineStart:2, lineEnd:4}));
+        document.querySelector<HTMLButtonElement>('[data-feedback-action="inspect"]')!.click();
+        expect(postMessage).toHaveBeenLastCalledWith(expect.objectContaining({action:'inspect'}));
+        expect(JSON.stringify(postMessage.mock.calls)).not.toContain('private formula');
+        stop();
+    });
+    it('does not send arbitrary classifications or oversized line ranges', () => {
+        const postMessage = jest.fn();
+        window.webkit = { messageHandlers: { logger: {postMessage: jest.fn()}, linkClicked: {postMessage: jest.fn()}, errorFeedback: { postMessage } } };
+        setFeedbackGeneration('issue73-invalid');
+        document.body.innerHTML = '<span class="math-error" data-math-failure="private" data-math-first="-1" data-math-last="99999999999">secret</span>';
+        const stop = installErrorFeedback(document.body);
+        expect(postMessage.mock.calls[0][0]).toEqual(expect.objectContaining({reason:'operationFailed'}));
+        expect(postMessage.mock.calls[0][0].lineStart).toBeUndefined();
+        stop();
+    });
+});
+
+test('different failed formulas do not share a source incident', () => {
+    const postMessage = jest.fn();
+    window.webkit = {messageHandlers:{logger:{postMessage:jest.fn()},linkClicked:{postMessage:jest.fn()},errorFeedback:{postMessage}}};
+    setFeedbackGeneration('separate-formulas');
+    document.body.innerHTML = '<span class="math-error" data-math-failure="syntax">A</span><span class="math-error" data-math-failure="syntax">B</span>';
+    const stop = installErrorFeedback(document.body);
+    const records = postMessage.mock.calls.map(call => call[0]).filter(event => event.action === 'record');
+    expect(new Set(records.map(event => event.id)).size).toBe(2);
+    stop();
+});
+
+test('diagram failures retain independent source ranges without sending diagram text', () => {
+    const postMessage = jest.fn();
+    window.webkit = {messageHandlers:{logger:{postMessage:jest.fn()},linkClicked:{postMessage:jest.fn()},errorFeedback:{postMessage}}};
+    setFeedbackGeneration('diagram-samples');
+    document.body.innerHTML = '<div class="mermaid-error" data-source-line="3" data-source-line-end="7">secret diagram A</div><div class="mermaid-error" data-source-line="10" data-source-line-end="12">secret diagram B</div>';
+    const stop = installErrorFeedback(document.body);
+    const records = postMessage.mock.calls.map(call => call[0]).filter(event => event.action === 'record');
+    expect(records.map(event => [event.lineStart,event.lineEnd])).toEqual([[3,7],[10,12]]);
+    expect(new Set(records.map(event => event.id)).size).toBe(2);
+    expect(JSON.stringify(records)).not.toContain('secret diagram');
+    stop();
+});
+
+describe('compact native feedback dialog entry', () => {
+    it('opens only the native dialog, with no inline menu or direct submission', () => {
+        const postMessage = jest.fn();
+        window.webkit = {messageHandlers:{logger:{postMessage:jest.fn()},linkClicked:{postMessage:jest.fn()},errorFeedback:{postMessage}}};
+        window.__fluxLang='zh'; setFeedbackGeneration('compact-dialog');
+        document.body.innerHTML='<div class="math-error">bad formula</div>';
+        const stop=installErrorFeedback(document.body);
+        const buttons=document.querySelectorAll<HTMLButtonElement>('.error-feedback-controls button');
+        expect(buttons).toHaveLength(1);
+        expect(buttons[0].textContent).toBe('! 反馈');
+        expect(document.querySelector('.error-feedback-panel')).toBeNull();
+        buttons[0].click();
+        expect(postMessage.mock.calls.map(call=>call[0].action)).toEqual(['record','inspect']);
+        stop();
+    });
+    it('unwraps recovered images and deduplicates nested mathematics', async () => {
+        setFeedbackGeneration('compact-cleanup');
+        document.body.innerHTML='<img class="image-load-failed"><div class="math-error"><span class="katex-error">bad</span></div>';
+        const stop=installErrorFeedback(document.body);
+        expect(document.querySelectorAll('.error-feedback-trigger')).toHaveLength(2);
+        document.querySelector('img')!.classList.remove('image-load-failed');
+        await new Promise(resolve=>setTimeout(resolve,0));
+        expect(document.querySelectorAll('.error-feedback-trigger')).toHaveLength(1);
+        expect(document.querySelector('img')!.parentElement).toBe(document.body);
+        stop();
+    });
 });

@@ -188,3 +188,17 @@ describe('TableOfContents', () => {
         newToc.dispose();
     });
 });
+
+test('contents resolves text direction from the browser only for right-to-left headings', () => {
+    document.body.innerHTML = '<div id="toc-container"></div>';
+    const toc = new TableOfContents('toc-container');
+    const spy = jest.spyOn(window, 'getComputedStyle');
+    const node = (text: string, id: string): HeadingNode => ({ level: 2, text, id, children: [] });
+    toc.render(Array.from({ length: 200 }, (_, i) => node(`Turn ${i}`, `t${i}`)).concat([node('مرحبا بالعالم', 'ar'), node('123', 'n')]));
+    const linkCalls = spy.mock.calls.filter(([element]) => (element as Element).classList?.contains('toc-link'));
+    expect(linkCalls.length).toBeLessThanOrEqual(2);
+    const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('.toc-link'));
+    expect(links.find(link => link.textContent === 'Turn 0')?.dataset.textDirection).toBe('ltr');
+    expect(links.find(link => link.textContent === '123')?.dataset.textDirection).toBe('ltr');
+    spy.mockRestore();
+});

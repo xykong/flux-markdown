@@ -43,6 +43,8 @@ final class FeedbackWindowController {
 struct FeedbackView: View {
     let close: () -> Void
     @State private var includeDiagnostics = true
+    @State private var trackingIncident = ErrorIncident(kind: .renderer, source: .app)
+    @State private var followReplies = UserDefaults.standard.bool(forKey: "feedback.followReplies")
     @State private var notes = ""
     @State private var diagnostics = ""
     @State private var status = ""
@@ -57,6 +59,14 @@ struct FeedbackView: View {
             Text(feedbackText("Report an Issue")).font(.title2).bold()
             Text(feedbackText("Review your report before continuing. The summary will be sent to GitHub; submitted issues are public."))
                 .font(.callout).foregroundColor(.secondary).fixedSize(horizontal: false, vertical: true)
+            HStack {
+                Toggle(feedbackText("Check my submitted Issues for replies"), isOn: $followReplies).onChange(of: followReplies) { FeedbackFollowUpController.shared.enable($0) }
+                Button(feedbackText("My Feedback")) { FeedbackFollowUpController.shared.show() }
+                Button(feedbackText("Attach Reproduction Materials…")) {
+                    let draft = IncidentDraft(trackingIncident); draft.notes = notes; draft.includeDiagnostics = includeDiagnostics
+                    FeedbackMaterialWindow.show(draft)
+                }
+            }
             Text(feedbackText("What happened? Include steps to reproduce and what you expected."))
                 .font(.headline)
             TextEditor(text: $notes)
@@ -148,7 +158,8 @@ struct FeedbackView: View {
     private func continueOnGitHub() {
         let report = includeDiagnostics ? diagnostics : nil
         let link = FeedbackIssueLink.bug(version: DisplayVersion.text(in: .main) ?? "unknown", report: report,
-                                         description: notes)
+                                         description: "Incident: \(trackingIncident.id.uuidString)\n" + notes)
+        FeedbackFollowUpController.shared.register(trackingIncident)
         if NSWorkspace.shared.open(link.url) {
             status = feedbackText(link.omitted
                 ? "GitHub opened with a shortened summary. Copy or save the full report if needed."

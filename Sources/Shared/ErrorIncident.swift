@@ -2,16 +2,17 @@ import Foundation
 
 /// Wire format shared with the restricted launcher. No document identifiers or raw error text.
 enum IncidentSource: String, Codable { case app, quicklook, cli }
-enum IncidentReason: String, Codable { case operationFailed, invalidInput, moduleUnavailable, resourceUnavailable }
+enum IncidentReason: String, Codable { case operationFailed, invalidInput, moduleUnavailable, resourceUnavailable, mathSyntax, mathOutput, mathReference, mathLimit }
 enum IncidentPhase: String, Codable { case started, failed, completed, timeout }
 enum FailureKind: String, Codable, CaseIterable {
-    case attribution, copy, usageSettings, update, fileRead, fileTooLarge, reload, exportHTML, exportPDF, renderer, rendererResources, source
-    case mermaid, typst, graphviz, vega, math, search, quickLook, images, previewLimit, link, browser
+    case diagramExport, attribution, copy, usageSettings, update, fileRead, fileTooLarge, reload, exportHTML, exportPDF, renderer, rendererResources, source
+    case mermaid, typst, graphviz, vega, math, search, quickLook, images, previewLimit, previewLimitBeyondApp, link, browser
 
     var title: String {
         switch self {
         case .attribution: return "Promotion source could not be linked"
 
+        case .diagramExport: return "Diagram could not be copied or saved"
         case .copy: return "Text could not be copied"
         case .usageSettings: return "Usage statistics preference could not be saved"
         case .update: return "Update could not be completed"
@@ -24,7 +25,7 @@ enum FailureKind: String, Codable, CaseIterable {
         case .search: return "Search could not be completed"
         case .quickLook: return "Quick Look could not complete this operation"
         case .images: return "Some images could not be displayed"
-        case .previewLimit: return "This preview is incomplete"
+        case .previewLimit, .previewLimitBeyondApp: return "This preview is incomplete"
         case .link, .browser: return "The destination could not be opened"
         }
     }
@@ -32,6 +33,7 @@ enum FailureKind: String, Codable, CaseIterable {
         switch self {
         case .attribution: return "Source association is optional. Try again if the connection failed, or return to the promotion page for a fresh link. Your documents are unaffected."
 
+        case .diagramExport: return "Try the diagram action again, or choose another writable folder. Your document is unchanged."
         case .copy: return "Select the text to copy it manually, or try the copy button again."
         case .usageSettings: return "Close FluxMarkdown and Quick Look to stop this session. Check available disk space, then try turning statistics off again."
         case .update: return "You can download the latest version and install it manually."
@@ -44,8 +46,11 @@ enum FailureKind: String, Codable, CaseIterable {
         case .mermaid, .typst, .graphviz, .vega, .math: return "Check the source syntax in your editor. The rest of the document is still available."
         case .search: return "Check the search expression, or open the document in FluxMarkdown and press Command-F."
         case .quickLook: return "Open the document in FluxMarkdown. You can also run Repair Quick Look from the Help menu."
-        case .images, .previewLimit: return "Open the document in FluxMarkdown to read beyond the preview limits."
-        case .link, .browser: return "Open the destination in your browser or editor. You can copy a report if this keeps happening."
+        case .images: return "Open the document in FluxMarkdown to read beyond the preview limits."
+        case .previewLimit: return "Only the first 2 MB is shown. Click Follow Changes to see the end, or open the document in FluxMarkdown to read all of it."
+        case .previewLimitBeyondApp: return "Only the first 2 MB is shown. Click Follow Changes to see the end. The file is too large to open in FluxMarkdown."
+        case .link: return "The link may point to a file that is not on this Mac, or to a path that is not relative to the document. Copy the link to open it manually, or check the path in your editor."
+        case .browser: return "Open the destination in your browser or editor. You can copy a report if this keeps happening."
         }
     }
 }
@@ -205,9 +210,14 @@ struct ErrorIncident: Codable {
         }
         return lines.joined(separator: "\n")
     }
-    func feedbackURL(includeDiagnostics: Bool = true, notes: String = "", useTemplate: Bool = false) -> URL {
+    func feedbackURL(includeDiagnostics: Bool = true, notes: String = "", useTemplate: Bool = false, attachment: URL? = nil, attachmentReference: String? = nil) -> URL {
         var c = URLComponents(string: "https://github.com/xykong/flux-markdown/issues/new")!
-        var description = "Operation: \(kind.rawValue)\nObserved result: \(titleForReport)\n"
+        let privateText = attachmentReference.flatMap { value -> String? in
+            guard value.hasPrefix("FM-"), value.utf8.count == 67, value.dropFirst(3).utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) }) else { return nil }
+            return "\n\nAttachment reference: \(value) (private; maintainers only)\n"
+        } ?? ""
+        let attachmentText = !privateText.isEmpty ? privateText : attachment.map { "\n\n[Download reproduction ZIP](\($0.absoluteString))\n" } ?? ""
+        var description = "Operation: \(kind.rawValue)\nObserved result: \(titleForReport)\nIncident: \(id.uuidString)\n"
         // Bound user-entered additions. The complete edited report remains local.
         description += String(notes.prefix(600))
         var diagnostic = includeDiagnostics ? report : ""
@@ -215,11 +225,11 @@ struct ErrorIncident: Codable {
             var items = [URLQueryItem(name: "title", value: "[\(kind.rawValue)] \(titleForReport)")]
             if useTemplate {
                 items.append(URLQueryItem(name: "template", value: "app_error.yml"))
-                items.append(URLQueryItem(name: "description", value: description))
+                items.append(URLQueryItem(name: "description", value: attachmentText + description))
                 if !diagnostic.isEmpty { items.append(URLQueryItem(name: "diagnostics", value: diagnostic)) }
             } else {
                 // GitHub's plain issue editor works before a new template is published.
-                items.append(URLQueryItem(name: "body", value: description + (diagnostic.isEmpty ? "" : "\n\n" + diagnostic)))
+                items.append(URLQueryItem(name: "body", value: attachmentText + description + (diagnostic.isEmpty ? "" : "\n\n" + diagnostic)))
             }
             return items
         }
@@ -280,9 +290,15 @@ struct IncidentFeedbackRequest: Codable {
     let includeDiagnostics: Bool
     let notes: String
     var review = false
+    var materialReview: Bool?
+    var sample: String?
+    var followUp: Bool?
+    var transferToken: UUID?
+    var includeDocument: Bool?
     static func decode(_ data: Data) -> IncidentFeedbackRequest? {
         guard data.count <= 16384, let request = try? JSONDecoder().decode(Self.self, from: data),
-              request.incident.isValid, request.notes.utf8.count <= 8000 else { return nil }
+              request.incident.isValid, request.notes.utf8.count <= 8000,
+              (request.sample?.utf8.count ?? 0) <= 6000, request.sample == nil || request.materialReview == true else { return nil }
         return request
     }
     var hostURL: URL? {
@@ -312,4 +328,75 @@ struct IncidentQuickLookCheck: Codable {
         }
     }
     var isValid: Bool { fields == Self.sanitize(fields) && (-62135596800...253402300799).contains(date.timeIntervalSince1970) }
+}
+
+extension PreviewLimitNotice {
+    enum Recovery: Equatable {
+        case openInApp, follow, revealInFinder
+    }
+
+    static let openInAppGuidance = "Open the document in FluxMarkdown to read beyond the preview limits."
+    static let revealTitle = "Reveal in Finder"
+    static let revealGuidance = "The file is too large to open in FluxMarkdown. Reveal it in Finder to open it with another editor."
+
+    static func recovery(for kind: FailureKind, followAvailable: Bool) -> Recovery {
+        guard kind == .previewLimitBeyondApp else { return .openInApp }
+        return followAvailable ? .follow : .revealInFinder
+    }
+
+    /// The incomplete-preview incident; above the app's limit it offers Follow, not the app.
+    static func failureKind(fileSize: UInt64) -> FailureKind {
+        fileSize > UInt64(BoundedFileReader.documentLimit) ? .previewLimitBeyondApp : .previewLimit
+    }
+}
+
+/// Bulk document snapshots use authenticated XPC and a private one-time file.
+/// Only the opaque token and ordinary diagnostic request travel in the app URL.
+struct IncidentDocumentTransfer: Codable {
+    let request: IncidentFeedbackRequest
+    let document: String
+    let sample: String?
+    let displayName: String
+    static let maxBytes = 32 * 1024 * 1024
+    static var directory: URL { SharedPreferenceStore.applicationSupportDirectory().appendingPathComponent("FeedbackTransfers", isDirectory: true) }
+    static func decode(_ data: Data) -> Self? {
+        guard data.count <= maxBytes, let value = try? JSONDecoder().decode(Self.self, from: data),
+              value.document.utf8.count <= 20 * 1024 * 1024, (value.sample?.utf8.count ?? 0) <= 6000,
+              value.displayName.utf8.count <= 255, !value.displayName.contains("/"), !value.displayName.contains("\\"),
+              value.request.review || value.request.materialReview == true,
+              let metadata = try? JSONEncoder().encode(value.request), IncidentFeedbackRequest.decode(metadata) != nil else { return nil }
+        return value
+    }
+    func persist(in directory: URL = Self.directory) throws -> UUID {
+        let data = try JSONEncoder().encode(self)
+        guard Self.decode(data) != nil else { throw CocoaError(.fileWriteOutOfSpace) }
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+        guard try directory.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink != true else { throw CocoaError(.fileWriteNoPermission) }
+        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: directory.path)
+        let files = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.contentModificationDateKey, .isRegularFileKey, .isSymbolicLinkKey])
+        var retained = 0
+        for file in files where file.pathExtension == "json" && UUID(uuidString: file.deletingPathExtension().lastPathComponent) != nil {
+            let values = try file.resourceValues(forKeys: [.contentModificationDateKey, .isRegularFileKey, .isSymbolicLinkKey])
+            guard values.isRegularFile == true, values.isSymbolicLink != true else { continue }
+            if let date = values.contentModificationDate, date < Date().addingTimeInterval(-3600) { try FileManager.default.removeItem(at: file) }
+            else { retained += 1 }
+        }
+        guard retained < 10 else { throw CocoaError(.fileWriteOutOfSpace) }
+        let token = UUID(), file = directory.appendingPathComponent(token.uuidString + ".json")
+        try data.write(to: file, options: .atomic)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: file.path)
+        return token
+    }
+    static func consume(token: UUID, in directory: URL = Self.directory) throws -> Self {
+        let file = directory.appendingPathComponent(token.uuidString + ".json")
+        let values = try file.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey, .contentModificationDateKey])
+        let attributes = try FileManager.default.attributesOfItem(atPath: file.path)
+        guard values.isRegularFile == true, values.isSymbolicLink != true,
+              (attributes[.ownerAccountID] as? NSNumber)?.uint32Value == getuid(),
+              (attributes[.posixPermissions] as? NSNumber)?.intValue == 0o600,
+              let date = values.contentModificationDate, date > Date().addingTimeInterval(-3600) else { throw CocoaError(.fileReadNoPermission) }
+        defer { try? FileManager.default.removeItem(at: file) }
+        guard let value = decode(try BoundedFileReader.read(file, maxBytes: maxBytes)) else { throw CocoaError(.fileReadCorruptFile) }
+        return value
+    }
 }

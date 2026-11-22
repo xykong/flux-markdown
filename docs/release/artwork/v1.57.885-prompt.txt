@@ -1,0 +1,5 @@
+Create a polished FluxMarkdown release illustration in a 3:2 landscape frame. Deep indigo and blue-violet background with restrained gold fireworks and confetti. At center, a frosted glass Markdown document with a small metallic M/arrow emblem and layered text lines. The lower lines glow softly as the document grows, suggesting following the end of a log in Quick Look. Clean, generous margins. Render only these three lines of legible typography, with exact spelling and digits:
+FluxMarkdown
+v1.57.885
+Follow Changes in Quick Look
+No benchmarks, platform badges, watermarks, extra lettering or interface mockup.

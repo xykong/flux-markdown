@@ -113,7 +113,8 @@ extension ErrorIncidentTests {
         XCTAssertNil(items.first { $0.name == "template" })
         XCTAssertTrue(items.first { $0.name == "body" }!.value!.contains(incident.id.uuidString))
         let excluded = URLComponents(url: incident.feedbackURL(includeDiagnostics: false), resolvingAgainstBaseURL: false)!.queryItems!
-        XCTAssertFalse(excluded.first { $0.name == "body" }!.value!.contains(incident.id.uuidString))
+        XCTAssertTrue(excluded.first { $0.name == "body" }!.value!.contains(incident.id.uuidString))
+        XCTAssertFalse(excluded.first { $0.name == "body" }!.value!.contains("Environment at failure"))
     }
     func testUnavailableStoreRetainsCurrentIncidentInMemory() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
@@ -137,7 +138,8 @@ extension ErrorIncidentTests {
         XCTAssertEqual(urls.count, 1)
         let body = URLComponents(url: urls[0], resolvingAgainstBaseURL: false)!.queryItems!.first { $0.name == "body" }!.value!
         XCTAssertTrue(body.contains("exportHTML"))
-        XCTAssertFalse(body.contains(draft.incident.id.uuidString))
+        XCTAssertTrue(body.contains(draft.incident.id.uuidString))
+        XCTAssertFalse(body.contains("Environment at failure"))
     }
     func testBrowserFailurePreservesTheSameDraftAndOptionalNotes() {
         let draft = IncidentDraft(ErrorIncident(kind: .update, source: .app))
@@ -156,6 +158,21 @@ extension ErrorIncidentTests {
 }
 
 extension ErrorIncidentTests {
+    func testNativeNoticeKeepsOptionalFeedbackActionsInAMenu() throws {
+        let notice = IncidentNotice(incident: ErrorIncident(kind: .previewLimit, source: .quicklook),
+                                    recoveryTitle: "Open in FluxMarkdown", recovery: {})
+        let content = try XCTUnwrap(notice.subviews.first as? NSStackView)
+        XCTAssertEqual(content.arrangedSubviews.count, 2)
+        let row = try XCTUnwrap(content.arrangedSubviews.last as? NSStackView)
+        let report = try XCTUnwrap(row.arrangedSubviews.compactMap { $0 as? NSButton }
+            .first { $0.title == "Report This Problem" })
+        XCTAssertTrue(report.accessibilityHelp()?.contains("GitHub") == true)
+        let options = try XCTUnwrap(row.arrangedSubviews.compactMap { $0 as? NSPopUpButton }.first)
+        XCTAssertEqual(options.itemTitles, ["Feedback Options", "Review Feedback…",
+                                           "Attach Reproduction Materials…", "My Feedback"])
+        XCTAssertTrue(options.itemArray.dropFirst().allSatisfy { $0.target === notice && $0.action != nil })
+    }
+
     func testExcludingDiagnosticsStillLeavesAnActionableCopiedReport() {
         let draft = IncidentDraft(ErrorIncident(kind: .exportPDF, source: .app))
         draft.includeDiagnostics = false
@@ -198,6 +215,43 @@ extension ErrorIncidentTests {
             XCTAssertTrue(buttons.arrangedSubviews.compactMap { ($0 as? NSButton)?.title }.contains("Report This Problem"))
         }
     }
+    func testLocalLinkGuidanceNamesTheNextStepAndDiffersFromBrowserFailure() {
+        let localLink = ErrorIncident(kind: .link, source: .app)
+        XCTAssertTrue(localLink.guidance.contains("not on this Mac"), "#71: a local link failure must explain that the target may not exist here")
+        XCTAssertTrue(localLink.guidance.contains("not relative to the document"), "#71: relative resolution must be explained")
+        XCTAssertTrue(localLink.guidance.contains("Copy the link"), "#71: the Copy Link recovery must be named")
+        XCTAssertEqual(localLink.kind.title, "The destination could not be opened")
+        XCTAssertNotEqual(ErrorIncident(kind: .browser, source: .app).guidance, localLink.guidance)
+    }
+    func testPreviewLimitRecoveryRespectsFollowAvailabilityAndApplicationSizeLimit() {
+        XCTAssertEqual(PreviewLimitNotice.recovery(for: .previewLimit, followAvailable: false), .openInApp)
+        XCTAssertEqual(PreviewLimitNotice.recovery(for: .previewLimit, followAvailable: true), .openInApp)
+        XCTAssertEqual(PreviewLimitNotice.recovery(for: .previewLimitBeyondApp, followAvailable: false), .revealInFinder)
+        XCTAssertEqual(PreviewLimitNotice.recovery(for: .previewLimitBeyondApp, followAvailable: true), .follow)
+    }
+
+    func testPreviewLimitGuidancePointsToFollowAndNamesTheButtonInEveryLanguage() throws {
+        XCTAssertTrue(FailureKind.previewLimit.guidance.contains("Follow Changes"))
+        // Above the app's own limit, the app cannot open the file either.
+        XCTAssertTrue(FailureKind.previewLimitBeyondApp.guidance.contains("Follow Changes"))
+        XCTAssertFalse(FailureKind.previewLimitBeyondApp.guidance.contains("open the document in FluxMarkdown"))
+        XCTAssertEqual(PreviewLimitNotice.failureKind(fileSize: UInt64(BoundedFileReader.documentLimit)), .previewLimit)
+        XCTAssertEqual(PreviewLimitNotice.failureKind(fileSize: UInt64(BoundedFileReader.documentLimit) + 1), .previewLimitBeyondApp)
+        XCTAssertFalse(FailureKind.images.guidance.contains("Follow Changes"))
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        for language in ["en", "zh-Hans", "de", "fr", "es", "ar"] {
+            let preview = try XCTUnwrap(PropertyListSerialization.propertyList(from: Data(contentsOf: root.appendingPathComponent("Sources/MarkdownPreview/\(language).lproj/Localizable.strings")), format: nil) as? [String: String])
+            let button = try XCTUnwrap(preview["Follow Changes"])
+            for target in ["Markdown", "MarkdownPreview"] {
+                let strings = try XCTUnwrap(PropertyListSerialization.propertyList(from: Data(contentsOf: root.appendingPathComponent("Sources/\(target)/\(language).lproj/Localizable.strings")), format: nil) as? [String: String])
+                XCTAssertTrue(try XCTUnwrap(strings[FailureKind.previewLimit.guidance], "\(target)/\(language)").contains(button), "\(target)/\(language)")
+                XCTAssertTrue(try XCTUnwrap(strings[FailureKind.previewLimitBeyondApp.guidance], "\(target)/\(language)").contains(button), "\(target)/\(language)")
+                XCTAssertNotNil(strings[PreviewLimitNotice.revealGuidance])
+                XCTAssertNotNil(strings[PreviewLimitNotice.revealTitle])
+            }
+        }
+    }
+
     func testAllIncidentGuidanceHasTranslationsForBothBundles() throws {
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         let keys = FailureKind.allCases.flatMap { [$0.title, $0.guidance] } + ["Report This Problem", "Review Feedback…", "Include diagnostics", "Open Feedback Page", "Copy Report", "Save Report…", "Close"]
@@ -272,5 +326,26 @@ extension ErrorIncidentTests {
         XCTAssertEqual(probe.calls, 1)
         XCTAssertEqual(probe.recovered, false)
         XCTAssertEqual(probe.context, context)
+    }
+}
+
+extension ErrorIncidentTests {
+    /// The notice must not keep the colour of whatever appearance was current when it was created.
+    func testNoticeBackgroundFollowsItsOwnAppearance() {
+        let notice = IncidentNotice(incident: ErrorIncident(kind: .previewLimit, source: .quicklook))
+        let host = NSView(frame: NSRect(x: 0, y: 0, width: 400, height: 200))
+        host.appearance = NSAppearance(named: .darkAqua)
+        host.addSubview(notice)
+        func resolved(_ name: NSAppearance.Name) -> CGColor? {
+            var color: CGColor?
+            NSAppearance(named: name)!.performAsCurrentDrawingAppearance { color = NSColor.windowBackgroundColor.cgColor }
+            return color
+        }
+        NSAppearance(named: .aqua)!.performAsCurrentDrawingAppearance { notice.updateLayer() }
+        XCTAssertEqual(notice.layer?.backgroundColor, resolved(.darkAqua))
+        host.appearance = NSAppearance(named: .aqua)
+        NSAppearance(named: .darkAqua)!.performAsCurrentDrawingAppearance { notice.updateLayer() }
+        XCTAssertEqual(notice.layer?.backgroundColor, resolved(.aqua))
+        XCTAssertTrue(notice.wantsUpdateLayer)
     }
 }

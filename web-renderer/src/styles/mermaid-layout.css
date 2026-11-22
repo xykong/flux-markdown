@@ -2,7 +2,8 @@
 .mermaid-viewport { overflow-x: auto; max-width: 100%; }
 .mermaid-viewport > svg { margin-inline: auto; }
 .diagram-tools {
-    display: flex; justify-content: flex-end; gap: 4px;
+    zoom: var(--diagram-controls-zoom, 1);
+    display: flex; align-items: center; justify-content: flex-end; gap: 4px;
     position: relative; z-index: 1; min-height: 28px;
     opacity: 0; pointer-events: none;
     font: 12px system-ui; user-select: none; -webkit-user-select: none;
@@ -12,6 +13,16 @@
     border: 1px solid currentColor; border-radius: 5px; min-width: 28px; min-height: 28px;
     cursor: pointer;
 }
+.diagram-tools > button,
+.diagram-tools .diagram-export-menu > summary {
+    box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;
+    flex: 0 0 auto; width: 28px; height: 28px; min-height: 28px; max-height: 28px;
+    margin: 0; padding: 0; line-height: 1; appearance: none;
+    color: inherit; background: var(--bgColor-default, Canvas);
+    border: 1px solid var(--borderColor-default, #8888); border-radius: 5px;
+}
+.diagram-tools > button[data-diagram-zoom="reset"] { width: auto; min-width: 48px; padding-inline: 6px; }
+.diagram-tools .diagram-export-menu { margin: 0; padding: 0; border: 0; flex: 0 0 auto; }
 .diagram-tools button:disabled { opacity: .4; cursor: default; }
 .diagram-tools button:focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
 .mermaid:hover > .diagram-tools, .svg-image-diagram:hover > .diagram-tools, .diagram-tools:focus-within { opacity: 1; pointer-events: auto; }

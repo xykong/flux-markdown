@@ -93,9 +93,17 @@ echo "🔐 Checking search launch service sandbox and restricted entitlements...
 /usr/bin/codesign -d --entitlements :- "$LAUNCHER_PATH" 2>/dev/null | python3 -c '
 import plistlib, sys
 entitlements = plistlib.loads(sys.stdin.buffer.read())
-expected = {"com.apple.security.app-sandbox": True, "com.apple.security.files.user-selected.read-only": True, "com.apple.security.network.client": True, "com.apple.security.temporary-exception.files.home-relative-path.read-write": ["/Library/Application Support/FluxMarkdown/Telemetry/"]}
-if set(entitlements) != set(expected) or entitlements != expected:
-    sys.exit("Search launcher release entitlements must contain only sandbox, selected-file read, client networking and Telemetry directory access")
+expected = {
+    "com.apple.security.app-sandbox": True,
+    "com.apple.security.files.user-selected.read-only": True,
+    "com.apple.security.network.client": True,
+    "com.apple.security.temporary-exception.files.home-relative-path.read-write": [
+        "/Library/Application Support/FluxMarkdown/Telemetry/",
+        "/Library/Application Support/FluxMarkdown/FeedbackTransfers/",
+    ],
+}
+if entitlements != expected:
+    sys.exit("Search launcher release entitlements differ from its restricted sandbox, file read, network and app directory policy")
 '
 
 echo "✅ Release artifact preserves MarkdownPreview.appex sandbox entitlement"

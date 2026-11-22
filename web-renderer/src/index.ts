@@ -1,3 +1,12 @@
+import { FollowFile, type FollowSnapshot, blockElement, documentSelection, lastBlockLine, lineStart, queryRoots, uniqueHeadingSlug, waitForSafeCommit } from './follow-file';
+import { installSelectionCopy } from './selection-copy';
+import { rememberRenderedSource } from './selection-content';
+import { relativeImageSource } from './image-source';
+import './styles/selection-copy.css';
+import { diagramActionResult } from './diagram-actions';
+import { beginReadingRender, finishReadingRender, captureReadingState, restoreReadingState, resyncScrollPosition, navigateReadingHistory, updateNavigation, jumpToReadingTarget, saveReadingState, ReadingState } from './reading-state';
+import { closeDiagramFocus, stepFocusedDiagram, scrollReadingSurface } from './diagram-focus';
+import { setReadingZoom, requestReadingZoom, applyPinchZoom, requestPinchZoom, resetZoomAt, ZoomPoint } from './reading-zoom';
 import './math-compat';
 import { installSVGZoom } from './svg-zoom';
 import { constrainSVGImage } from './svg-image-layout';
@@ -12,6 +21,7 @@ import { sanitizeDocumentFragment, sanitizeDiagramHTML } from './safe-html';
 import { renderTSVTable } from './tsv';
 import { installMathSyntax } from './math-syntax';
 import { rememberMathSource, uniqueMathTargets } from './math-source-store';
+import { rememberDiagramSource } from './diagram-source-store';
 import { prepareMathPrint } from './math-print';
 import { separateMathLinks } from './math-reference-links';
 import { installMathLayout } from './math-layout';
@@ -283,8 +293,9 @@ function resolveLanguage(lang: string): string {
     return LANG_ALIASES[lower] ?? lower;
 }
 
-// @ts-ignore
 import emoji from 'markdown-it-emoji';
+import { largePreviewEmoji } from './emoji';
+import { quickLookTokenBatches } from './quicklook-token-batches';
 // @ts-ignore
 import footnote from 'markdown-it-footnote';
 // @ts-ignore
@@ -303,7 +314,7 @@ import abbreviations from 'markdown-it-abbr';
 import insertions from 'markdown-it-ins';
 
 import { findSourceLineTarget, DocumentPosition } from './position-navigation';
-import { extractHeadings, buildHeadingTree, headingSlug } from './outline';
+import { extractHeadings, buildHeadingTree, headingSlug, type HeadingNode } from './outline';
 import { TableOfContents } from './table-of-contents';
 import { ReadingStatus } from './reading-status';
 import { ReadingControls, updateReadingControlsLayout, captureReadingAnchor, restoreReadingAnchor } from './reading-controls';
@@ -432,7 +443,8 @@ function buildMd(enableTypst = true): MarkdownIt {
     instance.use(anchor, {
         permalink: false,
         getTokensText: (tokens: Array<{type:string;content:string}>) => tokens.filter(token => ['text', 'code_inline', 'flux_math_inline'].includes(token.type)).map(token => token.content).join(''),
-        slugify: headingSlug
+        // Shares slugs with blocks parsed earlier when Follow parses only a tail.
+        slugifyWithState: (text: string, state: { env: { headingSlugs?: Set<string> } }) => uniqueHeadingSlug(headingSlug(text), state.env)
     });
     instance.use(githubAlerts);
     instance.use(definitionLists);
@@ -448,6 +460,7 @@ function buildMd(enableTypst = true): MarkdownIt {
         const srcIndex = token.attrIndex('src');
         if (srcIndex >= 0) {
             const originalSrc = token.attrs[srcIndex][1];
+            if (relativeImageSource(originalSrc)) token.attrSet('data-original-image-source', originalSrc);
             token.attrs[srcIndex][1] = resolveImageSource(originalSrc, env);
         }
         return defaultImageRender(tokens, idx, options, env, self);
@@ -475,7 +488,69 @@ function buildMd(enableTypst = true): MarkdownIt {
 const md: MarkdownIt = buildMd();
 let renderGeneration = 0;
 let completedRenderGeneration = -1;
-let currentRender: Promise<void> = Promise.resolve();
+let followFile: FollowFile | undefined;
+let renderedDocumentIdentity: string | undefined;
+let followSnapshot: FollowSnapshot | undefined;
+/** Options that change rendered output; per-call values are excluded. */
+function followKey(options: RenderOptions): string {
+    const config: RenderOptions = {...options};
+    delete config.renderVersion; delete config.prevContent; delete config.imageData; delete config.followAppendBase; delete config.readingState;
+    // Native dictionaries arrive in no fixed key order; sort so equal options give equal keys.
+    return JSON.stringify(config, Object.keys(config).sort());
+}
+/** The retained snapshot, when appending can re-parse from its last block. */
+function reusableSnapshot(text: string, key: string, prefix: string, root: HTMLElement): (FollowSnapshot & { restart: NonNullable<FollowSnapshot['restart']> }) | undefined {
+    const snapshot = followSnapshot;
+    const restart = snapshot?.restart;
+    if (!snapshot || !restart || snapshot.key !== key || snapshot.hasDefinitions || snapshot.prefix !== prefix || !text.startsWith(snapshot.text)) return undefined;
+    // Math numbering and references span the whole document.
+    if (snapshot.firstMathLine !== undefined && snapshot.firstMathLine <= restart.line) return undefined;
+    return blockElement(root, restart.line + 1) ? { ...snapshot, restart } : undefined;
+}
+function hasDefinitions(environment: { references: Record<string, unknown>; abbreviations?: Record<string, string>; footnotes?: unknown }): boolean {
+    return !!environment.footnotes || Object.keys(environment.references).length > 0 ||
+        Object.keys(environment.abbreviations ?? {}).length > 0;
+}
+/**
+ * Splits a rendered document into commit slices: a small first slice nearest the
+ * reading position (the beginning, or the end while following), then larger ones.
+ * Each slice holds whole top-level nodes in document order.
+ */
+function progressiveSlices(nodes: ChildNode[], fromEnd: boolean, firstChars = 24_000, sliceChars = 96_000): ChildNode[][] {
+    const slices: ChildNode[][] = [];
+    let current: ChildNode[] = [];
+    let size = 0;
+    for (const node of fromEnd ? [...nodes].reverse() : nodes) {
+        current.push(node);
+        size += node.textContent?.length ?? 0;
+        if (node instanceof Element && size >= (slices.length ? sliceChars : firstChars)) {
+            slices.push(fromEnd ? current.reverse() : current);
+            current = []; size = 0;
+        }
+    }
+    if (current.length) slices.push(fromEnd ? current.reverse() : current);
+    return slices;
+}
+/**
+ * Yields between commit slices. A visible page yields through a timer so WebKit can
+ * paint and handle input in between; a hidden page has nothing to paint and slows
+ * timers to about once a second, so it yields through a message task instead.
+ */
+/** Above this many characters, distant top-level blocks skip layout and paint. */
+const LARGE_DOCUMENT_CHARS = 400_000;
+const nextTask = () => new Promise<void>(resolve => {
+    if (document.visibilityState !== 'hidden' || typeof MessageChannel === 'undefined') { setTimeout(resolve, 0); return; }
+    const channel = new MessageChannel();
+    channel.port1.onmessage = () => { channel.port1.close(); resolve(); };
+    channel.port2.postMessage(null);
+});
+Object.assign(window, {
+    setQuickLookFollow: (enabled: boolean) => { readingStatus?.waiting(false); followFile?.set(enabled); },
+    quickLookFollowWaiting: (on: boolean) => readingStatus?.waiting(on),
+    quickLookFollowStatus: () => followFile?.status() ?? {active:false,paused:false,selected:false}
+});
+type RenderResult = void | {needsFullRender: true};
+let currentRender: Promise<RenderResult> = Promise.resolve();
 window.waitForExportReady = async (timeoutMs = 15000) => {
     const generation = renderGeneration;
     const started = Date.now();
@@ -495,13 +570,13 @@ window.waitForExportReady = async (timeoutMs = 15000) => {
         if (timer !== undefined) clearTimeout(timer);
     }
 };
-window.prepareExport = () => prepareExport(() => window.waitForExportReady());
+window.prepareExport = () => {closeDiagramFocus();return prepareExport(() => window.waitForExportReady());};
 window.waitForRenderComplete = async () => {
     const generation = renderGeneration;
     await currentRender;
     if (generation !== renderGeneration) throw new Error("Document changed during export");
 };
-window.invalidateRender = () => { disposeBlockCopy(); ++renderGeneration; };
+window.invalidateRender = () => { disposeBlockCopy(); renderedDocumentIdentity = undefined; ++renderGeneration; };
 const diffAnimator = new DiffAnimator();
 
 let toc: TableOfContents | null = null;
@@ -511,7 +586,8 @@ let searchEngine: SearchEngine | null = null;
 let searchUI: SearchUI | null = null;
 let helpOverlay: HelpOverlay | null = null;
 let blockCopy: CopyController | null = null;
-function disposeBlockCopy(): void { blockCopy?.dispose(); blockCopy = null; }
+let disposeSelectionCopy: (() => void) | undefined;
+function disposeBlockCopy(): void { disposeSelectionCopy?.(); disposeSelectionCopy = undefined; blockCopy?.dispose(); blockCopy = null; }
 let blockquoteCollapse: BlockquoteCollapse | null = null;
 let mermaidInstance: typeof import('mermaid')['default'] | null = null;
 let mermaidCurrentTheme: string | null = null;
@@ -526,6 +602,8 @@ interface RenderOptions {
     imageData?: Record<string, string>;
     fontSize?: number;
     codeHighlightTheme?: string;
+    documentId?: string;
+    readingState?: ReadingState;
     enableMermaid?: boolean;
     enableKatex?: boolean;
     enableTypst?: boolean;
@@ -537,6 +615,15 @@ interface RenderOptions {
     prevContent?: string;
     showLineNumbers?: boolean;
     showCopyButtons?: boolean;
+    selectionCopy?: boolean;
+    followFile?: boolean;
+    /** Follow sends only appended text; this is the length of the source it extends. */
+    followAppendBase?: number;
+    /** A tail window of a larger file: the 0-based file line its text starts at. */
+    sourceLineStart?: number;
+    /** Set false to commit a full render in one step (tests compare against it). */
+    progressive?: boolean;
+    documentGeneration?: string;
     renderVersion?: number;
     format?: 'markdown' | 'tsv';
     isTruncated?: boolean;
@@ -565,13 +652,15 @@ function resolveImageSource(source: string, options: RenderOptions): string {
     }
 }
 
-function prepareRenderedImages(root: HTMLElement, options: RenderOptions): void {
-    root.querySelectorAll<HTMLImageElement>('img[src]').forEach(img => {
+function prepareRenderedImages(roots: readonly Element[], options: RenderOptions): void {
+    (queryRoots(roots, 'img[src]') as HTMLImageElement[]).forEach(img => {
         img.addEventListener('error', () => img.classList.add('image-load-failed'));
         img.addEventListener('load', () => img.classList.remove('image-load-failed'));
 
         const source = img.getAttribute('src');
         if (!source) return;
+        // Raw HTML images bypass markdown-it's image rule.
+        if (relativeImageSource(source)) img.setAttribute('data-original-image-source', source);
         const resolvedSource = constrainSVGImage(img, resolveImageSource(source, options));
         if (resolvedSource !== source) img.setAttribute('src', resolvedSource);
     });
@@ -618,6 +707,7 @@ function addLineNumbersToCodeBlocks(container: HTMLElement): void {
             continue;
         }
 
+        if (pre.classList.contains('line-numbers')) continue;
         pre.classList.add('line-numbers');
         const codeEl = pre.querySelector('code');
         if (!codeEl) continue;
@@ -642,13 +732,17 @@ declare global {
         prepareExport: () => Promise<ExportPreparation>;
         invalidateRender: () => void;
         verifyQuickLookProbe: (heading: string, boldText: string) => boolean;
-        renderMarkdown: (text: string, options?: RenderOptions) => Promise<void>;
+        renderMarkdown: (text: string, options?: RenderOptions) => Promise<RenderResult>;
         renderSource: (text: string, theme: string, prevContent?: string, options?: RenderOptions) => void;
         clearDiffMarks: () => void;
         setContentsSide: (side: string) => void;
         updateTheme: (theme: string) => void;
         exportHTML: () => string;
-        setZoomLevel: (level: number) => void;
+        setZoomLevel: (level: number, point?: ZoomPoint) => void;
+        resetZoomAt: (point: ZoomPoint) => number | null;
+        applyPinchZoom: (base: number, delta: number, point: ZoomPoint) => number | null;
+        requestPinchZoom: (base: number, delta: number, point: ZoomPoint) => number | null;
+        requestZoomLevel: (level: number, point?: ZoomPoint) => void;
         setFontSize: (px: number) => void;
         adjustFontSize: (delta: number) => void;
         showSearch: () => void;
@@ -660,8 +754,8 @@ declare global {
     }
 }
 
-async function renderVegaDiagrams(container: HTMLElement, theme: string, isCurrent: () => boolean): Promise<void> {
-    const vegaBlocks = container.querySelectorAll('pre.hljs code.language-vega, pre.hljs code.language-vega-lite');
+async function renderVegaDiagrams(roots: readonly Element[], theme: string, isCurrent: () => boolean): Promise<void> {
+    const vegaBlocks = queryRoots(roots, 'pre.hljs code.language-vega, pre.hljs code.language-vega-lite');
     if (vegaBlocks.length === 0) return;
 
     let vegaModule: typeof import('vega') | null = null;
@@ -707,8 +801,8 @@ async function renderVegaDiagrams(container: HTMLElement, theme: string, isCurre
     }
 }
 
-async function renderGraphvizDiagrams(container: HTMLElement, isCurrent: () => boolean): Promise<void> {
-    const dotBlocks = container.querySelectorAll('pre.hljs code.language-dot, pre.hljs code.language-graphviz');
+async function renderGraphvizDiagrams(roots: readonly Element[], isCurrent: () => boolean): Promise<void> {
+    const dotBlocks = queryRoots(roots, 'pre.hljs code.language-dot, pre.hljs code.language-graphviz');
     if (dotBlocks.length === 0) return;
 
     if (!graphvizInstance) {
@@ -782,6 +876,7 @@ function preloadStylesheets() {
 setTimeout(preloadStylesheets, 500);
 
 window.exportHTML = function(): string {
+    closeDiagramFocus();
     // SVG mathematics contains its glyph definitions. Unused application font
     // faces otherwise leave broken app-relative requests in standalone HTML.
     let cssText = collectStylesheetRules(!!document.querySelector('#markdown-preview .katex'));
@@ -791,9 +886,10 @@ window.exportHTML = function(): string {
     // Ensure we clone the content so we don't modify the active DOM
     const clone = previewDiv ? (previewDiv.cloneNode(true) as HTMLElement) : document.createElement('div');
     
-    clone.querySelectorAll('.block-copy-tools, .mermaid-tools, .diagram-tools').forEach(control => control.remove());
+    clone.querySelectorAll('.selection-copy-tools, .block-copy-tools, .mermaid-tools, .diagram-tools').forEach(control => control.remove());
     clone.querySelectorAll('.block-copy-host').forEach(host => host.replaceWith(...Array.from(host.childNodes)));
     clone.querySelectorAll('.error-feedback-controls').forEach(control => control.remove());
+    clone.querySelectorAll('.error-feedback-region').forEach(region => region.replaceWith(...Array.from(region.childNodes)));
     clone.querySelectorAll('.search-highlight').forEach(mark => mark.replaceWith(document.createTextNode(mark.textContent || '')));
     clone.querySelectorAll('.math-search-highlight, .search-highlight-active').forEach(node => node.classList.remove('math-search-highlight', 'search-highlight-active'));
     clone.querySelectorAll<HTMLElement>('.blockquote-placeholder').forEach(placeholder => {
@@ -901,11 +997,35 @@ window.verifyQuickLookProbe = (heading, boldText) => {
 };
 
 window.renderMarkdown = async function (text: string, options: RenderOptions = {}) {
-    disposeBlockCopy();
-    disposeMermaidLayout?.(); disposeMermaidLayout = undefined;
-    disposeSVGZoom?.(); disposeSVGZoom = undefined;
+    const followCapable = options.context === 'quicklook' && options.followFile === true && options.format !== 'tsv';
+    document.documentElement.dataset.followControl = String(followCapable);
+    const documentIdentity = options.documentGeneration || `${options.context || ''}:${options.baseUrl || ''}/${options.filename || ''}`;
+    const protectSelection = options.context === 'quicklook' && currentContext === 'quicklook' &&
+        renderedDocumentIdentity === documentIdentity && options.format !== 'tsv';
+    const outputRoot = document.getElementById('markdown-preview');
+    if (!followCapable || (outputRoot && followFile && !followFile.owns(outputRoot))) {
+        followFile?.dispose(); followFile = undefined; followSnapshot = undefined;
+    }
+    if (options.followAppendBase !== undefined) {
+        const base = followSnapshot;
+        if (!followCapable || followFile?.status().active !== true || !base ||
+            base.text.length !== options.followAppendBase || base.key !== followKey(options)) return {needsFullRender: true};
+        text = base.text + text;
+        options = {...options, prevContent: base.text, followAppendBase: undefined};
+    }
+    const wasFollowing = followSnapshot !== undefined;
+    closeDiagramFocus();
+    // While following, the end of the document is the reading position; do not restore another.
+    const followingAtStart = followCapable && followFile?.status().active === true;
+    const preservedReading = followingAtStart ? undefined : beginReadingRender(options.documentId);
     const callId = ++renderGeneration;
     const isCurrent = () => callId === renderGeneration;
+    if (protectSelection && outputRoot && !await waitForSafeCommit(outputRoot,isCurrent)) return;
+    if (!protectSelection) {
+        disposeBlockCopy();
+        disposeMermaidLayout?.(); disposeMermaidLayout = undefined;
+        disposeSVGZoom?.(); disposeSVGZoom = undefined;
+    }
     logToSwift(`[renderMarkdown:${callId}] START textLen=${text.length}`);
     const outputDiv = document.getElementById('markdown-preview');
     const loadingDiv = document.getElementById('loading-status');
@@ -1003,6 +1123,8 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
                 logToSwift("JS Warning: BlockquoteCollapse initialization failed: " + e);
             }
         }
+        // See styles/line-numbers.css: large pages skip layout of distant blocks.
+        document.documentElement.dataset.largeDocument = String(options.format !== 'tsv' && text.length > LARGE_DOCUMENT_CHARS);
         if (options.format === 'tsv') {
             document.documentElement.setAttribute('data-document-format', 'tsv');
             searchEngine?.clear();
@@ -1015,15 +1137,20 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
             readingStatus?.render(text, options.filename);
             updateReadingControlsLayout();
             toc?.render([]);
+            finishReadingRender(options.readingState,preservedReading);
+            completedRenderGeneration = callId;
             logToSwift(`[renderMarkdown:${callId}] TSV rendered rows=${rendered.result.rows.length} columns=${rendered.result.columns}`);
             return;
         }
-        const { yaml, body } = extractFrontMatter(text);
-        const sourceLineOffset = text.slice(0, text.length - body.length).split('\n').length - 1;
+        // A tail window starts mid-file: a leading --- there is a rule, not front matter.
+        const windowLine = options.sourceLineStart ?? 0;
+        const { yaml, body } = windowLine > 0 ? { yaml: null, body: text } : extractFrontMatter(text);
+        const sourceLineOffset = windowLine + text.slice(0, text.length - body.length).split('\n').length - 1;
         const frontMatterHtml = yaml ? `<div data-source-line="1" data-source-line-end="${sourceLineOffset}">${renderFrontMatterHtml(yaml)}</div>` : '';
 
         const parser = buildMd(options.enableTypst !== false);
-        if (options.enableEmoji !== false) parser.use(emoji);
+        const largePreview = options.context === 'quicklook' && body.length > LARGE_DOCUMENT_CHARS;
+        if (options.enableEmoji !== false) parser.use(largePreview ? largePreviewEmoji : emoji);
         const enableTypst = options.enableTypst !== false;
         const mathNamespace = `fxeq-${callId}-${Array.from(crypto.getRandomValues(new Uint32Array(2))).join('-')}`;
         const mathSources = installMathSyntax(parser, mathNamespace);
@@ -1035,13 +1162,55 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         lastShowLineNumbers = showLineNumbers;
 
         installSourceRuleWrappers(parser);
-        const environment = { baseUrl: options.baseUrl, imageData: options.imageData, renderVersion: options.renderVersion, sourceLineOffset };
-        const tokens = parser.parse(renderBody, environment);
-        const outline = buildHeadingTree(extractHeadings(tokens));
-        const html = parser.renderer.render(tokens, parser.options, environment);
-
+        const prefix = text.slice(0, text.length - body.length);
+        const key = followKey(options);
+        const parseEnvironment = (lineOffset: number, seed?: FollowSnapshot) => ({
+            baseUrl: options.baseUrl, imageData: options.imageData, renderVersion: options.renderVersion, sourceLineOffset: lineOffset,
+            references: {} as Record<string, unknown>,
+            abbreviations: undefined as Record<string, string> | undefined,
+            headingSlugs: new Set(seed?.headings.filter(heading => heading.line < lineOffset).map(heading => heading.id)),
+            footnotes: undefined as unknown,
+        });
+        // While following, an append can only extend the last top-level block:
+        // re-parse from there and keep every block above it.
+        let previous = followCapable && followFile?.status().active === true ? reusableSnapshot(text, key, prefix, outputDiv) : undefined;
+        let tailSource = '';
+        let environment = parseEnvironment(sourceLineOffset);
+        let tokens: ReturnType<typeof parser.parse> = [];
+        if (previous) {
+            tailSource = text.slice(previous.restart.offset);
+            environment = parseEnvironment(previous.restart.line, previous);
+            tokens = parser.parse(tailSource, environment);
+            // Definitions can change earlier blocks, including by extending an existing definition.
+            if (hasDefinitions(environment)) previous = undefined;
+        }
+        if (!previous) {
+            environment = parseEnvironment(sourceLineOffset);
+            tokens = parser.parse(renderBody, environment);
+        }
+        const headingLines = tokens.filter(token => token.type === 'heading_open').map(token => token.map?.[0] ?? 0);
+        const parsedHeadings = extractHeadings(tokens).map((heading, index) => ({ line: headingLines[index], level: heading.level, text: heading.text, id: heading.id }));
+        const restartLine = previous?.restart.line;
+        const headings = previous ? [...previous.headings.filter(heading => heading.line < restartLine!), ...parsedHeadings] : parsedHeadings;
+        const outline = buildHeadingTree(headings.map(({ level, text, id }): HeadingNode => ({ level, text, id, children: [] })));
         const tempDiv = document.createElement('div');
-        const documentFragment = sanitizeDocumentFragment(frontMatterHtml + html);
+        const following = followCapable && followFile?.status().active === true;
+        const canBatch = largePreview &&
+            options.progressive !== false && !previous && !(following && wasFollowing) && !mathSources.length && !environment.footnotes;
+        const batches = canBatch ? quickLookTokenBatches(tokens, following) : [];
+        const renderBatch = (index: number) => {
+            const {start, end} = batches[index];
+            const html = parser.renderer.render(tokens.slice(start, end), parser.options, environment);
+            return sanitizeDocumentFragment((start === 0 ? frontMatterHtml : '') + html);
+        };
+        // On navigation the old view may already have queued DOM mutations.
+        // Commit the first new batch before yielding when a document is on screen.
+        if (batches.length && !outputDiv.firstElementChild) {
+            await nextTask();
+            if (!isCurrent()) return;
+        }
+        const documentFragment = batches.length ? renderBatch(0) :
+            sanitizeDocumentFragment((previous ? '' : frontMatterHtml) + parser.renderer.render(tokens, parser.options, environment));
 
         if (options.enableKatex !== false) {
             documentFragment.querySelectorAll('math').forEach(math => {
@@ -1080,6 +1249,12 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
                     const failure = result.errors.find(error => error.sourceId === item.id);
                     if (failure) {
                         target.classList.add('math-error');
+                        target.setAttribute('data-math-failure', failure.code);
+                        const failedSource = mathSources.find(source => source.id === item.id);
+                        if (failedSource) {
+                            target.setAttribute('data-math-first', String(failedSource.firstLine));
+                            target.setAttribute('data-math-last', String(failedSource.lastLine));
+                        }
                         if (failure.code === 'input-limit') target.classList.add('math-input-limit');
                         if (failure.code === 'unsupported-resource') target.classList.add('math-resource-unsupported');
                     }
@@ -1102,6 +1277,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
                 const div = document.createElement('div');
                 div.classList.add('mermaid');
                 div.textContent = block.textContent || '';
+                rememberDiagramSource(div, 'mermaid', div.textContent);
                 div.id = `mermaid-${callId}-${index}`;
                 copySourceRange(pre, div);
                 pre.replaceWith(div);
@@ -1110,12 +1286,69 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
 
         logToSwift(`[renderMarkdown:${callId}] UPDATING DOM innerHTML`);
         if (!isCurrent()) return;
+        if (protectSelection && !await waitForSafeCommit(outputDiv,isCurrent)) return;
+        // No await between the final selection check and installing controls.
+        followFile?.status();
+        followFile?.captureAnchor();
+        rememberRenderedSource(outputDiv, text, windowLine, Object.keys(environment.references).length > 0);
+        // Kept blocks keep their copy controls; re-wrapping every code block
+        // would invalidate the layout of the whole document.
+        if (previous && blockCopy) { disposeSelectionCopy?.(); disposeSelectionCopy = undefined; }
+        else disposeBlockCopy();
+        disposeMermaidLayout?.(); disposeMermaidLayout = undefined;
+        disposeSVGZoom?.(); disposeSVGZoom = undefined;
         searchEngine?.clear();
-        // The staged tree is already sanitized. Move it into the live preview
-        // rather than serializing/reparsing thousands of mathematical SVG nodes.
-        const renderedFragment = document.createDocumentFragment();
-        while (tempDiv.firstChild) renderedFragment.appendChild(tempDiv.firstChild);
-        outputDiv.replaceChildren(renderedFragment);
+        const newRestartLine = lastBlockLine(tokens);
+        const restartNode = newRestartLine === undefined ? undefined : blockElement(tempDiv, newRestartLine + 1);
+        let restartHtml = restartNode?.outerHTML;
+        // Decoration below touches only the blocks this render added.
+        let roots: Element[] = [outputDiv];
+        let slices: ChildNode[][] = [];
+        if (previous) {
+            const cut = blockElement(outputDiv, previous.restart.line + 1);
+            if (!cut) {
+                followSnapshot = undefined;
+                return window.renderMarkdown(text, options);
+            }
+            const first = tempDiv.firstElementChild;
+            // A final block the append did not change keeps its DOM and decorations.
+            const keep = !!first && first.getAttribute('data-source-line') === String(previous.restart.line + 1) && first.outerHTML === previous.restart.html;
+            const added = Array.from(tempDiv.childNodes);
+            if (keep) {
+                added.splice(0, added.indexOf(first!) + 1);
+                if (restartNode === first) restartHtml = previous.restart.html;
+            }
+            for (let node: ChildNode | null = keep ? cut.nextSibling : cut; node;) {
+                const next: ChildNode | null = node.nextSibling;
+                node.remove();
+                node = next;
+            }
+            outputDiv.append(...added);
+            roots = added.filter((node): node is Element => node instanceof Element);
+        } else {
+            // Nearest pages first; the rest follows in slices that yield to input.
+            // Math numbering and layout span the document, so math keeps one commit.
+            // A window that re-forms while followed commits in one step: after many
+            // incremental updates, each yield between slices costs far more (task 7.4).
+            slices = !batches.length && options.progressive !== false && mathSources.length === 0 && !(following && wasFollowing)
+                ? progressiveSlices(Array.from(tempDiv.childNodes), following) : [Array.from(tempDiv.childNodes)];
+            outputDiv.replaceChildren(...slices[0]);
+        }
+        if (following) {
+            const restartOffset = newRestartLine === undefined ? -1 : previous
+                ? (offset => offset < 0 ? -1 : previous!.restart.offset + offset)(lineStart(tailSource, newRestartLine - previous.restart.line))
+                : lineStart(text, newRestartLine - windowLine);
+            const firstMathLine = mathSources.reduce<number | undefined>((first, source) => first === undefined || source.firstLine < first ? source.firstLine : first, undefined);
+            followSnapshot = {
+                text, key, prefix, headings,
+                restart: newRestartLine !== undefined && restartHtml !== undefined && restartOffset >= 0 ? { line: newRestartLine, offset: restartOffset, html: restartHtml } : undefined,
+                hasDefinitions: hasDefinitions(environment), firstMathLine,
+            };
+        } else {
+            followSnapshot = undefined;
+        }
+        renderedDocumentIdentity = documentIdentity;
+        if (followCapable && !followFile) followFile = new FollowFile(outputDiv);
         disposeMathLayout?.();
         const sourceTargets = uniqueMathTargets(outputDiv, mathSources.map(source => source.id));
         for (const source of mathSources) {
@@ -1123,21 +1356,66 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
             if (target) rememberMathSource(target, source.raw);
         }
         disposeMathLayout = mathSources.length ? installMathLayout(outputDiv) : undefined;
-        if (toc) toc.render(outline);
-        prepareRenderedImages(outputDiv, options);
+        const batchCount = Math.max(batches.length, slices.length);
+        if (toc && batchCount > 1) {
+            // Show the contents column now, so later slices do not reflow the whole page,
+            // listing only the headings already committed; the full list follows the last slice.
+            const committed = new Set(slices[0].flatMap(node => node instanceof Element
+                ? [...(node.matches('h1, h2, h3, h4, h5, h6') ? [node] : []), ...Array.from(node.querySelectorAll('h1, h2, h3, h4, h5, h6'))].map(heading => heading.id) : []));
+            let shown = headings.filter(heading => committed.has(heading.id));
+            // A slice without headings still keeps the column, with the heading nearest to it.
+            if (!shown.length && headings.length) shown = [following ? headings[headings.length - 1] : headings[0]];
+            toc.render(buildHeadingTree(shown.map(({ level, text, id }): HeadingNode => ({ level, text, id, children: [] }))));
+        } else if (toc) toc.render(outline);
+        prepareRenderedImages(roots, options);
         disposeSVGZoom = installSVGZoom(outputDiv);
+        disposeSelectionCopy = installSelectionCopy(outputDiv, feedbackGeneration(), options);
         logToSwift(`[renderMarkdown:${callId}] DOM UPDATED successfully`);
 
         if (options.showCopyButtons === true && currentContext !== 'finder') {
-            blockCopy = installBlockCopy(outputDiv, feedbackGeneration());
+            if (previous && blockCopy) blockCopy.extend(roots);
+            else blockCopy = installBlockCopy(outputDiv, feedbackGeneration());
         }
 
         if (showLineNumbers) {
             addLineNumbersToCodeBlocks(outputDiv);
         }
 
+        for (let index = 1; index < batchCount; index++) {
+            await nextTask();
+            if (!isCurrent()) return;
+            const slice = batches.length ? Array.from(renderBatch(index).childNodes) : slices[index];
+            if (following) outputDiv.prepend(...slice); else outputDiv.append(...slice);
+            const sliceRoots = slice.filter((node): node is Element => node instanceof Element);
+            prepareRenderedImages(sliceRoots, options);
+            blockCopy?.extend(sliceRoots);
+            if (showLineNumbers) addLineNumbersToCodeBlocks(outputDiv);
+        }
+        if (batchCount > 1) {
+            // Whole-document controls, once every slice is in place, in separate tasks.
+            // A short timer first lets input and paint run after the last slice's layout.
+            await (document.visibilityState === 'hidden' ? nextTask() : new Promise<void>(resolve => setTimeout(resolve, 16)));
+            if (!isCurrent()) return;
+            if (toc) toc.render(outline);
+            await nextTask();
+            if (!isCurrent()) return;
+            disposeSVGZoom?.(); disposeSVGZoom = installSVGZoom(outputDiv);
+            disposeSelectionCopy?.(); disposeSelectionCopy = installSelectionCopy(outputDiv, feedbackGeneration(), options);
+        }
+
+        if (previous) {
+            // A Follow update splits here, so the whole-document passes below
+            // (highlights, search, reading status) do not lengthen the commit task.
+            await nextTask();
+            if (!isCurrent()) return;
+        }
+
         if (options.prevContent && options.prevContent.length > 0) {
-            const diffs = computeLineDiff(options.prevContent, text);
+            const diffs = computeLineDiff(options.prevContent, text).map(diff => windowLine === 0 ? diff : {
+                ...diff,
+                oldLineNumber: diff.oldLineNumber === null ? null : diff.oldLineNumber + windowLine,
+                newLineNumber: diff.newLineNumber === null ? null : diff.newLineNumber + windowLine,
+            });
             diffAnimator.annotateRenderDOM(outputDiv, diffs);
         }
 
@@ -1167,7 +1445,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
                     mermaidCurrentTheme = mermaidTheme;
                 }
 
-                const mermaidDivs = outputDiv.querySelectorAll('.mermaid');
+                const mermaidDivs = queryRoots(roots, '.mermaid');
                 for (const div of mermaidDivs) {
                     const code = div.textContent || '';
                     const processedCode = preprocessMermaidNewlines(
@@ -1177,6 +1455,7 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
                     try {
                         const { svg } = await mermaid.render(id + '-svg', processedCode);
                         if (!isCurrent()) return;
+                        if (protectSelection && !await waitForSafeCommit(outputDiv,isCurrent)) return;
                         div.innerHTML = sanitizeDiagramHTML(svg);
                     } catch (renderErr: any) {
                         const errorMessage = renderErr?.message || String(renderErr);
@@ -1197,14 +1476,14 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         }
 
         if (!isCurrent()) return;
-        await renderVegaDiagrams(outputDiv, currentTheme, isCurrent);
+        await renderVegaDiagrams(roots, currentTheme, isCurrent);
         if (!isCurrent()) return;
-        await renderGraphvizDiagrams(outputDiv, isCurrent);
+        await renderGraphvizDiagrams(roots, isCurrent);
         if (!isCurrent()) return;
 
         // Render Typst math blocks
         if (enableTypst) {
-            const typstPlaceholders = outputDiv.querySelectorAll('.typst-placeholder');
+            const typstPlaceholders = queryRoots(roots, '.typst-placeholder');
             if (typstPlaceholders.length > 0) {
                 try {
                     const { renderTypstBlock } = await import('./typst-renderer');
@@ -1220,7 +1499,8 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
                             const rendered = await renderTypstBlock(decodedSource, context);
                             if (!isCurrent()) return;
                             const block = document.createElement('div');
-                            block.innerHTML = sanitizeDiagramHTML(rendered);
+                            if (protectSelection && !await waitForSafeCommit(outputDiv,isCurrent)) return;
+                        block.innerHTML = sanitizeDiagramHTML(rendered);
                             const fence = placeholder.closest('pre');
                             if (fence) {
                                 copySourceRange(fence, block);
@@ -1248,6 +1528,9 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
         readingStatus?.render(text, options.filename, options.prevContent);
         // Refresh the shared active-heading selection after asynchronous diagrams settle.
         window.dispatchEvent(new Event('scroll'));
+        finishReadingRender(followingAtStart ? undefined : options.readingState, preservedReading);
+        followFile?.restoreAnchor();
+        followFile?.settle();
         completedRenderGeneration = callId;
         logToSwift(`[renderMarkdown:${callId}] COMPLETE`);
     } catch (e) {
@@ -1266,6 +1549,9 @@ window.renderMarkdown = (text, options) => {
 };
 
 window.renderSource = function(text: string, theme: string, prevContent?: string, options: RenderOptions = {}) {
+    followFile?.dispose(); followFile = undefined; followSnapshot = undefined; renderedDocumentIdentity = undefined;
+    closeDiagramFocus();
+    const preservedReading=beginReadingRender(options.documentId);
     disposeMathLayout?.(); disposeMathLayout = undefined;
     window.__fluxLang = options.uiLanguage === "system" ? undefined : options.uiLanguage ?? window.__fluxLang;
     applyInterfaceDirection();
@@ -1304,6 +1590,7 @@ window.renderSource = function(text: string, theme: string, prevContent?: string
         toc?.render([]);
         searchUI?.refresh();
         readingStatus?.render(text, options.filename);
+        finishReadingRender(options.readingState,preservedReading);
         return;
     }
     outputDiv.classList.add('source-mode');
@@ -1327,6 +1614,8 @@ window.renderSource = function(text: string, theme: string, prevContent?: string
             if (row && id) row.id = id;
         }
         searchUI?.refresh();
+        disposeSelectionCopy = installSelectionCopy(outputDiv, feedbackGeneration(), options);
+        finishReadingRender(options.readingState,preservedReading);
         logToSwift(`[Source View] Rendered ${text.length} characters with theme: ${theme}`);
     } catch (e) {
         logToSwift("JS Error during source rendering: " + e);
@@ -1436,7 +1725,7 @@ function handleAnchorClick(e: Event) {
             const scrollTarget = anchor.classList.contains('math-reference-link')
                 ? targetElement.closest<HTMLElement>('.flux-math-source') || targetElement
                 : targetElement;
-            scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            jumpToReadingTarget(scrollTarget);
         }
         return;
     }
@@ -1447,6 +1736,7 @@ function handleAnchorClick(e: Event) {
     try {
         if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.linkClicked) {
             // @ts-ignore
+            saveReadingState();
             window.webkit.messageHandlers.linkClicked.postMessage(href);
         }
     } catch (error) {
@@ -1523,22 +1813,32 @@ document.addEventListener('mouseout', handleAnchorMouseOut);
 
 let currentZoomLevel = 1.0;
 
-window.setZoomLevel = function(level: number) {
-    const clamped = Math.max(0.5, Math.min(3.0, level));
-    currentZoomLevel = clamped;
-    const outputDiv = document.getElementById('markdown-preview');
-    if (outputDiv) {
-        // 清除旧的 transform hack（会导致布局不重排，修复 Bug 6）
-        outputDiv.style.transform = '';
-        outputDiv.style.transformOrigin = '';
-        outputDiv.style.width = '';
-        // 通过 CSS 变量驱动缩放，浏览器会触发真正的重排
-        if (clamped === 1.0) {
-            document.documentElement.style.removeProperty('--zoom-scale');
-        } else {
-            document.documentElement.style.setProperty('--zoom-scale', String(clamped));
-        }
-    }
+window.setZoomLevel = function(level: number, point?: ZoomPoint) {
+    if (!Number.isFinite(level)) return;
+    currentZoomLevel = Math.max(0.5, Math.min(3.0, level));
+    setReadingZoom(currentZoomLevel, point);
+};
+window.requestZoomLevel = function(level: number, point?: ZoomPoint) {
+    if (!Number.isFinite(level)) return;
+    currentZoomLevel = Math.max(0.5, Math.min(3.0, level));
+    requestReadingZoom(currentZoomLevel, point);
+};
+
+window.resetZoomAt = point => {
+    const level = resetZoomAt(point);
+    if (level !== null) currentZoomLevel = level;
+    return level;
+};
+
+window.applyPinchZoom = (base, delta, point) => {
+    const level = applyPinchZoom(base, delta, point);
+    if (level !== null) currentZoomLevel = level;
+    return level;
+};
+window.requestPinchZoom = (_base, delta, point) => {
+    const level = requestPinchZoom(currentZoomLevel, delta, point);
+    if (level !== null) currentZoomLevel = level;
+    return level;
 };
 
 function applyZoomLevel(level: number) {
@@ -1604,6 +1904,10 @@ window.navigateDocumentPosition = function(position: DocumentPosition): boolean 
     return true;
 };
 
-Object.assign(window, { blockCopyResult, setFeedbackGeneration: (value: string) => { disposeBlockCopy(); setFeedbackGeneration(value); } });
+Object.assign(window, { stepReadingZoom:(delta:number | null)=>{
+    if(stepFocusedDiagram(delta))return null;
+    const level=delta===null?1:Math.max(0.5,Math.min(3,currentZoomLevel+delta));
+    window.requestZoomLevel(level);return level;
+}, closeDiagramFocus, scrollReadingSurface, diagramActionResult, captureReadingState, restoreReadingState, resyncScrollPosition, navigateReadingHistory, updateReadingNavigation:updateNavigation, blockCopyResult, setFeedbackGeneration: (value: string) => { if (value !== feedbackGeneration()) disposeBlockCopy(); setFeedbackGeneration(value); } });
 if (document.body) installErrorFeedback(document.body);
 else document.addEventListener("DOMContentLoaded", () => installErrorFeedback(document.body), { once: true });

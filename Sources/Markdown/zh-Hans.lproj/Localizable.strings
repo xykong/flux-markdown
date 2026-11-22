@@ -146,7 +146,8 @@
 "I've Already Starred" = "我已 Star";
 "Invite me to support the project on GitHub" = "邀请我在 GitHub 支持项目";
 
-"Preview limited to 500 KiB. Use Open with FluxMarkdown above to read the complete document." = "预览仅显示前 500 KiB。请使用上方“通过 FluxMarkdown 打开”阅读完整文档。";
+"Showing the first %1$@ of %2$@; the rest is not shown. Click Follow Changes to see the end." = "正在显示 %2$@ 中的前 %1$@，其余内容未显示。点击“跟随更改”查看结尾。";
+"Showing the last %1$@ of %2$@." = "正在显示 %2$@ 中的最后 %1$@。";
 "Test Quick Look" = "验证快速预览";
 "Quick Look preview verified" = "快速预览验证通过";
 "Quick Look preview not confirmed" = "尚未确认快速预览正常";
@@ -196,9 +197,13 @@
 "Check the search expression, or open the document in FluxMarkdown and press Command-F." = "请检查搜索表达式，或用 FluxMarkdown 打开文档并按 Command-F 搜索。";
 "Open the document in FluxMarkdown. You can also run Repair Quick Look from the Help menu." = "请用 FluxMarkdown 打开文档，也可以从帮助菜单运行“修复快速查看”。";
 "Open the document in FluxMarkdown to read beyond the preview limits." = "请用 FluxMarkdown 打开文档，阅读超出预览限制的内容。";
+"Only the first 2 MB is shown. Click Follow Changes to see the end, or open the document in FluxMarkdown to read all of it." = "仅显示前 2 MB。点击“跟随更改”查看结尾，或在 FluxMarkdown 中打开文档阅读全文。";
+"Only the first 2 MB is shown. Click Follow Changes to see the end. The file is too large to open in FluxMarkdown." = "仅显示前 2 MB。点击“跟随更改”查看结尾。该文件太大，无法在 FluxMarkdown 中打开。";
 "Open the destination in your browser or editor. You can copy a report if this keeps happening." = "可以在浏览器或编辑器中打开目标。如果问题持续出现，可复制报告进行反馈。";
+"The link may point to a file that is not on this Mac, or to a path that is not relative to the document. Copy the link to open it manually, or check the path in your editor." = "链接指向的文件可能不在这台 Mac 上，或该路径并非相对于当前文档。可复制链接后手动打开，或在编辑器中检查该路径。";
 "Report This Problem" = "反馈此问题";
 "Include diagnostics" = "附带诊断信息";
+"Feedback Options" = "反馈选项";
 "Review Feedback…" = "查看反馈内容…";
 "Review Last Error…" = "查看最近的错误…";
 "Clear Error History" = "清除错误记录";
@@ -271,3 +276,104 @@
 "Open Recent" = "打开最近使用";
 
 "Clear Menu" = "清除菜单";
+
+/* Reproduction packages and durable Issue replies */
+"Attach Reproduction Materials…" = "附带复现材料…";
+"My Feedback" = "我的反馈";
+"Check Now" = "立即检查";
+"Check my submitted Issues for replies" = "检查我提交的问题是否有新回复";
+"Checks public GitHub Issues while FluxMarkdown is running. Replies missed while offline are checked next time. Unread markers clear only when you click a reply." = "FluxMarkdown 运行时检查公开的 GitHub Issue，下次运行会补查离线期间的回复。只有点击回复才清除未读标记。";
+"Choose Document…" = "选择文档…";
+"Choose Referenced Resources…" = "选择引用的资源…";
+"Choose a document first to resolve its referenced resources." = "请先选择文档，以确定其引用的资源。";
+"Choose a sample or the complete document. Contents and selected resources may be public on GitHub. Review them before attaching. Creating a ZIP does not upload it." = "可选择片段或完整文档。内容和所选资源可能在 GitHub 公开，请先检查再附带。生成 ZIP 不会上传文件。";
+"Complete document" = "完整文档";
+"Continue in FluxMarkdown" = "在 FluxMarkdown 中继续";
+"Continue in FluxMarkdown to choose what to share. The displayed fragment will be passed to FluxMarkdown only if you continue. Nothing is uploaded yet." = "在 FluxMarkdown 中选择要分享的材料。只有继续后才会将显示的片段交给 FluxMarkdown，目前不会上传任何内容。";
+"Could not check replies. Existing reminders are preserved; checking will resume later." = "暂时无法检查回复。已有提醒已保留，稍后会继续检查。";
+"Could not open the reply. Try again or copy its link." = "无法打开回复，请重试或复制链接。";
+"Could not prepare the ZIP. Remove resources, use a smaller sample, or choose another save location. Your report is preserved." = "无法生成 ZIP。请移除部分资源、缩小片段，或选择其他保存位置。报告已保留。";
+"Could not read this document within the 20 MB limit. Choose another file or paste a smaller sample." = "无法在 20 MB 限制内读取此文档。请选择其他文件或粘贴较小的片段。";
+"Could not save feedback reminders. Keep this window open and try again." = "无法保存反馈提醒。请保留此窗口并重试。";
+"Could not verify this Issue. Check the link and try again." = "无法核实此 Issue，请检查链接后重试。";
+"Enable System Notifications…" = "启用系统通知…";
+"Failed fragment" = "失败片段";
+"Feedback history could not be loaded. Your reports have not been overwritten." = "无法读取反馈记录，已有报告未被覆盖。";
+"FluxMarkdown can check this public Issue for replies while running. Manage reminders in My Feedback." = "FluxMarkdown 可在运行时检查此公开 Issue 的回复。可在“我的反馈”中管理提醒。";
+"Link Issue" = "关联 Issue";
+"Paste Issue link" = "粘贴 Issue 链接";
+"Paste a FluxMarkdown GitHub Issue link." = "请粘贴 FluxMarkdown 的 GitHub Issue 链接。";
+"References not included:" = "未附带的引用：";
+"Remove Resources" = "移除资源";
+"Replies checked. Unread reminders stay until you click them." = "回复已检查，未读提醒会保留到你点击时。";
+"Reproduction content" = "复现内容";
+"Review Package Contents" = "检查包内材料";
+"Save Reproduction ZIP…" = "保存复现 ZIP…";
+"Save a ZIP first, then attach it from Finder." = "请先保存 ZIP，再从 Finder 附到 Issue。";
+"Select only files referenced by this document inside its folder, without symbolic links, within the 20 MB limit." = "只能选择此文档目录内已引用的文件，不支持符号链接，材料总大小不得超过 20 MB。";
+"Selected resources:" = "已选资源：";
+"Show ZIP in Finder" = "在 Finder 中显示 ZIP";
+"This is the file selected now, not a verified snapshot from the failure." = "这是现在选择的文件，尚未核实它是否与发生错误时的内容一致。";
+"Waiting to find the submitted Issue" = "等待找到已提交的 Issue";
+"Your Issue has a new reply. Click to open it." = "你的 Issue 有新回复，点击查看。";
+"ZIP prepared locally. Attach it on GitHub; it has not been uploaded." = "ZIP 已在本地生成，尚未上传。请在 GitHub 附上此文件。";
+"Attach the ZIP on GitHub by dragging it from Finder. GitHub uploads attachments immediately; you publish the Issue there. No attachment is required to report." = "将 ZIP 从 Finder 拖到 GitHub 页面即可附带。GitHub 会立即上传附件，Issue 由你在那里确认发布。不附附件也可以反馈。";
+
+/* Automatic feedback summary and default document */
+"Observed problem:" = "遇到的问题：";
+"Source:" = "来源：";
+"Operation:" = "操作：";
+"Failure category:" = "错误类型：";
+"App version:" = "应用版本：";
+"Feedback description" = "反馈内容";
+"Include current document" = "附带当前文档";
+"Review Attachment…" = "查看附件…";
+"Choose Another Document…" = "更换文档…";
+"The selected document will be prepared as a ZIP. Drag it onto GitHub to upload it publicly. Uncheck to exclude it." = "默认将当前文档准备为 ZIP。在 GitHub 拖入附件后会公开上传；不想分享可取消勾选。";
+"Document excluded." = "未附带文档。";
+"Preparing current document…" = "正在准备当前文档…";
+"ZIP ready locally; not uploaded." = "ZIP 已在本地准备，尚未上传。";
+"Current document unavailable. Choose a document or uncheck its attachment to continue." = "无法取得当前文档。请选择文档，或取消附带文档后继续。";
+
+"Upload Attachment and Continue…" = "上传附件并继续…";
+
+"Continue Without Attachment…" = "不带附件继续…";
+
+"Delete Uploaded Attachment" = "删除已上传附件";
+
+"Uploading and verifying attachment…" = "正在上传并校验附件…";
+
+"Attachment uploaded and download verified." = "附件已上传，下载校验通过。";
+
+"Uploaded attachment deleted." = "已删除上传的附件。";
+
+"Could not delete attachment. Keep this window and retry." = "附件删除失败，请保留此窗口并重试。";
+
+"Attachment upload or verification failed. Your draft is saved. Retry, or uncheck the attachment to continue." = "附件上传或校验失败，草稿已保存。请重试，或取消勾选附件后继续。";
+
+"Could not prepare upload. Delete the previous uploaded attachment before changing it, or exclude the file to continue." = "无法准备上传。更换前请先删除之前上传的附件，或取消勾选文件后继续。";
+
+"Attachment uploaded. Your edits changed; delete the uploaded attachment before replacing it, or continue without a file." = "附件已上传，但内容已修改。请删除已上传附件再替换，或不带文件继续。";
+
+"Click Continue to upload the selected document to FluxMarkdown’s attachment service (t.xykong.cc). Its download link will be public in the Issue. Uncheck to exclude it. Unpublished attachments expire after 7 days; verified Issue attachments remain until deleted." = "点击继续会将所选文档上传至 FluxMarkdown 附件服务（t.xykong.cc），下载链接将随 Issue 公开。可取消勾选以排除文件。未关联 Issue 的附件 7 天后过期，已验证关联的附件保留至主动删除。";
+
+"Click Open Feedback Page to review your document in the feedback dialog, then upload it to FluxMarkdown’s attachment service before continuing to GitHub." = "点击打开反馈页面，在反馈对话框中检查文档，上传至 FluxMarkdown 附件服务后继续前往 GitHub。";
+
+"Share attachment download link publicly" = "公开附件下载链接";
+
+"Attachment submitted privately; only maintainers can retrieve it." = "附件已私密提交，仅维护者可取件。";
+
+"A previous upload is saved. Continue to verify its receipt." = "已保存之前的上传状态，继续以确认收件回执。";
+
+"Attachments go to FluxMarkdown (t.xykong.cc), privately by default. Only maintainers can retrieve private files; GitHub shows a reference only. Enable public sharing to publish a download link. Unlinked files expire in 7 days; private files within 30 days. You can delete uploaded files here." = "附件上传至 FluxMarkdown（t.xykong.cc），默认私密，仅维护者可取件，GitHub 只显示编号。勾选公开后才提供下载链接。未关联 Issue 的附件保留 7 天，私密附件最长 30 天；可在此删除已上传文件。";
+
+"Diagram could not be copied or saved" = "无法复制或保存图表";
+
+"Try the diagram action again, or choose another writable folder. Your document is unchanged." = "请重新执行图表操作，或选择其他可写入的文件夹。文档内容不受影响。";
+
+/* Reading navigation */
+"Back" = "后退";
+"Forward" = "前进";
+"Showing the first %1$@ of %2$@." = "仅显示文件开头的 %1$@，文件共 %2$@。";
+"Reveal in Finder" = "在 Finder 中显示";
+"The file is too large to open in FluxMarkdown. Reveal it in Finder to open it with another editor." = "文件过大，无法用 FluxMarkdown 打开。请在 Finder 中找到该文件，并用其他编辑器打开。";

@@ -29,6 +29,8 @@
     background: #fff !important;
   }
 
+  #markdown-preview { zoom: 1 !important; }
+
   .markdown-body {
     font-size: var(--print-font-size, 16px) !important;
   }

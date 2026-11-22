@@ -31,12 +31,12 @@ final class SearchLaunchPolicyTests: XCTestCase {
 }
 
 extension SearchLaunchPolicyTests {
-    func testTelemetryBrokerHasOnlyScopedStorageAndNetworkPermissions() throws {
+    func testBrokerHasOnlyScopedTelemetryAndFeedbackStorageAndNetworkPermissions() throws {
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         let data = try Data(contentsOf: root.appendingPathComponent("Sources/SearchLauncher/SearchLauncher.entitlements"))
         let p = try XCTUnwrap(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any])
         XCTAssertEqual(Set(p.keys), ["com.apple.security.app-sandbox", "com.apple.security.files.user-selected.read-only", "com.apple.security.network.client", "com.apple.security.temporary-exception.files.home-relative-path.read-write"])
-        XCTAssertEqual(p["com.apple.security.temporary-exception.files.home-relative-path.read-write"] as? [String], ["/Library/Application Support/FluxMarkdown/Telemetry/"])
+        XCTAssertEqual(p["com.apple.security.temporary-exception.files.home-relative-path.read-write"] as? [String], ["/Library/Application Support/FluxMarkdown/Telemetry/", "/Library/Application Support/FluxMarkdown/FeedbackTransfers/"])
         XCTAssertEqual(p["com.apple.security.network.client"] as? Bool, true)
     }
 }

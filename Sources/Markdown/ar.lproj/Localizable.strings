@@ -146,7 +146,8 @@
 "I've Already Starred" = "لقد أضفت نجمة بالفعل";
 "Invite me to support the project on GitHub" = "ادعني لدعم المشروع على GitHub";
 
-"Preview limited to 500 KiB. Use Open with FluxMarkdown above to read the complete document." = "المعاينة محدودة بـ 500 KiB. استخدم «فتح باستخدام FluxMarkdown» أعلاه لقراءة المستند كاملًا.";
+"Showing the first %1$@ of %2$@; the rest is not shown. Click Follow Changes to see the end." = "عرض أول %1$@ من %2$@؛ الباقي غير معروض. انقر «متابعة التغييرات» لرؤية النهاية.";
+"Showing the last %1$@ of %2$@." = "عرض آخر %1$@ من %2$@.";
 "Test Quick Look" = "اختبار نظرة سريعة";
 "Quick Look preview verified" = "تم التحقق من معاينة نظرة سريعة";
 "Quick Look preview not confirmed" = "لم يتم تأكيد معاينة نظرة سريعة";
@@ -196,9 +197,13 @@
 "Check the search expression, or open the document in FluxMarkdown and press Command-F." = "تحقق من تعبير البحث، أو افتح المستند في FluxMarkdown واضغط Command-F.";
 "Open the document in FluxMarkdown. You can also run Repair Quick Look from the Help menu." = "افتح المستند في FluxMarkdown. يمكنك أيضًا تشغيل «إصلاح نظرة سريعة» من قائمة المساعدة.";
 "Open the document in FluxMarkdown to read beyond the preview limits." = "افتح المستند في FluxMarkdown لتقرأ ما يتجاوز حدود المعاينة.";
+"Only the first 2 MB is shown. Click Follow Changes to see the end, or open the document in FluxMarkdown to read all of it." = "تُعرض أول 2 MB فقط. انقر «متابعة التغييرات» لرؤية النهاية، أو افتح المستند في FluxMarkdown لقراءته كاملًا.";
+"Only the first 2 MB is shown. Click Follow Changes to see the end. The file is too large to open in FluxMarkdown." = "تُعرض أول 2 MB فقط. انقر «متابعة التغييرات» لرؤية النهاية. الملف أكبر من أن يُفتح في FluxMarkdown.";
 "Open the destination in your browser or editor. You can copy a report if this keeps happening." = "افتح الوجهة في متصفحك أو محررك. يمكنك نسخ تقرير إذا استمر حدوث ذلك.";
+"The link may point to a file that is not on this Mac, or to a path that is not relative to the document. Copy the link to open it manually, or check the path in your editor." = "قد يشير الرابط إلى ملف غير موجود على هذا الـ Mac أو إلى مسار لا يكون نسبيًا إلى المستند. انسخ الرابط لفتحه يدويًا، أو تحقّق من المسار في المحرر.";
 "Report This Problem" = "الإبلاغ عن هذه المشكلة";
 "Include diagnostics" = "تضمين التشخيصات";
+"Feedback Options" = "خيارات الملاحظات";
 "Review Feedback…" = "مراجعة الملاحظات…";
 "Review Last Error…" = "مراجعة آخر خطأ…";
 "Clear Error History" = "مسح سجل الأخطاء";
@@ -266,3 +271,104 @@
 "Open Recent" = "فتح الأخيرة";
 
 "Clear Menu" = "مسح القائمة";
+
+/* Reproduction packages and durable Issue replies */
+"Attach Reproduction Materials…" = "إرفاق مواد لإعادة الإنتاج…";
+"My Feedback" = "ملاحظاتي";
+"Check Now" = "التحقق الآن";
+"Check my submitted Issues for replies" = "التحقق من الردود على بلاغاتي";
+"Checks public GitHub Issues while FluxMarkdown is running. Replies missed while offline are checked next time. Unread markers clear only when you click a reply." = "يتحقق من بلاغات GitHub العامة أثناء تشغيل FluxMarkdown. تُفحص الردود الفائتة في المرة القادمة. لا تُزال علامة غير المقروء إلا بالنقر على الرد.";
+"Choose Document…" = "اختيار مستند…";
+"Choose Referenced Resources…" = "اختيار الموارد المشار إليها…";
+"Choose a document first to resolve its referenced resources." = "اختر مستندًا أولًا لتحديد موارده المشار إليها.";
+"Choose a sample or the complete document. Contents and selected resources may be public on GitHub. Review them before attaching. Creating a ZIP does not upload it." = "اختر مقتطفًا أو المستند كاملًا. قد يصبح المحتوى والموارد المحددة علنيًا على GitHub. راجعها قبل إرفاقها. إنشاء ZIP لا يرفعه.";
+"Complete document" = "المستند كاملًا";
+"Continue in FluxMarkdown" = "المتابعة في FluxMarkdown";
+"Continue in FluxMarkdown to choose what to share. The displayed fragment will be passed to FluxMarkdown only if you continue. Nothing is uploaded yet." = "تابع في FluxMarkdown لاختيار ما ستشاركه. لن يُمرر المقتطف المعروض إليه إلا إذا تابعت. لم يُرفع شيء بعد.";
+"Could not check replies. Existing reminders are preserved; checking will resume later." = "تعذر التحقق من الردود. حُفظت التذكيرات وستُستأنف المحاولة لاحقًا.";
+"Could not open the reply. Try again or copy its link." = "تعذر فتح الرد. حاول مجددًا أو انسخ رابطه.";
+"Could not prepare the ZIP. Remove resources, use a smaller sample, or choose another save location. Your report is preserved." = "تعذر إنشاء ZIP. أزل موارد أو استخدم مقتطفًا أصغر أو اختر موقع حفظ آخر. حُفظ البلاغ.";
+"Could not read this document within the 20 MB limit. Choose another file or paste a smaller sample." = "تعذرت قراءة المستند ضمن حد 20 ميغابايت. اختر ملفًا آخر أو ألصق مقتطفًا أصغر.";
+"Could not save feedback reminders. Keep this window open and try again." = "تعذر حفظ تذكيرات البلاغات. أبقِ النافذة مفتوحة وحاول مجددًا.";
+"Could not verify this Issue. Check the link and try again." = "تعذر التحقق من البلاغ. تحقق من الرابط وحاول مجددًا.";
+"Enable System Notifications…" = "تفعيل إشعارات النظام…";
+"Failed fragment" = "المقتطف الذي فشل";
+"Feedback history could not be loaded. Your reports have not been overwritten." = "تعذر تحميل سجل البلاغات. لم تُستبدل تقاريرك.";
+"FluxMarkdown can check this public Issue for replies while running. Manage reminders in My Feedback." = "يمكن لـ FluxMarkdown التحقق من ردود هذا البلاغ العام أثناء التشغيل. أدر التذكيرات في «ملاحظاتي».";
+"Link Issue" = "ربط البلاغ";
+"Paste Issue link" = "لصق رابط البلاغ";
+"Paste a FluxMarkdown GitHub Issue link." = "ألصق رابط بلاغ FluxMarkdown على GitHub.";
+"References not included:" = "المراجع غير المرفقة:";
+"Remove Resources" = "إزالة الموارد";
+"Replies checked. Unread reminders stay until you click them." = "تم التحقق من الردود. تبقى التذكيرات غير مقروءة حتى تنقر عليها.";
+"Reproduction content" = "محتوى إعادة الإنتاج";
+"Review Package Contents" = "مراجعة محتويات الحزمة";
+"Save Reproduction ZIP…" = "حفظ ZIP لإعادة الإنتاج…";
+"Save a ZIP first, then attach it from Finder." = "احفظ ZIP أولًا، ثم أرفقه من Finder.";
+"Select only files referenced by this document inside its folder, without symbolic links, within the 20 MB limit." = "اختر فقط ملفات يشير إليها المستند داخل مجلده، دون روابط رمزية، وضمن حد 20 ميغابايت.";
+"Selected resources:" = "الموارد المحددة:";
+"Show ZIP in Finder" = "إظهار ZIP في Finder";
+"This is the file selected now, not a verified snapshot from the failure." = "هذا هو الملف المحدد الآن، وليس نسخة مؤكدة من وقت حدوث الخطأ.";
+"Waiting to find the submitted Issue" = "بانتظار العثور على البلاغ المرسل";
+"Your Issue has a new reply. Click to open it." = "وصل رد جديد على بلاغك. انقر لفتحه.";
+"ZIP prepared locally. Attach it on GitHub; it has not been uploaded." = "تم إنشاء ZIP محليًا ولم يُرفع بعد. أرفقه على GitHub.";
+"Attach the ZIP on GitHub by dragging it from Finder. GitHub uploads attachments immediately; you publish the Issue there. No attachment is required to report." = "اسحب ZIP من Finder إلى GitHub لإرفاقه. تُرفع المرفقات فورًا؛ وأنت تؤكد نشر البلاغ هناك. الإرفاق اختياري.";
+
+/* Automatic feedback summary and default document */
+"Observed problem:" = "المشكلة الملحوظة:";
+"Source:" = "المصدر:";
+"Operation:" = "العملية:";
+"Failure category:" = "فئة الخطأ:";
+"App version:" = "إصدار التطبيق:";
+"Feedback description" = "وصف المشكلة";
+"Include current document" = "إرفاق المستند الحالي";
+"Review Attachment…" = "مراجعة المرفق…";
+"Choose Another Document…" = "اختيار مستند آخر…";
+"The selected document will be prepared as a ZIP. Drag it onto GitHub to upload it publicly. Uncheck to exclude it." = "سيُجهز المستند كملف ZIP. اسحبه إلى GitHub لرفعه علنًا. أزل التحديد لاستبعاده.";
+"Document excluded." = "تم استبعاد المستند.";
+"Preparing current document…" = "جارٍ تجهيز المستند الحالي…";
+"ZIP ready locally; not uploaded." = "ZIP جاهز محليًا؛ لم يُرفع بعد.";
+"Current document unavailable. Choose a document or uncheck its attachment to continue." = "المستند الحالي غير متاح. اختر مستندًا أو ألغِ إرفاقه للمتابعة.";
+
+"Upload Attachment and Continue…" = "رفع المرفق والمتابعة…";
+
+"Continue Without Attachment…" = "المتابعة دون مرفق…";
+
+"Delete Uploaded Attachment" = "حذف المرفق المرفوع";
+
+"Uploading and verifying attachment…" = "جارٍ رفع المرفق والتحقق منه…";
+
+"Attachment uploaded and download verified." = "تم رفع المرفق والتحقق من تنزيله.";
+
+"Uploaded attachment deleted." = "تم حذف المرفق المرفوع.";
+
+"Could not delete attachment. Keep this window and retry." = "تعذر حذف المرفق. أبقِ النافذة مفتوحة وأعد المحاولة.";
+
+"Attachment upload or verification failed. Your draft is saved. Retry, or uncheck the attachment to continue." = "فشل رفع المرفق أو التحقق منه. تم حفظ المسودة. أعد المحاولة أو ألغِ تحديد المرفق.";
+
+"Could not prepare upload. Delete the previous uploaded attachment before changing it, or exclude the file to continue." = "تعذر تجهيز الرفع. احذف المرفق السابق قبل تغييره أو استبعد الملف.";
+
+"Attachment uploaded. Your edits changed; delete the uploaded attachment before replacing it, or continue without a file." = "تم رفع المرفق ثم تغير المحتوى. احذفه قبل استبداله أو تابع دون ملف.";
+
+"Click Continue to upload the selected document to FluxMarkdown’s attachment service (t.xykong.cc). Its download link will be public in the Issue. Uncheck to exclude it. Unpublished attachments expire after 7 days; verified Issue attachments remain until deleted." = "المتابعة ترفع المستند إلى خدمة مرفقات FluxMarkdown ‏(t.xykong.cc). سيصبح رابط التنزيل علنيًا في البلاغ. ألغِ التحديد للاستبعاد. ينتهي المرفق غير المرتبط بعد 7 أيام، ويُحتفظ بالمرتبط حتى حذفه.";
+
+"Click Open Feedback Page to review your document in the feedback dialog, then upload it to FluxMarkdown’s attachment service before continuing to GitHub." = "راجع المستند في نافذة الملاحظات ثم ارفعه إلى خدمة FluxMarkdown قبل الانتقال إلى GitHub.";
+
+"Share attachment download link publicly" = "نشر رابط تنزيل المرفق";
+
+"Attachment submitted privately; only maintainers can retrieve it." = "تم إرسال المرفق بشكل خاص؛ يمكن للمشرفين فقط استرجاعه.";
+
+"A previous upload is saved. Continue to verify its receipt." = "تم حفظ رفع سابق. تابع للتحقق من إيصال الاستلام.";
+
+"Attachments go to FluxMarkdown (t.xykong.cc), privately by default. Only maintainers can retrieve private files; GitHub shows a reference only. Enable public sharing to publish a download link. Unlinked files expire in 7 days; private files within 30 days. You can delete uploaded files here." = "تُرسل المرفقات إلى FluxMarkdown ‏(t.xykong.cc) بشكل خاص افتراضيًا. يسترجعها المشرفون فقط ويعرض GitHub رقمًا مرجعيًا. حدد المشاركة العامة لنشر رابط تنزيل. تنتهي غير المرتبطة بعد 7 أيام والخاصة خلال 30 يومًا. يمكنك حذفها هنا.";
+
+"Diagram could not be copied or saved" = "تعذر نسخ المخطط أو حفظه";
+
+"Try the diagram action again, or choose another writable folder. Your document is unchanged." = "حاول الإجراء مرة أخرى أو اختر مجلدًا آخر قابلًا للكتابة. لم يتغير مستندك.";
+
+/* Reading navigation */
+"Back" = "رجوع";
+"Forward" = "تقدم";
+"Showing the first %1$@ of %2$@." = "يتم عرض أول %1$@ من أصل %2$@.";
+"Reveal in Finder" = "إظهار في فايندر";
+"The file is too large to open in FluxMarkdown. Reveal it in Finder to open it with another editor." = "الملف أكبر من أن يفتحه FluxMarkdown. أظهره في فايندر لفتحه في محرر آخر.";

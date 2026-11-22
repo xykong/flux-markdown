@@ -99,3 +99,47 @@ records are retained for up to 180 days. Turning statistics off does not erase
 previously received records; the installation-ID deletion process described above
 also applies to associated facts. Server-side feature availability can be disabled
 independently while downloads and ordinary usage continue to work.
+
+## Optional feedback document attachments
+
+In the feedback dialog, the current document is selected by default. You can
+inspect it, choose another document, or exclude it. **Share attachment download
+link publicly** is unchecked for each new report. Opening the dialog only prepares
+a local ZIP; explicit **Upload Attachment and Continue** submits it to
+`t.xykong.cc/feedback/`, independently of the usage-statistics setting.
+
+By default the document is shared privately with FluxMarkdown maintainers. GitHub
+receives only an opaque attachment reference; it contains no file download URL or
+filename. Knowing that reference, or holding upload/deletion capabilities, does
+not permit downloading private data. The uploader cannot retrieve its server copy
+through the app or public endpoints. The server verifies the committed content
+checksum before acknowledging private receipt. Maintainers retrieve files through
+an authenticated SSH/service-account procedure with an access audit. Host
+administrators also have storage access; this is not end-to-end encryption.
+
+If you explicitly enable public sharing, the app verifies the entire public
+download before adding its link to GitHub. Anyone holding that link can download,
+including before Issue publication. Publishing the Issue still needs your final
+confirmation on GitHub. Changing scope after an upload requires deleting the
+previous attachment and resubmitting; deleting cannot recall copies others have
+already downloaded. A public choice is remembered only for that interrupted report,
+not as the default for later reports. Previously explicitly public attachments keep
+their original access; an upgrade does not make them retroactively private.
+
+Unclaimed attachments expire after seven days. After independent verification of
+the public Issue reference/incident, **private attachments still expire within
+30 days of upload**. Explicitly public associated attachments remain until deleted.
+**Delete Uploaded Attachment** revokes access and removes the live server copy;
+the separate deletion capability stays only in private local recovery storage.
+The private recovery journal retains the document ZIP and draft for explicit retry
+or cancellation across app restarts. It does not grant private read permission.
+
+Attachment bytes and metadata are isolated from telemetry. The service enforces
+size, traffic and storage limits without a public listing or request-content logs.
+Private daily backups rotate after seven days; deleted or expired bytes may remain
+in those restricted backup copies until rotation. Backups protect operational
+mistakes, not complete host loss. SSH exports are private files, audited and removed
+from server transfer staging after use (or after one hour if interrupted). Local
+maintainer copies must be handled as private support materials. Removing your local
+recovery record loses its deletion capability; contact the maintainer using the
+attachment reference if needed.

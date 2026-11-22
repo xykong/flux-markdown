@@ -1,6 +1,60 @@
 ## [Unreleased]
 _无待发布的变更_
 
+## [1.58.899] - 2026-11-20
+### Added
+- **Copy selected text in Quick Look**: In Finder's expanded Quick Look preview, a small toolbar beside a selection copies it as plain text (⧉) or as Markdown (MD) with one click, which also works in hosts that never pass a right-click to the preview. The selection menu adds Copy as Markdown directly after Copy; Command-C keeps the standard copy. Each copy reports how many lines were copied and in which format. Wholly selected blocks preserve their Markdown source where it can be pasted on its own. Partial selections preserve formatting and links, reference links keep their destinations, and embedded images use their original relative path. Based on [PR #75](https://github.com/xykong/flux-markdown/pull/75) by [@ziadulhuq](https://github.com/ziadulhuq).
+
+### Fixed
+- **Quick Look input after Speech**: The preview's selection menu shows Start Speaking and Stop Speaking directly instead of in a Speech submenu. After any submenu of that menu opened, Quick Look sent later clicks to the preview without a position and stopped passing drags and scrolls until the preview was closed. Based on [PR #75](https://github.com/xykong/flux-markdown/pull/75) by [@ziadulhuq](https://github.com/ziadulhuq).
+- **Quick Look selection after reopening**: When a preview reopened at the last reading position, the screen could keep an older scroll position than the page, so a new selection started a line or two above the pointer. The preview now makes the screen take the page's position after restoring it and when it appears. Based on [PR #75](https://github.com/xykong/flux-markdown/pull/75) by [@ziadulhuq](https://github.com/ziadulhuq).
+- **Quick Look full screen**: Toolbar buttons and notices keep the chosen theme when Quick Look switches its own window to a dark or translucent style, so they no longer vanish over a light page. Based on [PR #75](https://github.com/xykong/flux-markdown/pull/75) by [@ziadulhuq](https://github.com/ziadulhuq).
+- **Notice colors**: Error and size-limit notices follow the preview's theme when it differs from the system setting or changes. Based on [PR #75](https://github.com/xykong/flux-markdown/pull/75) by [@ziadulhuq](https://github.com/ziadulhuq).
+- **Quick Look Follow Changes**: Paused Follow has a distinct button and shows when new content is waiting. Use the button to resume or double-click to stop. Based on [PR #76](https://github.com/xykong/flux-markdown/pull/76) by [@ziadulhuq](https://github.com/ziadulhuq).
+
+## [1.57.885] - 2026-11-19
+### Added
+- **Follow Changes in Quick Look**: Follow the end of a growing Markdown file from the expanded Finder Quick Look toolbar. Scrolling up or selecting text pauses Follow. Resuming refreshes the file and returns to the end. Based on [PR #74](https://github.com/xykong/flux-markdown/pull/74) by [@ziadulhuq](https://github.com/ziadulhuq).
+- **Large files in Quick Look**: Preview up to 2 MiB of Markdown, from the beginning or, with Follow enabled, from the end. Tail windows retain file line numbers. An incomplete preview offers an action suited to the current view and file size. TSV previews retain their existing limit.
+- **Progressive Quick Look rendering**: Large previews can display the beginning or end first, then add the remaining rendered blocks in batches. Markdown links, footnotes and other definitions resolve across the entire preview window.
+
+### Fixed
+- **Native preview notices**: Keep recovery, reporting and dismissal visible. Move report review, attachments and reply management into Feedback Options.
+
+## [1.55.872] - 2026-11-18
+### Fixed
+- **Reading zoom on older WebKit**: Keep reading anchors and diagram zoom centered on the correct point on macOS versions that report CSS zoom coordinates differently.
+- **Compact diagram controls**: Keep diagram buttons and the More menu at a uniform compact height; isolate them from Markdown details margins and focused-view button styles across document zoom levels.
+- **Diagram smart zoom reset**: Double-tap with two fingers over a Mermaid or standalone SVG diagram to restore its local 100% scale while preserving the document zoom; the same gesture over body text resets the document zoom.
+- **Mermaid gestures and File menu**: Pinch the diagram under the pointer without resizing surrounding text; keep diagram controls at a stable size, share continuous scales with their buttons, and prevent automatic fitting from cancelling reading zoom. Remove duplicate native Open/Open Recent entries while preserving durable recent-file history.
+- **Reading zoom**: Keep the outline and controls at a stable size while pinch, keyboard and Command-scroll zoom only the reading column. Preserve the text under the gesture throughout reflow, share the same 50–300% scale and reset across controls, and avoid multiplying PDF print size by the reading zoom twice.
+
+### Changed
+- **Feedback attachment privacy**: When continuing to GitHub with a document attached, upload it privately by default and include a reference in the report. Public download links require an explicit choice.
+- **Prefilled feedback and current-document attachment**: Restore an editable automatic issue summary and select the current document snapshot by default, preparing a reviewable ZIP locally with an opt-out. Quick Look transfers the snapshot to the host through a bounded private handoff; GitHub attachment upload and final publication remain explicit user actions.
+- **Inline error feedback**: Show one compact red Feedback entry in the error region’s upper-right corner; open a focused native feedback dialog on activation, with optional notes/materials and collapsed diagnostics. Failed formulas no longer show a competing hover-copy button over the feedback entry; copying valid formulas remains available.
+
+### Added
+- **Reading workflow**: Show scoped zoom feedback and gesture help, inspect diagrams in a focused fit/100% view, navigate back/forward across outline jumps and local document links, restore per-file semantic reading positions and document zoom, and copy/save standalone diagram PNG/SVG files with native confirmation and recovery. Quick Look hands file saving to the host app.
+- **Feedback reproduction packages**: Review and edit a failed formula fragment, choose a complete document and referenced local resources, and save a bounded ZIP for attachment on GitHub. Mathematical reports now distinguish failure categories and preserve per-formula incident identity. Thanks to [@syutheoria](https://github.com/syutheoria) for the report in [#73](https://github.com/xykong/flux-markdown/issues/73) that exposed the missing reproduction context; the reported formula failure itself is still under investigation.
+- **Issue reply reminders**: Track verified submitted Issues, retain unread replies across restarts, and open each exact new comment when its reminder is clicked. App-running checks, optional system notifications and manual Issue linking are available in My Feedback.
+
+## [1.51.834] - 2026-11-15
+### Fixed
+- **Display math spacing** (#72): Remove the extra blank row reserved by hidden formula copy controls above displayed equations, preserving normal formula margins and copy-error recovery. Thanks to [@avdbauw](https://github.com/avdbauw) for reporting the [follow-up in #72](https://github.com/xykong/flux-markdown/issues/72#issuecomment-6880530545).
+
+## [1.50.828] - 2026-11-13
+### Fixed
+- **Inline math spacing** (#72): Keep formula copy controls out of the text flow so hidden buttons do not leave a gap before the following words. Keyboard access and inline copy-error recovery remain available. Thanks to [@avdbauw](https://github.com/avdbauw) for reporting [#72](https://github.com/xykong/flux-markdown/issues/72).
+
+## [1.49.823] - 2026-11-12
+### Fixed
+- **Editor-style file links** (#71): Open local links that carry an editor-style `path:line[:column]` suffix, such as `/path/File.java:57` or `notes.md:12`, at the file that exists instead of reporting a failed destination or leaving the link inert; Markdown and TSV targets also jump to that source line. The copy-link recovery now copies a plain path for local files, and the notice explains that the target may be missing from this Mac or resolved relative to the document. Thanks to [@creamJelly](https://github.com/creamJelly) for reporting [#71](https://github.com/xykong/flux-markdown/issues/71).
+
+## [1.48.816] - 2026-11-11
+### Fixed
+- **Quick Look selection copying**: Restore Command-C for selected text in Finder's ordinary rendered and source previews, while leaving focus assignment to AppKit. Full-screen Command-C remains limited and may copy Finder filenames; use the selection's context-menu Copy action in that mode. Thanks to [@Schnee013](https://github.com/Schnee013) for reporting and implementing [#70](https://github.com/xykong/flux-markdown/pull/70).
+
 ## [1.47.799] - 2026-11-08
 ### Fixed
 - **Referenced SVG sizing**: Keep percentage-width SVG images within their drawing dimensions and readable text scale on wide/fullscreen windows, center standalone diagrams in the reading column, and preserve inline icons, explicit alignment and exported layout.

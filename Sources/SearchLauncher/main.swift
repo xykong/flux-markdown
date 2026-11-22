@@ -41,6 +41,15 @@ private final class Launcher: NSObject, SearchLaunchServing {
             NSWorkspace.shared.open([url], withApplicationAt: appURL, configuration: configuration) { _, error in reply(error == nil) }
         }
     }
+    func reportDocumentError(_ data: Data, reply: @escaping (Bool) -> Void) {
+        guard let transfer = IncidentDocumentTransfer.decode(data) else { reply(false); return }
+        do {
+            let token = try transfer.persist()
+            var request = transfer.request; request.transferToken = token
+            let metadata = try JSONEncoder().encode(request)
+            reportError(metadata, reply: reply)
+        } catch { reply(false) }
+    }
     func reportError(_ data: Data, reply: @escaping (Bool) -> Void) {
         guard let request = IncidentFeedbackRequest.decode(data), let url = request.hostURL,
               Bundle(url: appURL)?.bundleIdentifier == "com.xykong.Markdown" else { reply(false); return }

@@ -1,7 +1,12 @@
 /** Plain-text copying. Document contents stay in memory, never in diagnostic messages. */
 import { originalMathSource } from './math-source-store';
 export interface CopyRequest { id: string; generation: string; text: string }
-export interface CopyController { copy(block: HTMLElement): Promise<void>; dispose(): void }
+export interface CopyController {
+    copy(block: HTMLElement): Promise<void>;
+    /** Adds controls inside `roots` and forgets blocks no longer in the document. */
+    extend(roots: readonly Element[]): void;
+    dispose(): void;
+}
 const snapshots = new WeakMap<Element, string>();
 const ignored = '.diagram-tools, .mermaid-tools, .block-copy-tools, .error-feedback-controls, .blockquote-placeholder, svg, script, style';
 const blocks = new Set(['P', 'DIV', 'BLOCKQUOTE', 'PRE', 'UL', 'OL', 'TABLE', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6']);
@@ -39,18 +44,20 @@ export function blockPlainText(element: Element): string {
 }
 
 let nextID = 0;
+export function nextCopyID(): string { return String(++nextID); }
 const pending = new Map<string, { generation: string; finish: (success: boolean) => void }>();
 export function blockCopyResult(id: string, generation: string, success: boolean): void {
     const request = pending.get(id);
     if (request?.generation === generation) request.finish(success === true);
 }
-function nativeCopy(request: CopyRequest): Promise<boolean> {
+export function cancelNativeCopy(id: string): void { pending.get(id)?.finish(false); }
+export function nativeCopy(request: CopyRequest, channel: 'blockCopy' | 'selectionCopy' = 'blockCopy'): Promise<boolean> {
     return new Promise(resolve => {
         const finish = (success: boolean): void => { clearTimeout(timeout); pending.delete(request.id); resolve(success); };
         const timeout = setTimeout(() => finish(false), 5000);
         pending.set(request.id, { generation: request.generation, finish });
         try {
-            const bridge = window.webkit?.messageHandlers.blockCopy;
+            const bridge = window.webkit?.messageHandlers[channel];
             if (!bridge) finish(false);
             else bridge.postMessage(request);
         } catch { finish(false); }
@@ -63,8 +70,8 @@ export function installBlockCopy(root: HTMLElement, generation: string, send = n
     const requestIDs = new Set<string>();
     const timers = new Set<ReturnType<typeof setTimeout>>();
     let disposed = false;
-    // Snapshot before line-number decoration. Quotes use these same snapshots for nested code.
-    root.querySelectorAll<HTMLElement>('pre').forEach(pre => snapshots.set(pre, pre.querySelector('code')?.textContent ?? pre.textContent ?? ''));
+    const within = (roots: readonly Element[], selector: string) =>
+        roots.flatMap(scope => [...(scope.matches(selector) ? [scope] : []), ...Array.from(scope.querySelectorAll(selector))]) as HTMLElement[];
     const controller: CopyController = {
         async copy(block) {
             const entry = entries.get(block);
@@ -72,7 +79,7 @@ export function installBlockCopy(root: HTMLElement, generation: string, send = n
             if (entry.timer) { clearTimeout(entry.timer); timers.delete(entry.timer); }
             entry.tools.dataset.copyState = 'pending';
             entry.busy = true; entry.button.disabled = true; entry.status.textContent = strings[4];
-            const id = String(++nextID); requestIDs.add(id);
+            const id = nextCopyID(); requestIDs.add(id);
             const text = blockPlainText(block);
             let success = false;
             // The same UTF-8 bound is enforced natively; never truncate silently.
@@ -111,7 +118,7 @@ export function installBlockCopy(root: HTMLElement, generation: string, send = n
         },
         dispose() {
             disposed = true;
-            for (const id of requestIDs) pending.get(id)?.finish(false);
+            for (const id of requestIDs) cancelNativeCopy(id);
             for (const timer of timers) clearTimeout(timer);
             for (const [block, entry] of entries) {
                 entry.tools.remove();
@@ -119,10 +126,24 @@ export function installBlockCopy(root: HTMLElement, generation: string, send = n
             }
             entries.clear();
         },
+        extend(roots) {
+            for (const [block, entry] of entries) {
+                if (root.contains(block)) continue;
+                if (entry.timer) { clearTimeout(entry.timer); timers.delete(entry.timer); }
+                entries.delete(block);
+            }
+            attach(roots);
+        },
     };
-    root.querySelectorAll<HTMLElement>('pre, blockquote, .markdown-alert, .flux-math-source').forEach(block => {
+    const attach = (roots: readonly Element[]) => {
+    // Snapshot before line-number decoration. Quotes use these same snapshots for nested code.
+    within(roots, 'pre').forEach(pre => snapshots.set(pre, pre.querySelector('code')?.textContent ?? pre.textContent ?? ''));
+    within(roots, 'pre, blockquote, .markdown-alert, .flux-math-source').forEach(block => {
         const math = originalMathSource(block);
         if (block.classList.contains('flux-math-source') && math === undefined) return;
+        // Failed formula regions expose one feedback entry. A hover-copy toolbar
+        // at the same upper-right anchor otherwise draws a second button over it.
+        if (math !== undefined && block.classList.contains('math-error')) return;
         if (block.tagName === 'PRE' && (!block.querySelector('code') || block.querySelector('.typst-placeholder, .language-vega, .language-vega-lite, .language-dot, .language-graphviz'))) return;
         const inlineMath = math !== undefined && block.tagName === 'SPAN';
         const tools = document.createElement(inlineMath ? 'span' : 'div'); tools.className = 'block-copy-tools';
@@ -139,10 +160,17 @@ export function installBlockCopy(root: HTMLElement, generation: string, send = n
             if (inlineMath) wrapper.append(block, tools); else wrapper.append(tools, block);
         } else block.prepend(tools);
         entries.set(block, { tools, button, status, wrapper, busy: false });
+        button.addEventListener('pointerdown', event => {
+            // A mouse click should copy immediately, without WebKit first
+            // moving focus or changing the document's current text selection.
+            if (event.button === 0) event.preventDefault();
+        });
         button.addEventListener('click', event => {
             event.preventDefault(); event.stopPropagation();
             if (event.isTrusted) void controller.copy(block);
         });
     });
+    };
+    attach([root]);
     return controller;
 }

@@ -37,3 +37,20 @@ Issue / PR / 普通评论由 `feishu-notify.yml` 直接处理。审核及代码�
 HTTP 429/5xx 最多尝试三次，每次请求有超时。网络超时或不明确的响应不会自动重发，防止消息重复；手动重跑可能产生重复消息，飞书自定义机器人没有本实现可使用的幂等键。审核事件的 artifact 保留 1 天。
 
 停用：禁用上述两个工作流。GitHub 若对 `pull_request_target` 设置阻止策略，需要明确允许仅处理通知的工作流，禁止检出或执行 PR head 代码。
+
+## Parameter Foundry 上游托管申请
+
+`feishu-upstream-watch.yml` 复用本仓库机器人和 @ 配置，每 5 分钟检查
+`jenkins-infra/repository-permissions-updater#5412`。Actions 排队可能延迟通知。
+只读取该公开申请，不修改上游；转发新评论、评论编辑和标题/状态/标签变化。
+首次运行仅建立基线，不补发历史。手动运行可选择发送连接测试。
+通知带原始链接，并保留 `flux-markdown` 路由标识以兼容现有机器人关键词。
+
+游标通过 Actions cache 保存，串行运行防止并发重复。缓存被清理或超过保留期时，
+下次重新建立基线，这段空窗中的事件无法保证补发。投递前写入 pending；
+失败或响应不明确时保留 pending，后续运行停止发送，避免盲目重复。
+恢复时先在群里核对 pending 链接：确认收到后手动清除 pending 并推进对应游标，
+确认未收到才清除 pending 后重试；通过下载/修订游标并上传新 cache 进行处理。
+工作流失败会在 Actions 显示，需订阅 GitHub Actions 失败通知。
+
+本地验证：`node --test scripts/tests/feishu-upstream-watch.test.cjs scripts/tests/feishu-notify.test.cjs scripts/tests/workflow-security.test.cjs`。

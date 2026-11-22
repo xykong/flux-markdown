@@ -1,3 +1,4 @@
+import { readingRect } from './reading-geometry';
 /** Shared, measured layout for the reading controls (below native window tools). */
 declare global { interface Window { __fluxLang?: string; } }
 const labels = {
@@ -20,7 +21,8 @@ export function updateReadingControlsLayout(): void {
     if (!controls) return;
     const compact = root.dataset.context === 'finder';
     const toolbar = document.getElementById('reading-toolbar');
-    const nativeBase = root.dataset.context === 'app' ? 268 : 306;
+    // Native buttons on the right; Quick Look adds the Follow button (30 px + 8 px gap) when offered.
+    const nativeBase = (root.dataset.context === 'app' ? 268 : 306) + (root.dataset.context === 'quicklook' && root.dataset.followControl === 'true' ? 38 : 0);
     const status = document.getElementById('reading-status');
     const hasStatus = !!status && !status.hidden && window.innerWidth >= nativeBase + 156;
     const hasTools = ['toc-button-container', 'collapse-btn-container'].some(id => {
@@ -37,9 +39,11 @@ export function updateReadingControlsLayout(): void {
     const shared = visible && window.innerWidth >= naturalWidth + nativeBase + 56;
     root.dataset.readingShared = String(shared);
     const directory = document.getElementById('toc-button-container');
+    // The page lays out left of a classic scroll bar; native controls measure from the view edge.
+    const scrollbar = root.clientWidth > 0 ? Math.max(0, window.innerWidth - root.clientWidth) : 0;
     const rightInset = shared && root.dataset.tocSide !== 'left' && directory && !directory.hidden
-        ? directory.getBoundingClientRect().width + 20 : 0;
-    root.style.setProperty('--reading-native-reserve', `${nativeBase + (rightInset ? rightInset + 14 : 12)}px`);
+        ? directory.getBoundingClientRect().width + 20 + scrollbar : 0;
+    root.style.setProperty('--reading-native-reserve', `${Math.round(Math.max(0, nativeBase + (rightInset ? rightInset + 14 : 12) - scrollbar))}px`);
     const handler = window.webkit?.messageHandlers.readingToolsLayout;
     const key = `${rightInset}:${window.innerWidth}:${window.devicePixelRatio}`;
     if (handler && sentLayout.get(controls) !== key) {
@@ -76,7 +80,7 @@ export interface ReadingAnchor { element: HTMLElement; top: number; scrollY: num
 export function captureReadingAnchor(): ReadingAnchor | null {
     if (window.scrollY <= 0 || typeof document.elementFromPoint !== 'function') return null;
     const preview = document.getElementById('markdown-preview');
-    const bounds = preview?.getBoundingClientRect();
+    const bounds = preview && readingRect(preview);
     if (!bounds) return null;
     const controls = document.getElementById('reading-controls');
     const top = Math.max(64, (controls && !controls.hidden ? controls.getBoundingClientRect().bottom : 0) + 8);
@@ -84,13 +88,13 @@ export function captureReadingAnchor(): ReadingAnchor | null {
     const searchBottom = search?.style.display === 'flex' ? search.getBoundingClientRect().bottom + 8 : 0;
     const hit = document.elementFromPoint(bounds.left + bounds.width / 2, Math.min(Math.max(top + 16, searchBottom), window.innerHeight - 1));
     const element = hit?.closest<HTMLElement>('#markdown-preview > *');
-    return element ? { element, top: element.getBoundingClientRect().top, scrollY: window.scrollY } : null;
+    return element ? { element, top: readingRect(element).top, scrollY: window.scrollY } : null;
 }
 export function restoreReadingAnchor(anchor: ReadingAnchor | null): void {
     if (!anchor) return;
     Promise.resolve().then(() => {
         if (!anchor.element.isConnected || Math.abs(window.scrollY - anchor.scrollY) > 1) return;
-        const delta = anchor.element.getBoundingClientRect().top - anchor.top;
+        const delta = readingRect(anchor.element).top - anchor.top;
         if (Math.abs(delta) > 1) window.scrollBy(0, delta);
     });
 }

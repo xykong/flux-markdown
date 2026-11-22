@@ -36,7 +36,7 @@ Verified the repository's real logged-in GitHub editor with a non-private title/
 | Renderer load/navigation/timeout/termination | Native notice survives failed JS; main app bounded handshake timer plus retry preserving queued content; extension offers matching host app. Narrow native layout tested at 360 px. |
 | Local images/preview limit | Native extension notice offers host opening; web images have inline feedback removed on successful load. Known limits remain classified separately. |
 | Quick Look repair/self-test | Failed outcomes use shared guidance/feedback; successful behavior unchanged. Actual installed Release self-test passed. |
-| Search and external destinations | Inline regex guidance and focus recovery; search launcher/native link failures use shared notices; editor child-process failures checked after termination. |
+| Search and external destinations | Inline regex guidance and focus recovery; search launcher/native link failures use shared notices; editor child-process failures checked after termination. Local file links resolve editor-style `path:line[:column]` targets to the existing file (issue #71), name the missing-target/locative cause in the notice and copy a plain path as recovery; resolver, decision and clipboard text are unit-tested. |
 | Renderer/Source/Mermaid/Typst/GraphViz/Vega/KaTeX | Existing error classes wired to bounded metadata-only bridge; technical details folded; direct editor/reload/host recovery; module-load failures get reload/reinstall guidance. DOM coverage tests and real Mermaid WebKit/Finder path pass. |
 | MathJax mathematical input limits (issue 64 implementation) | Shared math incident/feedback entry with six-language simplification/split guidance and existing editor/host recovery. Original source retained; error prevents complete-success export. UTF-8/count/aggregate boundary and real-engine tests pass. Native limit recovery/report activation remains part of final issue-64 acceptance. |
 | MathJax missing bundled glyph (issue 64) | Native WK transport probe in six languages × three renderer contexts checks source preservation, named recovery/report/inspect actions, fixed five-field diagnostics, incident identity, stale-control rejection and valid-document recovery. The opt-in receiver records only; actual native recovery/report execution, trusted keyboard and VoiceOver remain separate acceptance. See `scripts/issue64/resource-failure.js`. |
@@ -136,3 +136,67 @@ Opt-out is a normal no-submission state, not a forced settings change.
 Translations are present in all six host/Quick Look resource bundles and checked
 by `ErrorIncidentTests.testAllIncidentGuidanceHasTranslationsForBothBundles`.
 Signed-install interactive acceptance is still pending.
+
+## Inline math spacing (Issue #72)
+
+Inline formula copy actions float below the formula to avoid reserving prose width. Copy-error tools explicitly return to normal flow. Real WebKit spacing/focus and existing native narrow English/German/Arabic recovery checks cover this layout; see `DEBUG_ISSUE_72_MATH_SPACING.md`.
+
+
+### Display-math follow-up (Issue #72)
+
+Display formula copy actions also float instead of reserving an invisible row. Both inline and display errors return to normal flow. A windowless WebKit matrix verifies display geometry, pending/success states and static error positioning at narrow/wide widths in App/Quick Look rendering contexts with English/Arabic. The display-copy unit regression verifies failed-copy source preservation, retry and disposal. Trusted keyboard/installed-app acceptance was not repeated for this follow-up; see `DEBUG_ISSUE_72_MATH_SPACING.md`.
+
+
+## 2026-11-17：复现材料与回复提醒
+
+详见 [DEBUG_FEEDBACK_REPRODUCTION.md](DEBUG_FEEDBACK_REPRODUCTION.md)。
+
+| Surface | Recovery / feedback behavior | Evidence / limits |
+| --- | --- | --- |
+| Mathematical inline errors | Existing editor/reload recovery plus diagnostic-only report, optional reproduction materials, My Feedback | 621 full-renderer Jest tests; per-formula identity and safe range validation; Quick Look installed handoff pending |
+| Native error controls / renderer fallback | Existing recovery retained; materials and My Feedback use shared ErrorFeedback | Native ErrorIncident and FeedbackFollowUp tests; pixel capture unavailable |
+| Reproduction editor / package failures | Preserve draft, remove resources/use smaller sample/change save location; ZIP remains local until user uploads | arm64 and Intel package probe + system unzip; real GitHub upload pending |
+| Issue polling failure / rate limit | Preserve unread state, explicit retry or later check; cannot clear reminders by polling | Injected 304/429/503 and pagination tests; live #73 readback |
+| Reply browser-open failure | Keep unread marker, retry or copy exact comment link | Native controller open-injection and persisted-state readback; real system notification click pending |
+
+
+## 2026-11-17：验收调整——紧凑反馈入口
+
+用户要求错误区域只保留右上角红色“! 反馈”，点击后再展示恢复、报告、复现材料、我的反馈与披露说明。该显式验收要求取代 renderer 的常驻恢复/报告按钮排布；原生渲染失败后备仍保留。详见 [DEBUG_COMPACT_ERROR_FEEDBACK.md](DEBUG_COMPACT_ERROR_FEEDBACK.md)。
+
+
+## 最终验收方向：原生反馈对话框
+
+点击红色入口直接打开简化原生反馈对话框，移除行内选项面板。入口外观、文字范围、窄窗口和真实聚焦状态新增 WebKit 快照验证；见 DEBUG_COMPACT_ERROR_FEEDBACK.md 的最终交互章节。先前“点击展开旧选项”的记录是已替代方案。
+
+
+## 自动摘要与默认当前文档
+
+首次打开反馈对话框预填摘要并默认准备当前文档 ZIP，清楚展示排除和准备失败状态；Quick Look 使用受信任 XPC 与私有一次性文件交接快照。详见 [DEBUG_FEEDBACK_AUTOFILL_ATTACHMENTS.md](DEBUG_FEEDBACK_AUTOFILL_ATTACHMENTS.md)。
+
+### Self-hosted feedback attachments (2026-11-17)
+
+The shared native feedback dialog prepares the default document locally. Only explicit Continue uploads it to the independent HTTPS attachment service; a validated receipt and full SHA-256 download check are required before opening GitHub. Failure preserves the dialog and a private restart-recovery journal; retry reconciles the original upload capability. Excluding a document keeps the no-file route. Public download links are protected from URL-budget truncation. Uploaded attachments can be revoked from the same dialog. Native controller/HTTP fixtures cover failure-before-navigation and retry; deployment/public fixture evidence is tracked in `DEBUG_FEEDBACK_ATTACHMENT_UPLOAD.md`.
+
+### Private attachment default (2026-11-17)
+
+New shared feedback dialogs keep the document selected but public sharing unchecked. Private upload receives only a server-verified v2 receipt/reference, never downloads the file and publishes no file URL; public sharing remains an explicit per-report choice with full download verification. Scope mismatches, legacy responses, failed sends and changed drafts fail closed. Both scope and reference are included in restore/budget tests. Backend enforces private GET/HEAD denial even with uploader capabilities, an authenticated SSH export procedure/audit, private lifetime limits and a public-only legacy view. Runtime/UI, real GitHub reference-only form and deployment evidence: `DEBUG_PRIVATE_FEEDBACK_ATTACHMENTS.md`.
+
+### Reading workflow diagram export (2026-11-18)
+
+Diagram copy/save uses the shared native `ErrorIncident.diagramExport` and `IncidentNotice` / `ErrorFeedback` flow. Invalid/unavailable SVG offers Reload File; clipboard/raster failures offer Try Again; file-write failures offer Choose Another Folder. Cancellation has a separate acknowledgement, stale generations cannot show a notice over another file, and retry reuses the captured request. Quick Look save opens the current file in FluxMarkdown and reports handoff only after the launch callback succeeds; a failed handoff offers Open in FluxMarkdown and contextual reporting. Safe diagnostics exclude document paths and SVG contents by default. Native payload/SVG validation, PNG pixel/clipboard/file readback and real Mermaid bridge checks cover the core; installed system save-dialog checks have passed, while the Finder Quick Look handoff boundary is recorded in [DEBUG_READING_WORKFLOW.md](DEBUG_READING_WORKFLOW.md).
+
+Quick Look Markdown truncation uses the shared native incident and reporting actions. Within the app size limit, recovery opens FluxMarkdown. Above the app limit, recovery uses Follow Changes where available or locates the file in Finder for the compact preview. Unit tests cover routing and six-language strings. Finder activation is tracked in [the PR #74 verification record](DEBUG_PR74_QUICK_LOOK.md).
+
+### Native inline notice density
+
+Finder showed the truncation notice while previewing a synthetic 2 MiB file in 1.55.872. Report review, reproduction materials, reply management and delivery instructions occupied several rows over otherwise readable content. The shared native notice must keep recovery, reporting and dismissal visible, put optional actions in one native menu, and expose the report destination and data with accessible help. Verify the layout in wide and narrow viewports and use Finder to distinguish an exact-limit preview from an actually truncated one.
+
+## Quick Look selection-copy failures (PR #75)
+
+The selection toolbar uses the shared inline `copy` incident and validated
+`errorFeedback` bridge. An unconfirmed write offers an explicit retry and
+the normal Command-C recovery. Oversized formatted selections offer Command-C
+without repeating the same oversized request. The diagnostic event excludes
+the selection and clipboard payload. Dismissed or replaced selections cannot
+revive errors from older clipboard acknowledgements.

@@ -146,7 +146,8 @@
 "I've Already Starred" = "I've Already Starred";
 "Invite me to support the project on GitHub" = "Invite me to support the project on GitHub";
 
-"Preview limited to 500 KiB. Use Open with FluxMarkdown above to read the complete document." = "Preview limited to 500 KiB. Use Open with FluxMarkdown above to read the complete document.";
+"Showing the first %1$@ of %2$@; the rest is not shown. Click Follow Changes to see the end." = "Showing the first %1$@ of %2$@; the rest is not shown. Click Follow Changes to see the end.";
+"Showing the last %1$@ of %2$@." = "Showing the last %1$@ of %2$@.";
 "Test Quick Look" = "Test Quick Look";
 "Quick Look preview verified" = "Quick Look preview verified";
 "Quick Look preview not confirmed" = "Quick Look preview not confirmed";
@@ -196,9 +197,13 @@
 "Check the search expression, or open the document in FluxMarkdown and press Command-F." = "Check the search expression, or open the document in FluxMarkdown and press Command-F.";
 "Open the document in FluxMarkdown. You can also run Repair Quick Look from the Help menu." = "Open the document in FluxMarkdown. You can also run Repair Quick Look from the Help menu.";
 "Open the document in FluxMarkdown to read beyond the preview limits." = "Open the document in FluxMarkdown to read beyond the preview limits.";
+"Only the first 2 MB is shown. Click Follow Changes to see the end, or open the document in FluxMarkdown to read all of it." = "Only the first 2 MB is shown. Click Follow Changes to see the end, or open the document in FluxMarkdown to read all of it.";
+"Only the first 2 MB is shown. Click Follow Changes to see the end. The file is too large to open in FluxMarkdown." = "Only the first 2 MB is shown. Click Follow Changes to see the end. The file is too large to open in FluxMarkdown.";
 "Open the destination in your browser or editor. You can copy a report if this keeps happening." = "Open the destination in your browser or editor. You can copy a report if this keeps happening.";
+"The link may point to a file that is not on this Mac, or to a path that is not relative to the document. Copy the link to open it manually, or check the path in your editor." = "The link may point to a file that is not on this Mac, or to a path that is not relative to the document. Copy the link to open it manually, or check the path in your editor.";
 "Report This Problem" = "Report This Problem";
 "Include diagnostics" = "Include diagnostics";
+"Feedback Options" = "Feedback Options";
 "Review Feedback…" = "Review Feedback…";
 "Review Last Error…" = "Review Last Error…";
 "Clear Error History" = "Clear Error History";
@@ -271,3 +276,104 @@
 "Open Recent" = "Open Recent";
 
 "Clear Menu" = "Clear Menu";
+
+/* Reproduction packages and durable Issue replies */
+"Attach Reproduction Materials…" = "Attach Reproduction Materials…";
+"My Feedback" = "My Feedback";
+"Check Now" = "Check Now";
+"Check my submitted Issues for replies" = "Check my submitted Issues for replies";
+"Checks public GitHub Issues while FluxMarkdown is running. Replies missed while offline are checked next time. Unread markers clear only when you click a reply." = "Checks public GitHub Issues while FluxMarkdown is running. Replies missed while offline are checked next time. Unread markers clear only when you click a reply.";
+"Choose Document…" = "Choose Document…";
+"Choose Referenced Resources…" = "Choose Referenced Resources…";
+"Choose a document first to resolve its referenced resources." = "Choose a document first to resolve its referenced resources.";
+"Choose a sample or the complete document. Contents and selected resources may be public on GitHub. Review them before attaching. Creating a ZIP does not upload it." = "Choose a sample or the complete document. Contents and selected resources may be public on GitHub. Review them before attaching. Creating a ZIP does not upload it.";
+"Complete document" = "Complete document";
+"Continue in FluxMarkdown" = "Continue in FluxMarkdown";
+"Continue in FluxMarkdown to choose what to share. The displayed fragment will be passed to FluxMarkdown only if you continue. Nothing is uploaded yet." = "Continue in FluxMarkdown to choose what to share. The displayed fragment will be passed to FluxMarkdown only if you continue. Nothing is uploaded yet.";
+"Could not check replies. Existing reminders are preserved; checking will resume later." = "Could not check replies. Existing reminders are preserved; checking will resume later.";
+"Could not open the reply. Try again or copy its link." = "Could not open the reply. Try again or copy its link.";
+"Could not prepare the ZIP. Remove resources, use a smaller sample, or choose another save location. Your report is preserved." = "Could not prepare the ZIP. Remove resources, use a smaller sample, or choose another save location. Your report is preserved.";
+"Could not read this document within the 20 MB limit. Choose another file or paste a smaller sample." = "Could not read this document within the 20 MB limit. Choose another file or paste a smaller sample.";
+"Could not save feedback reminders. Keep this window open and try again." = "Could not save feedback reminders. Keep this window open and try again.";
+"Could not verify this Issue. Check the link and try again." = "Could not verify this Issue. Check the link and try again.";
+"Enable System Notifications…" = "Enable System Notifications…";
+"Failed fragment" = "Failed fragment";
+"Feedback history could not be loaded. Your reports have not been overwritten." = "Feedback history could not be loaded. Your reports have not been overwritten.";
+"FluxMarkdown can check this public Issue for replies while running. Manage reminders in My Feedback." = "FluxMarkdown can check this public Issue for replies while running. Manage reminders in My Feedback.";
+"Link Issue" = "Link Issue";
+"Paste Issue link" = "Paste Issue link";
+"Paste a FluxMarkdown GitHub Issue link." = "Paste a FluxMarkdown GitHub Issue link.";
+"References not included:" = "References not included:";
+"Remove Resources" = "Remove Resources";
+"Replies checked. Unread reminders stay until you click them." = "Replies checked. Unread reminders stay until you click them.";
+"Reproduction content" = "Reproduction content";
+"Review Package Contents" = "Review Package Contents";
+"Save Reproduction ZIP…" = "Save Reproduction ZIP…";
+"Save a ZIP first, then attach it from Finder." = "Save a ZIP first, then attach it from Finder.";
+"Select only files referenced by this document inside its folder, without symbolic links, within the 20 MB limit." = "Select only files referenced by this document inside its folder, without symbolic links, within the 20 MB limit.";
+"Selected resources:" = "Selected resources:";
+"Show ZIP in Finder" = "Show ZIP in Finder";
+"This is the file selected now, not a verified snapshot from the failure." = "This is the file selected now, not a verified snapshot from the failure.";
+"Waiting to find the submitted Issue" = "Waiting to find the submitted Issue";
+"Your Issue has a new reply. Click to open it." = "Your Issue has a new reply. Click to open it.";
+"ZIP prepared locally. Attach it on GitHub; it has not been uploaded." = "ZIP prepared locally. Attach it on GitHub; it has not been uploaded.";
+"Attach the ZIP on GitHub by dragging it from Finder. GitHub uploads attachments immediately; you publish the Issue there. No attachment is required to report." = "Attach the ZIP on GitHub by dragging it from Finder. GitHub uploads attachments immediately; you publish the Issue there. No attachment is required to report.";
+
+/* Automatic feedback summary and default document */
+"Observed problem:" = "Observed problem:";
+"Source:" = "Source:";
+"Operation:" = "Operation:";
+"Failure category:" = "Failure category:";
+"App version:" = "App version:";
+"Feedback description" = "Feedback description";
+"Include current document" = "Include current document";
+"Review Attachment…" = "Review Attachment…";
+"Choose Another Document…" = "Choose Another Document…";
+"The selected document will be prepared as a ZIP. Drag it onto GitHub to upload it publicly. Uncheck to exclude it." = "The selected document will be prepared as a ZIP. Drag it onto GitHub to upload it publicly. Uncheck to exclude it.";
+"Document excluded." = "Document excluded.";
+"Preparing current document…" = "Preparing current document…";
+"ZIP ready locally; not uploaded." = "ZIP ready locally; not uploaded.";
+"Current document unavailable. Choose a document or uncheck its attachment to continue." = "Current document unavailable. Choose a document or uncheck its attachment to continue.";
+
+"Upload Attachment and Continue…" = "Upload Attachment and Continue…";
+
+"Continue Without Attachment…" = "Continue Without Attachment…";
+
+"Delete Uploaded Attachment" = "Delete Uploaded Attachment";
+
+"Uploading and verifying attachment…" = "Uploading and verifying attachment…";
+
+"Attachment uploaded and download verified." = "Attachment uploaded and download verified.";
+
+"Uploaded attachment deleted." = "Uploaded attachment deleted.";
+
+"Could not delete attachment. Keep this window and retry." = "Could not delete attachment. Keep this window and retry.";
+
+"Attachment upload or verification failed. Your draft is saved. Retry, or uncheck the attachment to continue." = "Attachment upload or verification failed. Your draft is saved. Retry, or uncheck the attachment to continue.";
+
+"Could not prepare upload. Delete the previous uploaded attachment before changing it, or exclude the file to continue." = "Could not prepare upload. Delete the previous uploaded attachment before changing it, or exclude the file to continue.";
+
+"Attachment uploaded. Your edits changed; delete the uploaded attachment before replacing it, or continue without a file." = "Attachment uploaded. Your edits changed; delete the uploaded attachment before replacing it, or continue without a file.";
+
+"Click Continue to upload the selected document to FluxMarkdown’s attachment service (t.xykong.cc). Its download link will be public in the Issue. Uncheck to exclude it. Unpublished attachments expire after 7 days; verified Issue attachments remain until deleted." = "Click Continue to upload the selected document to FluxMarkdown’s attachment service (t.xykong.cc). Its download link will be public in the Issue. Uncheck to exclude it. Unpublished attachments expire after 7 days; verified Issue attachments remain until deleted.";
+
+"Click Open Feedback Page to review your document in the feedback dialog, then upload it to FluxMarkdown’s attachment service before continuing to GitHub." = "Click Open Feedback Page to review your document in the feedback dialog, then upload it to FluxMarkdown’s attachment service before continuing to GitHub.";
+
+"Share attachment download link publicly" = "Share attachment download link publicly";
+
+"Attachment submitted privately; only maintainers can retrieve it." = "Attachment submitted privately; only maintainers can retrieve it.";
+
+"A previous upload is saved. Continue to verify its receipt." = "A previous upload is saved. Continue to verify its receipt.";
+
+"Attachments go to FluxMarkdown (t.xykong.cc), privately by default. Only maintainers can retrieve private files; GitHub shows a reference only. Enable public sharing to publish a download link. Unlinked files expire in 7 days; private files within 30 days. You can delete uploaded files here." = "Attachments go to FluxMarkdown (t.xykong.cc), privately by default. Only maintainers can retrieve private files; GitHub shows a reference only. Enable public sharing to publish a download link. Unlinked files expire in 7 days; private files within 30 days. You can delete uploaded files here.";
+
+"Diagram could not be copied or saved" = "Diagram could not be copied or saved";
+
+"Try the diagram action again, or choose another writable folder. Your document is unchanged." = "Try the diagram action again, or choose another writable folder. Your document is unchanged.";
+
+/* Reading navigation */
+"Back" = "Back";
+"Forward" = "Forward";
+"Showing the first %1$@ of %2$@." = "Showing the first %1$@ of %2$@.";
+"Reveal in Finder" = "Reveal in Finder";
+"The file is too large to open in FluxMarkdown. Reveal it in Finder to open it with another editor." = "The file is too large to open in FluxMarkdown. Reveal it in Finder to open it with another editor.";

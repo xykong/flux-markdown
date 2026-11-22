@@ -1,0 +1,20 @@
+/* The error surface has one entry. All interaction lives in a native dialog. */
+.error-feedback-region { position: relative; min-height: 26px; padding-top: 28px; }
+.error-feedback-region-inline { display: inline-block; max-width: 100%; vertical-align: baseline; }
+.error-feedback-controls { position: absolute; top: 0; right: 0; z-index: 20; font: 13px/1.5 system-ui; text-align: start; }
+.error-feedback-controls > .error-feedback-trigger {
+    -webkit-appearance: none; appearance: none;
+    display: inline-flex; align-items: center; justify-content: center; gap: 3px;
+    box-sizing: border-box; width: max-content; min-width: 0; height: 26px;
+    margin: 0; padding: 3px 6px; border: 1px solid transparent; border-radius: 5px;
+    background: transparent; color: #bd2424; font: 600 12px/18px system-ui;
+    white-space: nowrap; text-indent: 0; cursor: pointer; outline: none; box-shadow: none;
+}
+.error-feedback-trigger > span { display: inline; font: inherit; line-height: inherit; }
+.error-feedback-controls > .error-feedback-trigger:hover { background: rgba(200,40,40,.07); }
+/* Draw the keyboard ring inside the actual button, never a native anonymous box. */
+.error-feedback-controls > .error-feedback-trigger:focus { outline: none; }
+.error-feedback-controls > .error-feedback-trigger:focus-visible { box-shadow: inset 0 0 0 2px currentColor; }
+@media (prefers-color-scheme: dark) { .error-feedback-controls > .error-feedback-trigger { color: #ff7777; } }
+[data-theme="dark"] .error-feedback-controls > .error-feedback-trigger { color: #ff7777; }
+[data-theme="light"] .error-feedback-controls > .error-feedback-trigger { color: #bd2424; }

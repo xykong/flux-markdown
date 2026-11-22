@@ -142,7 +142,10 @@ html[data-reading-shared="true"]:not([data-toc-side="left"]) #toc-button-contain
 .reading-filename { max-width: 30%; overflow: hidden; text-overflow: ellipsis; }
 .reading-filename:empty { display: none; }
 .reading-progress { flex-shrink: 0; font-variant-numeric: tabular-nums; }
-.reading-updated { overflow: hidden; text-overflow: ellipsis; }
+/* The notice keeps its width; the heading path gives way first. */
+.reading-updated { flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; }
+/* While Follow is paused, the notice matches the orange Follow button. */
+.reading-updated[data-waiting] { color: #e08600; font-weight: 600; }
 #reading-status:not([data-size="large"]) .reading-filename { display: none; }
 #reading-status[data-size="small"] .reading-parent, #reading-status[data-size="tiny"] .reading-parent { display: none; }
 #reading-status[data-size="tiny"] .reading-progress, #reading-status[data-size="tiny"] .reading-updated { display: none; }
