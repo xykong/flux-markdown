@@ -14,6 +14,8 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
     private let boundaryCopyBridge = BlockCopyBridge()
     private var imageScheme: LocalSchemeHandler!
     private var boundaryRequestCount = 0
+    private var sourceCopyRequestCount = 0
+    private let sourceCopyBridge = BlockCopyBridge()
     private var failNextMathCopy = false
     private let diagramExport=DiagramExportService()
     private let diagramPasteboard=NSPasteboard.withUniqueName()
@@ -107,6 +109,37 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
           if(images.length!==5 || images.slice(0,3).some(i=>i.naturalWidth!==1 || i.naturalHeight!==1) || images.slice(3).some(i=>i.naturalWidth!==0))throw new Error('Alias/decode partition mismatch');
           if(!document.getElementById('markdown-preview').textContent.includes('PARTITION-END'))throw new Error('Partition tail lost');
         }
+        return true;
+        """),
+        ("Source view blank lines in native selection and Quick Look copy", """
+        const root=document.getElementById('markdown-preview');
+        const received=[];
+        const original=window.blockCopyResult;
+        window.blockCopyResult=(id,generation,success)=>{
+          original(id,generation,success);
+          received.push(success);
+        };
+        try {
+          window.setFeedbackGeneration('source-copy-probe');
+          for(const source of ['alpha\\n\\nbeta','alpha\\n\\n\\nbeta']) {
+            window.renderSource(source,'light',undefined,{context:'quicklook',selectionCopy:true});
+            const rows=root.querySelectorAll('.source-diff-line');
+            const first=rows[0].firstChild, last=rows[rows.length-1].firstChild;
+            const range=document.createRange();range.setStart(first,1);range.setEnd(last,3);
+            const selection=getSelection();selection.removeAllRanges();selection.addRange(range);
+            const expected=source.slice(1,-1);
+            if(selection.toString()!==expected)throw new Error('WebKit native selection changed blank lines');
+            if(rows[0].getBoundingClientRect().height!==rows[1].getBoundingClientRect().height)
+              throw new Error('Blank row height changed');
+            for(const format of ['plain','markdown']) {
+              const count=received.length;
+              window.copyQuickLookSelection(format);
+              for(const deadline=Date.now()+2000;received.length===count && Date.now()<deadline;)
+                await new Promise(resolve=>setTimeout(resolve,20));
+              if(received[count]!==true)throw new Error('Native clipboard rejected '+format);
+            }
+          }
+        } finally {window.blockCopyResult=original;}
         return true;
         """),
         ("Quick Look selection scope and lifecycle", """
@@ -1089,6 +1122,7 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
         let config = WKWebViewConfiguration()
         config.userContentController.add(self, name: "logger")
         config.userContentController.add(self, name: "blockCopy")
+        config.userContentController.add(self, name: "selectionCopy")
         config.userContentController.add(self, name: "diagramAction")
         config.userContentController.add(self, name: "nativeMathKey")
         config.userContentController.add(self, name: "errorFeedback")
@@ -1163,6 +1197,13 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
                 return
             }
             mathCopyBridge.handle(message, generation: "math-keyboard", enabled: true, pasteboard: mathPasteboard)
+            return
+        }
+        if message.name == "selectionCopy" {
+            sourceCopyBridge.handle(message, generation: "source-copy-probe", enabled: true, pasteboard: mathPasteboard)
+            let expected = "lpha" + String(repeating: "\n", count: sourceCopyRequestCount < 2 ? 2 : 3) + "bet"
+            guard mathPasteboard.string(forType: .string) == expected else { fatalError("Source selection pasteboard mismatch") }
+            sourceCopyRequestCount += 1
             return
         }
         if message.name == "nativeMathKey", let key = message.body as? String, let window = focusWindow {

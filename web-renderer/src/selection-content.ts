@@ -109,7 +109,13 @@ export function selectedContent(root: HTMLElement, range: Range, format: CopyFor
     if (!fragment) return null;
     if (source) {
         const lines = fragment.querySelectorAll('.source-diff-line');
-        return lines.length ? Array.from(lines).map(line => line.textContent || '').join('\n') : fragment.textContent;
+        if (!lines.length) return fragment.textContent;
+        // WebKit needs a newline inside empty rows for native selection copying.
+        // Source rows represent individual lines, so only the join adds line breaks here.
+        return Array.from(lines, line => {
+            const text = line.textContent || '';
+            return text === '\n' ? '' : text;
+        }).join('\n');
     }
     if (format === 'plain') {
         // The block extractor handles whole quotes; selection tables need row boundaries.
