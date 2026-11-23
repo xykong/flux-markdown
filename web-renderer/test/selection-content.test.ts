@@ -1,6 +1,6 @@
 import { DiffAnimator } from '../src/diff-animator';
 import { computeLineDiff } from '../src/diff-engine';
-import { selectedContent } from '../src/selection-content';
+import { copySourceSelectionAsPlainText, selectedContent } from '../src/selection-content';
 import { rememberDiagramSource } from '../src/diagram-source-store';
 import { rememberRenderedSource } from '../src/selection-content';
 
@@ -28,7 +28,7 @@ test('code preserves tabs and final newline and excludes controls', () => {
     expect(selectedContent(root, range, 'markdown')).toContain('```');
 });
 test('source view excludes gutters and deleted historical characters', () => {
-    document.body.innerHTML = '<main class="source-mode"><div class="source-diff-gutter">1</div><div class="source-diff-content"><span class="source-diff-line">a<span class="diff-char-removed">old</span>b</span><span class="source-diff-line">c</span></div></main>';
+    document.body.innerHTML = '<main class="source-mode"><div class="source-diff-gutter">1</div><div class="source-diff-content"><span class="source-diff-line" data-source-line="1">a<span class="diff-char-removed">old</span>b</span><span class="source-diff-line" data-source-line="2">c</span></div></main>';
     const root = document.querySelector('main')!;
     const range = document.createRange(); range.selectNodeContents(root);
     expect(selectedContent(root, range, 'markdown')).toBe('ab\nc');
@@ -151,4 +151,190 @@ test.each([
     range.selectNodeContents(root);
     expect(selectedContent(root, range, 'plain')).toBe(source);
     expect(selectedContent(root, range, 'markdown')).toBe(source);
+});
+
+describe('copySourceSelectionAsPlainText', () => {
+    function makeCopyEvent(target: EventTarget) {
+        const data = new Map<string, string>();
+        let prevented = false;
+        const event = {
+            target,
+            clipboardData: {
+                setData: (type: string, value: string) => { data.set(type, value); },
+                getData: (type: string) => data.get(type) ?? '',
+            },
+            preventDefault: () => { prevented = true; },
+        } as unknown as ClipboardEvent;
+        return { event, data, isPrevented: () => prevented };
+    }
+
+    function selectRange(range: Range) {
+        const selection = window.getSelection()!;
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+
+    function renderSourceFixture(source: string, prev = '') {
+        const root = document.createElement('div');
+        root.id = 'markdown-preview';
+        root.className = 'markdown-body source-mode';
+        root.innerHTML = new DiffAnimator().buildSourceHTML(computeLineDiff(prev, source, { sourceView: true }), 'light');
+        document.body.replaceChildren(root);
+        return root;
+    }
+
+    test('writes only text/plain and preserves adjacent headings, paragraphs, lists, and blank lines', () => {
+        const source = [
+            '## Title',
+            '',
+            '### 1.1 Section',
+            'Paragraph directly below heading.',
+            '',
+            '### 1.2 Details',
+            'Intro line:',
+            '- first item',
+            '- second item',
+            '',
+            '',
+            'After two blank lines.',
+        ].join('\n');
+        const root = renderSourceFixture(source);
+        const rows = root.querySelectorAll('.source-diff-line');
+        const range = document.createRange();
+        range.setStart(rows[0].firstChild!, 0);
+        const lastText = rows[rows.length - 1].firstChild!;
+        range.setEnd(lastText, lastText.textContent!.length);
+        selectRange(range);
+
+        const { event, data, isPrevented } = makeCopyEvent(rows[0]);
+        expect(copySourceSelectionAsPlainText(event, root)).toBe(true);
+        expect(isPrevented()).toBe(true);
+        expect(Array.from(data.keys())).toEqual(['text/plain']);
+        expect(data.get('text/plain')).toBe(source);
+    });
+
+    test('clamps Select All ranges extending outside #markdown-preview without losing trailing newline', () => {
+        const source = '### Heading\nBody\n- item\n';
+        const root = renderSourceFixture(source);
+        const header = document.createElement('div');
+        header.textContent = 'toolbar';
+        document.body.prepend(header);
+
+        const range = document.createRange();
+        range.selectNodeContents(document.body);
+        selectRange(range);
+
+        const { event, data, isPrevented } = makeCopyEvent(document.body);
+        expect(copySourceSelectionAsPlainText(event, root)).toBe(true);
+        expect(isPrevented()).toBe(true);
+        expect(Array.from(data.keys())).toEqual(['text/plain']);
+        expect(data.get('text/plain')).toBe(source);
+    });
+
+    test('excludes gutter numbers, removed diff lines, and deleted diff characters', () => {
+        const root = renderSourceFixture('keep\nhello earth', 'keep\nremoved\nhello world');
+        const range = document.createRange();
+        range.selectNodeContents(root);
+        selectRange(range);
+
+        const { event, data, isPrevented } = makeCopyEvent(root);
+        expect(copySourceSelectionAsPlainText(event, root)).toBe(true);
+        expect(isPrevented()).toBe(true);
+        expect(data.get('text/plain')).toBe('keep\nhello earth');
+    });
+
+    test.each([
+        ['', 'a\r\n\r\nb\r\n', 'a\n\nb\n'],
+        ['a\nremoved\nlast\n', 'a\nlast\n\n', 'a\nlast\n\n'],
+        ['a\nremoved\nlast\n', 'a\nlast', 'a\nlast'],
+        ['a\nremoved\nlast\n', '\n', '\n'],
+    ])('preserves source lines before and after diff marks are cleared (%j → %j)', (previous, source, expected) => {
+        const root = renderSourceFixture(source, previous);
+        const range = document.createRange();
+        range.selectNodeContents(root);
+        selectRange(range);
+
+        for (const clearMarks of [false, true]) {
+            if (clearMarks) {
+                root.querySelectorAll('.diff-exiting').forEach(row => row.classList.remove('diff-exiting'));
+            }
+            const { event, data } = makeCopyEvent(root);
+            expect(copySourceSelectionAsPlainText(event, root)).toBe(true);
+            expect(data.get('text/plain')).toBe(expected);
+            expect(selectedContent(root, range, 'plain')).toBe(expected);
+            expect(selectedContent(root, range, 'markdown')).toBe(expected);
+        }
+    });
+
+    test('leaves native TSV copy unchanged, including when a preview notice is present', () => {
+        const tsv = 'col1\tcol2\nval1\tval2';
+        document.body.innerHTML = `<div id="markdown-preview" class="source-mode"><div class="tsv-truncated">Preview limited</div><pre>${tsv}</pre></div>`;
+        const root = document.getElementById('markdown-preview')!;
+        const range = document.createRange();
+        range.selectNodeContents(root);
+        selectRange(range);
+
+        const { event, data, isPrevented } = makeCopyEvent(root);
+        expect(copySourceSelectionAsPlainText(event, root)).toBe(false);
+        expect(isPrevented()).toBe(false);
+        expect(data.size).toBe(0);
+    });
+
+    test('does not intercept copy in rendered view', () => {
+        document.body.innerHTML = '<div id="markdown-preview"><p>Hello <strong>world</strong></p></div>';
+        const root = document.getElementById('markdown-preview')!;
+        const range = document.createRange();
+        range.selectNodeContents(root);
+        selectRange(range);
+
+        const { event, data, isPrevented } = makeCopyEvent(root);
+        expect(copySourceSelectionAsPlainText(event, root)).toBe(false);
+        expect(isPrevented()).toBe(false);
+        expect(data.size).toBe(0);
+    });
+
+    test('does not intercept copy inside search input or outside #markdown-preview', () => {
+        const root = renderSourceFixture('alpha\nbeta');
+        const input = document.createElement('input');
+        input.value = 'query';
+        document.body.prepend(input);
+        input.focus();
+
+        const range = document.createRange();
+        range.selectNodeContents(root);
+        selectRange(range);
+
+        const fromInput = makeCopyEvent(input);
+        expect(copySourceSelectionAsPlainText(fromInput.event, root)).toBe(false);
+        expect(fromInput.isPrevented()).toBe(false);
+        input.blur();
+
+        const outside = document.createElement('p');
+        outside.textContent = 'help dialog text';
+        document.body.append(outside);
+        const outsideRange = document.createRange();
+        outsideRange.selectNodeContents(outside);
+        selectRange(outsideRange);
+
+        const fromOutside = makeCopyEvent(outside);
+        expect(copySourceSelectionAsPlainText(fromOutside.event, root)).toBe(false);
+        expect(fromOutside.isPrevented()).toBe(false);
+    });
+
+    test('still intercepts copy when focus remains on a toolbar button', () => {
+        const root = renderSourceFixture('### Heading\nParagraph');
+        const button = document.createElement('button');
+        button.textContent = 'Source';
+        document.body.prepend(button);
+        button.focus();
+
+        const range = document.createRange();
+        range.selectNodeContents(root);
+        selectRange(range);
+
+        const { event, data, isPrevented } = makeCopyEvent(root);
+        expect(copySourceSelectionAsPlainText(event, root)).toBe(true);
+        expect(isPrevented()).toBe(true);
+        expect(data.get('text/plain')).toBe('### Heading\nParagraph');
+    });
 });

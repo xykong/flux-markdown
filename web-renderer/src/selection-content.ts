@@ -7,6 +7,7 @@ import { relativeImageSource } from './image-source';
 
 export type CopyFormat = 'plain' | 'markdown';
 const ignored = '.block-copy-tools,.selection-copy-tools,.diagram-tools,.mermaid-tools,.error-feedback-controls,.blockquote-placeholder,.source-diff-gutter,.diff-char-removed,script,style,[hidden],[aria-hidden="true"]';
+const editableInput = 'input,textarea,select,[contenteditable="true"]';
 const converter = new TurndownService({ codeBlockStyle: 'fenced', emDelimiter: '*', bulletListMarker: '-' });
 converter.use(gfm);
 
@@ -62,7 +63,7 @@ export function selectedContent(root: HTMLElement, range: Range, format: CopyFor
             return document.createTextNode((node.textContent || '').slice(start, end));
         }
         if (!(node instanceof Element) || node.matches(ignored)) return null;
-        if (source && node.matches('.source-diff-line:not([data-source-line])') && node.classList.contains('diff-exiting')) return null;
+        if (source && node.matches('.source-diff-line:not([data-source-line])')) return null;
         if (getComputedStyle(node).display === 'none') return null;
         // Blocks inside a partly selected block keep its markers in their lines; they convert instead.
         const sourceBlock = !nested && node.hasAttribute('data-source-line');
@@ -141,3 +142,47 @@ converter.addRule('partial-selection-table', {
     replacement: (_content, node) => '\n\n' + Array.from((node as Element).querySelectorAll('tr')).map(row =>
         Array.from(row.children).map(cell => converter.escape(blockPlainText(cell))).join('\t')).join('  \n') + '\n\n',
 });
+
+function isEditableInput(node: Node | null): boolean {
+    const element = node instanceof Element ? node : node?.parentElement;
+    return !!element?.closest(editableInput);
+}
+
+/** Clamp a selection range (e.g. Select All on document.body) to the bounds of `root`. */
+export function clampRangeToRoot(root: HTMLElement, range: Range): Range | null {
+    if (range.collapsed || !range.intersectsNode(root)) return null;
+    const whole = document.createRange();
+    whole.selectNodeContents(root);
+    const clamped = range.cloneRange();
+    if (clamped.compareBoundaryPoints(Range.START_TO_START, whole) < 0) {
+        clamped.setStart(whole.startContainer, whole.startOffset);
+    }
+    if (clamped.compareBoundaryPoints(Range.END_TO_END, whole) > 0) {
+        clamped.setEnd(whole.endContainer, whole.endOffset);
+    }
+    if (clamped.collapsed || !root.contains(clamped.startContainer) || !root.contains(clamped.endContainer)) {
+        return null;
+    }
+    return clamped;
+}
+
+/**
+ * In Source View, native WebKit copy writes styled HTML/RTF alongside plain text.
+ * Rich-text paste targets that prefer HTML can strip CSS block layout or carry
+ * source styles, merging adjacent lines. Writing only `text/plain` keeps Cmd+C
+ * faithful to the raw source across all paste targets.
+ */
+export function copySourceSelectionAsPlainText(event: ClipboardEvent, root: HTMLElement | null): boolean {
+    if (!root?.classList.contains('source-mode') || !root.querySelector('.source-diff-content') || !event.clipboardData) return false;
+    if (isEditableInput(event.target as Node | null) || isEditableInput(document.activeElement)) return false;
+    const selection = window.getSelection();
+    if (!selection?.rangeCount || selection.isCollapsed) return false;
+    if (isEditableInput(selection.anchorNode) || isEditableInput(selection.focusNode)) return false;
+    const clamped = clampRangeToRoot(root, selection.getRangeAt(0));
+    if (!clamped) return false;
+    const text = selectedContent(root, clamped, 'plain');
+    if (!text) return false;
+    event.preventDefault();
+    event.clipboardData.setData('text/plain', text);
+    return true;
+}

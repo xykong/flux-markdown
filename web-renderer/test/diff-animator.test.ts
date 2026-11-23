@@ -46,6 +46,7 @@ describe('DiffAnimator.buildSourceHTML', () => {
     container.innerHTML = html;
     const lines = container.querySelectorAll('.source-diff-line');
     expect(lines.length).toBe(3);
+    expect(Array.from(lines, line => line.tagName)).toEqual(['DIV', 'DIV', 'DIV']);
     expect(lines[0].textContent).toBe('line 1');
     expect(lines[1].textContent).toBe('\n');
     expect(lines[2].textContent).toBe('line 3');

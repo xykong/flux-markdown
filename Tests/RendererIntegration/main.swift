@@ -139,6 +139,66 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
               if(received[count]!==true)throw new Error('Native clipboard rejected '+format);
             }
           }
+          // Native Cmd+C in Source View should write plain text only (no HTML/RTF)
+          // so rich-text targets keep adjacent non-empty lines and blank lines intact.
+          const richSource='## Title\\n\\n### 1.1 Heading\\nParagraph below heading\\n- item 1\\n- item 2\\n';
+          for(const opts of [{context:'quicklook',selectionCopy:true},{context:'app'}]) {
+            window.renderSource(richSource,'light',undefined,opts);
+            const rows=root.querySelectorAll('.source-diff-line');
+            if(rows[0].tagName!=='DIV')throw new Error('Source line should be a block DIV');
+            const selectAllRange=document.createRange();
+            selectAllRange.selectNodeContents(document.body);
+            const selection=getSelection();selection.removeAllRanges();selection.addRange(selectAllRange);
+            const dt=new DataTransfer();
+            const ev=new ClipboardEvent('copy',{bubbles:true,cancelable:true,clipboardData:dt});
+            document.dispatchEvent(ev);
+            if(!ev.defaultPrevented)throw new Error('Source copy event was not intercepted for '+opts.context);
+            if(dt.types.length!==1 || dt.types[0]!=='text/plain')throw new Error('Unexpected clipboard types: '+dt.types.join(','));
+            if(dt.getData('text/plain')!==richSource)throw new Error('Plain text payload mismatch for '+opts.context);
+          }
+          function copyAllSource() {
+            const range=document.createRange();range.selectNodeContents(document.body);
+            const selection=getSelection();selection.removeAllRanges();selection.addRange(range);
+            const clipboard=new DataTransfer();
+            const event=new ClipboardEvent('copy',{bubbles:true,cancelable:true,clipboardData:clipboard});
+            document.dispatchEvent(event);
+            return {event,clipboard};
+          }
+          for(const previous of [undefined,'first\\r\\nremoved\\r\\nlast\\r\\n']) {
+            window.renderSource('first\\r\\nlast\\r\\n','light',previous,{context:'app'});
+            for(let cleared=0;cleared<2;cleared++) {
+              const {event,clipboard}=copyAllSource();
+              if(!event.defaultPrevented || clipboard.getData('text/plain')!=='first\\nlast\\n')
+                throw new Error('Source copy changed CRLF or diff line structure: '+JSON.stringify(clipboard.getData('text/plain')));
+              window.clearDiffMarks();
+            }
+          }
+          window.renderSource('name\\tvalue\\nfoo\\tbar\\n','light',undefined,{context:'app',format:'tsv',isTruncated:true});
+          const tsvCopy=copyAllSource();
+          if(!root.querySelector('.tsv-truncated') || tsvCopy.event.defaultPrevented || tsvCopy.clipboard.types.length)
+            throw new Error('Truncated TSV copy should use the native selection');
+          window.renderSource(richSource,'light',undefined,{context:'quicklook',selectionCopy:true});
+          copyAllSource();
+          // Search input inside Source View must not be intercepted.
+          const input=document.createElement('input');
+          input.value='find-me';
+          document.body.append(input);
+          try {
+            input.focus();
+            const dtInput=new DataTransfer();
+            const evInput=new ClipboardEvent('copy',{bubbles:true,cancelable:true,clipboardData:dtInput});
+            input.dispatchEvent(evInput);
+            if(evInput.defaultPrevented)throw new Error('Source copy intercepted search input');
+          } finally {input.remove();}
+          // Rendered view must keep native rich-text copy untouched.
+          await window.renderMarkdown('### Heading\\n\\nHello **world**',{context:'quicklook',selectionCopy:true});
+          const renderedRange=document.createRange();
+          renderedRange.selectNodeContents(root);
+          const selRendered=getSelection();selRendered.removeAllRanges();selRendered.addRange(renderedRange);
+          const dtRendered=new DataTransfer();
+          const evRendered=new ClipboardEvent('copy',{bubbles:true,cancelable:true,clipboardData:dtRendered});
+          document.dispatchEvent(evRendered);
+          if(evRendered.defaultPrevented)throw new Error('Rendered view copy should not be intercepted');
         } finally {window.blockCopyResult=original;}
         return true;
         """),

@@ -19,7 +19,12 @@ export interface CharDiff {
  * Compute line-level diff between old and new Markdown text.
  * When oldText is empty, returns all lines as 'equal' (first render, no animation).
  */
-export function computeLineDiff(oldText: string, newText: string): LineDiff[] {
+export function computeLineDiff(oldText: string, newText: string, { sourceView = false } = {}): LineDiff[] {
+  if (sourceView) {
+    // Match WebKit’s line endings before the HTML parser can insert a newline inside a row.
+    oldText = oldText.replace(/\r\n?/g, '\n');
+    newText = newText.replace(/\r\n?/g, '\n');
+  }
   // First render: no animation
   if (!oldText) {
     return newText.split('\n').map((line, i) => ({
@@ -112,6 +117,18 @@ export function computeLineDiff(oldText: string, newText: string): LineDiff[] {
         });
       }
     }
+  }
+
+  // diffLines treats a final newline as a delimiter. The source view represents
+  // the empty row after it, just as its first render does.
+  if (sourceView && newText.endsWith('\n')) {
+    result.push({
+      type: 'equal',
+      oldLineNumber: oldText.endsWith('\n') ? oldLine : null,
+      newLineNumber: newLine,
+      oldContent: '',
+      newContent: '',
+    });
   }
 
   return result;
