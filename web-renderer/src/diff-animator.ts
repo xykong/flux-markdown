@@ -74,7 +74,7 @@ export class DiffAnimator {
       }
 
       gutterHtml  += `<span class="${gutterClass}" ${staggerStyle}>${lineNum}${badge}</span>`;
-      contentHtml += `<span class="${contentClass}" ${diff.newLineNumber ? `data-source-line="${diff.newLineNumber}" data-source-line-end="${diff.newLineNumber}"` : ''} ${staggerStyle}>${lineContent || '\n'}</span>`;
+      contentHtml += `<div class="${contentClass}" ${diff.newLineNumber ? `data-source-line="${diff.newLineNumber}" data-source-line-end="${diff.newLineNumber}"` : ''} ${staggerStyle}>${lineContent || '\n'}</div>`;
     }
 
     return `<div class="source-diff-wrap ${themeClass}">` +

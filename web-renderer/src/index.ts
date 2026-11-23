@@ -1,6 +1,6 @@
 import { FollowFile, type FollowSnapshot, blockElement, documentSelection, lastBlockLine, lineStart, queryRoots, uniqueHeadingSlug, waitForSafeCommit } from './follow-file';
 import { installSelectionCopy } from './selection-copy';
-import { rememberRenderedSource } from './selection-content';
+import { copySourceSelectionAsPlainText, rememberRenderedSource } from './selection-content';
 import { relativeImageSource } from './image-source';
 import './styles/selection-copy.css';
 import { diagramActionResult } from './diagram-actions';
@@ -1853,6 +1853,10 @@ document.addEventListener('keydown', (e: KeyboardEvent) => {
         else if (e.key === '-' || e.key === '_') { e.preventDefault(); applyZoomLevel(currentZoomLevel - 0.1); }
         else if (e.key === '0') { e.preventDefault(); applyZoomLevel(1.0); }
     }
+});
+
+document.addEventListener('copy', (e: ClipboardEvent) => {
+    copySourceSelectionAsPlainText(e, document.getElementById('markdown-preview'));
 });
 
 window.setFontSize = function(px: number) {
