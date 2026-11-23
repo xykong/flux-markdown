@@ -1599,7 +1599,7 @@ window.renderSource = function(text: string, theme: string, prevContent?: string
 
     try {
         const oldText = (prevContent && prevContent.length > 0) ? prevContent : '';
-        const diffs = computeLineDiff(oldText, text);
+        const diffs = computeLineDiff(oldText, text, { sourceView: true });
         outputDiv.innerHTML = diffAnimator.buildSourceHTML(diffs, theme);
         diffAnimator.attachSourceMarkListeners(outputDiv);
         blockquoteCollapse?.setInitialState(false);

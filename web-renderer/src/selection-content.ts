@@ -63,7 +63,7 @@ export function selectedContent(root: HTMLElement, range: Range, format: CopyFor
             return document.createTextNode((node.textContent || '').slice(start, end));
         }
         if (!(node instanceof Element) || node.matches(ignored)) return null;
-        if (source && node.matches('.source-diff-line:not([data-source-line])') && node.classList.contains('diff-exiting')) return null;
+        if (source && node.matches('.source-diff-line:not([data-source-line])')) return null;
         if (getComputedStyle(node).display === 'none') return null;
         // Blocks inside a partly selected block keep its markers in their lines; they convert instead.
         const sourceBlock = !nested && node.hasAttribute('data-source-line');
@@ -173,7 +173,7 @@ export function clampRangeToRoot(root: HTMLElement, range: Range): Range | null 
  * faithful to the raw source across all paste targets.
  */
 export function copySourceSelectionAsPlainText(event: ClipboardEvent, root: HTMLElement | null): boolean {
-    if (!root || !root.classList.contains('source-mode') || !event.clipboardData) return false;
+    if (!root?.classList.contains('source-mode') || !root.querySelector('.source-diff-content') || !event.clipboardData) return false;
     if (isEditableInput(event.target as Node | null) || isEditableInput(document.activeElement)) return false;
     const selection = window.getSelection();
     if (!selection?.rangeCount || selection.isCollapsed) return false;

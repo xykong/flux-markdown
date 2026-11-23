@@ -156,6 +156,29 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
             if(dt.types.length!==1 || dt.types[0]!=='text/plain')throw new Error('Unexpected clipboard types: '+dt.types.join(','));
             if(dt.getData('text/plain')!==richSource)throw new Error('Plain text payload mismatch for '+opts.context);
           }
+          function copyAllSource() {
+            const range=document.createRange();range.selectNodeContents(document.body);
+            const selection=getSelection();selection.removeAllRanges();selection.addRange(range);
+            const clipboard=new DataTransfer();
+            const event=new ClipboardEvent('copy',{bubbles:true,cancelable:true,clipboardData:clipboard});
+            document.dispatchEvent(event);
+            return {event,clipboard};
+          }
+          for(const previous of [undefined,'first\\r\\nremoved\\r\\nlast\\r\\n']) {
+            window.renderSource('first\\r\\nlast\\r\\n','light',previous,{context:'app'});
+            for(let cleared=0;cleared<2;cleared++) {
+              const {event,clipboard}=copyAllSource();
+              if(!event.defaultPrevented || clipboard.getData('text/plain')!=='first\\nlast\\n')
+                throw new Error('Source copy changed CRLF or diff line structure: '+JSON.stringify(clipboard.getData('text/plain')));
+              window.clearDiffMarks();
+            }
+          }
+          window.renderSource('name\\tvalue\\nfoo\\tbar\\n','light',undefined,{context:'app',format:'tsv',isTruncated:true});
+          const tsvCopy=copyAllSource();
+          if(!root.querySelector('.tsv-truncated') || tsvCopy.event.defaultPrevented || tsvCopy.clipboard.types.length)
+            throw new Error('Truncated TSV copy should use the native selection');
+          window.renderSource(richSource,'light',undefined,{context:'quicklook',selectionCopy:true});
+          copyAllSource();
           // Search input inside Source View must not be intercepted.
           const input=document.createElement('input');
           input.value='find-me';
