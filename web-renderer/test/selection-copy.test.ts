@@ -251,3 +251,34 @@ test('pointercancel and window blur clear dragging state so selection toolbar st
         else Reflect.deleteProperty(Range.prototype, 'getClientRects');
     }
 });
+
+test.each(['window', 'outside viewport'])('a pointer release on %s shows the toolbar at the selection', async location => {
+    document.body.innerHTML = '<main><p>hello world</p></main>';
+    const root = document.querySelector('main')!;
+    const previousRects = Object.getOwnPropertyDescriptor(Range.prototype, 'getClientRects');
+    Object.defineProperty(Range.prototype, 'getClientRects', {
+        configurable: true, value: () => [{left: 20, right: 100, top: 10, bottom: 30}],
+    });
+    const dispose = installSelectionCopy(root, 'drag-end', {context:'quicklook', selectionCopy:true, showCopyButtons:true});
+    try {
+        const range = document.createRange();
+        range.selectNodeContents(root.querySelector('p')!);
+        window.getSelection()!.removeAllRanges();
+        window.getSelection()!.addRange(range);
+        const pointerDown = new Event('pointerdown', {bubbles: true});
+        Object.defineProperty(pointerDown, 'button', {value: 0});
+        root.dispatchEvent(pointerDown);
+
+        const pointerUp = new MouseEvent('pointerup', {bubbles: true, clientX: 40, clientY: -15});
+        (location === 'window' ? window : root).dispatchEvent(pointerUp);
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        const toolbar = root.querySelector<HTMLElement>('.selection-copy-tools')!;
+        expect(toolbar.hidden).toBe(false);
+        expect(toolbar.hasAttribute('data-offscreen')).toBe(false);
+        expect(toolbar.style.left).toBe('20px');
+    } finally {
+        dispose();
+        if (previousRects) Object.defineProperty(Range.prototype, 'getClientRects', previousRects);
+        else Reflect.deleteProperty(Range.prototype, 'getClientRects');
+    }
+});
