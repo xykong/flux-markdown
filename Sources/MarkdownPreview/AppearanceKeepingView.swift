@@ -6,6 +6,9 @@ import AppKit
 final class AppearanceKeepingView: NSView {
     var selectedAppearance: NSAppearance?
 
+    // Prevent Quick Look's movable background from hijacking drag-to-select gestures.
+    override var mouseDownCanMoveWindow: Bool { false }
+
     override func viewDidChangeEffectiveAppearance() {
         super.viewDidChangeEffectiveAppearance()
         guard needsSelectedAppearance else { return }
