@@ -7,6 +7,31 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 1.60.918</title>
+            <link>https://github.com/xykong/flux-markdown/releases/tag/v1.60.918</link>
+            <sparkle:version>918</sparkle:version>
+            <sparkle:shortVersionString>1.60.918</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+            <pubDate>Tue, 24 Nov 2026 02:45:39 +0000</pubDate>
+            <enclosure
+                url="https://github.com/xykong/flux-markdown/releases/download/v1.60.918/FluxMarkdown.dmg"
+                sparkle:edSignature="d5LSYCI617wXRo/Gp94FNpDdtp4MNpwexO3UXRJxSl3vzhxVM3xXhJSwVMK+EGmiDlBLDPnflUB2fUwgtitLAg=="
+                length="46448314"
+                type="application/octet-stream" />
+            <description><![CDATA[
+                <h2>更新内容</h2>
+<h3>Fixed</h3>
+<ul>
+<li><strong>Copying from Source View</strong>: Preserve line breaks when pasting Markdown source into rich-text editors. Source selections copy as plain text, including across CRLF lines and file diffs. Thanks to <a href="https://github.com/Schnee013">@Schnee013</a> for reporting and contributing the fix in <a href="https://github.com/xykong/flux-markdown/pull/78">PR #78</a>.</li>
+<li><strong>Selecting text in Finder Quick Look</strong>: Drag to select without moving the preview window, use double- and triple-click text selection, and keep the copy toolbar available after a drag ends at the edge of the preview. Thanks to <a href="https://github.com/Schnee013">@Schnee013</a> for reporting and contributing these changes in <a href="https://github.com/xykong/flux-markdown/pull/79">PR #79</a>.</li>
+</ul>
+<p><a href="https://github.com/xykong/flux-markdown/releases/tag/v1.60.918">查看完整更新日志</a></p>
+            ]]></description>
+        </item>
+        
+
+
+        <item>
             <title>Version 1.59.907</title>
             <link>https://github.com/xykong/flux-markdown/releases/tag/v1.59.907</link>
             <sparkle:version>907</sparkle:version>
