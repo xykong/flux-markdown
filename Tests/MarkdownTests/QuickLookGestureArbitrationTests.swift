@@ -51,6 +51,41 @@ final class QuickLookGestureArbitrationTests: XCTestCase {
         )
     }
 
+    func testDoubleClickRecognizerPreservesWebViewSelectionRecognizersButBlocksHost() {
+        let hostView = NSView(frame: NSRect(x: 0, y: 0, width: 400, height: 300))
+        let webView = InteractiveWebView(frame: hostView.bounds, configuration: WKWebViewConfiguration())
+        let innerView = NSView(frame: webView.bounds)
+        webView.addSubview(innerView)
+        hostView.addSubview(webView)
+
+        let recognizer = QuickLookDoubleClickGestureRecognizer()
+        let siblingClick = NSClickGestureRecognizer()
+        let innerPress = NSPressGestureRecognizer()
+        let hostClick = NSClickGestureRecognizer()
+
+        webView.addGestureRecognizer(recognizer)
+        webView.addGestureRecognizer(siblingClick)
+        innerView.addGestureRecognizer(innerPress)
+        hostView.addGestureRecognizer(hostClick)
+
+        XCTAssertFalse(
+            recognizer.canPrevent(siblingClick),
+            "Quick Look double-click guard must not prevent WebView word/paragraph selection clicks"
+        )
+        XCTAssertFalse(
+            recognizer.canPrevent(innerPress),
+            "Quick Look double-click guard must not prevent descendant WebView recognizers"
+        )
+        XCTAssertTrue(
+            recognizer.canPrevent(hostClick),
+            "Quick Look double-click guard must still prevent host-level double-click-to-open"
+        )
+        XCTAssertFalse(
+            webView.mouseDownCanMoveWindow,
+            "Dragging inside InteractiveWebView must select text rather than move the Quick Look panel"
+        )
+    }
+
     private func projectRoot() -> URL {
         URL(fileURLWithPath: #file)
             .deletingLastPathComponent()

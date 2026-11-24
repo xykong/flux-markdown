@@ -188,11 +188,13 @@ export function installSelectionCopy(root: HTMLElement, generation: string, opti
         if ((event as PointerEvent).button !== 0) return;
         ++revision; dragging = true; tools.hidden = true; clearFeedback();
     });
-    listen(document, 'pointerup', event => {
+    listen(window, 'pointerup', event => {
         const pointer = event as PointerEvent;
         pointerEnd = tools.contains(pointer.target as Node) ? pointerEnd : { pageX: pointer.clientX + scrollX, pageY: pointer.clientY + scrollY };
         dragging = false; schedule();
     });
+    listen(window, 'pointercancel', () => { dragging = false; schedule(); });
+    listen(window, 'blur', () => { if (dragging) { dragging = false; schedule(); } });
     // A selection changed from the keyboard is placed by its text again.
     listen(document, 'keyup', event => { if ((event as KeyboardEvent).shiftKey) { pointerEnd = null; schedule(); } });
     function dismissPopup(): void {

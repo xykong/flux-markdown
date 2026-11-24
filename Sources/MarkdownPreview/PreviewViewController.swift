@@ -9,6 +9,12 @@ final class QuickLookDoubleClickGestureRecognizer: NSClickGestureRecognizer {
         if preventedGestureRecognizer is NSPanGestureRecognizer {
             return false
         }
+        // Preserve WebKit's own click, press, and text-selection recognizers inside the WebView
+        // while still preventing double-click gestures on ancestor Quick Look host views.
+        if let myView = view, let otherView = preventedGestureRecognizer.view,
+           otherView === myView || otherView.isDescendant(of: myView) {
+            return false
+        }
         return super.canPrevent(preventedGestureRecognizer)
     }
 }
@@ -75,6 +81,10 @@ class InteractiveWebView: NativeMagnifyingWebView {
 
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool {
         return true
+    }
+
+    override var mouseDownCanMoveWindow: Bool {
+        return false
     }
     
     override var acceptsFirstResponder: Bool {
