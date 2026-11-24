@@ -24,6 +24,7 @@ struct MarkdownWebView: NSViewRepresentable {
     var collapseBlockquotesByDefault: Bool = false
     var showLineNumbers: Bool = true
     var showCopyButtons: Bool = true
+    var defaultCopyFormat: DefaultCopyFormat = .richText
     var contentsSide: ContentsSidebarSide = .right
     var starReminder: StarReminderSession? = nil
     
@@ -129,6 +130,7 @@ struct MarkdownWebView: NSViewRepresentable {
         context.coordinator.starReminder = starReminder
         starReminder?.attach(webView, url: fileURL, preview: viewMode == .preview)
         context.coordinator.updateContentsSide(webView: webView, side: contentsSide)
+        context.coordinator.updateDefaultCopyFormat(webView: webView, format: defaultCopyFormat)
         context.coordinator.render(webView: webView, content: content, fileURL: fileURL, viewMode: viewMode, appearanceMode: appearanceMode, baseFontSize: baseFontSize, enableMermaid: enableMermaid, enableKatex: enableKatex, enableEmoji: enableEmoji, enableTypst: enableTypst, codeHighlightTheme: codeHighlightTheme, collapseBlockquotesByDefault: collapseBlockquotesByDefault, showLineNumbers: showLineNumbers, showCopyButtons: showCopyButtons)
     }
 
@@ -211,6 +213,7 @@ struct MarkdownWebView: NSViewRepresentable {
         private var lastShowCopyButtons = true
         private var lastShowLineNumbers: Bool = true
         private var lastContentsSide: ContentsSidebarSide?
+        private var lastDefaultCopyFormat: DefaultCopyFormat?
         private var lastRenderedContent: String = ""
         private var lastRenderedFileURL: URL?
         private var pollingTimer: Timer?
@@ -480,6 +483,13 @@ struct MarkdownWebView: NSViewRepresentable {
             }
         }
 
+        func updateDefaultCopyFormat(webView: WKWebView, format: DefaultCopyFormat) {
+            guard lastDefaultCopyFormat != format else { return }
+            lastDefaultCopyFormat = format
+            guard isWebViewLoaded else { return }
+            webView.evaluateJavaScript("window.setDefaultCopyFormat && window.setDefaultCopyFormat('\(format.rawValue)');", completionHandler: nil)
+        }
+
         func render(webView: WKWebView, content: String, fileURL: URL?, viewMode: ViewMode, appearanceMode: AppearanceMode, baseFontSize: Double, enableMermaid: Bool, enableKatex: Bool, enableEmoji: Bool, enableTypst: Bool, codeHighlightTheme: String, collapseBlockquotesByDefault: Bool, showLineNumbers: Bool = false, showCopyButtons: Bool = true) {
             print("🟢 Coordinator.render called with viewMode=\(viewMode)")
             let content = contentState.resolve(modelText: content, fileURL: fileURL)
@@ -609,6 +619,7 @@ struct MarkdownWebView: NSViewRepresentable {
             options["collapseBlockquotes"] = collapseBlockquotesByDefault
             options["showLineNumbers"] = showLineNumbers
             options["showCopyButtons"] = showCopyButtons
+            options["defaultCopyFormat"] = AppearancePreference.shared.defaultCopyFormat.rawValue
             options["contentsSide"] = AppearancePreference.shared.contentsSide.rawValue
             options["uiLanguage"] = AppearancePreference.shared.uiLanguage
             options["renderVersion"] = renderVersion.next()

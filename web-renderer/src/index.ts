@@ -1,6 +1,6 @@
 import { FollowFile, type FollowSnapshot, blockElement, documentSelection, lastBlockLine, lineStart, queryRoots, uniqueHeadingSlug, waitForSafeCommit } from './follow-file';
 import { installSelectionCopy } from './selection-copy';
-import { copySourceSelectionAsPlainText, rememberRenderedSource } from './selection-content';
+import { copySelectionWithFormat, type DefaultCopyFormat, rememberRenderedSource } from './selection-content';
 import { relativeImageSource } from './image-source';
 import './styles/selection-copy.css';
 import { diagramActionResult } from './diagram-actions';
@@ -616,6 +616,7 @@ interface RenderOptions {
     showLineNumbers?: boolean;
     showCopyButtons?: boolean;
     selectionCopy?: boolean;
+    defaultCopyFormat?: DefaultCopyFormat;
     followFile?: boolean;
     /** Follow sends only appended text; this is the length of the source it extends. */
     followAppendBase?: number;
@@ -744,6 +745,7 @@ declare global {
         requestPinchZoom: (base: number, delta: number, point: ZoomPoint) => number | null;
         requestZoomLevel: (level: number, point?: ZoomPoint) => void;
         setFontSize: (px: number) => void;
+        setDefaultCopyFormat: (format: string) => void;
         adjustFontSize: (delta: number) => void;
         showSearch: () => void;
         hideSearch: () => void;
@@ -1038,6 +1040,9 @@ window.renderMarkdown = async function (text: string, options: RenderOptions = {
     }
 
     outputDiv.classList.remove('source-mode');
+    if (options.defaultCopyFormat !== undefined) {
+        window.setDefaultCopyFormat(options.defaultCopyFormat);
+    }
 
     document.documentElement.setAttribute('data-document-format', 'markdown');
 
@@ -1855,8 +1860,13 @@ document.addEventListener('keydown', (e: KeyboardEvent) => {
     }
 });
 
+let currentDefaultCopyFormat: DefaultCopyFormat = 'rich-text';
+window.setDefaultCopyFormat = function(format: string) {
+    currentDefaultCopyFormat = format === 'markdown' || format === 'plain-text' ? format : 'rich-text';
+};
+
 document.addEventListener('copy', (e: ClipboardEvent) => {
-    copySourceSelectionAsPlainText(e, document.getElementById('markdown-preview'));
+    copySelectionWithFormat(e, document.getElementById('markdown-preview'), currentDefaultCopyFormat);
 });
 
 window.setFontSize = function(px: number) {

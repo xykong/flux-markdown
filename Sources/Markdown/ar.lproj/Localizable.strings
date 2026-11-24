@@ -372,3 +372,10 @@
 "Showing the first %1$@ of %2$@." = "يتم عرض أول %1$@ من أصل %2$@.";
 "Reveal in Finder" = "إظهار في فايندر";
 "The file is too large to open in FluxMarkdown. Reveal it in Finder to open it with another editor." = "الملف أكبر من أن يفتحه FluxMarkdown. أظهره في فايندر لفتحه في محرر آخر.";
+
+/* Default copy format */
+"Default Copy Format (⌘C)" = "تنسيق النسخ الافتراضي (⌘C)";
+"Choose what Command-C copies in rendered preview" = "اختر ما ينسخه Command-C في وضع المعاينة";
+"Rich Text" = "نص منسّق";
+"Markdown Source" = "مصدر Markdown";
+"Plain Text" = "نص عادي";
