@@ -179,22 +179,32 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
             throw new Error('Truncated TSV copy should use the native selection');
           window.renderSource(richSource,'light',undefined,{context:'quicklook',selectionCopy:true});
           copyAllSource();
-          window.renderSource(richSource,'light',undefined,{context:'quicklook',selectionCopy:true,showCopyButtons:true});
-          const row=root.querySelector('.source-diff-line');
-          const selectedRow=document.createRange();selectedRow.selectNodeContents(row);
-          const dragSelection=getSelection();dragSelection.removeAllRanges();dragSelection.addRange(selectedRow);
-          for (const [target, event] of [
-            [window, new PointerEvent('pointerup',{clientX:40,clientY:-15})],
-            [row, new PointerEvent('pointerup',{bubbles:true,clientX:40,clientY:-15})],
-            [window, new PointerEvent('pointercancel')],
-            [window, new Event('blur')],
-          ]) {
-            row.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0}));
-            target.dispatchEvent(event);
-            const tools=root.querySelector('.selection-copy-tools');
-            for (const deadline=Date.now()+1500;(tools.hidden || tools.hasAttribute('data-offscreen')) && Date.now()<deadline;)
-              await new Promise(resolve=>requestAnimationFrame(resolve));
-            if(tools.hidden || tools.hasAttribute('data-offscreen'))throw new Error('Copy tools did not recover after '+event.type);
+          // A windowless WKWebView can suspend animation frames. Keep the
+          // event dispatch and geometry real while driving the scheduled update.
+          const frame=window.requestAnimationFrame, cancelFrame=window.cancelAnimationFrame;
+          window.requestAnimationFrame=callback=>setTimeout(()=>callback(performance.now()),0);
+          window.cancelAnimationFrame=id=>clearTimeout(id);
+          try {
+            window.renderSource(richSource,'light',undefined,{context:'quicklook',selectionCopy:true,showCopyButtons:true});
+            const row=root.querySelector('.source-diff-line');
+            const selectedRow=document.createRange();selectedRow.selectNodeContents(row);
+            const dragSelection=getSelection();dragSelection.removeAllRanges();dragSelection.addRange(selectedRow);
+            for (const [target, event] of [
+              [window, new PointerEvent('pointerup',{clientX:40,clientY:-15})],
+              [row, new PointerEvent('pointerup',{bubbles:true,clientX:40,clientY:-15})],
+              [window, new PointerEvent('pointercancel')],
+              [window, new Event('blur')],
+            ]) {
+              row.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0}));
+              target.dispatchEvent(event);
+              const tools=root.querySelector('.selection-copy-tools');
+              for (const deadline=Date.now()+1500;(tools.hidden || tools.hasAttribute('data-offscreen')) && Date.now()<deadline;)
+                await new Promise(resolve=>setTimeout(resolve,20));
+              if(tools.hidden || tools.hasAttribute('data-offscreen'))throw new Error('Copy tools did not recover after '+event.type);
+            }
+          } finally {
+            window.requestAnimationFrame=frame;
+            window.cancelAnimationFrame=cancelFrame;
           }
           // Search input inside Source View must not be intercepted.
           const input=document.createElement('input');
