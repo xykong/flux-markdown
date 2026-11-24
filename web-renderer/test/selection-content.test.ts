@@ -1,6 +1,6 @@
 import { DiffAnimator } from '../src/diff-animator';
 import { computeLineDiff } from '../src/diff-engine';
-import { copySourceSelectionAsPlainText, selectedContent } from '../src/selection-content';
+import { copySelectionWithFormat, copySourceSelectionAsPlainText, selectedContent } from '../src/selection-content';
 import { rememberDiagramSource } from '../src/diagram-source-store';
 import { rememberRenderedSource } from '../src/selection-content';
 
@@ -336,5 +336,115 @@ describe('copySourceSelectionAsPlainText', () => {
         expect(copySourceSelectionAsPlainText(event, root)).toBe(true);
         expect(isPrevented()).toBe(true);
         expect(data.get('text/plain')).toBe('### Heading\nParagraph');
+    });
+});
+
+describe('rendered preview markdown copy preserves exact inter-block line breaks and honors defaultCopyFormat', () => {
+    function makeCopyEvent(target: EventTarget) {
+        const data = new Map<string, string>();
+        let prevented = false;
+        const event = {
+            target,
+            clipboardData: {
+                setData: (type: string, value: string) => { data.set(type, value); },
+                getData: (type: string) => data.get(type) ?? '',
+            },
+            preventDefault: () => { prevented = true; },
+        } as unknown as ClipboardEvent;
+        return { event, data, isPrevented: () => prevented };
+    }
+
+    function selectRange(range: Range) {
+        const selection = window.getSelection()!;
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+
+    function renderMappedPreview(source: string, html: string) {
+        document.body.innerHTML = `<div id="markdown-preview" class="markdown-body">${html}</div>`;
+        const root = document.getElementById('markdown-preview')!;
+        rememberRenderedSource(root, source, 0);
+        return root;
+    }
+
+    test('preserves 0 blank lines, 1 blank line, and 2+ blank lines between selected blocks', () => {
+        const source = [
+            '### 1.1 Section',
+            'Paragraph directly below heading.',
+            '',
+            '### 1.2 Details',
+            '- first item',
+            '- second item',
+            '',
+            '',
+            'After two blank lines.',
+        ].join('\n');
+        const html = [
+            '<h3 data-source-line="1" data-source-line-end="1">1.1 Section</h3>',
+            '<p data-source-line="2" data-source-line-end="2">Paragraph directly below heading.</p>',
+            '<h3 data-source-line="4" data-source-line-end="4">1.2 Details</h3>',
+            '<ul data-source-line="5" data-source-line-end="6"><li>first item</li><li>second item</li></ul>',
+            '<p data-source-line="9" data-source-line-end="9">After two blank lines.</p>',
+        ].join('');
+        const root = renderMappedPreview(source, html);
+        const range = document.createRange();
+        range.selectNodeContents(root);
+        expect(selectedContent(root, range, 'markdown')).toBe(source);
+    });
+
+    test('preserves exact blank lines for partial cross-block selections', () => {
+        const source = 'First **bold** end\n\n\nStart *italic* second';
+        const html = '<p data-source-line="1" data-source-line-end="1">First <strong>bold</strong> end</p>' +
+            '<p data-source-line="4" data-source-line-end="4">Start <em>italic</em> second</p>';
+        const root = renderMappedPreview(source, html);
+        const ps = root.querySelectorAll('p');
+        const range = document.createRange();
+        range.setStart(ps[0].querySelector('strong')!.firstChild!, 0);
+        range.setEnd(ps[1].querySelector('em')!.firstChild!, 6);
+        expect(selectedContent(root, range, 'markdown')).toBe('**bold** end\n\n\nStart *italic*');
+    });
+
+    test('copySelectionWithFormat respects rich-text, markdown, and plain-text in rendered view', () => {
+        const source = '### Heading\nParagraph **bold**\n\n\nNext line';
+        const html = '<h3 data-source-line="1" data-source-line-end="1">Heading</h3>' +
+            '<p data-source-line="2" data-source-line-end="2">Paragraph <strong>bold</strong></p>' +
+            '<p data-source-line="5" data-source-line-end="5">Next line</p>';
+        const root = renderMappedPreview(source, html);
+        const range = document.createRange();
+        range.selectNodeContents(document.body);
+        selectRange(range);
+
+        const rich = makeCopyEvent(root);
+        expect(copySelectionWithFormat(rich.event, root, 'rich-text')).toBe(false);
+        expect(rich.isPrevented()).toBe(false);
+        expect(rich.data.size).toBe(0);
+
+        const md = makeCopyEvent(root);
+        expect(copySelectionWithFormat(md.event, root, 'markdown')).toBe(true);
+        expect(md.isPrevented()).toBe(true);
+        expect(Array.from(md.data.keys())).toEqual(['text/plain']);
+        expect(md.data.get('text/plain')).toBe(source);
+
+        const plain = makeCopyEvent(root);
+        expect(copySelectionWithFormat(plain.event, root, 'plain-text')).toBe(true);
+        expect(plain.isPrevented()).toBe(true);
+        expect(Array.from(plain.data.keys())).toEqual(['text/plain']);
+        expect(plain.data.get('text/plain')).toBe('Heading\n\nParagraph bold\n\nNext line');
+    });
+
+    test('copySelectionWithFormat does not intercept editable inputs even in markdown mode', () => {
+        const root = renderMappedPreview('### Heading', '<h3 data-source-line="1" data-source-line-end="1">Heading</h3>');
+        const input = document.createElement('input');
+        input.value = 'find';
+        document.body.prepend(input);
+        input.focus();
+
+        const range = document.createRange();
+        range.selectNodeContents(root);
+        selectRange(range);
+
+        const ev = makeCopyEvent(input);
+        expect(copySelectionWithFormat(ev.event, root, 'markdown')).toBe(false);
+        expect(ev.isPrevented()).toBe(false);
     });
 });

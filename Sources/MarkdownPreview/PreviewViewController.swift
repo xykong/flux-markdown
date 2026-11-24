@@ -1643,6 +1643,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
         let capturedCollapseBlockquotes = AppearancePreference.shared.collapseBlockquotesByDefault
         let capturedContentsSide = AppearancePreference.shared.contentsSide.rawValue
         let capturedShowCopyButtons = AppearancePreference.shared.showCopyButtons
+        let capturedDefaultCopyFormat = AppearancePreference.shared.defaultCopyFormat.rawValue
         let capturedShowLineNumbers = AppearancePreference.shared.showLineNumbers
         let capturedPrevMarkdown = self.prevMarkdown
         let capturedPreviewMode = self.currentPreviewMode
@@ -1664,7 +1665,7 @@ public class PreviewViewController: NSViewController, QLPreviewingController, WK
             guard let self = self else { return }
             
             let contextValue = capturedPreviewMode == .compact ? "finder" : "quicklook"
-            var options: [String: Any] = ["theme": theme, "context": contextValue, "uiLanguage": capturedUILanguage, "collapseBlockquotes": capturedCollapseBlockquotes, "showLineNumbers": capturedShowLineNumbers, "showCopyButtons": capturedShowCopyButtons, "contentsSide": capturedContentsSide, "fontSize": capturedFontSize, "renderVersion": capturedRenderVersion]
+            var options: [String: Any] = ["theme": theme, "context": contextValue, "uiLanguage": capturedUILanguage, "collapseBlockquotes": capturedCollapseBlockquotes, "showLineNumbers": capturedShowLineNumbers, "showCopyButtons": capturedShowCopyButtons, "defaultCopyFormat": capturedDefaultCopyFormat, "contentsSide": capturedContentsSide, "fontSize": capturedFontSize, "renderVersion": capturedRenderVersion]
             options["documentGeneration"] = capturedDocumentGeneration
             options["followFile"] = capturedFollowCapability
             if appended != nil { options["followAppendBase"] = baseLength }

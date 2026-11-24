@@ -190,15 +190,25 @@ final class RendererIntegration: NSObject, WKScriptMessageHandler {
             input.dispatchEvent(evInput);
             if(evInput.defaultPrevented)throw new Error('Source copy intercepted search input');
           } finally {input.remove();}
-          // Rendered view must keep native rich-text copy untouched.
-          await window.renderMarkdown('### Heading\\n\\nHello **world**',{context:'quicklook',selectionCopy:true});
+          // Rendered view keeps native rich-text copy by default, and writes exact Markdown source
+          // (preserving 0-blank-line and multi-blank-line boundaries) when defaultCopyFormat is 'markdown'.
+          const previewSource='### 1.1 Heading\\nParagraph below heading\\n\\n\\nAfter two blank lines';
+          await window.renderMarkdown(previewSource,{context:'quicklook',selectionCopy:true,defaultCopyFormat:'rich-text'});
           const renderedRange=document.createRange();
           renderedRange.selectNodeContents(root);
           const selRendered=getSelection();selRendered.removeAllRanges();selRendered.addRange(renderedRange);
           const dtRendered=new DataTransfer();
           const evRendered=new ClipboardEvent('copy',{bubbles:true,cancelable:true,clipboardData:dtRendered});
           document.dispatchEvent(evRendered);
-          if(evRendered.defaultPrevented)throw new Error('Rendered view copy should not be intercepted');
+          if(evRendered.defaultPrevented)throw new Error('Rendered view rich-text copy should not be intercepted');
+          window.setDefaultCopyFormat('markdown');
+          const dtMd=new DataTransfer();
+          const evMd=new ClipboardEvent('copy',{bubbles:true,cancelable:true,clipboardData:dtMd});
+          document.dispatchEvent(evMd);
+          if(!evMd.defaultPrevented)throw new Error('Rendered view markdown copy was not intercepted');
+          if(dtMd.types.length!==1 || dtMd.types[0]!=='text/plain')throw new Error('Unexpected markdown copy types: '+dtMd.types.join(','));
+          if(dtMd.getData('text/plain')!==previewSource)throw new Error('Markdown copy mismatch: '+JSON.stringify(dtMd.getData('text/plain')));
+          window.setDefaultCopyFormat('rich-text');
         } finally {window.blockCopyResult=original;}
         return true;
         """),

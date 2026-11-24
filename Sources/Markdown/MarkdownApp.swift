@@ -310,6 +310,7 @@ private struct DocumentPreviewScene: View {
                 collapseBlockquotesByDefault: preference.collapseBlockquotesByDefault,
                 showLineNumbers: preference.showLineNumbers,
                 showCopyButtons: preference.showCopyButtons,
+                defaultCopyFormat: preference.defaultCopyFormat,
                 contentsSide: preference.contentsSide,
                 starReminder: starReminder
             )

@@ -393,6 +393,36 @@ struct RenderingSettingsView: View {
                     icon: "doc.on.doc",
                     isOn: Binding(get: { preference.showCopyButtons }, set: { preference.showCopyButtons = $0 })
                 )
+                Divider().padding(.leading, 52)
+                HStack(spacing: 12) {
+                    Image(systemName: "doc.on.clipboard")
+                        .font(.system(size: 16))
+                        .foregroundColor(.accentColor)
+                        .frame(width: 28)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(NSLocalizedString("Default Copy Format (⌘C)", comment: "Default copy format setting title"))
+                            .font(.system(size: 13))
+                        Text(NSLocalizedString("Choose what Command-C copies in rendered preview", comment: "Default copy format setting subtitle"))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+
+                    Spacer()
+
+                    Picker(
+                        NSLocalizedString("Default Copy Format (⌘C)", comment: "Default copy format setting title"),
+                        selection: Binding(get: { preference.defaultCopyFormat }, set: { preference.defaultCopyFormat = $0 })
+                    ) {
+                        ForEach(DefaultCopyFormat.allCases) { format in
+                            Text(format.displayName).tag(format)
+                        }
+                    }
+                    .labelsHidden()
+                    .frame(width: 160)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
             }
             .background(Color(NSColor.controlBackgroundColor))
             .cornerRadius(8)

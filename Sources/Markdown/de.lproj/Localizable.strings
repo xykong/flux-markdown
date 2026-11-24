@@ -377,3 +377,10 @@
 "Showing the first %1$@ of %2$@." = "Die ersten %1$@ von %2$@ werden angezeigt.";
 "Reveal in Finder" = "Im Finder zeigen";
 "The file is too large to open in FluxMarkdown. Reveal it in Finder to open it with another editor." = "Die Datei ist zu groß für FluxMarkdown. Zeige sie im Finder, um sie in einem anderen Editor zu öffnen.";
+
+/* Default copy format */
+"Default Copy Format (⌘C)" = "Standard-Kopierformat (⌘C)";
+"Choose what Command-C copies in rendered preview" = "Festlegen, was Befehlstaste-C in der Vorschau kopiert";
+"Rich Text" = "Formatierter Text";
+"Markdown Source" = "Markdown-Quelltext";
+"Plain Text" = "Klartext";

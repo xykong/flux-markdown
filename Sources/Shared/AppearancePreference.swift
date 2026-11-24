@@ -37,6 +37,22 @@ public enum ContentsSidebarSide: String, CaseIterable, Identifiable {
     }
 }
 
+public enum DefaultCopyFormat: String, CaseIterable, Identifiable {
+    case richText = "rich-text"
+    case markdown = "markdown"
+    case plainText = "plain-text"
+
+    public var id: String { rawValue }
+
+    public var displayName: String {
+        switch self {
+        case .richText: return NSLocalizedString("Rich Text", comment: "Default copy format option")
+        case .markdown: return NSLocalizedString("Markdown Source", comment: "Default copy format option")
+        case .plainText: return NSLocalizedString("Plain Text", comment: "Default copy format option")
+        }
+    }
+}
+
 public class AppearancePreference: ObservableObject {
     public static let shared = AppearancePreference()
     
@@ -155,6 +171,7 @@ public class AppearancePreference: ObservableObject {
     private let uiLanguageKey = "uiLanguage"
     private let contentsSideKey = "contentsSide"
     private let showCopyButtonsKey = "showCopyButtons"
+    private let defaultCopyFormatKey = "defaultCopyFormat"
     private let showLineNumbersKey = "showLineNumbers"
     private let finderPaneFontSizeKey = "finderPaneFontSize"
 
@@ -290,6 +307,16 @@ public class AppearancePreference: ObservableObject {
             objectWillChange.send()
             recordSetting(key: showCopyButtonsKey, newValue: newValue, source: .settings)
             sharedStore.set(newValue, forKey: showCopyButtonsKey)
+            scheduleSyncToSharedStore()
+        }
+    }
+
+    public var defaultCopyFormat: DefaultCopyFormat {
+        get { DefaultCopyFormat(rawValue: sharedStore.string(forKey: defaultCopyFormatKey) ?? DefaultCopyFormat.richText.rawValue) ?? .richText }
+        set {
+            objectWillChange.send()
+            recordSetting(key: defaultCopyFormatKey, newValue: newValue.rawValue, source: .settings)
+            sharedStore.set(newValue.rawValue, forKey: defaultCopyFormatKey)
             scheduleSyncToSharedStore()
         }
     }

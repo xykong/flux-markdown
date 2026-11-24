@@ -169,6 +169,7 @@ struct ErrorIncident: Codable {
             case "preferredAppearanceMode": return ["system", "light", "dark"].contains(value)
             case "uiLanguage": return ["system", "en", "zh-Hans", "zh", "de", "fr", "es", "ar"].contains(value)
             case "contentsSide": return ["left", "right"].contains(value)
+            case "defaultCopyFormat": return ["rich-text", "markdown", "plain-text"].contains(value)
             case "codeHighlightTheme": return ["default", "github", "monokai", "atom-one-dark"].contains(value)
             default: return false
             }

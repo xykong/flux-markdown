@@ -9,7 +9,8 @@ enum DiagnosticSettings {
         "baseFontSize": 14.0, "finderPaneFontSize": 13.0,
         "codeHighlightTheme": "default", "enableMermaid": true,
         "enableKatex": true, "enableEmoji": true, "enableTypst": true,
-        "contentsSide": "right", "collapseBlockquotesByDefault": false, "showLineNumbers": false, "showCopyButtons": true
+        "contentsSide": "right", "collapseBlockquotesByDefault": false, "showLineNumbers": false, "showCopyButtons": true,
+        "defaultCopyFormat": "rich-text"
     ]
     static let sliders: Set<String> = ["baseFontSize", "finderPaneFontSize"]
 
@@ -33,6 +34,8 @@ enum DiagnosticSettings {
             return enumValue(raw, allowed: ["system", "en", "de", "fr", "es", "zh", "zh-Hans", "ar"])
         case "contentsSide":
             return enumValue(raw, allowed: ["left", "right"])
+        case "defaultCopyFormat":
+            return enumValue(raw, allowed: ["rich-text", "markdown", "plain-text"])
         case "codeHighlightTheme":
             return enumValue(raw, allowed: ["default", "github", "monokai", "atom-one-dark"])
         case "baseFontSize", "finderPaneFontSize":

@@ -6,6 +6,7 @@ import { originalDiagramSource } from './diagram-source-store';
 import { relativeImageSource } from './image-source';
 
 export type CopyFormat = 'plain' | 'markdown';
+export type DefaultCopyFormat = 'rich-text' | 'markdown' | 'plain-text';
 const ignored = '.block-copy-tools,.selection-copy-tools,.diagram-tools,.mermaid-tools,.error-feedback-controls,.blockquote-placeholder,.source-diff-gutter,.diff-char-removed,script,style,[hidden],[aria-hidden="true"]';
 const editableInput = 'input,textarea,select,[contenteditable="true"]';
 const converter = new TurndownService({ codeBlockStyle: 'fenced', emDelimiter: '*', bulletListMarker: '-' });
@@ -70,6 +71,8 @@ export function selectedContent(root: HTMLElement, range: Range, format: CopyFor
         const raw = sourceBlock ? blockSource(node) : undefined;
         if (raw !== undefined) {
             const block = document.createElement('div'); block.textContent = raw; block.dataset.selectionSource = raw;
+            block.setAttribute('data-source-line', node.getAttribute('data-source-line')!);
+            block.setAttribute('data-source-line-end', node.getAttribute('data-source-line-end')!);
             return block;
         }
         // A whole rendered diagram copies as the fenced source it came from.
@@ -127,6 +130,41 @@ export function selectedContent(root: HTMLElement, range: Range, format: CopyFor
         }
         return blockPlainText(fragment);
     }
+    if (lines && rendered) {
+        const hasDirectText = Array.from(fragment.childNodes).some(
+            child => child.nodeType === Node.TEXT_NODE && /\S/.test(child.textContent || ''),
+        );
+        const topElements = Array.from(fragment.children);
+        if (!hasDirectText && topElements.length > 1) {
+            const pieces: Array<{ text: string; start: number; end: number }> = [];
+            let allMapped = true;
+            for (const element of topElements) {
+                const start = Number(element.getAttribute('data-source-line'));
+                const end = Number(element.getAttribute('data-source-line-end'));
+                if (!Number.isInteger(start) || !Number.isInteger(end) || start <= rendered.firstLine || end < start || end - rendered.firstLine > lines.length) {
+                    allMapped = false;
+                    break;
+                }
+                const pieceText = element.hasAttribute('data-selection-source')
+                    ? (element as HTMLElement).dataset.selectionSource || ''
+                    : converter.turndown(element as HTMLElement).replace(/\s+$/, '');
+                if (pieceText) pieces.push({ text: pieceText, start, end });
+            }
+            if (allMapped && pieces.length > 0) {
+                let joined = pieces[0].text;
+                for (let i = 1; i < pieces.length; i++) {
+                    const prev = pieces[i - 1], curr = pieces[i];
+                    let prevLastLine = prev.end;
+                    while (prevLastLine > prev.start && !lines[prevLastLine - 1 - rendered.firstLine].trim()) {
+                        prevLastLine--;
+                    }
+                    const newlineCount = Math.max(1, curr.start - prevLastLine);
+                    joined += '\n'.repeat(newlineCount) + curr.text;
+                }
+                return joined;
+            }
+        }
+    }
     return converter.turndown(fragment);
 }
 converter.addRule('selection-source', {
@@ -181,6 +219,36 @@ export function copySourceSelectionAsPlainText(event: ClipboardEvent, root: HTML
     const clamped = clampRangeToRoot(root, selection.getRangeAt(0));
     if (!clamped) return false;
     const text = selectedContent(root, clamped, 'plain');
+    if (!text) return false;
+    event.preventDefault();
+    event.clipboardData.setData('text/plain', text);
+    return true;
+}
+
+/**
+ * Handles native Cmd+C according to view mode and user preference:
+ * - Source View always writes plain text without HTML/RTF.
+ * - Rendered View keeps native rich-text copy for `rich-text`, or writes plain-text
+ *   Markdown source / plain text when configured via `defaultCopyFormat`.
+ */
+export function copySelectionWithFormat(
+    event: ClipboardEvent,
+    root: HTMLElement | null,
+    defaultCopyFormat: DefaultCopyFormat = 'rich-text',
+): boolean {
+    if (!root || !event.clipboardData) return false;
+    if (root.classList.contains('source-mode')) {
+        return copySourceSelectionAsPlainText(event, root);
+    }
+    if (defaultCopyFormat === 'rich-text') return false;
+    if (isEditableInput(event.target as Node | null) || isEditableInput(document.activeElement)) return false;
+    const selection = window.getSelection();
+    if (!selection?.rangeCount || selection.isCollapsed) return false;
+    if (isEditableInput(selection.anchorNode) || isEditableInput(selection.focusNode)) return false;
+    const clamped = clampRangeToRoot(root, selection.getRangeAt(0));
+    if (!clamped) return false;
+    const format: CopyFormat = defaultCopyFormat === 'markdown' ? 'markdown' : 'plain';
+    const text = selectedContent(root, clamped, format);
     if (!text) return false;
     event.preventDefault();
     event.clipboardData.setData('text/plain', text);
