@@ -1,4 +1,7 @@
 ## [Unreleased]
+_无待发布的变更_
+
+## [1.60.918] - 2026-11-24
 ### Fixed
 - **Copying from Source View**: Preserve line breaks when pasting Markdown source into rich-text editors. Source selections copy as plain text, including across CRLF lines and file diffs. Thanks to [@Schnee013](https://github.com/Schnee013) for reporting and contributing the fix in [PR #78](https://github.com/xykong/flux-markdown/pull/78).
 - **Selecting text in Finder Quick Look**: Drag to select without moving the preview window, use double- and triple-click text selection, and keep the copy toolbar available after a drag ends at the edge of the preview. Thanks to [@Schnee013](https://github.com/Schnee013) for reporting and contributing these changes in [PR #79](https://github.com/xykong/flux-markdown/pull/79).
